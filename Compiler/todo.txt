@@ -1,0 +1,19 @@
+﻿
+
+
+xxx - copy exe/dll back to the right place
+xxx - compiling in diff thread
+
+load data file
+
+display treemap
+
+save rectangles
+
+mouse over info
+
+hit rectangle light up
+
+
+
+assemble dll if dll was selected

@@ -105,14 +105,23 @@ namespace XBuilder
                             line = line.Concat(reader.SplitNextLine(XIL)).ToArray();
 
                         // method is the name with the ( in it
-                        string name = line.Where(s => s.Contains('(')).FirstOrDefault();
+                        string name = line.Where(s => s.Contains('(')).LastOrDefault(); //pinvokes can have afdaf( before method name
 
                         name = name.Substring(0, name.IndexOf('('));
 
                         CurrentNode = CurrentNode.AddNode(name, XObjType.Method);
 
-                        if(!name.StartsWith("'")) // don't track generated methods
-                            InjectMethodHit(CurrentNode);
+                        // dont inject tracking code under these conditions
+                        if (name.StartsWith("'") || // don't track generated methods
+                            line.Contains("abstract") ||
+                            line.Where(s => s.StartsWith("pinvokeimpl")).FirstOrDefault() != null ||
+                            (line.Contains("runtime") && line.Contains("managed")))// runtime managed at end of function indicates the body should be empty
+                        {
+                            CurrentNode.Exclude = true;
+                            continue;
+                        }
+
+                        InjectMethodHit(CurrentNode);
                     }
 
                     else if (line[0] == ".property") // ignore for now
@@ -123,20 +132,29 @@ namespace XBuilder
 
                     else if (line[0] == ".field")
                     {
-                        string name = line.LastOrDefault();
+                        //string name = line.LastOrDefault();
 
-                        XNodeOut fieldNode = CurrentNode.AddNode(name, XObjType.Field);
-                        fieldNode.Lines = 1;
+                        //XNodeOut fieldNode = CurrentNode.AddNode(name, XObjType.Field);
+                        //fieldNode.Lines = 1;
                     }
 
                     else if (CurrentNode.ObjType == XObjType.Method)
                     {
                         if (line[0].StartsWith(".entrypoint"))
                         {
+                            // inject gui after .custom instance void [mscorlib]System.STAThreadAttribute::.ctor() = ( 01 00 00 00 )
+                            // if not then thread state will not be set for app's gui
+
                             InjectGui();
                             //string[] line = reader.SplitNextLine(XIL);
                             //while (!line.Contains("{"))
-                             //   line = line.Concat(reader.SplitNextLine(XIL)).ToArray();
+                            //   line = line.Concat(reader.SplitNextLine(XIL)).ToArray();
+                        }
+
+                        else if (line[0].StartsWith(".maxstack") && line[1] == "1" && !CurrentNode.Exclude)
+                        {
+                            XIL.RemoveLine();
+                            XIL.AppendLine(".maxstack 2"); // increase stack for hit function
                         }
 
                         else if (line[0] == "{") // try, catch, finallys, inside one another

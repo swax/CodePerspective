@@ -23,6 +23,16 @@ namespace XLibrary
             return line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
+        public static void RemoveLine(this StringBuilder builder)
+        {
+            for (int i = builder.Length - 1 - 2; i > 0; i--) // backup past current line
+                if (builder[i] == '\r' && builder[i + 1] == '\n')
+                {
+                    builder.Length = i + 2;
+                    break;
+                }
+        }
+
         public static void Write(this FileStream stream, byte[] buffer)
         {
             stream.Write(buffer, 0, buffer.Length);
@@ -51,4 +61,6 @@ namespace XLibrary
             return rect;
         }
     }
+
+
 }

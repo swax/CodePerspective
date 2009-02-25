@@ -1,6 +1,6 @@
 ﻿namespace XBuilder
 {
-    partial class MainForm
+    partial class BuildForm
     {
         /// <summary>
         /// Required designer variable.
@@ -115,10 +115,11 @@
             this.RemoveLink.Text = "Remove";
             this.RemoveLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.RemoveLink_LinkClicked);
             // 
-            // Form1
+            // BuildForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(283, 233);
             this.Controls.Add(this.RemoveLink);
             this.Controls.Add(this.AddLink);
@@ -127,7 +128,7 @@
             this.Controls.Add(this.ReCompileButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.FileList);
-            this.Name = "Form1";
+            this.Name = "BuildForm";
             this.Text = "XRay";
             this.ResumeLayout(false);
             this.PerformLayout();

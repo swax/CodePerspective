@@ -1,19 +1,17 @@
 ﻿
 
 
-xxx - copy exe/dll back to the right place
-xxx - compiling in diff thread
-
-load data file
-
-display treemap
-
-save rectangles
-
-mouse over info
-
-hit rectangle light up
-
-
+fix entry inject code, test riseop
 
 assemble dll if dll was selected
+
+option to only show hit dlls
+
+recompile dependent dlls
+
+
+auto pe-verify
+
+add pe / ildasm to repo, test without entry fix
+
+insert start after custom instance

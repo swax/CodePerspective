@@ -12,43 +12,43 @@ namespace XLibrary
 {
     public static class XRay
     {
-        public static BitArray HitFunctions;
 
-        static Form MainForm;
+        static TreeForm MainForm;
 
-        static XNodeIn RootNode;
+        internal static XNodeIn RootNode;
+
+        internal const int HitFrames = 10;
+        internal static int HitIndex;
+        
+        internal static BitArray[] HitFunctions;
+        static int FunctionCount;
 
         public static void TestInit(string path)
         {
             LoadNodeMap(path);
 
-            MainForm = new Form();
-
-            MainForm.Controls.Add(new TreePanel(RootNode) { Dock = DockStyle.Fill });
-
+            MainForm = new TreeForm();
             MainForm.Show();
         }
 
-        [STAThread]
+        
         public static void Init()
         {
             string path = Path.Combine(Application.StartupPath , "XRay.dat");
 
             LoadNodeMap(path);
 
-            new Thread(ShowGui).Start();
-        }
+            HitFunctions = new BitArray[HitFrames];
 
-        [STAThread]
-        public static void Init(int count)
-        {
-            HitFunctions = new BitArray(count);
+            FunctionCount++; // so id can be accessed in 0 based index
 
-            // load data file
+            for (int i = 0; i < HitFrames; i++)
+                HitFunctions[i] = new BitArray(FunctionCount);
 
-            new Thread(ShowGui).Start();
 
-            // load data file of tree map and function id translations
+            Thread gui = new Thread(ShowGui);
+            gui.SetApartmentState(ApartmentState.STA);
+            gui.Start();
         }
 
         public static void ShowGui()
@@ -56,10 +56,7 @@ namespace XLibrary
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            MainForm = new Form();
-
-            MainForm.Controls.Add(new TreePanel(RootNode) { Dock = DockStyle.Fill });
-
+            MainForm = new TreeForm();
             Application.Run(MainForm);
         }
 
@@ -82,12 +79,16 @@ namespace XLibrary
                         node.Parent = nodeMap[node.ParentID];
                         node.Parent.Nodes.Add(node);
                     }
+
+                    if (node.ID > FunctionCount)
+                        FunctionCount = node.ID; 
                 }
             }
         }
 
         public static void Hit(int thread, int index)
         {
+
             //XRayDll.XRay.HitFunctions[index] = true;
 
             // remembering previous hit we could create a known function chain tracking whats called
@@ -96,7 +97,9 @@ namespace XLibrary
             if (MainForm == null) 
                 return; // wait for gui thread to boot up
 
-            MainForm.BeginInvoke(new Action(() => MessageBox.Show(index + " Called on Thread " + thread)));
+            HitFunctions[HitIndex][index] = true;
+            
+            //MainForm.BeginInvoke(new Action(() => MessageBox.Show(index + " Called on Thread " + thread)));
         }
     }
 }

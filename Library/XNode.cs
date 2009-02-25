@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,11 +17,11 @@ namespace XLibrary
     public class InputValue
     {
         public string Name;
-        public double Value;
+        public int Value;
 
         public InputValue() { }
 
-        public InputValue(string name, double value)
+        public InputValue(string name, int value)
         {
             Name = name;
             Value = value;
@@ -39,10 +40,12 @@ namespace XLibrary
 
         public string GetName()
         {
-            if (Parent == null)
+            if (Parent == null) // dont show name for root node
                 return "";
 
-            return Parent.GetName() + "." + Name;
+            string parent = Parent.GetName();
+
+            return (parent == "") ? Name : parent + "." + Name;
         }
     }
 
@@ -50,6 +53,7 @@ namespace XLibrary
     {
         static int NextID = 1;
 
+        public bool Exclude;
         public int Lines;
         public int Indent;
 
@@ -98,6 +102,9 @@ namespace XLibrary
 
         public void Write(FileStream stream, byte[] temp)
         {
+            if (Exclude)
+                return;
+
             // total size 4
             // name size 4
             // name x
@@ -146,6 +153,9 @@ namespace XLibrary
     internal class XNodeIn : XNode
     {
         internal int ParentID;
+        internal Rectangle Area;
+        internal bool Selected;
+
 
         internal static XNodeIn Read(FileStream stream)
         {

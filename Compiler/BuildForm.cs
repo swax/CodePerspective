@@ -12,9 +12,9 @@ using System.Windows.Forms;
 
 namespace XBuilder
 {
-    public partial class MainForm : Form
+    public partial class BuildForm : Form
     {
-        public MainForm()
+        public BuildForm()
         {
             InitializeComponent();
         }
@@ -98,9 +98,6 @@ namespace XBuilder
                 MessageBox.Show(item.ToString() + " has not been re-compiled yet");
                 return;
             }
-
-            XLibrary.XRay.TestInit(Path.Combine(Path.GetDirectoryName(item.RecompiledPath),"XRay.dat"));
-            return;
 
             Process.Start(item.RecompiledPath);
         }

@@ -147,7 +147,20 @@ namespace XLibrary
                 rectPen = HighlightPen;
 
 
-            // check if function is hit
+            // blue selection area
+            SolidBrush rectBrush = NothingBrush;
+            if (node.Selected)
+            {
+                if (depth > OverBrushes.Length - 1)
+                    depth = OverBrushes.Length - 1;
+
+                rectBrush = OverBrushes[depth];
+            }
+
+            buffer.FillRectangle(rectBrush, node.Area);
+            
+
+            // red hit check if function is hit
             if(XRay.HitFunctions != null)
                 for (int i = 0; i < XRay.HitFrames; i++)
                 {
@@ -163,14 +176,7 @@ namespace XLibrary
                     }
                 }
 
-            SolidBrush rectBrush = NothingBrush;
-            if (node.Selected)
-            {
-                if (depth > OverBrushes.Length - 1)
-                    depth = OverBrushes.Length - 1;
 
-                rectBrush = OverBrushes[depth];
-            }
 
             /*switch (node.ObjType)
             {
@@ -191,7 +197,7 @@ namespace XLibrary
                     break;
             }*/
 
-            buffer.FillRectangle(rectBrush, node.Area);
+            
 
             buffer.DrawRectangle(rectPen, node.Area);
 

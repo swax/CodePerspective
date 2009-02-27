@@ -145,10 +145,32 @@ namespace XBuilder
                             // inject gui after .custom instance void [mscorlib]System.STAThreadAttribute::.ctor() = ( 01 00 00 00 )
                             // if not then thread state will not be set for app's gui
 
-                            InjectGui();
-                            //string[] line = reader.SplitNextLine(XIL);
-                            //while (!line.Contains("{"))
-                            //   line = line.Concat(reader.SplitNextLine(XIL)).ToArray();
+                            // save spot
+
+                            bool found = false;
+                            List<string> lines = new List<string>();
+
+                            string scan = "";
+
+                            while (!scan.Contains("} // end of method"))
+                            {
+                                scan = reader.ReadLine();
+                                lines.Add(scan);
+
+                                if (scan.Contains(".custom"))
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                                InjectGui();
+
+                            lines.ForEach(s => XIL.AppendLine(s));
+
+                            if(found)
+                                InjectGui();
                         }
 
                         else if (line[0].StartsWith(".maxstack") && line[1] == "1" && !CurrentNode.Exclude)

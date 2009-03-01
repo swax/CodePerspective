@@ -1,7 +1,17 @@
 ﻿
+fix selection bug
+
+check that path added is in same dir as other files
+add everything to root, save nodes last step
+
+test with release mode
 
 
-fix entry inject code, test riseop
+replace [nlipsum.core] refs with [xray.nlipsum.core]
+
+compile as dll if dll
+copy over dll to final dir
+
 
 assemble dll if dll was selected
 

@@ -17,7 +17,9 @@ namespace XBuilder
         string DasmPath;
         string ILPath;
         string AsmDir;
-        
+
+        List<string> Assemblies = new List<string>();
+
         XNodeOut RootNode;
         XNodeOut CurrentNode;
 
@@ -25,16 +27,19 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
-        public XDecompile(string path)
+
+        public XDecompile(XNodeOut root, string path, List<string> assemblies)
         {
+            RootNode = root;
             OriginalPath = path;
+            Assemblies = assemblies;
         }
 
         internal void Decompile()
         {
             string ildasm = Path.Combine(Application.StartupPath, "ildasm.exe");
 
-            string name = Path.GetFileNameWithoutExtension(OriginalPath);
+            string name = Path.GetFileName(OriginalPath);
 
             // create directories
             AsmDir = Path.Combine(Application.StartupPath, name);
@@ -61,10 +66,11 @@ namespace XBuilder
 
         internal void ScanLines()
         {
-            RootNode = new XNodeOut(null, "root", XObjType.Root);
             CurrentNode = RootNode;
 
-            InjectLibrary("XLibrary", "3:5:0:0");
+            InjectLibrary("XLibrary", "1:0:0:0");
+
+            bool stripSig = false;
 
             using (StreamReader reader = new StreamReader(ILPath))
             {
@@ -75,14 +81,51 @@ namespace XBuilder
                     if (line.Length == 0)
                         continue;
 
+                    else if (line[0] == ".assembly")
+                    { 
+                        // get last element, if in assemblies, replace with xray version
+                        stripSig = false;
+                        string assembly = line[line.Length - 1];
+
+                        // assemblies are referenced externally by xray. prefix, internally namespace names are the same
+                        if(Assemblies.Contains(assembly))
+                        {
+                            line[line.Length - 1] = "XRay." + line[line.Length - 1];
+                            XIL.RemoveLine();
+                            XIL.AppendLine(String.Join(" ", line));
+                            stripSig = true;
+                        }
+                    }
+                        
+                    // the result dll is changed so a strong sig links need to be removed
+                    else if (line[0] == ".publickeytoken")
+                    {
+                        if(stripSig)
+                            XIL.RemoveLine();
+                    }
+
+                    else if (line[0] == ".hash")
+                    {
+                        XIL.RemoveLine();
+                    }
+
+                    else if (line[0] == ".publickey")
+                    {
+                        XIL.RemoveLine();
+
+                        string nextLine = "";
+                        while(!nextLine.Contains(") //"))
+                            nextLine = reader.ReadLine();
+                    }
+
                     else if (line[0] == ".class")
                     {
                         // read the whole class before the {
                         while (!line.Contains("{"))
                             line = line.Concat(reader.SplitNextLine(XIL)).ToArray();
 
-                        // right before the class is extended that is the name
-                        string name = line.TakeWhile(s => s != "extends").LastOrDefault();
+                        // right before the class is extended that is the7 name
+                        string name = line.TakeWhile(s => s != "extends" && s != "implements" && s != "{").LastOrDefault();
 
                         // add namespaces, and class, set current app obj to 
                         string[] namespaces = name.Split('.');
@@ -121,6 +164,38 @@ namespace XBuilder
                             continue;
                         }
 
+                        // scan for entry, break on .maxstack or }
+                        // read the whole method before the {
+                        // order method, entry, custom, maxstack, IL_
+                        bool entry = false;
+
+                        while (!line.Contains(".maxstack"))
+                        {
+                            line = reader.SplitNextLine(XIL);
+                            Debug.Assert(!line.Contains("}"));
+
+                            if (line.Contains(".entrypoint"))
+                                entry = true;
+
+                            // read until custom and insert entry
+                            // set entry to false
+                            // after found maxstack, if entry still true then insert gui
+                            if (entry && line.Contains(".custom"))
+                            {
+                                InjectGui();
+                                entry = false;
+                            }
+                        }
+
+                        if (line.Length > 1 && line[0] == ".maxstack" && line[1] == "1")
+                        {
+                            XIL.RemoveLine();
+                            XIL.AppendLine(".maxstack 2"); // increase stack enough for hit function
+                        }
+
+                        if (entry)
+                            InjectGui();
+
                         InjectMethodHit(CurrentNode);
                     }
 
@@ -140,7 +215,7 @@ namespace XBuilder
 
                     else if (CurrentNode.ObjType == XObjType.Method)
                     {
-                        if (line[0].StartsWith(".entrypoint"))
+                        /* (line[0].StartsWith(".entrypoint"))
                         {
                             // inject gui after .custom instance void [mscorlib]System.STAThreadAttribute::.ctor() = ( 01 00 00 00 )
                             // if not then thread state will not be set for app's gui
@@ -176,10 +251,10 @@ namespace XBuilder
                         else if (line[0].StartsWith(".maxstack") && line[1] == "1" && !CurrentNode.Exclude)
                         {
                             XIL.RemoveLine();
-                            XIL.AppendLine(".maxstack 2"); // increase stack for hit function
-                        }
+                            XIL.AppendLine(".maxstack 2"); // increase stack enough for hit function
+                        }*/
 
-                        else if (line[0] == "{") // try, catch, finallys, inside one another
+                        if (line[0] == "{") // try, catch, finallys, inside one another
                         {
                             CurrentNode.Indent++;
                         }
@@ -204,8 +279,9 @@ namespace XBuilder
                 }
             }
 
-            // sum up areas
-            RootNode.ComputeSums();
+            // change method call refs from old assembly to new
+            foreach (string assembly in Assemblies)
+                XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
         }
 
         private void InjectLibrary(string name, string version)
@@ -231,17 +307,6 @@ namespace XBuilder
             XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32, int32)");
         }
 
-        internal void SaveTree()
-        {
-            string path = Path.GetDirectoryName(OriginalPath);
-            path = Path.Combine(path, "XRay.dat");
-
-            byte[] temp = new byte[1024];
-
-            using(FileStream stream = new FileStream(path, FileMode.Create))
-                RootNode.Write(stream, temp);
-        }
-
         internal string Compile()
         {
             byte[] buffer = UTF8Encoding.UTF8.GetBytes(XIL.ToString());
@@ -254,16 +319,19 @@ namespace XBuilder
             // C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\ilasm.exe RiseOp
 
             // assemble file
-            ProcessStartInfo info = new ProcessStartInfo(ilasm, Path.GetFileNameWithoutExtension(ILPath));
+            ProcessStartInfo info = new ProcessStartInfo(ilasm, Path.GetFileName(ILPath));
             info.WorkingDirectory = AsmDir;
+
+            if (OriginalPath.EndsWith(".dll"))
+                info.Arguments += " /DLL";
+
             Process.Start(info).WaitForExit();
 
             // copy XLibrary to final destination
             File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(Path.GetDirectoryName(OriginalPath), "XLibrary.dll"), true);
 
-
             // copy compiled file
-            string recompliedPath = OriginalPath.Insert(OriginalPath.LastIndexOf('.'), ".XRay");
+            string recompliedPath = Path.Combine(Path.GetDirectoryName(OriginalPath), "XRay." + Path.GetFileName(OriginalPath));
 
             File.Delete(recompliedPath); // delete prev compiled file
 

@@ -10,10 +10,15 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
+using XLibrary;
+
 namespace XBuilder
 {
     public partial class BuildForm : Form
     {
+        string FilesDir;
+
+
         public BuildForm()
         {
             InitializeComponent();
@@ -23,9 +28,18 @@ namespace XBuilder
         {
             OpenFileDialog open = new OpenFileDialog();
             open.Filter = ".Net Assemblies|*.exe;*.dll";
+            open.Multiselect = true;
 
             if (open.ShowDialog() != DialogResult.OK)
                 return;
+
+            if (FilesDir == null)
+                FilesDir = Path.GetDirectoryName(open.FileName);
+            else if (FilesDir != Path.GetDirectoryName(open.FileName))
+            {
+                MessageBox.Show("Assemblies must all be in the same directory");
+                return;
+            }
 
             foreach(string path in open.FileNames)
                 FileList.Items.Add(new FileItem(path));
@@ -49,10 +63,17 @@ namespace XBuilder
 
                 try
                 {
+                    List<string> assemblies = new List<string>();
+
+                    foreach (FileItem item in files)
+                        assemblies.Add(Path.GetFileNameWithoutExtension(item.FilePath));
+
+                    XNodeOut root = new XNodeOut(null, "root", XObjType.Root);
+
                     // foreach flie
                     foreach (FileItem item in files)
                     {
-                        XDecompile file = new XDecompile(item.FilePath);
+                        XDecompile file = new XDecompile(root, item.FilePath, assemblies);
 
                         updateTitle("XRay - Decompiling...");
                         file.Decompile();
@@ -60,12 +81,12 @@ namespace XBuilder
                         updateTitle("XRay - Scanning...");
                         file.ScanLines();
 
-                        updateTitle("XRay - Saving...");
-                        file.SaveTree();
-
                         updateTitle("XRay - Compiling...");
                         item.RecompiledPath = file.Compile();
                     }
+
+                    updateTitle("XRay - Saving Map...");
+                    root.SaveTree(FilesDir);
                 }
                 catch (Exception ex)
                 {
@@ -98,6 +119,8 @@ namespace XBuilder
                 MessageBox.Show(item.ToString() + " has not been re-compiled yet");
                 return;
             }
+
+            //XRay.TestInit(Path.Combine(Path.GetDirectoryName(item.RecompiledPath), "XRay.dat"));
 
             Process.Start(item.RecompiledPath);
         }

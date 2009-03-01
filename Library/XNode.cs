@@ -100,6 +100,18 @@ namespace XLibrary
             return sum;
         }
 
+        public void SaveTree(string dir)
+        {
+            ComputeSums();
+
+            string path = Path.Combine(dir, "XRay.dat");
+
+            byte[] temp = new byte[1024];
+
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+                Write(stream, temp);
+        }
+
         public void Write(FileStream stream, byte[] temp)
         {
             if (Exclude)

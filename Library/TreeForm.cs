@@ -50,5 +50,19 @@ namespace XLibrary
 
             Text = text;
         }
+
+        private void ShowOnlyHitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.ShowOnlyHit = showOnlyHitToolStripMenuItem.Checked;
+            XRay.CoverChange = true; // force recalc
+            AppTreePanel.Redraw();
+        }
+
+        private void ResetMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.CoveredFunctions.SetAll(false);
+            XRay.CoverChange = true; // force recalc
+            AppTreePanel.Redraw();
+        }
     }
 }

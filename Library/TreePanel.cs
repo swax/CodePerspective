@@ -30,10 +30,12 @@ namespace XLibrary
         Pen MethodPen = new Pen(Color.DarkRed);
         Pen FieldPen = new Pen(Color.Black);
 
-        Pen HighlightPen = new Pen(Color.Black);
-
         SolidBrush NothingBrush = new SolidBrush(Color.White);
         SolidBrush[] OverBrushes = new SolidBrush[7];
+
+        SolidBrush TextBrush = new SolidBrush(Color.Black);
+        SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
+        Font TextFont = new Font("tahoma", 9, FontStyle.Bold);
 
         SolidBrush UnknownBrush = new SolidBrush(Color.Black);
         SolidBrush NamespaceBrush = new SolidBrush(Color.Coral);
@@ -76,7 +78,7 @@ namespace XLibrary
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
-            if (!DoRedraw && !DoResize)
+            if ((!DoRedraw && !DoResize) || Root == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
                 return;
@@ -87,27 +89,65 @@ namespace XLibrary
 
             buffer.Clear(Color.White);
 
-            if (Root != null && DoResize)
+            if (XRay.CoverChange)
+                RecalcCover(Root);
+                
+            if (DoResize || XRay.CoverChange)
                 SizeNode(buffer, Root, new Rectangle(0, 0, Width, Height));
-            
-            if (Root != null)
-                DrawNode(buffer, Root, 0);
-            
+
+            DrawNode(buffer, Root, 0);
+
+            // draw mouse over label
+            Point pos = PointToClient(Cursor.Position);
+            if (ClientRectangle.Contains(pos))
+            {
+                SizeF size = buffer.MeasureString(MainForm.SelectedLabel.Text, TextFont);
+
+                pos.Y -= (int)size.Height;
+
+                if (pos.X + size.Width > Width) pos.X = (int)(Width - size.Width);
+                if (pos.Y < 0) pos.Y = 0;
+
+                buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, size.Width, size.Height);
+                buffer.DrawString(MainForm.SelectedLabel.Text, TextFont, TextBrush, pos);
+            }
+
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
 
             DoRedraw = false;
             DoResize = false;
+            XRay.CoverChange = false;
+        }
+
+        private int RecalcCover(XNodeIn root)
+        {
+            // only leaves have real value
+            root.Value = (root.Nodes.Count == 0) ? root.Lines : 0;
+
+            foreach (XNodeIn node in root.Nodes)
+            {
+                node.Show = (!XRay.ShowOnlyHit || XRay.CoveredFunctions[node.ID]);
+
+                if (node.Show)
+                    root.Value += RecalcCover(node);
+            }
+
+            return root.Value;                
         }
 
         private void SizeNode(Graphics buffer, XNodeIn root, Rectangle area)
         {
-            root.Area = area;
-
-            if (root.Nodes.Count == 0)
+            if (!root.Show)
                 return;
 
-            List<Sector> sectors = new TreeMap().Plot(root.Nodes.Cast<InputValue>().ToList(), area.Size);
+            root.Area = area;
+
+            var nodes = root.Nodes.Cast<XNodeIn>()
+                            .Where(n => n.Show)
+                            .Select(n => n as InputValue);
+
+            List<Sector> sectors = new TreeMap().Plot(nodes, area.Size);
 
             foreach (Sector sector in sectors)
             {
@@ -122,6 +162,9 @@ namespace XLibrary
 
         private void DrawNode(Graphics buffer, XNodeIn node, int depth)
         {
+            if (!node.Show)
+                return;
+
             Pen rectPen = UnknownPen;
 
             switch (node.ObjType)
@@ -142,10 +185,6 @@ namespace XLibrary
                     rectPen = FieldPen;
                     break;
             }
-
-            if (node.Selected)
-                rectPen = HighlightPen;
-
 
             // blue selection area
             SolidBrush rectBrush = NothingBrush;
@@ -226,8 +265,7 @@ namespace XLibrary
 
         private void TreePanel_MouseMove(object sender, MouseEventArgs e)
         {
-            Selected.ForEach(n => n.Selected = false);
-            Selected.Clear();
+            ClearSelected();
 
             TestSelected(Root, e.Location);
 
@@ -249,7 +287,7 @@ namespace XLibrary
 
         private void TestSelected(XNodeIn node, Point loc)
         {
-            if (!node.Area.Contains(loc))
+            if (!node.Show || !node.Area.Contains(loc))
                 return;
 
             node.Selected = true;
@@ -301,10 +339,16 @@ namespace XLibrary
 
         private void TreePanel_MouseLeave(object sender, EventArgs e)
         {
-            Selected = new List<XNodeIn>();
+            ClearSelected();
 
             DoRedraw= true;
             Invalidate();
+        }
+
+        private void ClearSelected()
+        {
+            Selected.ForEach(n => n.Selected = false);
+            Selected.Clear();
         }
     }
 }

@@ -1,27 +1,10 @@
 ﻿
-fix selection bug
+option to only show hit dlls
 
-check that path added is in same dir as other files
-add everything to root, save nodes last step
 
 test with release mode
 
 
-replace [nlipsum.core] refs with [xray.nlipsum.core]
-
-compile as dll if dll
-copy over dll to final dir
-
-
-assemble dll if dll was selected
-
-option to only show hit dlls
-
-recompile dependent dlls
-
 
 auto pe-verify
 
-add pe / ildasm to repo, test without entry fix
-
-insert start after custom instance

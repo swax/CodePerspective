@@ -16,10 +16,15 @@ namespace XLibrary
         static TreeForm MainForm;
 
         internal static XNodeIn RootNode;
+        internal static Dictionary<int, XNode> NodeMap = new Dictionary<int, XNode>();
 
         internal const int HitFrames = 10;
         internal static int HitIndex;
-        
+        internal static bool ShowOnlyHit;
+
+        internal static bool CoverChange;
+        internal static BitArray CoveredFunctions;
+
         internal static BitArray[] HitFunctions;
         static int FunctionCount;
 
@@ -42,6 +47,8 @@ namespace XLibrary
 
             FunctionCount++; // so id can be accessed in 0 based index
 
+            CoveredFunctions = new BitArray(FunctionCount);
+
             for (int i = 0; i < HitFrames; i++)
                 HitFunctions[i] = new BitArray(FunctionCount);
 
@@ -62,21 +69,19 @@ namespace XLibrary
 
         static void LoadNodeMap(string path)
         {
-            Dictionary<int, XNode> nodeMap = new Dictionary<int, XNode>();
-
             using (FileStream stream = new FileStream(path, FileMode.Open))
             {
                 while (stream.Position < stream.Length)
                 {
                     XNodeIn node = XNodeIn.Read(stream);
-                    nodeMap[node.ID] = node;
+                    NodeMap[node.ID] = node;
 
                     if (RootNode == null)
                         RootNode = node;
 
-                    if (nodeMap.ContainsKey(node.ParentID))
+                    if (NodeMap.ContainsKey(node.ParentID))
                     {
-                        node.Parent = nodeMap[node.ParentID];
+                        node.Parent = NodeMap[node.ParentID];
                         node.Parent.Nodes.Add(node);
                     }
 
@@ -88,18 +93,23 @@ namespace XLibrary
 
         public static void Hit(int thread, int index)
         {
+            //if (MainForm == null) 
+            //    return; // wait for gui thread to boot up
 
-            //XRayDll.XRay.HitFunctions[index] = true;
+            if (!CoveredFunctions[index] && NodeMap.ContainsKey(index))
+            {
+                CoverChange = true;
 
-            // remembering previous hit we could create a known function chain tracking whats called
-
-
-            if (MainForm == null) 
-                return; // wait for gui thread to boot up
+                XNode node = NodeMap[index];
+                while (node != null)
+                {
+                    CoveredFunctions[node.ID] = true;
+                    node = node.Parent;
+                }
+                // clear cover change on paint
+            }
 
             HitFunctions[HitIndex][index] = true;
-            
-            //MainForm.BeginInvoke(new Action(() => MessageBox.Show(index + " Called on Thread " + thread)));
         }
     }
 }

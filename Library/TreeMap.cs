@@ -32,10 +32,10 @@ namespace XLibrary
         /// <param name="values">The values.</param>
         /// <param name="workArea">The work area.</param>
         /// <returns>A list of Sectors detailing how they should be layed out to create the TreeMap.</returns>
-        public List<Sector> Plot(List<InputValue> values, Size workArea)
+        public List<Sector> Plot(IEnumerable<InputValue> values, Size workArea)
         {
             Reset(workArea);
-            Squarify(1, PrepareSectors(values), new List<Sector>(), GetWidth());
+            Squarify(1, PrepareSectors(values).ToList(), new List<Sector>(), GetWidth());
 
             return outputSectors;
         }
@@ -64,32 +64,25 @@ namespace XLibrary
         /// </remarks>
         /// <param name="values">Input values.</param>
         /// <returns>The prepared sections</returns>
-        private List<Sector> PrepareSectors(List<InputValue> values)
+        private IEnumerable<Sector> PrepareSectors(IEnumerable<InputValue> values)
         {
-            // Sort Descending
-            values.Sort((x, y) => y.Value.CompareTo(x.Value));
-
             double totalArea = workAreaWidth * workAreaHeight;
-            double sumOfValues = 0;
-            values.ForEach(value => sumOfValues += value.Value);
-
+            double sumOfValues = values.Sum(value => value.Value);
+ 
             List<Sector> sectors = new List<Sector>();
 
-            foreach (InputValue inputValue in values)
+            foreach (InputValue inputValue in values.OrderByDescending(v => v.Value))
             {
                 double percentage = (inputValue.Value / sumOfValues) * 100;
                 double area = (totalArea / 100) * percentage;
 
-                sectors.Add(
-                        new Sector
+                yield return new Sector()
                         {
                             OriginalValue = inputValue,
                             Area = area,
                             Percentage = percentage
-                        });
+                        };
             }
-
-            return sectors;
         }
 
         /// <summary>
@@ -100,7 +93,7 @@ namespace XLibrary
         /// <param name="width">The width of the current row.</param>
         private void Squarify(int count, IList<Sector> values, List<Sector> currentRow, double width)
         {
-            if (width < 0 || width == 0 || width == double.NaN)
+            if (width < 0 || width == 0 || width == double.NaN || values.Count == 0)
                 return;
 
             count++;

@@ -60,6 +60,15 @@ namespace XLibrary
 
             return rect;
         }
+
+        public static IEnumerable<T> Do<T>(this IEnumerable<T> list, Action<T> method)
+        {
+            foreach (T obj in list)
+            {
+                method(obj);
+                yield return obj;
+            }
+        }
     }
 
 

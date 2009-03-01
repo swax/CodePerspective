@@ -92,7 +92,7 @@ namespace XLibrary
 
             int sum = Lines;
 
-            foreach (XNodeOut node in Nodes.Cast<XNodeOut>())
+            foreach (XNodeOut node in Nodes)
                 sum += node.ComputeSums();
 
             Value = sum;
@@ -165,9 +165,11 @@ namespace XLibrary
     internal class XNodeIn : XNode
     {
         internal int ParentID;
+        internal int Lines; // save here so final value can be manipulated
         internal Rectangle Area;
         internal bool Selected;
-
+        internal bool Show = true;
+        
 
         internal static XNodeIn Read(FileStream stream)
         {
@@ -188,6 +190,7 @@ namespace XLibrary
             node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
             node.Value = BitConverter.ToInt32(stream.Read(4), 0);
+            node.Lines = node.Value; 
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
 
             if(stream.Position < startPos + totalSize)

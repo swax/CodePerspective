@@ -305,6 +305,17 @@ namespace XBuilder
             XIL.AppendLine("callvirt   instance int32 [mscorlib]System.Threading.Thread::get_ManagedThreadId()");
             XIL.AppendLine("ldc.i4     " + node.ID.ToString());
             XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32, int32)");
+
+            if (node.Name == ".ctor")
+            {
+                XIL.AppendLine("ldc.i4     " + node.Parent.ID.ToString());
+                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Constructed(int32)");
+            }
+            else if (node.Name == "Finalize")
+            {
+                XIL.AppendLine("ldc.i4     " + node.Parent.ID.ToString());
+                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Deconstructed(int32)");
+            }
         }
 
         internal string Compile()

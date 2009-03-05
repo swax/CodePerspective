@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,21 +13,24 @@ namespace XLibrary
 {
     public static class XRay
     {
-
         static TreeForm MainForm;
 
         internal static XNodeIn RootNode;
         internal static Dictionary<int, XNode> NodeMap = new Dictionary<int, XNode>();
 
-        internal const int HitFrames = 10;
-        internal static int HitIndex;
-        internal static bool ShowOnlyHit;
+        static int FunctionCount;
 
+        internal static bool ShowOnlyHit;
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
+        internal const int HitFrames = 10;
+        internal static int HitIndex;
         internal static BitArray[] HitFunctions;
-        static int FunctionCount;
+
+        internal static bool TrackInstances = true;
+        internal static int[] InstanceCount;
+
 
         public static void TestInit(string path)
         {
@@ -48,6 +52,9 @@ namespace XLibrary
             FunctionCount++; // so id can be accessed in 0 based index
 
             CoveredFunctions = new BitArray(FunctionCount);
+
+            if (TrackInstances)
+                InstanceCount = new int[FunctionCount];
 
             for (int i = 0; i < HitFrames; i++)
                 HitFunctions[i] = new BitArray(FunctionCount);
@@ -110,6 +117,27 @@ namespace XLibrary
             }
 
             HitFunctions[HitIndex][index] = true;
+
+            // keep 6 lists around for diff threads
+            // map thread id to list pos
+            // keep track of how often each thread list is updated
+        }
+
+        public static void Constructed(int index)
+        {
+            InstanceCount[index]++;
+        }
+
+        public static void Deconstructed(int index)
+        {
+            InstanceCount[index]--;
+
+            // below happens if app calls finalize multiple times (should not happen)
+            if (InstanceCount[index] < 0)
+            {
+                InstanceCount[index] = 0;
+                Debug.Assert(false);
+            }
         }
     }
 }

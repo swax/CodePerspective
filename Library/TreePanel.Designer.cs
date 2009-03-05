@@ -41,7 +41,6 @@
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseDoubleClick);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseClick);
             this.Resize += new System.EventHandler(this.TreePanel_Resize);
-            this.MouseHover += new System.EventHandler(this.TreePanel_MouseHover);
             this.ResumeLayout(false);
 
         }

@@ -37,6 +37,9 @@ namespace XLibrary
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
         Font TextFont = new Font("tahoma", 9, FontStyle.Bold);
 
+        Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
+        SolidBrush InstanceBrush = new SolidBrush(Color.Black);
+
         SolidBrush UnknownBrush = new SolidBrush(Color.Black);
         SolidBrush NamespaceBrush = new SolidBrush(Color.Coral);
         SolidBrush ClassBrush = new SolidBrush(Color.PaleGreen);
@@ -242,6 +245,22 @@ namespace XLibrary
 
             foreach (XNodeIn sub in node.Nodes)
                 DrawNode(buffer, sub, depth + 1);
+
+            // after drawing children, draw instance tracking on top of it all
+            if (XRay.TrackInstances && node.ObjType == XObjType.Class)
+            {
+                //if (XRay.InstanceCount[node.ID] > 0)
+                //{
+                    string count = XRay.InstanceCount[node.ID].ToString();
+                    Rectangle x = new Rectangle(node.Area.Location, buffer.MeasureString(count, InstanceFont).ToSize());
+
+                    if (node.Area.Contains(x))
+                    {
+                        buffer.FillRectangle(NothingBrush, x);
+                        buffer.DrawString(count, InstanceFont, InstanceBrush, node.Area.Location.X + 2, node.Area.Location.Y + 2);
+                    }
+                //}
+            }
         }
 
         private void TreePanel_Resize(object sender, EventArgs e)
@@ -330,11 +349,6 @@ namespace XLibrary
 
             DoResize = true;
             Invalidate();
-        }
-
-        private void TreePanel_MouseHover(object sender, EventArgs e)
-        {
-
         }
 
         private void TreePanel_MouseLeave(object sender, EventArgs e)

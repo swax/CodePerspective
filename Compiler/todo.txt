@@ -1,10 +1,20 @@
 ﻿
-option to only show hit dlls
-
-
 test with release mode
 
-
-
 auto pe-verify
+
+different colors per thread
+	6 red orange yellow green blue purple
+	black interlace when threads intersect
+	array 0 - 5
+	map thread id to array index
+	every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
+
+stack planes - size number of instances
+	override ctor / deconstructor and add counters
+	for now put number inside box
+	need to research iso view mapping, wpf display
+	if ctor/finalize not found, create it
+	
+option to force garbage collection
 

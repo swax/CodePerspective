@@ -162,11 +162,11 @@ namespace XLibrary
         }
     }
 
-    internal class XNodeIn : XNode
+    public class XNodeIn : XNode
     {
         internal int ParentID;
         internal int Lines; // save here so final value can be manipulated
-        internal Rectangle Area;
+        internal RectangleD Area;
         internal bool Selected;
         internal bool Show = true;
         

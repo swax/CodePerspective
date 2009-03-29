@@ -24,12 +24,15 @@ namespace XLibrary
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
-        internal const int HitFrames = 10;
+        internal const int HitFrames = 20;
         internal static int HitIndex;
-        internal static BitArray[] HitFunctions;
+        internal static byte[] HitFunctions;
 
         internal static bool TrackInstances = true;
-        internal static int[] InstanceCount;
+        internal static byte[] InstanceCount;
+
+        internal static int[] CallingThread;
+        internal static byte[] Conflicts;
 
 
         public static void TestInit(string path)
@@ -47,17 +50,17 @@ namespace XLibrary
 
             LoadNodeMap(path);
 
-            HitFunctions = new BitArray[HitFrames];
-
             FunctionCount++; // so id can be accessed in 0 based index
 
+            HitFunctions = new byte[FunctionCount];
+            
             CoveredFunctions = new BitArray(FunctionCount);
 
             if (TrackInstances)
-                InstanceCount = new int[FunctionCount];
+                InstanceCount = new byte[FunctionCount];
 
-            for (int i = 0; i < HitFrames; i++)
-                HitFunctions[i] = new BitArray(FunctionCount);
+            CallingThread = new int[FunctionCount];
+            Conflicts = new byte[FunctionCount];
 
 
             Thread gui = new Thread(ShowGui);
@@ -116,7 +119,13 @@ namespace XLibrary
                 // clear cover change on paint
             }
 
-            HitFunctions[HitIndex][index] = true;
+            HitFunctions[index] = HitFrames - 1;
+
+
+            if(CallingThread[index] != 0 && CallingThread[index] != thread)
+                Conflicts[index] = HitFrames - 1;
+
+            CallingThread[index] = thread;
 
             // keep 6 lists around for diff threads
             // map thread id to list pos

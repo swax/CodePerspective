@@ -32,26 +32,24 @@ namespace XLibrary
         /// <param name="values">The values.</param>
         /// <param name="workArea">The work area.</param>
         /// <returns>A list of Sectors detailing how they should be layed out to create the TreeMap.</returns>
-        public List<Sector> Plot(IEnumerable<InputValue> values, Size workArea)
+        public List<Sector> Plot(IEnumerable<InputValue> values, SizeD size)
         {
-            Reset(workArea);
+            Reset(size);
+
             Squarify(1, PrepareSectors(values).ToList(), new List<Sector>(), GetWidth());
 
             return outputSectors;
         }
 
-        /// <summary>
-        /// Resets the specified work area.
-        /// </summary>
-        /// <param name="workArea">The work area.</param>
-        private void Reset(Size workArea)
+        private void Reset(SizeD size)
         {
             outputSectors.Clear();
             brushX = 0;
             brushY = 0;
-            workAreaHeight = workArea.Height;
-            workAreaWidth = workArea.Width;
+            workAreaWidth = size.Width;
+            workAreaHeight = size.Height;
             currentHeight = 0;
+
         }
 
         /// <summary>
@@ -145,7 +143,7 @@ namespace XLibrary
         /// <param name="rowSectors">The row sectors.</param>
         private void LayoutRow(IEnumerable<Sector> rowSectors)
         {
-            Point brushStartingPoint = new Point((int)brushX, (int)brushY);
+            PointD brushStartingPoint = new PointD() { X = brushX, Y = brushY };
 
             if (!isDrawingVertically)
             {
@@ -173,7 +171,8 @@ namespace XLibrary
                     height = currentHeight;
                 }
 
-                sector.Rect = new Rectangle((int)brushX, (int)brushY, (int)width, (int)height);
+                sector.Rect = new RectangleD(brushX, brushY, width, height);
+
                 outputSectors.Add(sector);
 
                 // Reposition brush for the next sector
@@ -234,8 +233,8 @@ namespace XLibrary
                 }
             }
 
-            double widthSquared = Math.Pow(width, 2);
-            double sumOfAreasSqaured = Math.Pow(sumOfAreas, 2);
+            double widthSquared = (double) Math.Pow(width, 2);
+            double sumOfAreasSqaured = (double) Math.Pow(sumOfAreas, 2);
 
             double ratio1 = (widthSquared * maxArea) / sumOfAreasSqaured;
             double ratio2 = sumOfAreasSqaured / (widthSquared * minArea);
@@ -284,6 +283,69 @@ namespace XLibrary
 
         public double Percentage;
 
-        public Rectangle Rect;
+        public RectangleD Rect;
+    }
+
+    public struct RectangleD
+    {
+        public double X;
+        public double Y;
+
+        public double Width;
+        public double Height;
+
+        public SizeD Size { get { return new SizeD() { Width = Width, Height = Height }; } }
+
+        public RectangleD(double x, double y, double width, double height)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+
+        public RectangleD Contract(double amount)
+        {
+            RectangleD contracted = this;
+
+            contracted.X += amount;
+            contracted.Y += amount;
+
+            contracted.Width -= amount * 2;
+            contracted.Height -= amount * 2;
+
+            if (contracted.Width < 0 || contracted.Height < 0)
+            {
+                contracted.Width = 0;
+                contracted.Height = 0;
+            }
+
+            return contracted;
+        }
+
+        public RectangleF ToRectangleF()
+        {
+            return new RectangleF((float)X, (float)Y, (float)Width, (float)Height);
+        }
+
+        public bool Contains(double x, double y)
+        {
+            return ((((X <= x) && (x < (X + Width))) && (Y <= y)) && (y < (Y + Height)));
+        }
+
+ 
+
+    }
+
+    public struct PointD
+    {
+        public double X;
+        public double Y;
+    }
+
+    public struct SizeD
+    {
+        public double Width;
+        public double Height;
     }
 }

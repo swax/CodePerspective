@@ -16,6 +16,7 @@ namespace XBuilder
         string OriginalPath;
         string DasmPath;
         string ILPath;
+        string ILPathOriginal;
         string AsmDir;
 
         List<string> Assemblies = new List<string>();
@@ -60,6 +61,7 @@ namespace XBuilder
             Process.Start(info).WaitForExit();
 
             ILPath = Path.Combine(AsmDir, ILName);
+            ILPathOriginal = Path.Combine(AsmDir,  Path.GetFileNameWithoutExtension(DasmPath) + "_original.il");
 
             File.Delete(DasmPath); // so it can be replaced with asm exe
         }
@@ -104,18 +106,28 @@ namespace XBuilder
                             XIL.RemoveLine();
                     }
 
-                    else if (line[0] == ".hash")
+                    else if (line[0] == ".hash" && stripSig)
                     {
                         XIL.RemoveLine();
+
+                        if (line[1] != "algorithm")
+                        {
+                            string nextLine = string.Join(" ", line).FilterComment();
+
+                            while (!nextLine.Contains(")"))
+                                nextLine = reader.ReadLine().FilterComment();
+                        }
                     }
 
+                    // remove assembly's public key
                     else if (line[0] == ".publickey")
                     {
                         XIL.RemoveLine();
 
-                        string nextLine = "";
-                        while(!nextLine.Contains(") //"))
-                            nextLine = reader.ReadLine();
+                        string nextLine = string.Join(" ", line).FilterComment(); ;
+
+                        while(!nextLine.Contains(")"))
+                            nextLine = reader.ReadLine().FilterComment(); ;
                     }
 
                     else if (line[0] == ".class")
@@ -320,12 +332,17 @@ namespace XBuilder
 
         internal string Compile()
         {
+            // save original
+            File.Copy(ILPath, ILPathOriginal, true);
+
+            // write new IL
             byte[] buffer = UTF8Encoding.UTF8.GetBytes(XIL.ToString());
 
             using (FileStream outFile = new FileStream(ILPath, FileMode.Truncate))
                 outFile.Write(buffer);
 
-            string ilasm = Path.Combine(Environment.GetEnvironmentVariable("windir"), "//Microsoft.NET//Framework//v2.0.50727//ilasm.exe");
+            string windir = Environment.GetEnvironmentVariable("windir");
+            string ilasm = Path.Combine(windir, "Microsoft.NET\\Framework\\v2.0.50727\\ilasm.exe");
 
             // C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\ilasm.exe RiseOp
 

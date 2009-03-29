@@ -5,11 +5,12 @@ using System.Drawing;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class TreePanel : UserControl
+    public partial class TreePanelWin32 : UserControl, ITreePanel
     {
         public TreeForm MainForm;
 
@@ -49,12 +50,13 @@ namespace XLibrary
         internal XNodeIn Root;
 
         SolidBrush[] HitBrush;
+        SolidBrush[] ConflictBrush;
 
         int SelectHash;
         List<XNodeIn> Selected = new List<XNodeIn>();
 
 
-        public TreePanel()
+        public TreePanelWin32(TreeForm main, XNodeIn root)
         {
             InitializeComponent();
 
@@ -62,11 +64,17 @@ namespace XLibrary
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
+            MainForm = main;
+            Root = root;
+
             HitBrush = new SolidBrush[XRay.HitFrames];
+            ConflictBrush = new SolidBrush[XRay.HitFrames];
+
             for(int i = 0; i < XRay.HitFrames; i++)
             {
-                int brightness = 255 / XRay.HitFrames * i;
-                HitBrush[i] = new SolidBrush(Color.FromArgb(255, brightness, brightness));
+                int brightness = 255 - (255 / XRay.HitFrames * i);
+                HitBrush[i] = new SolidBrush(Color.FromArgb(255, brightness, 255, brightness));
+                ConflictBrush[i] = new SolidBrush(Color.FromArgb(255, 255, brightness, brightness));
             }
 
             for (int i = 0; i < OverBrushes.Length; i++)
@@ -74,11 +82,118 @@ namespace XLibrary
                 int brightness = 255 / OverBrushes.Length * (OverBrushes.Length - i);
                 OverBrushes[i] = new SolidBrush(Color.FromArgb(brightness, brightness, 255));
             }
+
+            DrawThread = new Thread(RunDrawing);
+            DrawThread.Start();
+        }
+
+        internal AutoResetEvent DrawEvent = new AutoResetEvent(false);
+        bool StopDrawing;
+        Thread DrawThread;
+
+        int ColorBug = System.Drawing.ColorTranslator.ToOle(Color.LimeGreen);
+        int ColorOpt = System.Drawing.ColorTranslator.ToOle(Color.Orange);
+
+        void RunDrawing()
+        {
+            Bitmap background = new Bitmap(10, 10);
+
+            IntPtr mainDC;
+            IntPtr memDC;
+            IntPtr tempDC;
+            IntPtr offscreenBmp;
+            IntPtr oldBmp;
+            IntPtr hBitmap = IntPtr.Zero;
+            IntPtr prevBmp;
+
+            IntPtr bugPen = Win32.CreatePen(Win32.PenStyles.PS_SOLID, 1, ColorBug);
+            IntPtr bugBrush = Win32.CreateSolidBrush(ColorBug); ;
+
+            IntPtr optPen = Win32.CreatePen(Win32.PenStyles.PS_SOLID, 1, ColorOpt);
+            IntPtr optBrush = Win32.CreateSolidBrush(ColorOpt);
+
+            IntPtr oldPen;
+            IntPtr oldBrush;
+
+
+            while (true)
+            {
+                DrawEvent.WaitOne();
+
+                if (StopDrawing)
+                    break;
+
+                /*if (background.Width != Width || background.Height != Height)
+                {
+                    background = new Bitmap(Width, Height);
+
+                    if (hBitmap != IntPtr.Zero)
+                    {
+                        Win32.DeleteObject(hBitmap);
+                        hBitmap = IntPtr.Zero;
+                    }
+
+                    hBitmap = background.GetHbitmap();
+                }*/
+
+
+                // start drawing
+                Graphics mainGraphics = CreateGraphics();
+                mainDC = mainGraphics.GetHdc();
+
+                // create memeory DC and select an offscreen bmp into it
+                memDC = Win32.CreateCompatibleDC(mainDC);
+                offscreenBmp = Win32.CreateCompatibleBitmap(mainDC, Width, Height);
+                oldBmp = Win32.SelectObject(memDC, offscreenBmp);
+
+                /*tempDC = Win32.CreateCompatibleDC(mainDC);
+                prevBmp = Win32.SelectObject(tempDC, hBitmap);
+                Win32.StretchBlt(memDC, 0, 0, Width, Height, tempDC, 0, 0, background.Width, background.Height, (int)Win32.SRCCOPY);
+                Win32.SelectObject(tempDC, prevBmp);
+                Win32.DeleteDC(tempDC);*/
+
+
+                // draw global optimum
+                oldPen = Win32.SelectObject(memDC, optPen);
+                oldBrush = Win32.SelectObject(memDC, optBrush);
+
+                Win32.Rectangle(memDC, 5, 5, Width - 100, Height - 100);
+
+                Win32.SelectObject(memDC, oldPen);
+                Win32.SelectObject(memDC, oldBrush);
+
+
+                // copy to main screen
+                Win32.BitBlt(mainDC, 0, 0, Width, Height, memDC, 0, 0, Win32.TernaryRasterOperations.SRCCOPY);
+
+
+                // release objects
+                Win32.SelectObject(memDC, oldBmp);
+                Win32.DeleteObject(offscreenBmp);
+
+                Win32.DeleteDC(memDC);
+                mainGraphics.ReleaseHdc(mainDC);
+            }
+
+            if (hBitmap != IntPtr.Zero)
+            {
+                Win32.DeleteObject(hBitmap);
+                hBitmap = IntPtr.Zero;
+            }
+        }
+
+        public void Dispose2()
+        {
+            StopDrawing = true;
+
+            DrawEvent.Set();
+
+            DrawThread.Join(5000);
         }
 
         private void TreePanel_Paint(object sender, PaintEventArgs e)
         {
-            if (DisplayBuffer == null)
+            /*if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
             if ((!DoRedraw && !DoResize) || Root == null)
@@ -120,7 +235,7 @@ namespace XLibrary
 
             DoRedraw = false;
             DoResize = false;
-            XRay.CoverChange = false;
+            XRay.CoverChange = false;*/
         }
 
         private int RecalcCover(XNodeIn root)
@@ -139,7 +254,7 @@ namespace XLibrary
             return root.Value;                
         }
 
-        private void SizeNode(Graphics buffer, XNodeIn root, Rectangle area)
+        private void SizeNode(Graphics buffer, XNodeIn root, RectangleD area)
         {
             if (!root.Show)
                 return;
@@ -199,24 +314,23 @@ namespace XLibrary
                 rectBrush = OverBrushes[depth];
             }
 
-            buffer.FillRectangle(rectBrush, node.Area);
-            
+            RectangleF area = node.Area.ToRectangleF();
 
+            buffer.FillRectangle(rectBrush, area);
+            
             // red hit check if function is hit
             if(XRay.HitFunctions != null)
-                for (int i = 0; i < XRay.HitFrames; i++)
+            {
+                int value = XRay.Conflicts[node.ID];
+                if (value > 0)
+                    buffer.FillRectangle(ConflictBrush[value], area);
+                else
                 {
-                    int circ = XRay.HitIndex - i;
-
-                    if (circ < 0)
-                        circ = XRay.HitFrames + circ;
-
-                    if (XRay.HitFunctions[circ][node.ID])
-                    {
-                        buffer.FillRectangle(HitBrush[i], node.Area);
-                        break;
-                    }
+                    value = XRay.HitFunctions[node.ID];
+                    if (value > 0)
+                        buffer.FillRectangle(HitBrush[value], area);
                 }
+            }
 
 
 
@@ -241,7 +355,7 @@ namespace XLibrary
 
             
 
-            buffer.DrawRectangle(rectPen, node.Area);
+            buffer.DrawRectangle(rectPen, area.X, area.Y, area.Width, area.Height);
 
             foreach (XNodeIn sub in node.Nodes)
                 DrawNode(buffer, sub, depth + 1);
@@ -249,8 +363,8 @@ namespace XLibrary
             // after drawing children, draw instance tracking on top of it all
             if (XRay.TrackInstances && node.ObjType == XObjType.Class)
             {
-                //if (XRay.InstanceCount[node.ID] > 0)
-                //{
+                /*if (XRay.InstanceCount[node.ID] > 0)
+                {
                     string count = XRay.InstanceCount[node.ID].ToString();
                     Rectangle x = new Rectangle(node.Area.Location, buffer.MeasureString(count, InstanceFont).ToSize());
 
@@ -259,7 +373,7 @@ namespace XLibrary
                         buffer.FillRectangle(NothingBrush, x);
                         buffer.DrawString(count, InstanceFont, InstanceBrush, node.Area.Location.X + 2, node.Area.Location.Y + 2);
                     }
-                //}
+                }*/
             }
         }
 
@@ -270,16 +384,8 @@ namespace XLibrary
                 DisplayBuffer = new Bitmap(Width, Height);
 
                 DoResize = true;
-                Invalidate();
+                DrawEvent.Set();
             }
-        }
-
-        internal void UpdateMap(XNodeIn root)
-        {
-            Root = root;
-
-            DoRedraw = true;
-            Invalidate();
         }
 
         private void TreePanel_MouseMove(object sender, MouseEventArgs e)
@@ -295,7 +401,7 @@ namespace XLibrary
             {
                 SelectHash = hash;
                 DoRedraw = true;
-                Invalidate();
+                DrawEvent.Set();
 
                 if (Selected.Count > 0)
                     MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].GetName();
@@ -306,7 +412,7 @@ namespace XLibrary
 
         private void TestSelected(XNodeIn node, Point loc)
         {
-            if (!node.Show || !node.Area.Contains(loc))
+            if (!node.Show || !node.Area.Contains(loc.X, loc.Y))
                 return;
 
             node.Selected = true;
@@ -314,12 +420,6 @@ namespace XLibrary
 
             foreach (XNodeIn sub in node.Nodes)
                 TestSelected(sub, loc);
-        }
-
-        internal void Redraw()
-        {
-            DoRedraw = true;
-            Invalidate();
         }
 
         private void TreePanel_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -332,7 +432,7 @@ namespace XLibrary
             MainForm.UpdateText();
 
             DoResize = true;
-            Invalidate();
+            DrawEvent.Set();
         }
 
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
@@ -348,21 +448,29 @@ namespace XLibrary
             MainForm.UpdateText();
 
             DoResize = true;
-            Invalidate();
+            DrawEvent.Set();
         }
 
         private void TreePanel_MouseLeave(object sender, EventArgs e)
         {
             ClearSelected();
-
-            DoRedraw= true;
-            Invalidate();
         }
 
         private void ClearSelected()
         {
             Selected.ForEach(n => n.Selected = false);
             Selected.Clear();
+        }
+
+        public void Redraw()
+        {
+            DoRedraw = true;
+            DrawEvent.Set();
+        }
+
+        public XNodeIn GetRoot()
+        {
+            return Root;
         }
     }
 }

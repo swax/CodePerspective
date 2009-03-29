@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class TreePanel
+    partial class TreePanelGdiPlus
     {
         /// <summary> 
         /// Required designer variable.
@@ -30,11 +30,11 @@
         {
             this.SuspendLayout();
             // 
-            // TreePanel
+            // TreePanelGdiPlus
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "TreePanel";
+            this.Name = "TreePanelGdiPlus";
             this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.TreePanel_Paint);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseMove);

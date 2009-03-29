@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-
+using System.Windows.Media.Media3D;
 
 namespace XLibrary
 {
@@ -45,20 +45,14 @@ namespace XLibrary
             return buffer;
         }
 
-        public static Rectangle Contract(this Rectangle rect, int amount)
+        public static string FilterComment(this string line)
         {
-            Rectangle result = rect;
+            int pos = line.LastIndexOf("//");
 
-            if (rect.Width <= amount * 2 || rect.Height <= amount * 2)
-                return result;
+            if (pos != -1)
+                line = line.Substring(0, pos);
 
-            rect.X += amount;
-            rect.Y += amount;
-
-            rect.Width -= amount * 2;
-            rect.Height -= amount * 2;
-
-            return rect;
+            return line;
         }
 
         public static IEnumerable<T> Do<T>(this IEnumerable<T> list, Action<T> method)
@@ -68,6 +62,11 @@ namespace XLibrary
                 method(obj);
                 yield return obj;
             }
+        }
+
+        public static Point3D Move(this Point3D start, double x, double y, double z)
+        {
+            return new Point3D(start.X + x, start.Y + y, start.Z + z);
         }
     }
 

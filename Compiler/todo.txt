@@ -1,7 +1,6 @@
 ﻿
 test with release mode
 
-auto pe-verify
 
 different colors per thread
 	6 red orange yellow green blue purple
@@ -16,5 +15,26 @@ stack planes - size number of instances
 	need to research iso view mapping, wpf display
 	if ctor/finalize not found, create it
 	
+use gdi painting without paint event	
+
 option to force garbage collection
 
+
+wpf
+	test cubing tree map, and coloring, default height
+	get movement controls working
+    block everything, height by instance count
+    only hit funcs is very useful to cut down on drawing
+    
+    wsad/mouselook fly through, click highlights selected
+
+
+verification
+	progress bar of file ops
+	get output of console op
+	handle compiles / verifys in try catch, break on fail
+	if ilasm throws failed, mark item as (failed asm) else done
+	delete key removes item from list, recompile to restart
+	any way to hide compile windows
+	run pe verify on new exe, if fail mark (failed ver)
+	on verify copy over

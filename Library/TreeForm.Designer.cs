@@ -55,12 +55,12 @@
             // SelectedLabel
             // 
             this.SelectedLabel.Name = "SelectedLabel";
-            this.SelectedLabel.Size = new System.Drawing.Size(83, 17);
+            this.SelectedLabel.Size = new System.Drawing.Size(89, 17);
             this.SelectedLabel.Text = "Selected Object";
             // 
             // ResetTimer
             // 
-            this.ResetTimer.Interval = 50;
+            this.ResetTimer.Interval = 30;
             this.ResetTimer.Tick += new System.EventHandler(this.ResetTimer_Tick);
             // 
             // menuStrip1
@@ -80,28 +80,28 @@
             this.showOnlyHitToolStripMenuItem,
             this.ResetMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
+            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
             // 
             // showOnlyHitToolStripMenuItem
             // 
             this.showOnlyHitToolStripMenuItem.CheckOnClick = true;
             this.showOnlyHitToolStripMenuItem.Name = "showOnlyHitToolStripMenuItem";
-            this.showOnlyHitToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.showOnlyHitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
             this.showOnlyHitToolStripMenuItem.Text = "Show only hit";
             this.showOnlyHitToolStripMenuItem.Click += new System.EventHandler(this.ShowOnlyHitToolStripMenuItem_Click);
             // 
             // ResetMenuItem
             // 
             this.ResetMenuItem.Name = "ResetMenuItem";
-            this.ResetMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.ResetMenuItem.Size = new System.Drawing.Size(146, 22);
             this.ResetMenuItem.Text = "Reset hit";
             this.ResetMenuItem.Click += new System.EventHandler(this.ResetMenuItem_Click);
             // 
             // ViewMenuItem
             // 
             this.ViewMenuItem.Name = "ViewMenuItem";
-            this.ViewMenuItem.Size = new System.Drawing.Size(41, 20);
+            this.ViewMenuItem.Size = new System.Drawing.Size(44, 20);
             this.ViewMenuItem.Text = "View";
             this.ViewMenuItem.DropDownOpening += new System.EventHandler(this.ViewMenuItem_DropDownOpening);
             // 

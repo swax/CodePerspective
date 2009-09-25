@@ -26,7 +26,7 @@ namespace XLibrary
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
-        internal const byte HitFrames = 20;
+        internal const byte HitFrames = 30;
         internal static int HitIndex;
         internal static int[] HitFunctions;
 

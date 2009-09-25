@@ -87,8 +87,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(264, 36);
             this.label2.TabIndex = 6;
-            this.label2.Text = "Copies of the selected files will be re-compiled, so that when they are run XRay " +
-                "information is displayed.";
+            this.label2.Text = "XRay re-compiles the selected files and runs them side by side the originals.";
             // 
             // AddLink
             // 

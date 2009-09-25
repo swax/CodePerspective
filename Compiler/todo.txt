@@ -1,52 +1,51 @@
 ﻿
+recommit - proj set to 32 bit before
 
-commit current state
-try overlaying paths on blocks - odds are a lot of paths are internal
+bugs 
+	storm ui still doesnt build
+    open wells dat file and trace bad drawing blocks
 
-
-option to turn off constructed count/thread ID
-max stack to 3 in constructor/deconstructor, just 3 by default??
-max stack 0 to 2
-
-how to detect if app is 32 bit only? storm is 32, decompiling and recompiling make it 64 bit app.. need a xlib 32 as well then
-
-auto-ignore de-compile errors and compile what we can
-
-ability to gen conflict detection should turn on/off
-	if off code not generated, and library knows not to iterate conflict array
-
-building storm ui
-pe verify fails
-implement pe verify check and confirm failure shown
-fix failure -> maxstack from 0 to 2
-
-verification
+build
+	options - track construction, threads, ignore on decompile errors
 	progress bar of file ops
-	get output of console op
-	handle compiles / verifys in try catch, break on fail
-	if ilasm throws failed, mark item as (failed asm) else done
-	delete key removes item from list, recompile to restart
-	any way to hide compile windows
-	run pe verify on new exe, if fail mark (failed ver)
-	on verify copy over
+	ability to pause tracking in interface
+	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
+	time how long it takes to do redraw, option to draw less frames, option to set fps, which mods frames/timer settings - option in viz
 	
+advanced
+	get to work with dlls, users pick entry function, should make asp tracking work
 	
-few squares out of places
-fading still looks like pulsing flickering
-wells research project has a big space in it
-turn conflicts orange
-
-how to draw/show anonymous methods
-	
-dont draw or recurse rects that are too small, smaller than 2 pix in width
-
-
-test with release mode
-
-build execution path and show dots moving from node 2 node
+flow tracking
+	try overlaying paths on blocks - odds are a lot of paths are internal
 	how to know function is returning - add tag to function exit? investigate il
+	build execution path and show dots moving from node 2 node
+	
+memory tracking
+	heap dump tree map ;) can figure out where allocated??
 
+function tree map
+	few squares out of places
+	fading still looks like pulsing flickering
+	wells research project has a big space in it
+	turn conflicts orange
+	how to draw/show anonymous methods
+	option to track anonymous methods	
+	dont draw or recurse rects that are too small, smaller than 2 pix in width
+
+3d function tree map
+	constant square size, height dependnent on amount of code (cities)
+	fly through like hackers
+	taller towards middle of box
+	load IL and write on the walls of the cube
+	
 heap tree map
+	how to get memory allocated from gc, source to clr profiler?
+
+
+release 
+	open source with donate button
+	put donate button in about of app as well,
+	link to my page with other projects like rise op, cant hurt
 
 
 different colors per thread
@@ -62,9 +61,7 @@ stack planes - size number of instances
 	need to research iso view mapping, wpf display
 	if ctor/finalize not found, create it
 	
-use gdi painting without paint event	
-
-option to force garbage collection
+use gdi painting without paint event	like wells
 
 
 wpf

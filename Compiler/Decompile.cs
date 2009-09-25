@@ -214,10 +214,19 @@ namespace XBuilder
                             }
                         }
 
-                        if (line.Length > 1 && line[0] == ".maxstack" && (line[1] == "0" || line[1] == "1"))
+                        if (line.Length > 1 && line[0] == ".maxstack" && (line[1].IndexOfAny(new char[]{'0', '1', '2'}) != -1))
                         {
                             XIL.RemoveLine();
-                            XIL.AppendLine(".maxstack 3"); // increase stack enough for hit function - need room for thread, hit, constructor - //todo optimize
+
+                            int maxstack = int.Parse(line[1]);
+                            if (maxstack == 0)
+                                maxstack = 1; // for hit function
+                            if (TrackThread && maxstack == 1)
+                                maxstack = 2;
+                            if (TrackConstruction && maxstack == 2 && (CurrentNode.Name == ".ctor" || CurrentNode.Name == "Finalize"))
+                                maxstack = 3;
+
+                            XIL.AppendLine(".maxstack " + maxstack); // increase stack enough for hit function - need room for thread, hit, constructor
                         }
 
                         if (entry)
@@ -407,8 +416,8 @@ namespace XBuilder
             // need to verify in final location because dll dependencies are checked as well
 
             // pe verify assembled file
-            ProcessStartInfo info = new ProcessStartInfo("PEVerify.exe", path);
-            info.WorkingDirectory = Application.StartupPath;
+            ProcessStartInfo info = new ProcessStartInfo("PEVerify.exe", Path.GetFileName(path));
+            info.WorkingDirectory = Path.GetDirectoryName(path);
             info.UseShellExecute = false;
             info.RedirectStandardOutput = true;
 
@@ -416,7 +425,7 @@ namespace XBuilder
             string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
 
-            if (output.Contains("Error Verifying"))
+            if (output.Contains("Error Verifying") || output.Contains("Invalid option:"))
                 throw new CompileError("Error Verifying", path, output);
         }
     }

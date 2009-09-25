@@ -19,8 +19,6 @@ namespace XBuilder
         string ILPathOriginal;
         string AsmDir;
 
-        List<string> Assemblies = new List<string>();
-
         XNodeOut RootNode;
         XNodeOut CurrentNode;
 
@@ -28,12 +26,14 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
+        bool TrackThread = false;
+        bool TrackConstruction = false;
 
-        public XDecompile(XNodeOut root, string path, List<string> assemblies)
+
+        public XDecompile(XNodeOut root, string path)
         {
             RootNode = root;
             OriginalPath = path;
-            Assemblies = assemblies;
         }
 
         internal void Decompile()
@@ -56,17 +56,32 @@ namespace XBuilder
   
             // disassemble file
             string ILName = Path.GetFileNameWithoutExtension(DasmPath) + ".il";
-            ProcessStartInfo info = new ProcessStartInfo(ildasm, Path.GetFileName(DasmPath) + " /output=" + ILName);
+            ProcessStartInfo info = new ProcessStartInfo(ildasm, Path.GetFileName(DasmPath) + " /utf8 /output=" + ILName);
             info.WorkingDirectory = AsmDir;
-            Process.Start(info).WaitForExit();
+            info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
+
+            Process process = Process.Start(info);
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
 
             ILPath = Path.Combine(AsmDir, ILName);
+
+            // check output il for errors - no way to get ildasm to just output errrors
+            using(StreamReader read = new StreamReader(File.OpenRead(ILPath)))
+                while (!read.EndOfStream)
+                {
+                    string line = read.ReadLine();
+                    if (line.Contains("has no valid CLR header and cannot be disassembled"))
+                        throw new CompileError("Decompiling", ILPath, "Open IL file for more details");
+                }
+
             ILPathOriginal = Path.Combine(AsmDir,  Path.GetFileNameWithoutExtension(DasmPath) + "_original.il");
 
             File.Delete(DasmPath); // so it can be replaced with asm exe
         }
 
-        internal void ScanLines()
+        internal void ScanLines(List<string> assemblies)
         {
             CurrentNode = RootNode;
 
@@ -90,7 +105,7 @@ namespace XBuilder
                         string assembly = line[line.Length - 1];
 
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
-                        if(Assemblies.Contains(assembly))
+                        if (assemblies.Contains(assembly))
                         {
                             line[line.Length - 1] = "XRay." + line[line.Length - 1];
                             XIL.RemoveLine();
@@ -199,10 +214,10 @@ namespace XBuilder
                             }
                         }
 
-                        if (line.Length > 1 && line[0] == ".maxstack" && line[1] == "1")
+                        if (line.Length > 1 && line[0] == ".maxstack" && (line[1] == "0" || line[1] == "1"))
                         {
                             XIL.RemoveLine();
-                            XIL.AppendLine(".maxstack 2"); // increase stack enough for hit function
+                            XIL.AppendLine(".maxstack 3"); // increase stack enough for hit function - need room for thread, hit, constructor - //todo optimize
                         }
 
                         if (entry)
@@ -219,6 +234,7 @@ namespace XBuilder
 
                     else if (line[0] == ".field")
                     {
+                        //todo - add option to track fields
                         //string name = line.LastOrDefault();
 
                         //XNodeOut fieldNode = CurrentNode.AddNode(name, XObjType.Field);
@@ -292,7 +308,7 @@ namespace XBuilder
             }
 
             // change method call refs from old assembly to new
-            foreach (string assembly in Assemblies)
+            foreach (string assembly in assemblies)
                 XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
         }
 
@@ -313,10 +329,21 @@ namespace XBuilder
 
         private void InjectMethodHit(XNode node)
         {
-            XIL.AppendLine("call       class [mscorlib]System.Threading.Thread [mscorlib]System.Threading.Thread::get_CurrentThread()");
-            XIL.AppendLine("callvirt   instance int32 [mscorlib]System.Threading.Thread::get_ManagedThreadId()");
-            XIL.AppendLine("ldc.i4     " + node.ID.ToString());
-            XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32, int32)");
+            if (TrackThread)
+            {
+                XIL.AppendLine("call       class [mscorlib]System.Threading.Thread [mscorlib]System.Threading.Thread::get_CurrentThread()");
+                XIL.AppendLine("callvirt   instance int32 [mscorlib]System.Threading.Thread::get_ManagedThreadId()");
+                XIL.AppendLine("ldc.i4     " + node.ID.ToString());
+                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32, int32)");
+            }
+            else
+            {
+                XIL.AppendLine("ldc.i4     " + node.ID.ToString());
+                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32)");
+            }
+
+            if (!TrackConstruction)
+                return;
 
             if (node.Name == ".ctor")
             {
@@ -349,23 +376,58 @@ namespace XBuilder
             // assemble file
             ProcessStartInfo info = new ProcessStartInfo(ilasm, Path.GetFileName(ILPath));
             info.WorkingDirectory = AsmDir;
+            info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
 
             if (OriginalPath.EndsWith(".dll"))
                 info.Arguments += " /DLL";
 
-            Process.Start(info).WaitForExit();
+            Process process = Process.Start(info);
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            if (output.Contains("***** FAILURE *****"))
+                throw new CompileError("Error Recompiling", DasmPath, output);
 
             // copy XLibrary to final destination
             File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(Path.GetDirectoryName(OriginalPath), "XLibrary.dll"), true);
 
             // copy compiled file
-            string recompliedPath = Path.Combine(Path.GetDirectoryName(OriginalPath), "XRay." + Path.GetFileName(OriginalPath));
+            string recompiledPath = Path.Combine(Path.GetDirectoryName(OriginalPath), "XRay." + Path.GetFileName(OriginalPath));
 
-            File.Delete(recompliedPath); // delete prev compiled file
+            File.Delete(recompiledPath); // delete prev compiled file
 
-            File.Copy(DasmPath, recompliedPath);
+            File.Copy(DasmPath, recompiledPath);
 
-            return recompliedPath;
+            return recompiledPath;
+        }
+
+        internal static void Verify(string path)
+        {
+            // need to verify in final location because dll dependencies are checked as well
+
+            // pe verify assembled file
+            ProcessStartInfo info = new ProcessStartInfo("PEVerify.exe", path);
+            info.WorkingDirectory = Application.StartupPath;
+            info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
+
+            Process process = Process.Start(info);
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            if (output.Contains("Error Verifying"))
+                throw new CompileError("Error Verifying", path, output);
+        }
+    }
+
+    internal class CompileError : Exception 
+    {
+        internal string Summary { get; private set; }
+
+        internal CompileError(string process, string path, string output)
+        {
+            Summary = process + " " + Path.GetFileName(path) + "\r\n\r\n" + output;
         }
     }
 }

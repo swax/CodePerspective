@@ -1,5 +1,52 @@
 ﻿
+
+commit current state
+try overlaying paths on blocks - odds are a lot of paths are internal
+
+
+option to turn off constructed count/thread ID
+max stack to 3 in constructor/deconstructor, just 3 by default??
+max stack 0 to 2
+
+how to detect if app is 32 bit only? storm is 32, decompiling and recompiling make it 64 bit app.. need a xlib 32 as well then
+
+auto-ignore de-compile errors and compile what we can
+
+ability to gen conflict detection should turn on/off
+	if off code not generated, and library knows not to iterate conflict array
+
+building storm ui
+pe verify fails
+implement pe verify check and confirm failure shown
+fix failure -> maxstack from 0 to 2
+
+verification
+	progress bar of file ops
+	get output of console op
+	handle compiles / verifys in try catch, break on fail
+	if ilasm throws failed, mark item as (failed asm) else done
+	delete key removes item from list, recompile to restart
+	any way to hide compile windows
+	run pe verify on new exe, if fail mark (failed ver)
+	on verify copy over
+	
+	
+few squares out of places
+fading still looks like pulsing flickering
+wells research project has a big space in it
+turn conflicts orange
+
+how to draw/show anonymous methods
+	
+dont draw or recurse rects that are too small, smaller than 2 pix in width
+
+
 test with release mode
+
+build execution path and show dots moving from node 2 node
+	how to know function is returning - add tag to function exit? investigate il
+
+heap tree map
 
 
 different colors per thread
@@ -29,12 +76,3 @@ wpf
     wsad/mouselook fly through, click highlights selected
 
 
-verification
-	progress bar of file ops
-	get output of console op
-	handle compiles / verifys in try catch, break on fail
-	if ilasm throws failed, mark item as (failed asm) else done
-	delete key removes item from list, recompile to restart
-	any way to hide compile windows
-	run pe verify on new exe, if fail mark (failed ver)
-	on verify copy over

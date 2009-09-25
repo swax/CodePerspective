@@ -72,8 +72,8 @@ namespace XLibrary
             for(int i = 0; i < XRay.HitFrames; i++)
             {
                 int brightness = 255 - (255 / XRay.HitFrames * i);
-                HitBrush[i] = new SolidBrush(Color.FromArgb(255, brightness, 255, brightness));
-                ConflictBrush[i] = new SolidBrush(Color.FromArgb(255, 255, brightness, brightness));
+                HitBrush[i] = new SolidBrush(Color.FromArgb(255, 255, brightness, brightness));
+                ConflictBrush[i] = new SolidBrush(Color.FromArgb(255, brightness, 255, brightness));
             }
 
             for (int i = 0; i < OverBrushes.Length; i++)

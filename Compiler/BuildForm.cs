@@ -53,13 +53,19 @@ namespace XBuilder
 
         private void ReCompileButton_Click(object sender, EventArgs e)
         {
-            ReCompileButton.Enabled = false;
-
             FileItem[] files = FileList.Items.Cast<FileItem>().ToArray();
+
+            if (files.Length == 0)
+                return;
+
+            ReCompileButton.Enabled = false;
+            TestButton.Enabled = false;
 
             new Thread(() =>
             {
-                var updateTitle = new Action<string>(s => RunInGui(() => Text = s));
+                var status = new Action<string, string>((step, name) => 
+                    RunInGui(() => 
+                        Text = "XRay - " + step + " " + name + "..."));
 
                 try
                 {
@@ -73,20 +79,32 @@ namespace XBuilder
                     // foreach flie
                     foreach (FileItem item in files)
                     {
-                        XDecompile file = new XDecompile(root, item.FilePath, assemblies);
+                        XDecompile file = new XDecompile(root, item.FilePath);
 
-                        updateTitle("XRay - Decompiling...");
+                        status("Decompiling", item.Name);
                         file.Decompile();
 
-                        updateTitle("XRay - Scanning...");
-                        file.ScanLines();
+                        status("Scanning", item.Name);
+                        file.ScanLines(assemblies);
 
-                        updateTitle("XRay - Compiling...");
+                        status("Recompiling", item.Name);
                         item.RecompiledPath = file.Compile();
                     }
 
-                    updateTitle("XRay - Saving Map...");
+                    foreach (FileItem item in files)
+                    {
+                        status("Verifying", item.Name);
+                        XDecompile.Verify(item.RecompiledPath);
+                    }
+
+                    status("Saving Map", "");
                     root.SaveTree(FilesDir);
+                }
+                catch (CompileError ex)
+                {
+                    string log = Path.Combine(Application.StartupPath, "errorlog.txt");
+                    File.WriteAllText(log, ex.Summary);
+                    Process.Start(log);
                 }
                 catch (Exception ex)
                 {
@@ -94,8 +112,12 @@ namespace XBuilder
                 }
                 finally
                 {
-                    updateTitle("XRay");
-                    RunInGui(() => ReCompileButton.Enabled = true);
+                    RunInGui(() =>
+                    {
+                        Text = "XRay";
+                        ReCompileButton.Enabled = true;
+                        TestButton.Enabled = true;
+                    });
                 }
 
             }).Start();
@@ -128,12 +150,14 @@ namespace XBuilder
 
     public class FileItem
     {
-        public string FilePath = "";
+        public string Name;
+        public string FilePath;
         public string RecompiledPath;
 
         public FileItem(string path)
         {
             FilePath = path;
+            Name = Path.GetFileName(path);
         }
 
         public override string ToString()

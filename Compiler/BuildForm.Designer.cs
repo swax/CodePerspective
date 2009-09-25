@@ -45,6 +45,7 @@
             this.FileList.FormattingEnabled = true;
             this.FileList.Location = new System.Drawing.Point(12, 36);
             this.FileList.Name = "FileList";
+            this.FileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.FileList.Size = new System.Drawing.Size(259, 108);
             this.FileList.TabIndex = 2;
             // 

@@ -15,6 +15,8 @@ namespace XLibrary
     {
         static TreeForm MainForm;
 
+        static Thread Gui;
+
         internal static XNodeIn RootNode;
         internal static Dictionary<int, XNode> NodeMap = new Dictionary<int, XNode>();
 
@@ -24,15 +26,15 @@ namespace XLibrary
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
-        internal const int HitFrames = 20;
+        internal const byte HitFrames = 20;
         internal static int HitIndex;
-        internal static byte[] HitFunctions;
+        internal static int[] HitFunctions;
 
         internal static bool TrackInstances = true;
         internal static byte[] InstanceCount;
 
         internal static int[] CallingThread;
-        internal static byte[] Conflicts;
+        internal static int[] Conflicts;
 
 
         public static void TestInit(string path)
@@ -50,9 +52,7 @@ namespace XLibrary
 
             LoadNodeMap(path);
 
-            FunctionCount++; // so id can be accessed in 0 based index
-
-            HitFunctions = new byte[FunctionCount];
+            HitFunctions = new int[FunctionCount];
             
             CoveredFunctions = new BitArray(FunctionCount);
 
@@ -60,12 +60,14 @@ namespace XLibrary
                 InstanceCount = new byte[FunctionCount];
 
             CallingThread = new int[FunctionCount];
-            Conflicts = new byte[FunctionCount];
+            Conflicts = new int[FunctionCount];
 
-
-            Thread gui = new Thread(ShowGui);
-            gui.SetApartmentState(ApartmentState.STA);
-            gui.Start();
+            if (Gui == null)
+            {
+                Gui = new Thread(ShowGui);
+                Gui.SetApartmentState(ApartmentState.STA);
+                Gui.Start();
+            }
         }
 
         public static void ShowGui()
@@ -79,32 +81,50 @@ namespace XLibrary
 
         static void LoadNodeMap(string path)
         {
-            using (FileStream stream = new FileStream(path, FileMode.Open))
+            NodeMap.Clear();
+
+            try
             {
-                while (stream.Position < stream.Length)
+                FunctionCount = 0;
+
+                using (FileStream stream = new FileStream(path, FileMode.Open))
                 {
-                    XNodeIn node = XNodeIn.Read(stream);
-                    NodeMap[node.ID] = node;
-
-                    if (RootNode == null)
-                        RootNode = node;
-
-                    if (NodeMap.ContainsKey(node.ParentID))
+                    while (stream.Position < stream.Length)
                     {
-                        node.Parent = NodeMap[node.ParentID];
-                        node.Parent.Nodes.Add(node);
-                    }
+                        XNodeIn node = XNodeIn.Read(stream);
+                        NodeMap[node.ID] = node;
 
-                    if (node.ID > FunctionCount)
-                        FunctionCount = node.ID; 
+                        if (RootNode == null)
+                            RootNode = node;
+
+                        if (NodeMap.ContainsKey(node.ParentID))
+                        {
+                            node.Parent = NodeMap[node.ParentID];
+                            node.Parent.Nodes.Add(node);
+                        }
+
+                        if (node.ID > FunctionCount)
+                            FunctionCount = node.ID;
+                    }
                 }
+
+                FunctionCount++; // so id can be accessed in 0 based index
             }
+            catch(Exception ex)
+            {
+                MessageBox.Show("XRay data file not found: " + ex.Message); // would this even work? test
+            }
+        }
+
+        public static void Hit(int index)
+        {
+            Hit(0, index);
         }
 
         public static void Hit(int thread, int index)
         {
-            //if (MainForm == null) 
-            //    return; // wait for gui thread to boot up
+            if (MainForm == null) 
+                return; // wait for gui thread to boot up
 
             if (!CoveredFunctions[index] && NodeMap.ContainsKey(index))
             {
@@ -121,11 +141,13 @@ namespace XLibrary
 
             HitFunctions[index] = HitFrames - 1;
 
+            if (thread != 0)
+            {
+                if (CallingThread[index] != 0 && CallingThread[index] != thread)
+                    Conflicts[index] = HitFrames - 1;
 
-            if(CallingThread[index] != 0 && CallingThread[index] != thread)
-                Conflicts[index] = HitFrames - 1;
-
-            CallingThread[index] = thread;
+                CallingThread[index] = thread;
+            }
 
             // keep 6 lists around for diff threads
             // map thread id to list pos

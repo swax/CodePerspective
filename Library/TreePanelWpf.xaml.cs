@@ -159,13 +159,13 @@ namespace XLibrary
             if (!root.Show)
                 return;
 
-            root.Area = area;
+            root.SetArea(area);
 
             var nodes = root.Nodes.Cast<XNodeIn>()
                             .Where(n => n.Show)
                             .Select(n => n as InputValue);
 
-            List<Sector> sectors = new TreeMap().Plot(nodes, area.Size);
+            List<Sector> sectors = new TreeMap(nodes, area.Size).Results;
 
             foreach (Sector sector in sectors)
             {
@@ -173,7 +173,7 @@ namespace XLibrary
 
                 sector.Rect.X += area.X;
                 sector.Rect.Y += area.Y;
-
+                
                 SizeNode(node, sector.Rect.Contract(4));
             }
         }
@@ -214,7 +214,7 @@ namespace XLibrary
                 rectBrush = OverBrushes[depth];
             }*/
 
-            DrawCube(scene, cubeBrush, node.Area, depth, depth + 1);
+            DrawCube(scene, cubeBrush, node.AreaD, depth, depth + 1);
             //buffer.FillRectangle(rectBrush, node.Area);
 
             // red hit check if function is hit
@@ -237,7 +237,7 @@ namespace XLibrary
                 DrawNode(scene, sub, depth + 1);
 
             // after drawing children, draw instance tracking on top of it all
-            if (XRay.TrackInstances && node.ObjType == XObjType.Class)
+            if (XRay.InstanceTracking && node.ObjType == XObjType.Class)
             {
                 /*if (XRay.InstanceCount[node.ID] > 0)
                 {

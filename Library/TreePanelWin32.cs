@@ -259,13 +259,13 @@ namespace XLibrary
             if (!root.Show)
                 return;
 
-            root.Area = area;
+            root.SetArea(area);
 
             var nodes = root.Nodes.Cast<XNodeIn>()
                             .Where(n => n.Show)
                             .Select(n => n as InputValue);
 
-            List<Sector> sectors = new TreeMap().Plot(nodes, area.Size);
+            List<Sector> sectors = new TreeMap(nodes, area.Size).Results;
 
             foreach (Sector sector in sectors)
             {
@@ -273,7 +273,7 @@ namespace XLibrary
 
                 sector.Rect.X += area.X;
                 sector.Rect.Y += area.Y;
-
+                
                 SizeNode(buffer, node, sector.Rect.Contract(4));
             }
         }
@@ -314,21 +314,19 @@ namespace XLibrary
                 rectBrush = OverBrushes[depth];
             }
 
-            RectangleF area = node.Area.ToRectangleF();
-
-            buffer.FillRectangle(rectBrush, area);
+            buffer.FillRectangle(rectBrush, node.AreaF);
             
             // red hit check if function is hit
-            if(XRay.HitFunctions != null)
+            if(XRay.Nodes != null)
             {
-                int value = XRay.Conflicts[node.ID];
+                int value = XRay.Nodes[node.ID].ConflictHit;
                 if (value > 0)
-                    buffer.FillRectangle(ConflictBrush[value], area);
+                    buffer.FillRectangle(ConflictBrush[value], node.AreaF);
                 else
                 {
-                    value = XRay.HitFunctions[node.ID];
+                    value = XRay.Nodes[node.ID].FunctionHit;
                     if (value > 0)
-                        buffer.FillRectangle(HitBrush[value], area);
+                        buffer.FillRectangle(HitBrush[value], node.AreaF);
                 }
             }
 
@@ -353,15 +351,15 @@ namespace XLibrary
                     break;
             }*/
 
-            
 
-            buffer.DrawRectangle(rectPen, area.X, area.Y, area.Width, area.Height);
+
+            buffer.DrawRectangle(rectPen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
 
             foreach (XNodeIn sub in node.Nodes)
                 DrawNode(buffer, sub, depth + 1);
 
             // after drawing children, draw instance tracking on top of it all
-            if (XRay.TrackInstances && node.ObjType == XObjType.Class)
+            if (XRay.InstanceTracking && node.ObjType == XObjType.Class)
             {
                 /*if (XRay.InstanceCount[node.ID] > 0)
                 {
@@ -404,7 +402,7 @@ namespace XLibrary
                 DrawEvent.Set();
 
                 if (Selected.Count > 0)
-                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].GetName();
+                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].FullName();
                 else
                     MainForm.SelectedLabel.Text = "";
             }
@@ -412,7 +410,7 @@ namespace XLibrary
 
         private void TestSelected(XNodeIn node, Point loc)
         {
-            if (!node.Show || !node.Area.Contains(loc.X, loc.Y))
+            if (!node.Show || !node.AreaD.Contains(loc.X, loc.Y))
                 return;
 
             node.Selected = true;

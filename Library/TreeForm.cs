@@ -29,21 +29,34 @@ namespace XLibrary
 
         private void ResetTimer_Tick(object sender, EventArgs e)
         {
-            if (XRay.HitFunctions == null)
+            if (XRay.Nodes == null)
                 return;
 
-            if (XRay.HitIndex + 1 == XRay.HitFrames)
-                XRay.HitIndex = 0;
-            else
-                XRay.HitIndex++;
-
-            for (int i = 0; i < XRay.HitFunctions.Length; i++)
+            for (int i = 0; i < XRay.Nodes.Length; i++)
             {
-                if (XRay.HitFunctions[i] > 0)
-                    XRay.HitFunctions[i]--;
+                XNodeIn node = XRay.Nodes[i];
 
-                if (XRay.Conflicts[i] > 0)
-                    XRay.Conflicts[i]--;
+                if (node != null)
+                {
+                    if (node.FunctionHit > 0)
+                        node.FunctionHit--;
+
+                    if (XRay.ThreadTracking &&
+                        node.ConflictHit > 0)
+                        node.ConflictHit--;
+                }
+            }
+
+            // resset
+            if (XRay.FlowTracking)
+            {
+                // time out function calls
+                for (int i = 0; i < XRay.CallMap.Length; i++)
+                {
+                    FunctionCall call = XRay.CallMap.Values[i];
+                    if (call != null && call.Hit > 0)
+                        call.Hit--;
+                }
             }
 
             CurrentPanel.Redraw();
@@ -53,7 +66,7 @@ namespace XLibrary
         {
             string text = "XRay: " + Path.GetFileName(Application.ExecutablePath).Split('.')[0];
 
-            string name = CurrentPanel.GetRoot().GetName();
+            string name = CurrentPanel.GetRoot().FullName();
 
             if(name != "")
                 text += " - " + name;
@@ -130,6 +143,11 @@ namespace XLibrary
         private void TreeForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             RemoveCurrentPanel();
+        }
+
+        private void DebugMenuItem_Click(object sender, EventArgs e)
+        {
+            new DebugForm().Show();
         }
     }
 }

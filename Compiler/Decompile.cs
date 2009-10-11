@@ -26,9 +26,9 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
-        bool TrackThread = false;
-        bool TrackConstruction = false;
-
+        bool TrackFlow = true; // if this is true, then track thread needs to be true
+        bool TrackInstances = false;
+        
 
         public XDecompile(XNodeOut root, string path)
         {
@@ -38,8 +38,6 @@ namespace XBuilder
 
         internal void Decompile()
         {
-            string ildasm = Path.Combine(Application.StartupPath, "ildasm.exe");
-
             string name = Path.GetFileName(OriginalPath);
 
             // create directories
@@ -55,6 +53,7 @@ namespace XBuilder
             File.Copy(OriginalPath, DasmPath);
   
             // disassemble file
+            string ildasm = Path.Combine(Application.StartupPath, "ildasm.exe");
             string ILName = Path.GetFileNameWithoutExtension(DasmPath) + ".il";
             ProcessStartInfo info = new ProcessStartInfo(ildasm, Path.GetFileName(DasmPath) + " /utf8 /output=" + ILName);
             info.WorkingDirectory = AsmDir;
@@ -77,19 +76,23 @@ namespace XBuilder
                 }
 
             ILPathOriginal = Path.Combine(AsmDir,  Path.GetFileNameWithoutExtension(DasmPath) + "_original.il");
+          
+            // save original
+            File.Copy(ILPath, ILPathOriginal, true);
 
             File.Delete(DasmPath); // so it can be replaced with asm exe
         }
 
         internal void ScanLines(List<string> assemblies)
         {
+            XIL.Length = 0;
             CurrentNode = RootNode;
 
             InjectLibrary("XLibrary", "1:0:0:0");
 
             bool stripSig = false;
 
-            using (StreamReader reader = new StreamReader(ILPath))
+            using (StreamReader reader = new StreamReader(ILPathOriginal))
             {
                 while (!reader.EndOfStream)
                 {
@@ -104,6 +107,9 @@ namespace XBuilder
                         stripSig = false;
                         string assembly = line[line.Length - 1];
 
+                        if (assembly == "DragonFly.Storm.UI")
+                            continue; // gets storm to compile with depends
+
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
                         if (assemblies.Contains(assembly))
                         {
@@ -113,7 +119,7 @@ namespace XBuilder
                             stripSig = true;
                         }
                     }
-                        
+ 
                     // the result dll is changed so a strong sig links need to be removed
                     else if (line[0] == ".publickeytoken")
                     {
@@ -201,38 +207,43 @@ namespace XBuilder
                             line = reader.SplitNextLine(XIL);
                             Debug.Assert(!line.Contains("}"));
 
+                            // inject gui after .custom instance void [mscorlib]System.STAThreadAttribute::.ctor() = ( 01 00 00 00 )
+                            // if not then thread state will not be set for app's gui
                             if (line.Contains(".entrypoint"))
                                 entry = true;
+                        }
 
-                            // read until custom and insert entry
-                            // set entry to false
-                            // after found maxstack, if entry still true then insert gui
-                            if (entry && line.Contains(".custom"))
+                        if (line.Length > 1 && line[0] == ".maxstack")
+                        {
+                            XIL.RemoveLine();
+
+                            int maxstack = int.Parse(line[1]);
+                            if (maxstack == 0)
+                                maxstack = 1; // for method enter function
+
+                            // if we need to increase stack further for other added functions, 
+                            // this is how to do it, checksIndexOfAny  above, and check above this
+                            if (entry && maxstack < 2)
+                                maxstack = 2;
+
+                            // needs to push 1 more item on stack above whats needed for return 
+                            // elements so that MethodExit can run
+                            if (TrackFlow)
+                                maxstack++;
+
+                            XIL.AppendLine(".maxstack " + maxstack); // increase stack enough for hit function - need room for thread, hit, constructor
+
+                            if (entry)
                             {
                                 InjectGui();
                                 entry = false;
                             }
                         }
 
-                        if (line.Length > 1 && line[0] == ".maxstack" && (line[1].IndexOfAny(new char[]{'0', '1', '2'}) != -1))
-                        {
-                            XIL.RemoveLine();
-
-                            int maxstack = int.Parse(line[1]);
-                            if (maxstack == 0)
-                                maxstack = 1; // for hit function
-                            if (TrackThread && maxstack == 1)
-                                maxstack = 2;
-                            if (TrackConstruction && maxstack == 2 && (CurrentNode.Name == ".ctor" || CurrentNode.Name == "Finalize"))
-                                maxstack = 3;
-
-                            XIL.AppendLine(".maxstack " + maxstack); // increase stack enough for hit function - need room for thread, hit, constructor
-                        }
-
                         if (entry)
                             InjectGui();
 
-                        InjectMethodHit(CurrentNode);
+                        InjectMethodEnter(CurrentNode);
                     }
 
                     else if (line[0] == ".property") // ignore for now
@@ -252,48 +263,41 @@ namespace XBuilder
 
                     else if (CurrentNode.ObjType == XObjType.Method)
                     {
-                        /* (line[0].StartsWith(".entrypoint"))
+                        bool inCatch = false;
+
+                        if (line[0] == "catch")
                         {
-                            // inject gui after .custom instance void [mscorlib]System.STAThreadAttribute::.ctor() = ( 01 00 00 00 )
-                            // if not then thread state will not be set for app's gui
-
-                            // save spot
-
-                            bool found = false;
-                            List<string> lines = new List<string>();
-
-                            string scan = "";
-
-                            while (!scan.Contains("} // end of method"))
-                            {
-                                scan = reader.ReadLine();
-                                lines.Add(scan);
-
-                                if (scan.Contains(".custom"))
-                                {
-                                    found = true;
-                                    break;
-                                }
-                            }
-
-                            if (!found)
-                                InjectGui();
-
-                            lines.ForEach(s => XIL.AppendLine(s));
-
-                            if(found)
-                                InjectGui();
+                            line = reader.SplitNextLine(XIL);
+                            inCatch = true; // inject after indent set
                         }
 
-                        else if (line[0].StartsWith(".maxstack") && line[1] == "1" && !CurrentNode.Exclude)
+                        else if (line.Length > 1 && line[1] == "ret")
                         {
+                            Debug.Assert(line.Length == 2);
+                            InjectMethodExit(line, CurrentNode);
+                        }
+
+                        else if (line.Length > 1 && line[1].EndsWith(".s"))
+                        {
+                            // when we insert code we add more instructions, br is the branch instruction
+                            // and br.s is the short version allowing a max jump of 255 places which may
+                            // not be valid after our injection.  Strip the .s, and run ilasm with /optimize
+                            // to add them back in
+
+                            Debug.Assert(line.Length == 3); 
                             XIL.RemoveLine();
-                            XIL.AppendLine(".maxstack 2"); // increase stack enough for hit function
-                        }*/
+                            line[1] = line[1].Replace(".s", "");
+                            XIL.AppendLine(string.Join(" ", line));
+                        }
+
 
                         if (line[0] == "{") // try, catch, finallys, inside one another
                         {
                             CurrentNode.Indent++;
+                            CurrentNode.IndentString += "  ";
+
+                            if (inCatch)
+                                InjectMethodCatch(CurrentNode);
                         }
 
                         else if (line[0] == "}") // try, catch, finallys, inside one another
@@ -302,7 +306,10 @@ namespace XBuilder
                                 CurrentNode = CurrentNode.Parent as XNodeOut;
 
                             else
+                            {
                                 CurrentNode.Indent--;
+                                CurrentNode.IndentString = CurrentNode.IndentString.Substring(2);
+                            }
                         }
 
                         CurrentNode.Lines++;
@@ -323,54 +330,95 @@ namespace XBuilder
 
         private void InjectLibrary(string name, string version)
         {
+            XIL.AppendLine();
+            XIL.AppendLine("// XRay");
             XIL.AppendLine(".assembly extern " + name);
             XIL.AppendLine("{");
             XIL.AppendLine("  .ver " + version);
             XIL.AppendLine("}");
+            XIL.AppendLine();
         }
 
         private void InjectGui()
         {
             // check mscorlib is in assembly
+            // make sure max stack is big enough for init parameters
 
-            XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Init()");
+            XIL.AppendLine();
+            AddLine("// XRay");
+            AddLine("ldc.i4  " + (TrackFlow ? "1" : "0"));
+            AddLine("ldc.i4  " + (TrackInstances ? "1" : "0"));
+            AddLine("call    void [XLibrary]XLibrary.XRay::Init(bool,bool)");
+            XIL.AppendLine();
         }
 
-        private void InjectMethodHit(XNode node)
+        private void AddLine(string line)
         {
-            if (TrackThread)
-            {
-                XIL.AppendLine("call       class [mscorlib]System.Threading.Thread [mscorlib]System.Threading.Thread::get_CurrentThread()");
-                XIL.AppendLine("callvirt   instance int32 [mscorlib]System.Threading.Thread::get_ManagedThreadId()");
-                XIL.AppendLine("ldc.i4     " + node.ID.ToString());
-                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32, int32)");
-            }
-            else
-            {
-                XIL.AppendLine("ldc.i4     " + node.ID.ToString());
-                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Hit(int32)");
-            }
+            XIL.AppendLine(CurrentNode.IndentString + line);
+        }
 
-            if (!TrackConstruction)
+        private void InjectMethodEnter(XNode node)
+        {
+            XIL.AppendLine();
+            AddLine("// XRay");
+            AddLine("ldc.i4  " + node.ID.ToString());
+            AddLine("call    void [XLibrary]XLibrary.XRay::MethodEnter(int32)");
+
+            if (TrackInstances)
+                if (node.Name == ".ctor")
+                {
+                    AddLine("ldc.i4  " + node.Parent.ID.ToString());
+                    AddLine("call    void [XLibrary]XLibrary.XRay::Constructed(int32)");
+                }
+                else if (node.Name == "Finalize")
+                {
+                    AddLine("ldc.i4  " + node.Parent.ID.ToString());
+                    AddLine("call    void [XLibrary]XLibrary.XRay::Deconstructed(int32)");
+                }
+
+            XIL.AppendLine();
+        }
+
+        public int AllowedAdds;
+        public int AddsDone;
+
+        private void InjectMethodExit(string[] line, XNodeOut node)
+        {
+            if (!TrackFlow || node.Exclude)
                 return;
 
-            if (node.Name == ".ctor")
-            {
-                XIL.AppendLine("ldc.i4     " + node.Parent.ID.ToString());
-                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Constructed(int32)");
-            }
-            else if (node.Name == "Finalize")
-            {
-                XIL.AppendLine("ldc.i4     " + node.Parent.ID.ToString());
-                XIL.AppendLine("call       void [XLibrary]XLibrary.XRay::Deconstructed(int32)");
-            }
+            if (AddsDone >= AllowedAdds)
+                return;
+
+            XIL.RemoveLine(); // remove ret call
+
+            XIL.AppendLine();
+            AddLine("// XRay");
+            AddLine(line[0] + " nop"); // anything jumping to return, will jump here instead and allow us to log exit
+
+            AddLine("ldc.i4  " + node.ID.ToString());
+            AddLine("call    void [XLibrary]XLibrary.XRay::MethodExit(int32)");
+
+            AddLine("ret"); // put ret call back in
+
+            AddsDone++;
+        }
+
+        Dictionary<string, bool> errorMap = new Dictionary<string, bool>();
+
+        private void InjectMethodCatch(XNodeOut node)
+        {
+            if (!TrackFlow || node.Exclude)
+                return;
+
+            AddLine("// XRay");
+            AddLine("ldc.i4  " + node.ID.ToString());
+            AddLine("call    void [XLibrary]XLibrary.XRay::MethodCatch(int32)");
+            XIL.AppendLine();
         }
 
         internal string Compile()
         {
-            // save original
-            File.Copy(ILPath, ILPathOriginal, true);
-
             // write new IL
             byte[] buffer = UTF8Encoding.UTF8.GetBytes(XIL.ToString());
 
@@ -387,16 +435,22 @@ namespace XBuilder
             info.WorkingDirectory = AsmDir;
             info.UseShellExecute = false;
             info.RedirectStandardOutput = true;
+            info.Arguments += " /optimize"; // turn br instructions to br.s
 
             if (OriginalPath.EndsWith(".dll"))
-                info.Arguments += " /DLL";
+                info.Arguments += " /DLL ";
 
             Process process = Process.Start(info);
             string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
 
-            if (output.Contains("***** FAILURE *****"))
+            if (!output.Contains("Operation completed successfully"))
+            {
+                // for some reason running ilasm manually will give error details, while the process above will not
+                output += "\r\n\r\nTry running ilasm manually for error details.";
+
                 throw new CompileError("Error Recompiling", DasmPath, output);
+            }
 
             // copy XLibrary to final destination
             File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(Path.GetDirectoryName(OriginalPath), "XLibrary.dll"), true);
@@ -425,7 +479,11 @@ namespace XBuilder
             string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
 
-            if (output.Contains("Error Verifying") || output.Contains("Invalid option:"))
+
+            if (output.Contains("All Classes and Methods in ") &&
+                output.Contains("Verified"))
+                return;
+            else
                 throw new CompileError("Error Verifying", path, output);
         }
     }

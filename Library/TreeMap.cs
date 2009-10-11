@@ -12,120 +12,67 @@ namespace XLibrary
     /// </summary>
     public class TreeMap
     {
-        private readonly List<Sector> outputSectors = new List<Sector>();
+        public readonly List<Sector> Results = new List<Sector>();
 
-        private double brushX;
+        PointD Pos;
+        SizeD WorkArea;
+        SizeD OriginalArea;
 
-        private double brushY;
+        double CurrentHeight;
+        bool DrawingVertically;
 
-        private double workAreaHeight;
+        readonly int MinWidth = 3;
 
-        private double workAreaWidth;
 
-        private double currentHeight;
-
-        private bool isDrawingVertically;
-
-        /// <summary>
-        /// Plots the specified values.
-        /// </summary>
-        /// <param name="values">The values.</param>
-        /// <param name="workArea">The work area.</param>
-        /// <returns>A list of Sectors detailing how they should be layed out to create the TreeMap.</returns>
-        public List<Sector> Plot(IEnumerable<InputValue> values, SizeD size)
+        public TreeMap(IEnumerable<InputValue> values, SizeD size)
         {
-            Reset(size);
+            WorkArea = size;
+            OriginalArea = size;
 
-            Squarify(1, PrepareSectors(values).ToList(), new List<Sector>(), GetWidth());
+            double totalArea = WorkArea.Width * WorkArea.Height;
+            double totalValue = values.Sum(value => value.Value);
 
-            return outputSectors;
+            var prepared = from v in values
+                           orderby v.Value descending
+                           let area = totalArea * (v.Value / totalValue)
+                           select new Sector(v, area);
+
+            Squarify(1, prepared.ToList(), new List<Sector>(), GetWidth());
         }
 
-        private void Reset(SizeD size)
-        {
-            outputSectors.Clear();
-            brushX = 0;
-            brushY = 0;
-            workAreaWidth = size.Width;
-            workAreaHeight = size.Height;
-            currentHeight = 0;
-
-        }
-
-        /// <summary>
-        /// Calculates each Sectors area.
-        /// </summary>
-        /// <remarks>
-        /// Calculate the total area available given the workArea size.
-        /// Calculate the percentage (of the sum of all input values), each individual input value represents.
-        /// Use that percentage to assign a percentage of the totalArea available to that sector.
-        /// </remarks>
-        /// <param name="values">Input values.</param>
-        /// <returns>The prepared sections</returns>
-        private IEnumerable<Sector> PrepareSectors(IEnumerable<InputValue> values)
-        {
-            double totalArea = workAreaWidth * workAreaHeight;
-            double sumOfValues = values.Sum(value => value.Value);
- 
-            List<Sector> sectors = new List<Sector>();
-
-            foreach (InputValue inputValue in values.OrderByDescending(v => v.Value))
-            {
-                double percentage = (inputValue.Value / sumOfValues) * 100;
-                double area = (totalArea / 100) * percentage;
-
-                yield return new Sector()
-                        {
-                            OriginalValue = inputValue,
-                            Area = area,
-                            Percentage = percentage
-                        };
-            }
-        }
-
-        /// <summary>
-        /// Recursively processes the values list provided, laying them out into rows of squares.
-        /// </summary>
-        /// <param name="values">The input values.</param>
-        /// <param name="currentRow">The sectors in the current row.</param>
-        /// <param name="width">The width of the current row.</param>
         private void Squarify(int count, IList<Sector> values, List<Sector> currentRow, double width)
         {
-            if (width < 0 || width == 0 || width == double.NaN || values.Count == 0)
-                return;
-
             count++;
 
             // hacky mcHack
-            if (count == 50)
-            {
+            if (count == 10000)
                 return;
-            }
 
             List<Sector> nextIterationPreview = currentRow.ToList();
 
-            if (values.Count > 1)
+            if (values.Count == 0)
             {
-                nextIterationPreview.Add(values[0]);
+                LayoutRow(currentRow);
+                return;
             }
+            else if (values.Count > 1)
+                nextIterationPreview.Add(values[0]);
 
             double currentAspectRatio = CalculateAspectRatio(currentRow, width);
             double nextAspectRatio = CalculateAspectRatio(nextIterationPreview, width);
 
-            if (currentAspectRatio == 0 ||(nextAspectRatio < currentAspectRatio && nextAspectRatio >= 1))
+            if (currentAspectRatio == 0 || 
+                (1 <= nextAspectRatio && nextAspectRatio < currentAspectRatio))
             {
                 currentRow.Add(values[0]);
                 values.RemoveAt(0);
-                currentHeight = CalculateHeight(currentRow, width);
 
-                if (values.Count > 0)
-                {
-                    Squarify(count, values, currentRow, width);
-                }
-                else
-                {
-                    LayoutRow(currentRow);
-                }
+                CurrentHeight = currentRow.Sum(s => s.Area) / width;
+
+                if (double.IsNaN(CurrentHeight))
+                    CurrentHeight = 0;
+
+                Squarify(count, values, currentRow, width);
             }
             else
             {
@@ -137,21 +84,12 @@ namespace XLibrary
             }
         }
 
-        /// <summary>
-        /// Layouts the row.
-        /// </summary>
-        /// <param name="rowSectors">The row sectors.</param>
         private void LayoutRow(IEnumerable<Sector> rowSectors)
         {
-            PointD brushStartingPoint = new PointD() { X = brushX, Y = brushY };
+            PointD startingPoint = Pos;
 
-            if (!isDrawingVertically)
-            {
-                if (workAreaHeight != currentHeight)
-                {
-                    brushY = workAreaHeight - currentHeight;
-                }
-            }
+            if (!DrawingVertically)// && WorkArea.Height != CurrentHeight)
+                Pos.Y = WorkArea.Height - CurrentHeight;
 
             // Draw each sector in the current row
             foreach (Sector sector in rowSectors)
@@ -160,137 +98,109 @@ namespace XLibrary
                 double width;
                 double height;
 
-                if (isDrawingVertically)
+                if (DrawingVertically)
                 {
-                    width = currentHeight;
-                    height = sector.Area / currentHeight;
+                    width = CurrentHeight;
+                    height = sector.Area / CurrentHeight;
                 }
                 else
                 {
-                    width = sector.Area / currentHeight;
-                    height = currentHeight;
+                    width = sector.Area / CurrentHeight;
+                    height = CurrentHeight;
                 }
 
-                sector.Rect = new RectangleD(brushX, brushY, width, height);
+                if (double.IsNaN(width))
+                    width = 0;
+                if (double.IsNaN(height))
+                    height = 0;
 
-                outputSectors.Add(sector);
+                sector.Rect = new RectangleD(Pos.X, Pos.Y, width, height);
+
+                /*if (sector.Rect.X > OriginalArea.Width ||
+                    sector.Rect.X + sector.Rect.Width > OriginalArea.Width)
+                {
+                    sector.Rect.X = 0;
+                }
+
+                if (sector.Rect.Y > OriginalArea.Height ||
+                   sector.Rect.Y + sector.Rect.Height > OriginalArea.Height)
+                {
+                    sector.Rect.Y = 0;
+                }*/
+
+
+                Results.Add(sector);
 
                 // Reposition brush for the next sector
-                if (isDrawingVertically)
-                {
-                    brushY += height;
-                }
+                if (DrawingVertically)
+                    Pos.Y += height;
                 else
-                {
-                    brushX += width;
-                }
+                    Pos.X += width;
             }
 
             // Finished drawing all sectors in the row
             // Reposition the brush ready for the next row
-            if (isDrawingVertically)
+            if (DrawingVertically)
             {
                 // x increase by width (in vertical, currentHeight is width)
                 // y reset to starting position
-                brushX += currentHeight;
-                brushY = brushStartingPoint.Y;
-                workAreaWidth -= currentHeight;
+                Pos.X += CurrentHeight;
+                Pos.Y = startingPoint.Y;
+                WorkArea.Width -= CurrentHeight;
             }
             else
             {
-                brushX = brushStartingPoint.X;
-                brushY = brushStartingPoint.Y;
-                workAreaHeight -= currentHeight;
+                Pos.X = startingPoint.X;
+                Pos.Y = startingPoint.Y;
+                WorkArea.Height -= CurrentHeight;
             }
 
-            currentHeight = 0;
+            CurrentHeight = 0;
         }
 
-        /// <summary>
-        /// Calculates the aspect ratio.
-        /// </summary>
-        /// <param name="currentRow">The current row.</param>
-        /// <param name="width">The width.</param>
-        /// <returns>The Aspect Ratio</returns>
-        private double CalculateAspectRatio(List<Sector> currentRow, double width)
+        private double CalculateAspectRatio(List<Sector> row, double width)
         {
-            double sumOfAreas = 0;
-            currentRow.ForEach(sector => sumOfAreas += sector.Area);
+            if (row.Count == 0)
+                return 0;
 
-            double maxArea = int.MinValue;
-            double minArea = int.MaxValue;
+            double totalArea = row.Sum(s => s.Area);
+            double totalAreaSqaured = Math.Pow(totalArea, 2);
 
-            foreach (Sector sector in currentRow)
-            {
-                if (sector.Area > maxArea)
-                {
-                    maxArea = sector.Area;
-                }
+            double widthSquared = Math.Pow(width, 2);
+            double maxArea = row.Max(s => s.Area);
+            double minArea = row.Min(s => s.Area);
 
-                if (sector.Area < minArea)
-                {
-                    minArea = sector.Area;
-                }
-            }
-
-            double widthSquared = (double) Math.Pow(width, 2);
-            double sumOfAreasSqaured = (double) Math.Pow(sumOfAreas, 2);
-
-            double ratio1 = (widthSquared * maxArea) / sumOfAreasSqaured;
-            double ratio2 = sumOfAreasSqaured / (widthSquared * minArea);
+            double ratio1 = (widthSquared * maxArea) / totalAreaSqaured;
+            double ratio2 = totalAreaSqaured / (widthSquared * minArea);
 
             return Math.Max(ratio1, ratio2);
         }
 
-        /// <summary>
-        /// Calculates the height.
-        /// </summary>
-        /// <param name="currentRow">The current row.</param>
-        /// <param name="width">The width of the current row.</param>
-        /// <returns>The height of the current row.</returns>
-        private double CalculateHeight(List<Sector> currentRow, double width)
-        {
-            double sum = 0;
-            currentRow.ForEach(sector => sum += sector.Area);
-            return sum / width;
-        }
-
-        /// <summary>
-        /// Establishes whether to work vertically or horizontally and returns the relevant width
-        /// </summary>
-        /// <remarks>
-        /// When working vertically, "width" is the actual height of the work space.
-        /// </remarks>
-        /// <returns>Width of the current Row</returns>
         private double GetWidth()
         {
-            if (workAreaHeight > workAreaWidth)
-            {
-                isDrawingVertically = false;
-                return workAreaWidth;
-            }
+            DrawingVertically = WorkArea.Height < WorkArea.Width;
 
-            isDrawingVertically = true;
-            return workAreaHeight;
+            return DrawingVertically ? WorkArea.Height : WorkArea.Width;
         }
     }
 
     public class Sector
     {
         public InputValue OriginalValue;
-
         public double Area;
-
-        public double Percentage;
-
         public RectangleD Rect;
+
+        public Sector(InputValue value, double area)
+        {
+            OriginalValue = value;
+            Area = area;
+        }
     }
 
     public struct RectangleD
     {
         public double X;
         public double Y;
-
         public double Width;
         public double Height;
 
@@ -306,21 +216,31 @@ namespace XLibrary
 
         public RectangleD Contract(double amount)
         {
-            RectangleD contracted = this;
-
-            contracted.X += amount;
-            contracted.Y += amount;
-
-            contracted.Width -= amount * 2;
-            contracted.Height -= amount * 2;
-
-            if (contracted.Width < 0 || contracted.Height < 0)
+            // if width less than 1, set to 1
+            // if width is less than one, then flo
+            if (Width < amount * 2 + 1)
             {
-                contracted.Width = 0;
-                contracted.Height = 0;
+                X += Width / 2;
+                Width = 1;
+            }
+            else // new width will be greater than 1
+            {
+                X += amount;
+                Width -= amount * 2;
             }
 
-            return contracted;
+            if (Height < amount * 2 + 1)
+            {
+                Y += Height / 2;
+                Height = 1;
+            }
+            else
+            {
+                Y += amount;
+                Height -= amount * 2;
+            }
+
+            return this;
         }
 
         public RectangleF ToRectangleF()
@@ -332,8 +252,6 @@ namespace XLibrary
         {
             return ((((X <= x) && (x < (X + Width))) && (Y <= y)) && (y < (Y + Height)));
         }
-
- 
 
     }
 

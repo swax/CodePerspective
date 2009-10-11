@@ -1,9 +1,51 @@
-﻿
-recommit - proj set to 32 bit before
+﻿COMMIT
+
+debug lingering call lines, probably has to do with try catch, create test scenarios with TestC
+
+back click goes back, right click gives options (select, ignore(put x on node), view code? (use to edit and recompile?? ;))
+color exceptions red
+light orange for hit, dark orange for multiple threads
+light green for entry, dark green for multiple entries
+
+FunctionCall call = ... returning null when there should be no way
+	means that resizing is failing, we need to freeze the whole app on resize
+
+option to show all calls pairs souce/dest that have been made, light translucent grey
+
+dynamically expand shared dictionary as needed (test)
+option to persist call graph as light translucent green lines
+	put arrow in middle of line
+	
+right click ignore, puts box on function and doesnt show calls to/from that
+
+ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
+
+option to show dll/files as blocks, without this option classes in different files will share the same box
+	because they're in the same namespace
+
+mouse over instance count
+   for green nodes (entry points) display the instance count
+
+select specific node and only show flow from that
+set dashes in reset timer so they dont speed up on mouse over
+option to track anonymous methods
+
+external function
+	options show calls - internal, external in, external out
+
+springs
+	only show hit boxes
+	free moving, hanging, the repulse each other
+	the less related 2 objects are the more repulsive they are
+
+other
+	put tooltip on right corner of tip with mouse so easier to read
 
 bugs 
-	storm ui still doesnt build
+	storm ui - builds when .assembly isnt changed for the .exe file, what relies on .assembly?
+		think xaml resources might not like the xray name space, test a xaml app with resources
     open wells dat file and trace bad drawing blocks
+	paint.net not working with dependencies - resource related
 
 build
 	options - track construction, threads, ignore on decompile errors
@@ -11,7 +53,11 @@ build
 	ability to pause tracking in interface
 	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
 	time how long it takes to do redraw, option to draw less frames, option to set fps, which mods frames/timer settings - option in viz
+	option to 'test' and just open the dat file
 	
+release
+	need to take out any storm/wells research refs
+
 advanced
 	get to work with dlls, users pick entry function, should make asp tracking work
 	
@@ -19,6 +65,50 @@ flow tracking
 	try overlaying paths on blocks - odds are a lot of paths are internal
 	how to know function is returning - add tag to function exit? investigate il
 	build execution path and show dots moving from node 2 node
+	
+	each a -> b has an id
+	when function is called, id is hit
+	when function returns b -> a is hit
+	default option to only show hit
+	can light up links when function tree traversed
+	
+	when external method is called, add it to a name space and make optional to add the 'borders' tree map
+	way to analyze hits to external apis and libraries we didnt compile with
+	use moving dots show functions talking, would be cool to use spaces between classes as 'highways'
+	draw dependencies along border with moat between actual app
+	
+	use ints and ref count links between functions so i know if the chain is not complete
+	before function is called call mark
+	when function is entered hit/mark
+	when function exits mark
+	marks strung together to describe the flow of the app
+	advantage is that delegates can be traced
+	
+	test with an app with returns and throws mid function
+	check out IL and see where exit needs to be put
+	stack array per thread id
+	enter called
+		create an entry between that and the last enter if it does not exist
+			entry is hash of 2 ids
+				source / dest function id (s + 1) ^ d so if reversed d -> s, different hashes
+				draw function marks functions as drawn with unique id
+		set the hit counter
+		add function id to stack array
+	exit called
+		move back through stack array and find function
+		a function threw then a lot of functions will be skipped
+		
+	advantage to having flow tracking on outside is that a->b can be indexed with a unique id
+	
+	option to hide tree map to just watch flow, mouse over still works to show exactly what functions are hit
+	
+	simple flow tracker
+		hit before each method call
+		advantage can be used with external functions
+	advanced flow tracker
+		enter/exit inside function, stacks traced
+		advantage is that links between delegates are shown
+	
 	
 memory tracking
 	heap dump tree map ;) can figure out where allocated??
@@ -32,11 +122,29 @@ function tree map
 	option to track anonymous methods	
 	dont draw or recurse rects that are too small, smaller than 2 pix in width
 
+	hash source / dest function ids and put into hit map
+	foreach entry, draw a link, if hit, draw red
+
+	add exit function
+	trace enter/exit stack
+	insert hash pairs as app flows
+	each pair has points and timeout
+	move dashed line toward target function
+	
+	when borders added, enter/exit will surround external function, still given ids same as before
+	
+	larger xray? these are apps running on your computer as blocks (size by memory, height by cpu) 
+		borders are external services - hard drives, network interfaces, sound, display, etc...
+
 3d function tree map
 	constant square size, height dependnent on amount of code (cities)
 	fly through like hackers
 	taller towards middle of box
 	load IL and write on the walls of the cube
+	black sky
+	boxes dark blue semi translucent
+	code on walls of box
+	code lights up white when function is run
 	
 heap tree map
 	how to get memory allocated from gc, source to clr profiler?

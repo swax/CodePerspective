@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -17,21 +18,34 @@ namespace XLibrary
         bool DoResize = true;
         Bitmap DisplayBuffer;
 
-        /*Pen UnknownPen = new Pen(Color.Black);
-        Pen NamespacePen = new Pen(Color.Red);
-        Pen ClassPen = new Pen(Color.Green);
-        Pen MethodPen = new Pen(Color.Blue);
-        Pen FieldPen = new Pen(Color.Purple);*/
-
-
         Pen UnknownPen = new Pen(Color.Black);
         Pen NamespacePen = new Pen(Color.DarkBlue);
         Pen ClassPen = new Pen(Color.DarkGreen);
         Pen MethodPen = new Pen(Color.DarkRed);
         Pen FieldPen = new Pen(Color.Black);
 
+        SolidBrush UnknownBrush = new SolidBrush(Color.Black);
+        SolidBrush NamespaceBrush = new SolidBrush(Color.DarkBlue);
+        SolidBrush ClassBrush = new SolidBrush(Color.DarkGreen);
+        SolidBrush MethodBrush = new SolidBrush(Color.DarkRed);
+        SolidBrush FieldBrush = new SolidBrush(Color.Black);
+
         SolidBrush NothingBrush = new SolidBrush(Color.White);
-        SolidBrush[] OverBrushes = new SolidBrush[7];
+
+        SolidBrush EntryBrush = new SolidBrush(Color.LightGreen);
+        SolidBrush MultiEntryBrush = new SolidBrush(Color.LimeGreen);
+
+        SolidBrush HoldingBrush = new SolidBrush(Color.FromArgb(255, 255, 192));
+        SolidBrush MultiHoldingBrush = new SolidBrush(Color.Yellow);
+        
+        Color CallColor = Color.Blue;
+        Pen HoldingCallPen = new Pen(Color.FromArgb(32, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
+
+        Color HitColor = Color.FromArgb(255, 192, 128);
+        Color MultiHitColor = Color.Orange;
+
+        Color ExceptionColor = Color.Red;
+        Color MultiExceptionColor = Color.DarkRed;
 
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
@@ -40,19 +54,27 @@ namespace XLibrary
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
 
-        SolidBrush UnknownBrush = new SolidBrush(Color.Black);
-        SolidBrush NamespaceBrush = new SolidBrush(Color.Coral);
-        SolidBrush ClassBrush = new SolidBrush(Color.PaleGreen);
-        SolidBrush MethodBrush = new SolidBrush(Color.LightBlue);
-        SolidBrush FieldBrush = new SolidBrush(Color.Purple);
+
+
+        Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
 
         internal XNodeIn Root;
 
+        SolidBrush[] OverBrushes = new SolidBrush[7];
+
         SolidBrush[] HitBrush;
-        SolidBrush[] ConflictBrush;
+        SolidBrush[] MultiHitBrush;
+
+        SolidBrush[] ExceptionBrush;
+        // no multi exception brush cause we dont know if multiple function calls resulted in an exception or just the 1
+
+        Pen[] CallPen;
 
         int SelectHash;
         List<XNodeIn> Selected = new List<XNodeIn>();
+
+        const int DashSize  = 3;
+        const int DashSpace = 6;
 
 
         public TreePanelGdiPlus(TreeForm main, XNodeIn root)
@@ -67,13 +89,22 @@ namespace XLibrary
             Root = root;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
-            ConflictBrush = new SolidBrush[XRay.HitFrames];
+            MultiHitBrush = new SolidBrush[XRay.HitFrames];
+            ExceptionBrush = new SolidBrush[XRay.HitFrames];
+
+            CallPen = new Pen[XRay.HitFrames];
 
             for(int i = 0; i < XRay.HitFrames; i++)
             {
                 int brightness = 255 - (255 / XRay.HitFrames * i);
-                HitBrush[i] = new SolidBrush(Color.FromArgb(255, 255, brightness, brightness));
-                ConflictBrush[i] = new SolidBrush(Color.FromArgb(255, brightness, 255, brightness));
+
+                HitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, HitColor));
+                MultiHitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, MultiHitColor));
+                ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor ));
+
+                CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
+                CallPen[i].DashPattern = new float[] { DashSize, DashSpace };
+                CallPen[i].EndCap = LineCap.ArrowAnchor;
             }
 
             for (int i = 0; i < OverBrushes.Length; i++)
@@ -96,16 +127,54 @@ namespace XLibrary
 
             // background
             Graphics buffer = Graphics.FromImage(DisplayBuffer);
+            buffer.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed; // todo option to turn this off
 
             buffer.Clear(Color.White);
 
             if (XRay.CoverChange)
                 RecalcCover(Root);
-                
+
             if (DoResize || XRay.CoverChange)
-                SizeNode(buffer, Root, new RectangleD(0, 0, Width, Height));
+            {
+                Root.SetArea(new RectangleD(0, 0, Width, Height));
+
+                PositionMap.Clear();
+                PositionMap[Root.ID] = Root;
+
+                SizeNode(buffer, Root);
+            }
 
             DrawNode(buffer, Root, 0);
+
+            // draw flow
+            if (XRay.FlowTracking)
+            {
+                for (int i = 0; i < XRay.CallMap.Length; i++)
+                {
+                    FunctionCall call = XRay.CallMap.Values[i];
+
+                    if (call != null && (call.Hit > 0 || call.StillInside > 0) &&
+                        PositionMap.ContainsKey(call.Source) &&
+                        PositionMap.ContainsKey(call.Destination))
+                    {
+                        if (call.StillInside > 0)
+                            buffer.DrawLine(HoldingCallPen,PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
+
+                        if (call.Hit > 0)
+                        {
+                            Pen pen = CallPen[call.Hit];
+
+                            call.DashOffset -= DashSize;
+                            if (call.DashOffset < 0)
+                                call.DashOffset = DashSpace;
+
+                            pen.DashOffset = call.DashOffset;
+
+                            buffer.DrawLine(pen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
+                        }
+                    }
+                }
+            }
 
             // draw mouse over label
             Point pos = PointToClient(Cursor.Position);
@@ -146,27 +215,38 @@ namespace XLibrary
             return root.Value;                
         }
 
-        private void SizeNode(Graphics buffer, XNodeIn root, RectangleD area)
+        const int Border = 4;
+
+        private void SizeNode(Graphics buffer, XNodeIn root)
         {
             if (!root.Show)
                 return;
-            
-            root.Area = area;
-            
+
             var nodes = root.Nodes.Cast<XNodeIn>()
                             .Where(n => n.Show)
                             .Select(n => n as InputValue);
 
-            List<Sector> sectors = new TreeMap().Plot(nodes, area.Size);
+            List<Sector> sectors = new TreeMap(nodes, root.AreaD.Size).Results;
 
             foreach (Sector sector in sectors)
             {
                 XNodeIn node = sector.OriginalValue as XNodeIn;
 
-                sector.Rect.X += area.X;
-                sector.Rect.Y += area.Y;
+                sector.Rect.Contract(Border);
 
-                SizeNode(buffer, node, sector.Rect.Contract(4));
+                if (sector.Rect.X < Border) sector.Rect.X = Border;
+                if (sector.Rect.Y < Border) sector.Rect.Y = Border;
+                if (sector.Rect.X > root.AreaF.Width - Border) sector.Rect.X = root.AreaF.Width - Border;
+                if (sector.Rect.Y > root.AreaF.Height - Border) sector.Rect.Y = root.AreaF.Height - Border;
+
+                sector.Rect.X += root.AreaF.X;
+                sector.Rect.Y += root.AreaF.Y;
+
+                node.SetArea(sector.Rect);
+                PositionMap[node.ID] = node;
+
+                if(sector.Rect.Width > 1 && sector.Rect.Height > 1)
+                    SizeNode(buffer, node);
             }
         }
 
@@ -175,24 +255,29 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            Pen rectPen = UnknownPen;
+            Pen borderPen = UnknownPen;
+            SolidBrush borderBrush = UnknownBrush;
 
             switch (node.ObjType)
             {
                 case XObjType.Namespace:
-                    rectPen = NamespacePen;
+                    borderPen = NamespacePen;
+                    borderBrush = NamespaceBrush;
                     break;
 
                 case XObjType.Class:
-                    rectPen = ClassPen;
+                    borderPen = ClassPen;
+                    borderBrush = ClassBrush;
                     break;
 
                 case XObjType.Method:
-                    rectPen = MethodPen;
+                    borderPen = MethodPen;
+                    borderBrush = MethodBrush;
                     break;
 
                 case XObjType.Field:
-                    rectPen = FieldPen;
+                    borderPen = FieldPen;
+                    borderBrush = FieldBrush;
                     break;
             }
 
@@ -206,54 +291,68 @@ namespace XLibrary
                 rectBrush = OverBrushes[depth];
             }
 
-            RectangleF area = node.Area.ToRectangleF();
+            bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
 
-            buffer.FillRectangle(rectBrush, area);
-            
+
+            buffer.FillRectangle(rectBrush, node.AreaF);
+
+            bool needBorder = true;
+
             // red hit check if function is hit
-            if(XRay.HitFunctions != null)
+            if (XRay.FlowTracking && node.StillInside > 0)
             {
-                int value = XRay.Conflicts[node.ID];
-                if (value > 0)
-                    buffer.FillRectangle(ConflictBrush[value], area);
+                needBorder = false;
+
+                if (node.EntryPoint > 0)
+                {
+                    if (XRay.ThreadTracking && node.ConflictHit > 0)
+                        buffer.FillRectangle(MultiEntryBrush, node.AreaF);
+                    else
+                        buffer.FillRectangle(EntryBrush, node.AreaF);
+                }
                 else
                 {
-                    value = XRay.HitFunctions[node.ID];
-                    if (value > 0)
-                        buffer.FillRectangle(HitBrush[value], area);
+                    if (XRay.ThreadTracking && node.ConflictHit > 0)
+                        buffer.FillRectangle(MultiHoldingBrush, node.AreaF);
+                    else
+                        buffer.FillRectangle(HoldingBrush, node.AreaF);
                 }
             }
 
-
-
-            /*switch (node.ObjType)
+            // not an else if, draw over holding or entry
+            if (node.ExceptionHit > 0)
             {
-                case XObjType.Namespace:
-                    rectBrush = NamespaceBrush;
-                    break;
+                needBorder = false;
+                buffer.FillRectangle(ExceptionBrush[node.FunctionHit], node.AreaF);
+            }
 
-                case XObjType.Class:
-                    rectBrush = ClassBrush;
-                    break;
+            else if (node.FunctionHit > 0)
+            {
+                needBorder = false;
 
-                case XObjType.Method:
-                    rectBrush = MethodBrush;
-                    break;
+                if (XRay.ThreadTracking && node.ConflictHit > 0)
+                    buffer.FillRectangle(MultiHitBrush[node.FunctionHit], node.AreaF);
+                else
+                    buffer.FillRectangle(HitBrush[node.FunctionHit], node.AreaF);
+            }
 
-                case XObjType.Field:
-                    rectBrush = FieldBrush;
-                    break;
-            }*/
+            // if just a point, drawing a border messes up pixels
+            if (pointBorder)
+            {
+                if (needBorder) // dont draw the point if already lit up
+                    buffer.FillRectangle(borderBrush, node.AreaF);
+            }
+            else
+                buffer.DrawRectangle(borderPen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
 
 
+            if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
+                foreach (XNodeIn sub in node.Nodes)
+                    DrawNode(buffer, sub, depth + 1);
 
-            buffer.DrawRectangle(rectPen, area.X, area.Y, area.Width, area.Height);
-
-            foreach (XNodeIn sub in node.Nodes)
-                DrawNode(buffer, sub, depth + 1);
 
             // after drawing children, draw instance tracking on top of it all
-            if (XRay.TrackInstances && node.ObjType == XObjType.Class)
+            if (XRay.InstanceTracking && node.ObjType == XObjType.Class)
             {
                 /*if (XRay.InstanceCount[node.ID] > 0)
                 {
@@ -296,7 +395,7 @@ namespace XLibrary
                 Invalidate();
 
                 if (Selected.Count > 0)
-                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].GetName();
+                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].FullName();
                 else
                     MainForm.SelectedLabel.Text = "";
             }
@@ -304,7 +403,7 @@ namespace XLibrary
 
         private void TestSelected(XNodeIn node, Point loc)
         {
-            if (!node.Show || !node.Area.Contains(loc.X, loc.Y))
+            if (!node.Show || !node.AreaD.Contains(loc.X, loc.Y))
                 return;
 
             node.Selected = true;

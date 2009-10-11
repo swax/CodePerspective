@@ -38,12 +38,12 @@ namespace XLibrary
         public List<XNode> Nodes = new List<XNode>();
 
 
-        public string GetName()
+        public string FullName()
         {
             if (Parent == null) // dont show name for root node
                 return "";
 
-            string parent = Parent.GetName();
+            string parent = Parent.FullName();
 
             return (parent == "") ? Name : parent + "." + Name;
         }
@@ -56,7 +56,7 @@ namespace XLibrary
         public bool Exclude;
         public int Lines;
         public int Indent;
-
+        public string IndentString = "    "; // 2 for class, 2 for method
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -66,7 +66,7 @@ namespace XLibrary
 
             ID = NextID++;
 
-            Debug.WriteLine(string.Format("Added {0}: {1}", objType, GetName()));
+            //Debug.WriteLine(string.Format("Added {0}: {1}", objType, FullName()));
         }
 
         public XNodeOut AddNode(string name, XObjType objType)
@@ -166,10 +166,22 @@ namespace XLibrary
     {
         internal int ParentID;
         internal int Lines; // save here so final value can be manipulated
-        internal RectangleD Area;
+
         internal bool Selected;
         internal bool Show = true;
-        
+
+        internal RectangleD AreaD { get; private set; }
+        internal RectangleF AreaF { get; private set; }
+        internal PointF CenterF { get; private set; }
+
+        internal int FunctionHit;
+        internal int LastCallingThread;
+        internal int ConflictHit;
+        internal int ExceptionHit;
+
+        internal int EntryPoint;
+        internal int StillInside;
+
 
         internal static XNodeIn Read(FileStream stream)
         {
@@ -200,5 +212,14 @@ namespace XLibrary
 
             return node;
         }
+
+        internal void SetArea(RectangleD area)
+        {
+            AreaD = area;
+            AreaF = area.ToRectangleF();
+            CenterF = new PointF((float)(area.X + area.Width / 2),
+                                     (float)(area.Y + area.Height / 2));
+        }
+
     }
 }

@@ -84,11 +84,17 @@ namespace XBuilder
                         status("Decompiling", item.Name);
                         file.Decompile();
 
-                        status("Scanning", item.Name);
-                        file.ScanLines(assemblies);
+                       //for (int i = 0; i < int.MaxValue; i++)
+                       // {
+                        file.AllowedAdds = int.MaxValue; // i;
+                            file.AddsDone = 0;
 
-                        status("Recompiling", item.Name);
-                        item.RecompiledPath = file.Compile();
+                            status("Scanning", item.Name);
+                            file.ScanLines(assemblies);
+
+                            status("Recompiling", item.Name);
+                            item.RecompiledPath = file.Compile();
+                       // }
                     }
 
                     foreach (FileItem item in files)
@@ -130,6 +136,10 @@ namespace XBuilder
 
         private void TestButton_Click(object sender, EventArgs e)
         {
+            //string path = @"C:\RAID\Main\Dev\WellsResearch\PSDev - Copy\PixelScope\Application\bin\Debug PixelScopePro\XRay.dat";
+            //XRay.TestInit(path);
+            //return;
+
             // execute selected assembly
             FileItem item = FileList.SelectedItem as FileItem;
 
@@ -142,7 +152,8 @@ namespace XBuilder
                 return;
             }
 
-            //XRay.TestInit(Path.Combine(Path.GetDirectoryName(item.RecompiledPath), "XRay.dat"));
+            //string path = Path.Combine(Path.GetDirectoryName(item.RecompiledPath), "XRay.dat");
+            //XRay.TestInit(path);
 
             Process.Start(item.RecompiledPath);
         }

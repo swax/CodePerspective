@@ -37,6 +37,7 @@
             this.showOnlyHitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResetMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewPanel = new System.Windows.Forms.Panel();
             this.BottomStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -67,7 +68,8 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.optionsToolStripMenuItem,
-            this.ViewMenuItem});
+            this.ViewMenuItem,
+            this.DebugMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(292, 24);
@@ -104,6 +106,13 @@
             this.ViewMenuItem.Size = new System.Drawing.Size(44, 20);
             this.ViewMenuItem.Text = "View";
             this.ViewMenuItem.DropDownOpening += new System.EventHandler(this.ViewMenuItem_DropDownOpening);
+            // 
+            // DebugMenuItem
+            // 
+            this.DebugMenuItem.Name = "DebugMenuItem";
+            this.DebugMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.DebugMenuItem.Text = "Debug";
+            this.DebugMenuItem.Click += new System.EventHandler(this.DebugMenuItem_Click);
             // 
             // ViewPanel
             // 
@@ -147,5 +156,6 @@
         private System.Windows.Forms.ToolStripMenuItem ResetMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ViewMenuItem;
         private System.Windows.Forms.Panel ViewPanel;
+        private System.Windows.Forms.ToolStripMenuItem DebugMenuItem;
     }
 }

@@ -89,6 +89,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="done.txt" />
     <Content Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

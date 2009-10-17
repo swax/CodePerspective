@@ -18,6 +18,9 @@ namespace XBuilder
         string ILPath;
         string ILPathOriginal;
         string AsmDir;
+        string OutputDir;
+
+        bool SideBySide; // if true change the file name and refs to xray.etc..
 
         XNodeOut RootNode;
         XNodeOut CurrentNode;
@@ -26,14 +29,16 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
-        bool TrackFlow = true; // if this is true, then track thread needs to be true
+        public bool TrackFlow = true; // if this is true, then track thread needs to be true
         bool TrackInstances = false;
         
 
-        public XDecompile(XNodeOut root, string path)
+        public XDecompile(XNodeOut root, string sourcePath, string outDir)
         {
             RootNode = root;
-            OriginalPath = path;
+            OriginalPath = sourcePath;
+            OutputDir = outDir;
+            SideBySide = Path.GetDirectoryName(sourcePath) == outDir;
         }
 
         internal void Decompile()
@@ -72,7 +77,7 @@ namespace XBuilder
                 {
                     string line = read.ReadLine();
                     if (line.Contains("has no valid CLR header and cannot be disassembled"))
-                        throw new CompileError("Decompiling", ILPath, "Open IL file for more details");
+                        throw new CompileError("Decompiling", ILPath, "Has no valid CLR header and cannot be disassembled");
                 }
 
             ILPathOriginal = Path.Combine(AsmDir,  Path.GetFileNameWithoutExtension(DasmPath) + "_original.il");
@@ -87,7 +92,7 @@ namespace XBuilder
         {
             XIL.Length = 0;
             CurrentNode = RootNode;
-
+  
             InjectLibrary("XLibrary", "1:0:0:0");
 
             bool stripSig = false;
@@ -107,15 +112,17 @@ namespace XBuilder
                         stripSig = false;
                         string assembly = line[line.Length - 1];
 
-                        if (assembly == "DragonFly.Storm.UI")
-                            continue; // gets storm to compile with depends
 
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
                         if (assemblies.Contains(assembly))
                         {
-                            line[line.Length - 1] = "XRay." + line[line.Length - 1];
-                            XIL.RemoveLine();
-                            XIL.AppendLine(String.Join(" ", line));
+                            if (SideBySide)
+                            {
+                                line[line.Length - 1] = "XRay." + line[line.Length - 1];
+                                XIL.RemoveLine();
+                                XIL.AppendLine(String.Join(" ", line));
+                            }
+
                             stripSig = true;
                         }
                     }
@@ -240,9 +247,6 @@ namespace XBuilder
                             }
                         }
 
-                        if (entry)
-                            InjectGui();
-
                         InjectMethodEnter(CurrentNode);
                     }
 
@@ -324,8 +328,9 @@ namespace XBuilder
             }
 
             // change method call refs from old assembly to new
-            foreach (string assembly in assemblies)
-                XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
+            if(SideBySide)
+                foreach (string assembly in assemblies)
+                    XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
         }
 
         private void InjectLibrary(string name, string version)
@@ -452,15 +457,16 @@ namespace XBuilder
                 throw new CompileError("Error Recompiling", DasmPath, output);
             }
 
-            // copy XLibrary to final destination
-            File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(Path.GetDirectoryName(OriginalPath), "XLibrary.dll"), true);
-
             // copy compiled file
-            string recompiledPath = Path.Combine(Path.GetDirectoryName(OriginalPath), "XRay." + Path.GetFileName(OriginalPath));
+            string newName = Path.GetFileName(OriginalPath);
+            if (SideBySide)
+                newName = "XRay." + newName;
+
+            string recompiledPath = Path.Combine(OutputDir, newName);
 
             File.Delete(recompiledPath); // delete prev compiled file
 
-            File.Copy(DasmPath, recompiledPath);
+            File.Copy(DasmPath, recompiledPath, true);
 
             return recompiledPath;
         }
@@ -486,15 +492,42 @@ namespace XBuilder
             else
                 throw new CompileError("Error Verifying", path, output);
         }
+
+        internal static void PrepareOutputDir(string sourcePath, string destPath)
+        {
+            bool sideBySide = sourcePath == destPath;
+
+            // if seperate output dir
+            if (!sideBySide)
+            {
+                Directory.CreateDirectory(destPath);
+
+                // re-copy exe/dlls from original path
+                foreach (string file in Directory.GetFiles(sourcePath))
+                    if (file.EndsWith(".exe") || file.EndsWith(".dll"))
+                        File.Copy(file, Path.Combine(destPath, Path.GetFileName(file)), true);
+            }
+
+            // copy XLibrary to final destination
+            File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(destPath, "XLibrary.dll"), true);
+        }
     }
 
     internal class CompileError : Exception 
     {
         internal string Summary { get; private set; }
 
+        // for throwing
         internal CompileError(string process, string path, string output)
         {
             Summary = process + " " + Path.GetFileName(path) + "\r\n\r\n" + output;
+        }
+
+
+        // for re-throwing
+        internal CompileError(string summary)
+        {
+            Summary = summary;
         }
     }
 }

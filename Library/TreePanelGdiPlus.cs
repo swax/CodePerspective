@@ -12,7 +12,7 @@ namespace XLibrary
 {
     public partial class TreePanelGdiPlus : UserControl, ITreePanel
     {
-        public TreeForm MainForm;
+        public MainForm MainForm;
 
         bool DoRedraw = true;
         bool DoResize = true;
@@ -77,7 +77,7 @@ namespace XLibrary
         const int DashSpace = 6;
 
 
-        public TreePanelGdiPlus(TreeForm main, XNodeIn root)
+        public TreePanelGdiPlus(MainForm main, XNodeIn root)
         {
             InitializeComponent();
 

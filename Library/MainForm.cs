@@ -10,12 +10,12 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class TreeForm : Form
+    public partial class MainForm : Form
     {
         ITreePanel CurrentPanel;
 
 
-        public TreeForm()
+        public MainForm()
         {
             InitializeComponent();
 

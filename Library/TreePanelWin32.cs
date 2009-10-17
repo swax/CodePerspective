@@ -12,7 +12,7 @@ namespace XLibrary
 {
     public partial class TreePanelWin32 : UserControl, ITreePanel
     {
-        public TreeForm MainForm;
+        public MainForm MainForm;
 
         bool DoRedraw = true;
         bool DoResize = true;
@@ -56,7 +56,7 @@ namespace XLibrary
         List<XNodeIn> Selected = new List<XNodeIn>();
 
 
-        public TreePanelWin32(TreeForm main, XNodeIn root)
+        public TreePanelWin32(MainForm main, XNodeIn root)
         {
             InitializeComponent();
 

@@ -13,7 +13,7 @@ namespace XLibrary
 {
     public static class XRay
     {
-        static TreeForm MainForm;
+        static MainForm MainForm;
 
         static Thread Gui;
 
@@ -37,26 +37,34 @@ namespace XLibrary
         
         internal static bool FlowTracking = false; // must be compiled in, can be ignored later
         internal const int MaxStack = 512;
-        internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>();
-        internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>();
+        internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(1000);
+        internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(100000);
 
+        internal static string DatPath;
         internal static bool CallLogging;
-        internal static StringBuilder DebugLog = new StringBuilder(4096);
+        internal static Dictionary<string, bool> ErrorMap = new Dictionary<string, bool>();
 
         static int EdgeHashOffset;
-
+        static bool InitComplete;
 
         public static void TestInit(string path)
         {
-            LoadNodeMap(path);
-
-            MainForm = new TreeForm();
-            MainForm.Show();
+            if (LoadNodeMap(path))
+            {
+                MainForm = new MainForm();
+                MainForm.Show();
+            }
         }
 
 
         public static void Init(bool trackFlow, bool trackInstances)
         {
+            if (InitComplete)
+            {
+                LogError("Init already called");
+                return;
+            }
+
             // read compiled settings
             if (trackFlow)
             {
@@ -77,6 +85,8 @@ namespace XLibrary
                 InstanceCount = new byte[FunctionCount];
 
             EdgeHashOffset = int.MaxValue / (FunctionCount + 1);
+            
+            InitComplete = true;
 
             // boot up the xray gui
             if (Gui == null)
@@ -92,32 +102,36 @@ namespace XLibrary
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            MainForm = new TreeForm();
+            MainForm = new MainForm();
             Application.Run(MainForm);
         }
 
-        static void LoadNodeMap(string path)
+        static bool LoadNodeMap(string path)
         {
+            DatPath = path;
             FunctionCount = 0;
             Dictionary<int, XNodeIn> map = new Dictionary<int, XNodeIn>();
             
             try
             {
-                using (FileStream stream = new FileStream(path, FileMode.Open))
+                using (FileStream stream = new FileStream(DatPath, FileMode.Open))
                 {
                     while (stream.Position < stream.Length)
                     {
                         XNodeIn node = XNodeIn.Read(stream);
                         map[node.ID] = node;
 
+                        // first node read is the root
                         if (RootNode == null)
                             RootNode = node;
 
-                        if (map.ContainsKey(node.ParentID))
+                        else if (map.ContainsKey(node.ParentID))
                         {
                             node.Parent = map[node.ParentID];
                             node.Parent.Nodes.Add(node);
                         }
+                        else
+                            LogError("Could not find parent {0} or {1}", node.Parent, node.Name);
 
                         if (node.ID > FunctionCount)
                             FunctionCount = node.ID;
@@ -129,15 +143,28 @@ namespace XLibrary
                 Nodes = new XNodeIn[FunctionCount];
                 foreach (var node in map.Values)
                     Nodes[node.ID] = node;
+
+                return true;
             }
             catch(Exception ex)
             {
                 MessageBox.Show("XRay data file not found: " + ex.Message); // would this even work? test
             }
+
+            return false;
         }
 
         public static void MethodEnter(int method)
         {
+            if (Nodes == null) // static classes init'ing in the entry points class can cause this
+                return;
+
+            if (method >= Nodes.Length)
+            {
+                LogError("Method not in node array Func {0}, Array Size {1}\r\n", method, Nodes.Length);
+                return;
+            }
+
             XNodeIn node = Nodes[method];
 
             // prevent having to check multiple times in mark hit and flow tracking
@@ -149,10 +176,35 @@ namespace XLibrary
                 thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                DebugLog.AppendFormat("Thread {0}, Func {1}, Enter\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Enter\r\n", thread, method);
 
+            // mark covered, should probably check if show covered is checked
+            if (!CoveredFunctions[node.ID])
+            {
+                CoverChange = true;
 
-            MarkHit(thread, node);
+                XNode check = node;
+                while (check != null)
+                {
+                    CoveredFunctions[check.ID] = true;
+                    check = check.Parent;
+                }
+                // clear cover change on paint
+            }
+
+            node.FunctionHit = ShowTicks;
+
+            if (node.ObjType != XObjType.Method)
+                LogError("{0} {1} Hit", node.ObjType, node.ID);
+
+            if (ThreadTracking && thread != 0)
+            {
+                if (node.LastCallingThread != 0 && node.LastCallingThread != thread)
+                    node.ConflictHit = ShowTicks;
+
+                node.LastCallingThread = thread;
+            }
+
 
             if (!FlowTracking)
                 return;
@@ -163,8 +215,6 @@ namespace XLibrary
             {
                 flow = new ThreadFlow() { ThreadID = thread };
                 FlowMap.Add(thread, flow);
-
-                //todo - check map size here, and clear oldest entries
             }
 
             node.StillInside++;
@@ -199,7 +249,7 @@ namespace XLibrary
             }
 
             if (source != call.Source || method != call.Destination)
-                DebugLog.AppendFormat("Call mismatch  {0}->{1} != {2}->{3}\r\n",
+                LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n",
                     source, method, call.Source, call.Destination);
 
             flow.Pos++;
@@ -211,13 +261,13 @@ namespace XLibrary
 
         public static void MethodExit(int method)
         {
-            if (!ThreadTracking || !FlowTracking || Nodes[method] == null)
+            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[method] == null)
                 return;
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                DebugLog.AppendFormat("Thread {0}, Func {1}, Exit\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Exit\r\n", thread, method);
 
 
             // only should be called if flow tracking is enabled
@@ -230,8 +280,11 @@ namespace XLibrary
                 for (int i = flow.Pos; i >= 0; i--)
                     if (flow.Stack[i].Method == method)
                     {
+                        int exit = flow.Pos;
+                        flow.Pos = i - 1;
+
                         // mark functions called as well as this function as not insde
-                        for (int x = i; x <= flow.Pos; x++)
+                        for (int x = i; x <= exit; x++)
                         {
                             StackItem exited = flow.Stack[x];
 
@@ -244,7 +297,6 @@ namespace XLibrary
                         if(i == 0)
                             Nodes[method].EntryPoint--;
 
-                        flow.Pos = i - 1;
                         break;
                     }
 
@@ -254,21 +306,24 @@ namespace XLibrary
 
         public static void MethodCatch(int method)
         {
-            if (!ThreadTracking || !FlowTracking || Nodes[method] == null)
+            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[method] == null)
                 return;
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                DebugLog.AppendFormat("Thread {0}, Func {1}, Catch\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Catch\r\n", thread, method);
 
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
                 for (int i = flow.Pos; i >= 0; i--)
                     if (flow.Stack[i].Method == method)
                     {
+                        int exit = flow.Pos;
+                        flow.Pos = i;
+
                         // mark functions called by this as not inside any longer
-                        for (int x = i + 1; x <= flow.Pos; x++)
+                        for (int x = i + 1; x <= exit; x++)
                         {
                             StackItem exited = flow.Stack[x];
 
@@ -279,43 +334,9 @@ namespace XLibrary
                                 exited.Call.StillInside--;
                         }
 
-                        flow.Pos = i;
+                        break;
                     }
         }
-
-        public static void MarkHit(int thread, XNodeIn node)
-        {
-            if (!CoveredFunctions[node.ID])
-            {
-                CoverChange = true;
-
-                XNode check = node;
-                while (check != null)
-                {
-                    CoveredFunctions[check.ID] = true;
-                    check = check.Parent;
-                }
-                // clear cover change on paint
-            }
-
-            node.FunctionHit = ShowTicks;
-
-            if (ThreadTracking && thread != 0)
-            {
-                if (node.LastCallingThread != 0 && node.LastCallingThread != thread)
-                   node.ConflictHit = ShowTicks;
-
-                node.LastCallingThread = thread;
-            }
-
-            // keep 6 lists around for diff threads
-            // map thread id to list pos
-            // keep track of how often each thread list is updated
-
-        }
- 
-
-
 
         public static void Constructed(int index)
         {
@@ -332,6 +353,11 @@ namespace XLibrary
                 InstanceCount[index] = 0;
                 Debug.Assert(false);
             }
+        }
+
+        static void LogError(string text, params object[] args)
+        {
+            ErrorMap[string.Format(text, args)] = true;
         }
     }
 
@@ -367,9 +393,15 @@ namespace XLibrary
         where T : class
     {
         internal int Length;
-        internal T[] Values = new T[10000];
+        internal T[] Values;
+
+        int KeyMax = 100000;
         Dictionary<int, int> Map = new Dictionary<int, int>();
-        bool Resizing;
+
+        internal SharedDictionary(int keyMax)
+        {
+            Values = new T[keyMax];
+        }
 
         internal bool Contains(int hash)
         {
@@ -391,30 +423,18 @@ namespace XLibrary
 
         internal void Add(int hash, T call)
         {
+            if (Length >= Values.Length)
+            {
+                // todo log error, in future user should specify call map size in build
+                return;
+            }
+
             // should probably lock this... speed or low chance errors? a dangerous game
             int index = Length;
             Map[hash] = index;
             Values[index] = call;
 
             Length++;
-
-            // need to figure a better way... ideally without locking everytime
-
-            // maybe 2 identical functions, one that locks on that doesnt that only triggers when need a resize
-
-            if (Length >= Values.Length / 2 && !Resizing)
-            {
-                Resizing = true;
-
-                T[] newValues = new T[Values.Length * 2];
-
-                for (int i = 0; i < Values.Length; i++)
-                    newValues[i] = Values[i];
-
-                Values = newValues;
-
-                Resizing = false;
-            }
         }   
     }
 

@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class TreeForm
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.

@@ -51,7 +51,7 @@ namespace XLibrary
 
     public class XNodeOut : XNode
     {
-        static int NextID = 1;
+        public static int NextID = 1;
 
         public bool Exclude;
         public int Lines;

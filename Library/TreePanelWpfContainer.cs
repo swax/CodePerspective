@@ -11,13 +11,13 @@ namespace XLibrary
 {
     public partial class TreePanelWpfContainer : UserControl, ITreePanel
     {
-        internal TreeForm MainForm;
+        internal MainForm MainForm;
         internal XNodeIn Root;
 
         TreePanelWPF PanelWpf;
 
 
-        public TreePanelWpfContainer(TreeForm main, XNodeIn root)
+        public TreePanelWpfContainer(MainForm main, XNodeIn root)
         {
             InitializeComponent();
 

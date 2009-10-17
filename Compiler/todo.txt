@@ -1,57 +1,74 @@
-﻿COMMIT
+﻿
+look at functions with links that are no longer active
+	see if function could have returned without triggering an exit
+	test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
 
-debug lingering call lines, probably has to do with try catch, create test scenarios with TestC
+show array/map sizes in debug
 
-back click goes back, right click gives options (select, ignore(put x on node), view code? (use to edit and recompile?? ;))
-color exceptions red
-light orange for hit, dark orange for multiple threads
-light green for entry, dark green for multiple entries
+when double clicking to zoom on something, keep that node highlighted so its not lost
+click highlights nodes
 
-FunctionCall call = ... returning null when there should be no way
-	means that resizing is failing, we need to freeze the whole app on resize
 
-option to show all calls pairs souce/dest that have been made, light translucent grey
+make root node for each file
 
-dynamically expand shared dictionary as needed (test)
-option to persist call graph as light translucent green lines
-	put arrow in middle of line
+how too zoom in on piddly functions?
 	
-right click ignore, puts box on function and doesnt show calls to/from that
+goal
+	ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
+	extend with options, fix bugs
+	next weekend hook up external methods
+	in my brain coding is visual, i make connections between objects, but in practice i dont code with objects, 
+		but text and am forced to imagine the visual which blows your mind the larger the program becomes
+	then the 3d shit, go gibson
+	Test - SwarmNLP (simple), Paint.Net, RiseOp (straight c#), Wells (VB), Storm (many files mixed code), release/debug
+		world wind still active??
 
-ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
-
-option to show dll/files as blocks, without this option classes in different files will share the same box
-	because they're in the same namespace
-
-mouse over instance count
-   for green nodes (entry points) display the instance count
-
-select specific node and only show flow from that
-set dashes in reset timer so they dont speed up on mouse over
-option to track anonymous methods
-
-external function
-	options show calls - internal, external in, external out
-
+xray gui
+	back click goes back, right click gives options (select, ignore(put x on node), view code? (use to edit and recompile?? ;))
+	select specific node and only show flow from that
+	set dashes in reset timer so they dont speed up on mouse over
+	right click ignore, puts box on function and doesnt show calls to/from that
+		ignore / select can be functoin, class, namespace
+		option to show msil for function, or fields of a class, msil could have hyper links to other functions
+	option to mark puts circle in node, easier to track node after zoom in/out and resizing
+	option to persist call graph as light translucent green lines
+	show calls - internal, external in, external out
+	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
+	mouse over instance count
+	   for green nodes (entry points) display the instance count
+	option to show dll/files as blocks, without this option classes in different files will share the same box
+		because they're in the same namespace
+	current redraw time / fps
+	saving current option set to use between runs
+		saves current select/ignore settings, user can label as 'transfer graph' etc..
+	show notice somewhere on gui if there are entries in the debug log
+	
 springs
 	only show hit boxes
 	free moving, hanging, the repulse each other
 	the less related 2 objects are the more repulsive they are
+	opens another with boxes connected by strings
+	mirrors treemap window, selections, ignores, etc.. the windows are linked
+	maybe use a splitter to the user gets 2 concurrent views
+	option to spawn more xray windows so differnt classes can be viewed in diff windows, or trees simultaneously
+
+instance tracking
+	option in builder that passes 'this' in function call
+	xlib stores 'this' in a weak reference map
+	user can right click on node and do view instances which allows viewing all the vars of each instance
 
 other
 	put tooltip on right corner of tip with mouse so easier to read
 
 bugs 
-	storm ui - builds when .assembly isnt changed for the .exe file, what relies on .assembly?
-		think xaml resources might not like the xray name space, test a xaml app with resources
-    open wells dat file and trace bad drawing blocks
-	paint.net not working with dependencies - resource related
+	these files not building - dragonfly.loki, dragonfly.storm.core, DragonFly.Storm.World.Client, DragonFly.Util.Native, DragonFly.Video.MXF
 
 build
-	options - track construction, threads, ignore on decompile errors
+	options
+		track construction, threads
+		option to track anonymous methods
 	progress bar of file ops
 	ability to pause tracking in interface
-	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
 	time how long it takes to do redraw, option to draw less frames, option to set fps, which mods frames/timer settings - option in viz
 	option to 'test' and just open the dat file
 	
@@ -60,28 +77,17 @@ release
 
 advanced
 	get to work with dlls, users pick entry function, should make asp tracking work
-	
+	xray search box, as letters are typed in, matching function name boxes are bolded
+	easter egg - extreme zoom in factal hacker code effect
+	 
 flow tracking
-	try overlaying paths on blocks - odds are a lot of paths are internal
-	how to know function is returning - add tag to function exit? investigate il
-	build execution path and show dots moving from node 2 node
 	
-	each a -> b has an id
-	when function is called, id is hit
-	when function returns b -> a is hit
-	default option to only show hit
-	can light up links when function tree traversed
 	
 	when external method is called, add it to a name space and make optional to add the 'borders' tree map
 	way to analyze hits to external apis and libraries we didnt compile with
 	use moving dots show functions talking, would be cool to use spaces between classes as 'highways'
 	draw dependencies along border with moat between actual app
 	
-	use ints and ref count links between functions so i know if the chain is not complete
-	before function is called call mark
-	when function is entered hit/mark
-	when function exits mark
-	marks strung together to describe the flow of the app
 	advantage is that delegates can be traced
 	
 	test with an app with returns and throws mid function
@@ -179,5 +185,39 @@ wpf
     only hit funcs is very useful to cut down on drawing
     
     wsad/mouselook fly through, click highlights selected
+    
+add to xray ability to gen interface from the classes themselves
+   work with program directly, manipulate internal variables 
+   and inspect those values on the fly
+   use try/catch so that iterating exceptions are handled
+   or i guess xray would lock object as iterating...
 
+names
+	introspective
+	introvert c# csharp .net msil
+	xray whoami existance
+	soul inside translucent window clear
+	xray, invisible, MRI
+	scan, clearSense, lucent
+	glass, inside out
+	soul, spirit, ghost, phantom, spectre
+	xray.net
 
+editor
+	click on blocks, edit code
+	f5 launches app and everything starts lighting up
+	the end of multiple files for projects
+		everything is in one file, accessible by a logical tree
+		can find classes/vars quickly by typing the name like itunes
+	integrate with visual studio for real editing, post build step to use xray
+
+riseop
+	what better platform for interactive building, debugging, version control and comm
+	
+release
+	when i make a page with all my apps, put link to c0re in about of all apps so can link back
+	contact .net developers individual tell them ive tried their app and would like their opinion on
+		the app, what we could do to help them understand their app better
+	also good for professors teaching CS
+		find schools using C#/VB.Net for the class and ask could it be used as a teaching tool?
+		what features would they wany?

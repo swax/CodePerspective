@@ -24,6 +24,9 @@ namespace XLibrary
         {
             Output.Length = 0;
 
+            Output.AppendLine("Dat Path: " + XRay.DatPath);
+            Output.AppendLine();
+
             // settings
             Output.AppendLine("Settings:");
             Output.AppendLine("  InstanceTracking: " + XRay.InstanceTracking);
@@ -35,14 +38,21 @@ namespace XLibrary
             Output.AppendLine("");
             Output.AppendLine("StackMap:");
 
-            for(int i = 0; i < XRay.FlowMap.Length; i++)
+            for (int i = 0; i < XRay.FlowMap.Length; i++)
             {
                 ThreadFlow flow = XRay.FlowMap.Values[i];
+
+                if (flow == null)
+                    continue;
 
                 Output.AppendFormat("  Thread: {0}\r\n", flow.ThreadID);
 
                 for (int x = 0; x <= flow.Pos; x++)
-                    Output.AppendFormat("    {0}: {1}\r\n", x, flow.Stack[x].Method);//, (XRay.NodeMap[flow.Stack[x]].StillInside > 0));
+                {
+                    XNodeIn node = XRay.Nodes[flow.Stack[x].Method];
+                    if(node != null)
+                        Output.AppendFormat("    {0}: Hit: {1}, Inside: {2}\r\n", x, node.ID, node.StillInside);//, (XRay.NodeMap[flow.Stack[x]].StillInside > 0));
+                }
             }
 
             // function calls
@@ -52,13 +62,15 @@ namespace XLibrary
             for(int i = 0; i < XRay.CallMap.Length; i++)
             {
                 FunctionCall call = XRay.CallMap.Values[i];
-                Output.AppendFormat("  {0} -> {1}: {2}\r\n", call.Source, call.Destination, call.Hit);
+                if(call != null)
+                    Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside );
             }
 
             // function calls
             Output.AppendLine("");
             Output.AppendLine("Log:");
-            Output.Append(XRay.DebugLog);
+            foreach(string error in XRay.ErrorMap.Keys)
+                Output.AppendLine(error);
 
             DebugOutput.Text = Output.ToString();
         }

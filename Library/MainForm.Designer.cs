@@ -34,11 +34,13 @@
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showOnlyHitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowOnlyHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResetMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewPanel = new System.Windows.Forms.Panel();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.ShowAllCallsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BottomStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -79,24 +81,26 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.showOnlyHitToolStripMenuItem,
-            this.ResetMenuItem});
+            this.ShowOnlyHitMenuItem,
+            this.ResetMenuItem,
+            this.toolStripMenuItem1,
+            this.ShowAllCallsMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionsToolStripMenuItem.Text = "Options";
             // 
-            // showOnlyHitToolStripMenuItem
+            // ShowOnlyHitMenuItem
             // 
-            this.showOnlyHitToolStripMenuItem.CheckOnClick = true;
-            this.showOnlyHitToolStripMenuItem.Name = "showOnlyHitToolStripMenuItem";
-            this.showOnlyHitToolStripMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.showOnlyHitToolStripMenuItem.Text = "Show only hit";
-            this.showOnlyHitToolStripMenuItem.Click += new System.EventHandler(this.ShowOnlyHitToolStripMenuItem_Click);
+            this.ShowOnlyHitMenuItem.CheckOnClick = true;
+            this.ShowOnlyHitMenuItem.Name = "ShowOnlyHitMenuItem";
+            this.ShowOnlyHitMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowOnlyHitMenuItem.Text = "Show only hit";
+            this.ShowOnlyHitMenuItem.Click += new System.EventHandler(this.ShowOnlyHitToolStripMenuItem_Click);
             // 
             // ResetMenuItem
             // 
             this.ResetMenuItem.Name = "ResetMenuItem";
-            this.ResetMenuItem.Size = new System.Drawing.Size(146, 22);
+            this.ResetMenuItem.Size = new System.Drawing.Size(152, 22);
             this.ResetMenuItem.Text = "Reset hit";
             this.ResetMenuItem.Click += new System.EventHandler(this.ResetMenuItem_Click);
             // 
@@ -124,7 +128,20 @@
             this.ViewPanel.Size = new System.Drawing.Size(292, 219);
             this.ViewPanel.TabIndex = 3;
             // 
-            // TreeForm
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(149, 6);
+            // 
+            // ShowAllCallsMenuItem
+            // 
+            this.ShowAllCallsMenuItem.CheckOnClick = true;
+            this.ShowAllCallsMenuItem.Name = "ShowAllCallsMenuItem";
+            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowAllCallsMenuItem.Text = "Show all calls";
+            this.ShowAllCallsMenuItem.Click += new System.EventHandler(this.ShowAllCallsMenuItem_Click);
+            // 
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -133,7 +150,7 @@
             this.Controls.Add(this.BottomStrip);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Name = "TreeForm";
+            this.Name = "MainForm";
             this.Text = "MainForm";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TreeForm_FormClosing);
             this.BottomStrip.ResumeLayout(false);
@@ -152,10 +169,12 @@
         private System.Windows.Forms.Timer ResetTimer;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showOnlyHitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowOnlyHitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ResetMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ViewMenuItem;
         private System.Windows.Forms.Panel ViewPanel;
         private System.Windows.Forms.ToolStripMenuItem DebugMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem ShowAllCallsMenuItem;
     }
 }

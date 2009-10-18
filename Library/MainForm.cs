@@ -76,7 +76,7 @@ namespace XLibrary
 
         private void ShowOnlyHitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            XRay.ShowOnlyHit = showOnlyHitToolStripMenuItem.Checked;
+            XRay.ShowOnlyHit = ShowOnlyHitMenuItem.Checked;
             XRay.CoverChange = true; // force recalc
             CurrentPanel.Redraw();
         }
@@ -148,6 +148,12 @@ namespace XLibrary
         private void DebugMenuItem_Click(object sender, EventArgs e)
         {
             new DebugForm().Show();
+        }
+
+        private void ShowAllCallsMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.ShowAllCalls = ShowAllCallsMenuItem.Checked;
+            CurrentPanel.Redraw();
         }
     }
 }

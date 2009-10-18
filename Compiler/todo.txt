@@ -1,19 +1,27 @@
 ﻿
-look at functions with links that are no longer active
-	see if function could have returned without triggering an exit
-	test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
-
-show array/map sizes in debug
-
-when double clicking to zoom on something, keep that node highlighted so its not lost
-click highlights nodes
-
-
-make root node for each file
-
-how too zoom in on piddly functions?
+do the whole selection system and tomorrow maybe wrap external function calls
+	click on item puts black border around it, call it focus
+	double click on item sticks black border on object, call it selected
 	
+	right click	
+		select (check) - darkens in 3 pixes (padding) red
+		ignore (check) - puts X over node, red
+			x/os drawn after nodes so that if class is ignored the x/o goes over everything
+		clear all
+
+	mouse wheel - zoom in/out
+	back / forward buttons - zoom in/out
+	space - go to top immediately
+
+	look at functions with links that are no longer active
+		see if function could have returned without triggering an exit
+		test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
+
+	show array/map sizes in debug
+	
+		
 goal
+	if todo items helps me understand app better then its higher on the list
 	ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
 	extend with options, fix bugs
 	next weekend hook up external methods
@@ -24,24 +32,20 @@ goal
 		world wind still active??
 
 xray gui
-	back click goes back, right click gives options (select, ignore(put x on node), view code? (use to edit and recompile?? ;))
-	select specific node and only show flow from that
 	set dashes in reset timer so they dont speed up on mouse over
 	right click ignore, puts box on function and doesnt show calls to/from that
 		ignore / select can be functoin, class, namespace
 		option to show msil for function, or fields of a class, msil could have hyper links to other functions
-	option to mark puts circle in node, easier to track node after zoom in/out and resizing
-	option to persist call graph as light translucent green lines
 	show calls - internal, external in, external out
 	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
+		drop down shows other nodes
 	mouse over instance count
 	   for green nodes (entry points) display the instance count
-	option to show dll/files as blocks, without this option classes in different files will share the same box
-		because they're in the same namespace
 	current redraw time / fps
 	saving current option set to use between runs
 		saves current select/ignore settings, user can label as 'transfer graph' etc..
 	show notice somewhere on gui if there are entries in the debug log
+	how too zoom in on piddly functions?
 	
 springs
 	only show hit boxes
@@ -57,9 +61,6 @@ instance tracking
 	xlib stores 'this' in a weak reference map
 	user can right click on node and do view instances which allows viewing all the vars of each instance
 
-other
-	put tooltip on right corner of tip with mouse so easier to read
-
 bugs 
 	these files not building - dragonfly.loki, dragonfly.storm.core, DragonFly.Storm.World.Client, DragonFly.Util.Native, DragonFly.Video.MXF
 
@@ -70,7 +71,6 @@ build
 	progress bar of file ops
 	ability to pause tracking in interface
 	time how long it takes to do redraw, option to draw less frames, option to set fps, which mods frames/timer settings - option in viz
-	option to 'test' and just open the dat file
 	
 release
 	need to take out any storm/wells research refs
@@ -81,8 +81,6 @@ advanced
 	easter egg - extreme zoom in factal hacker code effect
 	 
 flow tracking
-	
-	
 	when external method is called, add it to a name space and make optional to add the 'borders' tree map
 	way to analyze hits to external apis and libraries we didnt compile with
 	use moving dots show functions talking, would be cool to use spaces between classes as 'highways'
@@ -107,7 +105,8 @@ flow tracking
 	advantage to having flow tracking on outside is that a->b can be indexed with a unique id
 	
 	option to hide tree map to just watch flow, mouse over still works to show exactly what functions are hit
-	
+		combine with moving blocks in spring view
+		
 	simple flow tracker
 		hit before each method call
 		advantage can be used with external functions
@@ -122,21 +121,12 @@ memory tracking
 function tree map
 	few squares out of places
 	fading still looks like pulsing flickering
-	wells research project has a big space in it
-	turn conflicts orange
 	how to draw/show anonymous methods
 	option to track anonymous methods	
-	dont draw or recurse rects that are too small, smaller than 2 pix in width
 
 	hash source / dest function ids and put into hit map
 	foreach entry, draw a link, if hit, draw red
 
-	add exit function
-	trace enter/exit stack
-	insert hash pairs as app flows
-	each pair has points and timeout
-	move dashed line toward target function
-	
 	when borders added, enter/exit will surround external function, still given ids same as before
 	
 	larger xray? these are apps running on your computer as blocks (size by memory, height by cpu) 
@@ -163,6 +153,8 @@ release
 
 
 different colors per thread
+	each entry instance has an id, could map instance ids to function calls
+
 	6 red orange yellow green blue purple
 	black interlace when threads intersect
 	array 0 - 5
@@ -202,6 +194,8 @@ names
 	glass, inside out
 	soul, spirit, ghost, phantom, spectre
 	xray.net
+	flow, clarity, system, getting a 'sense' 
+	
 
 editor
 	click on blocks, edit code
@@ -221,3 +215,5 @@ release
 	also good for professors teaching CS
 		find schools using C#/VB.Net for the class and ask could it be used as a teaching tool?
 		what features would they wany?
+		high level app design, how components communicate
+	coming into an unfamiliar project and getting a 'sense' of the code quickly

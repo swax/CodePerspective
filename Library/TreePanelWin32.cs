@@ -402,7 +402,7 @@ namespace XLibrary
                 DrawEvent.Set();
 
                 if (Selected.Count > 0)
-                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].FullName();
+                    MainForm.SelectedLabel.Text = Selected.Last().FullName();
                 else
                     MainForm.SelectedLabel.Text = "";
             }

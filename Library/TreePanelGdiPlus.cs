@@ -18,17 +18,15 @@ namespace XLibrary
         bool DoResize = true;
         Bitmap DisplayBuffer;
 
-        Pen UnknownPen = new Pen(Color.Black);
-        Pen NamespacePen = new Pen(Color.DarkBlue);
-        Pen ClassPen = new Pen(Color.DarkGreen);
-        Pen MethodPen = new Pen(Color.DarkRed);
-        Pen FieldPen = new Pen(Color.Black);
+        Color UnknownColor = Color.Black;
+        Color FileColor = Color.Black;
+        Color NamespaceColor = Color.DarkBlue;
+        Color ClassColor = Color.DarkGreen;
+        Color MethodColor = Color.DarkRed;
+        Color FieldColor = Color.Brown;
 
-        SolidBrush UnknownBrush = new SolidBrush(Color.Black);
-        SolidBrush NamespaceBrush = new SolidBrush(Color.DarkBlue);
-        SolidBrush ClassBrush = new SolidBrush(Color.DarkGreen);
-        SolidBrush MethodBrush = new SolidBrush(Color.DarkRed);
-        SolidBrush FieldBrush = new SolidBrush(Color.Black);
+        SolidBrush[] ObjBrushes;
+        Pen[] ObjPens;
 
         SolidBrush NothingBrush = new SolidBrush(Color.White);
 
@@ -39,7 +37,11 @@ namespace XLibrary
         SolidBrush MultiHoldingBrush = new SolidBrush(Color.Yellow);
         
         Color CallColor = Color.Blue;
+        Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black)) { EndCap = LineCap.ArrowAnchor };
+        Pen ShowCallOutPen = new Pen(Color.FromArgb(32, Color.Red));
+        Pen ShowCallInPen = new Pen(Color.FromArgb(32, Color.Blue));
         Pen HoldingCallPen = new Pen(Color.FromArgb(32, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
+        
 
         Color HitColor = Color.FromArgb(255, 192, 128);
         Color MultiHitColor = Color.Orange;
@@ -49,7 +51,7 @@ namespace XLibrary
 
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
-        Font TextFont = new Font("tahoma", 9, FontStyle.Bold);
+        Font TextFont = new Font("tahoma", 9, FontStyle.Bold );
 
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
@@ -71,7 +73,8 @@ namespace XLibrary
         Pen[] CallPen;
 
         int SelectHash;
-        List<XNodeIn> Selected = new List<XNodeIn>();
+        List<XNodeIn> GuiHovered = new List<XNodeIn>();
+        XNode[] NodesHovered = new XNodeIn[]{};
 
         const int DashSize  = 3;
         const int DashSpace = 6;
@@ -94,13 +97,13 @@ namespace XLibrary
 
             CallPen = new Pen[XRay.HitFrames];
 
-            for(int i = 0; i < XRay.HitFrames; i++)
+            for (int i = 0; i < XRay.HitFrames; i++)
             {
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
                 HitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, HitColor));
                 MultiHitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, MultiHitColor));
-                ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor ));
+                ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor));
 
                 CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
                 CallPen[i].DashPattern = new float[] { DashSize, DashSpace };
@@ -112,6 +115,22 @@ namespace XLibrary
                 int brightness = 255 / OverBrushes.Length * (OverBrushes.Length - i);
                 OverBrushes[i] = new SolidBrush(Color.FromArgb(brightness, brightness, 255));
             }
+
+            ObjBrushes = new SolidBrush[6];
+            ObjBrushes[(int)XObjType.Root] = new SolidBrush(UnknownColor);
+            ObjBrushes[(int)XObjType.File] = new SolidBrush(FileColor);
+            ObjBrushes[(int)XObjType.Namespace] = new SolidBrush(NamespaceColor);
+            ObjBrushes[(int)XObjType.Class] = new SolidBrush(ClassColor);
+            ObjBrushes[(int)XObjType.Field] = new SolidBrush(FieldColor);
+            ObjBrushes[(int)XObjType.Method] = new SolidBrush(MethodColor);
+
+            ObjPens = new Pen[6];
+            ObjPens[(int)XObjType.Root] = new Pen(UnknownColor);
+            ObjPens[(int)XObjType.File] = new Pen(FileColor);
+            ObjPens[(int)XObjType.Namespace] = new Pen(NamespaceColor);
+            ObjPens[(int)XObjType.Class] = new Pen(ClassColor);
+            ObjPens[(int)XObjType.Field] = new Pen(FieldColor);
+            ObjPens[(int)XObjType.Method] = new Pen(MethodColor);
         }
 
         private void TreePanel_Paint(object sender, PaintEventArgs e)
@@ -153,13 +172,25 @@ namespace XLibrary
                 {
                     FunctionCall call = XRay.CallMap.Values[i];
 
-                    if (call != null && (call.Hit > 0 || call.StillInside > 0) &&
+                    if (call != null && 
+                        (XRay.ShowAllCalls || call.Hit > 0 || call.StillInside > 0) &&
                         PositionMap.ContainsKey(call.Source) &&
                         PositionMap.ContainsKey(call.Destination))
                     {
-                        if (call.StillInside > 0)
-                            buffer.DrawLine(HoldingCallPen,PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
 
+                        if (call.StillInside > 0)
+                            buffer.DrawLine(HoldingCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
+                        else if (XRay.ShowAllCalls)
+                        {
+                            //buffer.DrawLine(ShowCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
+
+                            PointF start = PositionMap[call.Source].CenterF;
+                            PointF end  = PositionMap[call.Destination].CenterF;
+                            PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
+
+                            buffer.DrawLine(ShowCallOutPen, start, mid);
+                            buffer.DrawLine(ShowCallInPen, mid, end);
+                        }
                         if (call.Hit > 0)
                         {
                             Pen pen = CallPen[call.Hit];
@@ -169,26 +200,56 @@ namespace XLibrary
                                 call.DashOffset = DashSpace;
 
                             pen.DashOffset = call.DashOffset;
-
                             buffer.DrawLine(pen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
-                        }
+                        }    
                     }
                 }
             }
 
             // draw mouse over label
-            Point pos = PointToClient(Cursor.Position);
-            if (ClientRectangle.Contains(pos))
+            PointF pos = PointToClient(Cursor.Position);
+            if (NodesHovered.Length > 0 && ClientRectangle.Contains((int)pos.X, (int)pos.Y))
             {
-                SizeF size = buffer.MeasureString(MainForm.SelectedLabel.Text, TextFont);
+                // for each node selected, get size, figure out bg size and indents, then pass again and draw
 
-                pos.Y -= (int)size.Height;
+                float bgWidth = 0;
+                float bgHeight = 0;
+                float lineHeight = 0;
 
-                if (pos.X + size.Width > Width) pos.X = (int)(Width - size.Width);
+                const float indent = 5;
+                float indentAmount = 0;
+
+                // find the size of the background box
+                foreach (XNode node in NodesHovered)
+                {
+                    SizeF size = buffer.MeasureString(node.Name, TextFont);
+
+                    if (size.Width + indentAmount > bgWidth)
+                        bgWidth = size.Width + indentAmount;
+
+                    bgHeight += size.Height;
+                    lineHeight = size.Height;
+                    indentAmount += indent;
+                }
+
+                // put box lower right corner at cursor
+                pos.X -= bgWidth;
+                pos.Y -= bgHeight;
+               
+                // ensure it doesnt go off screen
+                if (pos.X < 0) pos.X = 0;
                 if (pos.Y < 0) pos.Y = 0;
 
-                buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, size.Width, size.Height);
-                buffer.DrawString(MainForm.SelectedLabel.Text, TextFont, TextBrush, pos);
+                // draw background
+                buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
+
+                foreach (XNode node in NodesHovered)
+                {
+                    buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], pos.X, pos.Y);
+
+                    pos.Y += lineHeight;
+                    pos.X += indent;
+                }
             }
 
             // Copy buffer to display
@@ -255,31 +316,8 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            Pen borderPen = UnknownPen;
-            SolidBrush borderBrush = UnknownBrush;
-
-            switch (node.ObjType)
-            {
-                case XObjType.Namespace:
-                    borderPen = NamespacePen;
-                    borderBrush = NamespaceBrush;
-                    break;
-
-                case XObjType.Class:
-                    borderPen = ClassPen;
-                    borderBrush = ClassBrush;
-                    break;
-
-                case XObjType.Method:
-                    borderPen = MethodPen;
-                    borderBrush = MethodBrush;
-                    break;
-
-                case XObjType.Field:
-                    borderPen = FieldPen;
-                    borderBrush = FieldBrush;
-                    break;
-            }
+            Pen borderPen = ObjPens[(int)node.ObjType];
+            SolidBrush borderBrush = ObjBrushes[(int)node.ObjType];
 
             // blue selection area
             SolidBrush rectBrush = NothingBrush;
@@ -386,7 +424,7 @@ namespace XLibrary
             TestSelected(Root, e.Location);
 
             int hash = 0;
-            Selected.ForEach(n => hash = n.ID ^ hash);
+            GuiHovered.ForEach(n => hash = n.ID ^ hash);
 
             if(hash != SelectHash)
             {
@@ -394,10 +432,16 @@ namespace XLibrary
                 DoRedraw = true;
                 Invalidate();
 
-                if (Selected.Count > 0)
-                    MainForm.SelectedLabel.Text = Selected[Selected.Count - 1].FullName();
+                if (GuiHovered.Count > 0)
+                {
+                    NodesHovered = GuiHovered.Last().GetParents();
+                    MainForm.SelectedLabel.Text = GuiHovered.Last().FullName();
+                }
                 else
+                {
+                    NodesHovered = new XNodeIn[] { };
                     MainForm.SelectedLabel.Text = "";
+                }
             }
         }
 
@@ -407,7 +451,7 @@ namespace XLibrary
                 return;
 
             node.Selected = true;
-            Selected.Add(node);
+            GuiHovered.Add(node);
 
             foreach (XNodeIn sub in node.Nodes)
                 TestSelected(sub, loc);
@@ -421,10 +465,10 @@ namespace XLibrary
 
         private void TreePanel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (Selected.Count < 2)
+            if (GuiHovered.Count < 2)
                 return;
 
-            Root = Selected[1];
+            Root = GuiHovered[1];
 
             MainForm.UpdateText();
 
@@ -457,8 +501,8 @@ namespace XLibrary
 
         private void ClearSelected()
         {
-            Selected.ForEach(n => n.Selected = false);
-            Selected.Clear();
+            GuiHovered.ForEach(n => n.Selected = false);
+            GuiHovered.Clear();
         }
 
         public XNodeIn GetRoot()

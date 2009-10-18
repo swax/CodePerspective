@@ -22,7 +22,7 @@ namespace XBuilder
 
         bool SideBySide; // if true change the file name and refs to xray.etc..
 
-        XNodeOut RootNode;
+        XNodeOut FileNode;
         XNodeOut CurrentNode;
 
         public static Random RndGen = new Random();
@@ -35,10 +35,12 @@ namespace XBuilder
 
         public XDecompile(XNodeOut root, string sourcePath, string outDir)
         {
-            RootNode = root;
+            FileNode = root.AddNode(Path.GetFileName(sourcePath), XObjType.File);
             OriginalPath = sourcePath;
             OutputDir = outDir;
             SideBySide = Path.GetDirectoryName(sourcePath) == outDir;
+
+            //RootNode = RootNode.AddNode(
         }
 
         internal void Decompile()
@@ -91,7 +93,7 @@ namespace XBuilder
         internal void ScanLines(List<string> assemblies)
         {
             XIL.Length = 0;
-            CurrentNode = RootNode;
+            CurrentNode = FileNode;
   
             InjectLibrary("XLibrary", "1:0:0:0");
 
@@ -110,7 +112,7 @@ namespace XBuilder
                     { 
                         // get last element, if in assemblies, replace with xray version
                         stripSig = false;
-                        string assembly = line[line.Length - 1];
+                        string assembly = line.Last();
 
 
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
@@ -118,7 +120,7 @@ namespace XBuilder
                         {
                             if (SideBySide)
                             {
-                                line[line.Length - 1] = "XRay." + line[line.Length - 1];
+                                line[line.Length - 1] = "XRay." + line.Last();
                                 XIL.RemoveLine();
                                 XIL.AppendLine(String.Join(" ", line));
                             }
@@ -172,13 +174,13 @@ namespace XBuilder
 
                         if (!line.Contains("nested"))
                         {
-                            CurrentNode = RootNode;
+                            CurrentNode = FileNode;
 
                             for (int i = 0; i < namespaces.Length - 1; i++)
                                 CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
                         }
 
-                        CurrentNode = CurrentNode.AddNode(namespaces[namespaces.Length - 1], XObjType.Class);
+                        CurrentNode = CurrentNode.AddNode(namespaces.Last(), XObjType.Class);
                     }
 
                     else if (line[0] == ".method")

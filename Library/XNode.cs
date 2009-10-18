@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public enum XObjType { Root, Namespace, Class, Method, Field }
+    public enum XObjType { Root, File, Namespace, Class, Method, Field }
 
     public class InputValue
     {
@@ -37,7 +37,6 @@ namespace XLibrary
         public XNode Parent;
         public List<XNode> Nodes = new List<XNode>();
 
-
         public string FullName()
         {
             if (Parent == null) // dont show name for root node
@@ -47,6 +46,50 @@ namespace XLibrary
 
             return (parent == "") ? Name : parent + "." + Name;
         }
+
+
+        internal XNode[] GetParents()
+        {
+            return GetParents(0, false);
+        }
+
+        private XNode[] GetParents(int count, bool includeRoot)
+        {
+            count++; // count is also the index position of this node from the back
+
+            XNode[] result = null;
+
+            if (Parent == null || (!includeRoot && Parent.ObjType == XObjType.Root))
+                result = new XNode[count];
+            else
+                result = Parent.GetParents(count, includeRoot);
+
+            result[result.Length - count] = this;
+
+            return result;
+        }
+
+        /*public string MultiLineFullName()
+        {
+            int levels;
+            return MultiLineFullName(out levels);
+        }
+
+        public string MultiLineFullName(out int levels)
+        {
+            if (Parent == null) // dont show name for root node
+            {
+                levels = 0;
+                return "";
+            }
+
+            string result = Parent.MultiLineFullName(out levels);
+            levels++;
+
+            string spaces = new string(' ', levels * 1);
+
+            return (result == "") ? Name : result + "\r\n" + spaces + Name;
+        }*/
     }
 
     public class XNodeOut : XNode
@@ -220,6 +263,5 @@ namespace XLibrary
             CenterF = new PointF((float)(area.X + area.Width / 2),
                                      (float)(area.Y + area.Height / 2));
         }
-
     }
 }

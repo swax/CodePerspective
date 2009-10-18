@@ -26,6 +26,8 @@ namespace XLibrary
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
+        internal static bool ShowAllCalls;
+
         internal const int HitFrames = 15;
         internal const int ShowTicks = HitFrames - 1; // first index
 

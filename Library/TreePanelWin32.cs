@@ -306,7 +306,7 @@ namespace XLibrary
 
             // blue selection area
             SolidBrush rectBrush = NothingBrush;
-            if (node.Selected)
+            if (node.Hovered)
             {
                 if (depth > OverBrushes.Length - 1)
                     depth = OverBrushes.Length - 1;
@@ -413,7 +413,7 @@ namespace XLibrary
             if (!node.Show || !node.AreaD.Contains(loc.X, loc.Y))
                 return;
 
-            node.Selected = true;
+            node.Hovered = true;
             Selected.Add(node);
 
             foreach (XNodeIn sub in node.Nodes)
@@ -456,7 +456,7 @@ namespace XLibrary
 
         private void ClearSelected()
         {
-            Selected.ForEach(n => n.Selected = false);
+            Selected.ForEach(n => n.Hovered = false);
             Selected.Clear();
         }
 

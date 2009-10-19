@@ -210,7 +210,10 @@ namespace XLibrary
         internal int ParentID;
         internal int Lines; // save here so final value can be manipulated
 
+        internal bool Hovered;
         internal bool Selected;
+        internal bool Ignored;
+
         internal bool Show = true;
 
         internal RectangleD AreaD { get; private set; }

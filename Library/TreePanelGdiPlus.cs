@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Data;
@@ -26,7 +28,9 @@ namespace XLibrary
         Color FieldColor = Color.Brown;
 
         SolidBrush[] ObjBrushes;
+        SolidBrush[] ObjBrushesDithered;
         Pen[] ObjPens;
+        Pen[] ObjFocused;
 
         SolidBrush NothingBrush = new SolidBrush(Color.White);
 
@@ -72,13 +76,15 @@ namespace XLibrary
 
         Pen[] CallPen;
 
-        int SelectHash;
+        int HoverHash;
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
         XNode[] NodesHovered = new XNodeIn[]{};
 
         const int DashSize  = 3;
         const int DashSpace = 6;
 
+        XNodeIn FocusedNode;
+ 
 
         public TreePanelGdiPlus(MainForm main, XNodeIn root)
         {
@@ -116,21 +122,30 @@ namespace XLibrary
                 OverBrushes[i] = new SolidBrush(Color.FromArgb(brightness, brightness, 255));
             }
 
-            ObjBrushes = new SolidBrush[6];
-            ObjBrushes[(int)XObjType.Root] = new SolidBrush(UnknownColor);
-            ObjBrushes[(int)XObjType.File] = new SolidBrush(FileColor);
-            ObjBrushes[(int)XObjType.Namespace] = new SolidBrush(NamespaceColor);
-            ObjBrushes[(int)XObjType.Class] = new SolidBrush(ClassColor);
-            ObjBrushes[(int)XObjType.Field] = new SolidBrush(FieldColor);
-            ObjBrushes[(int)XObjType.Method] = new SolidBrush(MethodColor);
+            // set colors of differnt brush / pen arrays
+            Dictionary<int, Color> objColors = new Dictionary<int, Color>();
 
-            ObjPens = new Pen[6];
-            ObjPens[(int)XObjType.Root] = new Pen(UnknownColor);
-            ObjPens[(int)XObjType.File] = new Pen(FileColor);
-            ObjPens[(int)XObjType.Namespace] = new Pen(NamespaceColor);
-            ObjPens[(int)XObjType.Class] = new Pen(ClassColor);
-            ObjPens[(int)XObjType.Field] = new Pen(FieldColor);
-            ObjPens[(int)XObjType.Method] = new Pen(MethodColor);
+            objColors[(int)XObjType.Root] = UnknownColor;
+            objColors[(int)XObjType.File] = FileColor;
+            objColors[(int)XObjType.Namespace] = NamespaceColor;
+            objColors[(int)XObjType.Class] = ClassColor;
+            objColors[(int)XObjType.Field] = FieldColor;
+            objColors[(int)XObjType.Method] = MethodColor;
+
+            var objTypes = Enum.GetValues(typeof(XObjType));
+           
+            ObjBrushes = new SolidBrush[objTypes.Length];
+            ObjBrushesDithered = new SolidBrush[objTypes.Length];
+            ObjPens = new Pen[objTypes.Length];
+            ObjFocused = new Pen[objTypes.Length];
+
+            for (int i = 0; i < objTypes.Length; i++ )
+            {
+                ObjBrushes[i] = new SolidBrush(objColors[i]);
+                ObjBrushesDithered[i] = new SolidBrush(Color.FromArgb(128, objColors[i]));
+                ObjPens[i] = new Pen(objColors[i]);
+                ObjFocused[i] = new Pen(objColors[i], 3);
+            }
         }
 
         private void TreePanel_Paint(object sender, PaintEventArgs e)
@@ -243,9 +258,13 @@ namespace XLibrary
                 // draw background
                 buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
 
-                foreach (XNode node in NodesHovered)
+                foreach (XNodeIn node in NodesHovered)
                 {
-                    buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], pos.X, pos.Y);
+                    // dither label if it is not on screen
+                    if(GuiHovered.Contains(node))
+                        buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], pos.X, pos.Y);
+                    else
+                        buffer.DrawString(node.Name, TextFont, ObjBrushesDithered[(int)node.ObjType], pos.X, pos.Y);
 
                     pos.Y += lineHeight;
                     pos.X += indent;
@@ -316,12 +335,9 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            Pen borderPen = ObjPens[(int)node.ObjType];
-            SolidBrush borderBrush = ObjBrushes[(int)node.ObjType];
-
             // blue selection area
             SolidBrush rectBrush = NothingBrush;
-            if (node.Selected)
+            if (node.Hovered)
             {
                 if (depth > OverBrushes.Length - 1)
                     depth = OverBrushes.Length - 1;
@@ -377,11 +393,13 @@ namespace XLibrary
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
-                if (needBorder) // dont draw the point if already lit up
-                    buffer.FillRectangle(borderBrush, node.AreaF);
+                 if (needBorder) // dont draw the point if already lit up
+                    buffer.FillRectangle(ObjBrushes[(int)node.ObjType], node.AreaF);
             }
+            else if(FocusedNode == node)
+                buffer.DrawRectangle(ObjFocused[(int)node.ObjType], node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
             else
-                buffer.DrawRectangle(borderPen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                buffer.DrawRectangle(ObjPens[(int)node.ObjType], node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
 
 
             if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
@@ -419,16 +437,21 @@ namespace XLibrary
 
         private void TreePanel_MouseMove(object sender, MouseEventArgs e)
         {
-            ClearSelected();
+            RefreshHovered(e.Location);
+        }
 
-            TestSelected(Root, e.Location);
+        private void RefreshHovered(Point loc)
+        {
+            ClearHovered();
+
+            TestHovered(Root, loc);
 
             int hash = 0;
             GuiHovered.ForEach(n => hash = n.ID ^ hash);
 
-            if(hash != SelectHash)
+            if (hash != HoverHash)
             {
-                SelectHash = hash;
+                HoverHash = hash;
                 DoRedraw = true;
                 Invalidate();
 
@@ -445,16 +468,16 @@ namespace XLibrary
             }
         }
 
-        private void TestSelected(XNodeIn node, Point loc)
+        private void TestHovered(XNodeIn node, Point loc)
         {
             if (!node.Show || !node.AreaD.Contains(loc.X, loc.Y))
                 return;
 
-            node.Selected = true;
+            node.Hovered = true;
             GuiHovered.Add(node);
 
             foreach (XNodeIn sub in node.Nodes)
-                TestSelected(sub, loc);
+                TestHovered(sub, loc);
         }
 
         public void Redraw()
@@ -465,43 +488,95 @@ namespace XLibrary
 
         private void TreePanel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (GuiHovered.Count < 2)
-                return;
 
-            Root = GuiHovered[1];
-
-            MainForm.UpdateText();
-
-            DoResize = true;
-            Invalidate();
         }
 
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button != MouseButtons.Right)
-                return;
+            if (e.Button == MouseButtons.Left)
+            {
+                FocusedNode = GuiHovered.LastOrDefault();
 
-            if (Root.Parent == null)
-                return;
+                Invalidate();
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                /*if (Root.Parent == null)
+                    return;
 
-            Root = Root.Parent as XNodeIn;
+                Root = Root.Parent as XNodeIn;
+
+                MainForm.UpdateText();
+
+                DoResize = true;
+                Invalidate();*/
+            }
+            else if (e.Button == MouseButtons.XButton1)
+                Zoom(false);
+            else if (e.Button == MouseButtons.XButton2)
+                Zoom(true);
+        }
+
+        void TreePanel_MouseWheel(object sender, MouseEventArgs e)
+        {
+            Zoom(e.Delta > 0);
+        }
+
+        void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Right)
+                Zoom(true);
+            else if (e.KeyCode == Keys.Right)
+                Zoom(false);
+            else if (e.KeyCode == Keys.Space)
+                SetRoot(XRay.RootNode);
+        }
+
+        private void Zoom(bool inward)
+        {
+            if (inward)
+            {
+                if (GuiHovered.Count < 2)
+                    return;
+
+                if (GuiHovered[1].Nodes.Count > 0)
+                    SetRoot(GuiHovered[1]);
+            }
+            else
+            {
+                if (Root.Parent == null)
+                    return;
+
+                SetRoot(Root.Parent as XNodeIn);
+            }
+
+            // put cursor in the same block after the view changes
+            XNodeIn last = NodesHovered.LastOrDefault() as XNodeIn;
+
+            if(last != null)
+                Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
+        }
+
+        void SetRoot(XNodeIn node)
+        {
+            Root = node;
 
             MainForm.UpdateText();
 
             DoResize = true;
-            Invalidate();
+            Refresh();
         }
 
         private void TreePanel_MouseLeave(object sender, EventArgs e)
         {
-            ClearSelected();
+            ClearHovered();
 
             Redraw();
         }
 
-        private void ClearSelected()
+        private void ClearHovered()
         {
-            GuiHovered.ForEach(n => n.Selected = false);
+            GuiHovered.ForEach(n => n.Hovered = false);
             GuiHovered.Clear();
         }
 

@@ -1,6 +1,6 @@
 ﻿
 do the whole selection system and tomorrow maybe wrap external function calls
-	click on item puts black border around it, call it focus
+
 	double click on item sticks black border on object, call it selected
 	
 	right click	
@@ -9,8 +9,9 @@ do the whole selection system and tomorrow maybe wrap external function calls
 			x/os drawn after nodes so that if class is ignored the x/o goes over everything
 		clear all
 
-	mouse wheel - zoom in/out
-	back / forward buttons - zoom in/out
+
+	mouse wheel, back/forward buttons, left/right keys - zoom in/out
+
 	space - go to top immediately
 
 	look at functions with links that are no longer active

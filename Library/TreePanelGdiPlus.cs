@@ -60,8 +60,6 @@ namespace XLibrary
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
 
-
-
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
 
         internal XNodeIn Root;
@@ -80,11 +78,16 @@ namespace XLibrary
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
         XNode[] NodesHovered = new XNodeIn[]{};
 
-        const int DashSize  = 3;
-        const int DashSpace = 6;
-
         XNodeIn FocusedNode;
- 
+
+        Pen SelectedPen = new Pen(Color.LimeGreen, 3);
+        SolidBrush SelectedBrush = new SolidBrush(Color.LimeGreen);
+        Dictionary<int, XNodeIn> SelectedNodes = new Dictionary<int, XNodeIn>();
+
+        Pen IgnoredPen = new Pen(Color.Red, 3);
+        SolidBrush IgnoredBrush = new SolidBrush(Color.Red);
+        Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
+
 
         public TreePanelGdiPlus(MainForm main, XNodeIn root)
         {
@@ -112,7 +115,7 @@ namespace XLibrary
                 ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor));
 
                 CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
-                CallPen[i].DashPattern = new float[] { DashSize, DashSpace };
+                CallPen[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
                 CallPen[i].EndCap = LineCap.ArrowAnchor;
             }
 
@@ -180,6 +183,14 @@ namespace XLibrary
 
             DrawNode(buffer, Root, 0);
 
+            // draw ignored over nodes ignored may contain
+            foreach (XNodeIn ignored in IgnoredNodes.Values)
+                if (PositionMap.ContainsKey(ignored.ID))
+                {
+                    buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperLeftCorner(), ignored.AreaF.LowerRightCorner() );
+                    buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperRightCorner(), ignored.AreaF.LowerLeftCorner());
+                }
+
             // draw flow
             if (XRay.FlowTracking)
             {
@@ -192,6 +203,15 @@ namespace XLibrary
                         PositionMap.ContainsKey(call.Source) &&
                         PositionMap.ContainsKey(call.Destination))
                     {
+                        // if there are items we're filtering on then only show calls to those nodes
+                        if (SelectedNodes.Count > 0)
+                            if (!IsNodeFiltered(true, call.Source) && !IsNodeFiltered(true, call.Destination))
+                                continue;
+
+                        // do after select filter so we can have ignored nodes inside selected, but not the otherway around
+                        if (IgnoredNodes.Count > 0)
+                            if (IsNodeFiltered(false, call.Source) || IsNodeFiltered(false, call.Destination))
+                                continue;
 
                         if (call.StillInside > 0)
                             buffer.DrawLine(HoldingCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
@@ -209,11 +229,6 @@ namespace XLibrary
                         if (call.Hit > 0)
                         {
                             Pen pen = CallPen[call.Hit];
-
-                            call.DashOffset -= DashSize;
-                            if (call.DashOffset < 0)
-                                call.DashOffset = DashSpace;
-
                             pen.DashOffset = call.DashOffset;
                             buffer.DrawLine(pen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
                         }    
@@ -277,6 +292,17 @@ namespace XLibrary
             DoRedraw = false;
             DoResize = false;
             XRay.CoverChange = false;
+        }
+
+        private bool IsNodeFiltered(bool select, int id)
+        {
+            Dictionary<int, XNodeIn> map = select ? SelectedNodes : IgnoredNodes;
+
+            foreach (XNodeIn node in XRay.Nodes[id].GetParents())
+                if (map.ContainsKey(node.ID))
+                    return true;
+
+            return false;
         }
 
         private int RecalcCover(XNodeIn root)
@@ -393,14 +419,30 @@ namespace XLibrary
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
-                 if (needBorder) // dont draw the point if already lit up
+                if (SelectedNodes.ContainsKey(node.ID))
+                    buffer.FillRectangle(SelectedBrush, node.AreaF);
+                else if (IgnoredNodes.ContainsKey(node.ID))
+                    buffer.FillRectangle(IgnoredBrush, node.AreaF);
+
+                else  if (needBorder) // dont draw the point if already lit up
                     buffer.FillRectangle(ObjBrushes[(int)node.ObjType], node.AreaF);
             }
-            else if(FocusedNode == node)
-                buffer.DrawRectangle(ObjFocused[(int)node.ObjType], node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
             else
-                buffer.DrawRectangle(ObjPens[(int)node.ObjType], node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+            {
+                Pen pen = null;
 
+                if (SelectedNodes.ContainsKey(node.ID))
+                    pen = SelectedPen;
+                else if (IgnoredNodes.ContainsKey(node.ID))
+                    pen = IgnoredPen;
+
+                else if (FocusedNode == node)
+                    pen = ObjFocused[(int)node.ObjType];
+                else
+                    pen = ObjPens[(int)node.ObjType];
+
+                buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+            }
 
             if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)
@@ -452,8 +494,7 @@ namespace XLibrary
             if (hash != HoverHash)
             {
                 HoverHash = hash;
-                DoRedraw = true;
-                Invalidate();
+                Redraw();
 
                 if (GuiHovered.Count > 0)
                 {
@@ -488,7 +529,29 @@ namespace XLibrary
 
         private void TreePanel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            XNodeIn node = GuiHovered.LastOrDefault();
+            if (node == null)
+                return;
 
+            ToggleNode(SelectedNodes, node);
+        }
+
+        void ToggleNode(Dictionary<int, XNodeIn> map, XNodeIn node)
+        {
+            // make sure a node cant be selected and ignored simultaneously
+            if (map != IgnoredNodes && IgnoredNodes.ContainsKey(node.ID))
+                IgnoredNodes.Remove(node.ID);
+
+            if (map != SelectedNodes && SelectedNodes.ContainsKey(node.ID))
+                SelectedNodes.Remove(node.ID);
+
+            // toggle the setting of the node in the map
+            if (map.ContainsKey(node.ID))
+                map.Remove(node.ID);
+            else
+                map[node.ID] = node;
+
+            Redraw();
         }
 
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
@@ -497,22 +560,40 @@ namespace XLibrary
             {
                 FocusedNode = GuiHovered.LastOrDefault();
 
-                Invalidate();
+                Redraw();
             }
             else if (e.Button == MouseButtons.Right)
             {
-                /*if (Root.Parent == null)
+                XNodeIn node = GuiHovered.LastOrDefault();
+                if (node == null)
                     return;
 
-                Root = Root.Parent as XNodeIn;
+                bool selected = SelectedNodes.ContainsKey(node.ID);
+                bool ignored = IgnoredNodes.ContainsKey(node.ID);
 
-                MainForm.UpdateText();
+                ContextMenu menu = new ContextMenu();
 
-                DoResize = true;
-                Invalidate();*/
+                menu.MenuItems.Add(new MenuItem("Filter", (s, a) =>
+                    ToggleNode(SelectedNodes, node)) { Checked = selected });
+
+                menu.MenuItems.Add(new MenuItem("Ignore", (s, a) =>
+                    ToggleNode(IgnoredNodes, node)) { Checked = ignored });
+
+                menu.MenuItems.Add(new MenuItem("Clear All", (s, a) =>
+                {
+                    SelectedNodes.Clear();
+                    IgnoredNodes.Clear();
+                    Redraw();
+                }));
+
+                menu.Show(this, e.Location);
             }
+
+            // back button zoom out
             else if (e.Button == MouseButtons.XButton1)
                 Zoom(false);
+
+            // forward button zoom in
             else if (e.Button == MouseButtons.XButton2)
                 Zoom(true);
         }

@@ -383,6 +383,9 @@ namespace XLibrary
         internal int Destination;
 
         internal int Hit;
+
+        internal const int DashSize = 3;
+        internal const int DashSpace = 6;
         internal int DashOffset;
 
         internal int StillInside;

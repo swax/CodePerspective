@@ -1,18 +1,6 @@
 ﻿
-do the whole selection system and tomorrow maybe wrap external function calls
-
-	double click on item sticks black border on object, call it selected
-	
-	right click	
-		select (check) - darkens in 3 pixes (padding) red
-		ignore (check) - puts X over node, red
-			x/os drawn after nodes so that if class is ignored the x/o goes over everything
-		clear all
-
-
-	mouse wheel, back/forward buttons, left/right keys - zoom in/out
-
-	space - go to top immediately
+do the whole selection system and tomorrow maybe wrap 
+	left/right keys - zoom in/out
 
 	look at functions with links that are no longer active
 		see if function could have returned without triggering an exit
@@ -20,7 +8,20 @@ do the whole selection system and tomorrow maybe wrap external function calls
 
 	show array/map sizes in debug
 	
+	show status in interface that filtering/ignoring is on and allow through drop down deselection or clearing
 		
+		
+	external function calls
+		each external function has an id
+		nodes marked as external
+		normal call map function -> id
+		but enter/exit external around function
+		parsing
+			if call or call virt
+			parse ignore instace/class next is return type, then after ' ' is the method
+			parse first [ ] brackets, if it is a tracked assembly ignore
+			else hash entire method signature to ending )
+			create id for hash
 goal
 	if todo items helps me understand app better then its higher on the list
 	ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
@@ -33,11 +34,9 @@ goal
 		world wind still active??
 
 xray gui
-	set dashes in reset timer so they dont speed up on mouse over
-	right click ignore, puts box on function and doesnt show calls to/from that
-		ignore / select can be functoin, class, namespace
-		option to show msil for function, or fields of a class, msil could have hyper links to other functions
+	right click option to show msil for function, or fields of a class, msil could have hyper links to other functions
 	show calls - internal, external in, external out
+		toolbar to toggle the above, plus clear filters
 	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
 		drop down shows other nodes
 	mouse over instance count
@@ -47,6 +46,7 @@ xray gui
 		saves current select/ignore settings, user can label as 'transfer graph' etc..
 	show notice somewhere on gui if there are entries in the debug log
 	how too zoom in on piddly functions?
+	right click extended info - shows hit rate, maybe timing, what functions have been called from it
 	
 springs
 	only show hit boxes
@@ -86,47 +86,20 @@ flow tracking
 	way to analyze hits to external apis and libraries we didnt compile with
 	use moving dots show functions talking, would be cool to use spaces between classes as 'highways'
 	draw dependencies along border with moat between actual app
-	
-	advantage is that delegates can be traced
-	
-	test with an app with returns and throws mid function
-	check out IL and see where exit needs to be put
-	stack array per thread id
-	enter called
-		create an entry between that and the last enter if it does not exist
-			entry is hash of 2 ids
-				source / dest function id (s + 1) ^ d so if reversed d -> s, different hashes
-				draw function marks functions as drawn with unique id
-		set the hit counter
-		add function id to stack array
-	exit called
-		move back through stack array and find function
-		a function threw then a lot of functions will be skipped
-		
+
 	advantage to having flow tracking on outside is that a->b can be indexed with a unique id
 	
 	option to hide tree map to just watch flow, mouse over still works to show exactly what functions are hit
 		combine with moving blocks in spring view
 		
-	simple flow tracker
-		hit before each method call
-		advantage can be used with external functions
-	advanced flow tracker
-		enter/exit inside function, stacks traced
-		advantage is that links between delegates are shown
-	
-	
 memory tracking
 	heap dump tree map ;) can figure out where allocated??
+	hash call path to allocated memory
+		so we see as a box all strings allocated by a->b->c and its size
 
 function tree map
-	few squares out of places
-	fading still looks like pulsing flickering
 	how to draw/show anonymous methods
 	option to track anonymous methods	
-
-	hash source / dest function ids and put into hit map
-	foreach entry, draw a link, if hit, draw red
 
 	when borders added, enter/exit will surround external function, still given ids same as before
 	
@@ -142,11 +115,8 @@ function tree map
 	boxes dark blue semi translucent
 	code on walls of box
 	code lights up white when function is run
-	
-heap tree map
-	how to get memory allocated from gc, source to clr profiler?
-
-
+	wsad/mouselook fly through, click highlights selected
+	 
 release 
 	open source with donate button
 	put donate button in about of app as well,
@@ -167,17 +137,6 @@ stack planes - size number of instances
 	for now put number inside box
 	need to research iso view mapping, wpf display
 	if ctor/finalize not found, create it
-	
-use gdi painting without paint event	like wells
-
-
-wpf
-	test cubing tree map, and coloring, default height
-	get movement controls working
-    block everything, height by instance count
-    only hit funcs is very useful to cut down on drawing
-    
-    wsad/mouselook fly through, click highlights selected
     
 add to xray ability to gen interface from the classes themselves
    work with program directly, manipulate internal variables 
@@ -218,3 +177,5 @@ release
 		what features would they wany?
 		high level app design, how components communicate
 	coming into an unfamiliar project and getting a 'sense' of the code quickly
+	make a youtube demo video
+ 

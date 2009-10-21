@@ -68,6 +68,26 @@ namespace XLibrary
         {
             return new Point3D(start.X + x, start.Y + y, start.Z + z);
         }
+
+        public static PointF UpperLeftCorner(this RectangleF rect)
+        {
+            return rect.Location;
+        }
+
+        public static PointF UpperRightCorner(this RectangleF rect)
+        {
+            return new PointF(rect.X + rect.Width, rect.Y);
+        }
+
+        public static PointF LowerLeftCorner(this RectangleF rect)
+        {
+            return new PointF(rect.X, rect.Y + rect.Height);
+        }
+
+        public static PointF LowerRightCorner(this RectangleF rect)
+        {
+            return new PointF(rect.X + rect.Width, rect.Y + rect.Height);
+        }
     }
 
 

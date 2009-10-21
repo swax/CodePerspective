@@ -47,7 +47,7 @@ namespace XLibrary
                 }
             }
 
-            // resset
+            // reset
             if (XRay.FlowTracking)
             {
                 // time out function calls
@@ -55,7 +55,14 @@ namespace XLibrary
                 {
                     FunctionCall call = XRay.CallMap.Values[i];
                     if (call != null && call.Hit > 0)
+                    {
                         call.Hit--;
+
+                        call.DashOffset -= FunctionCall.DashSize;
+                        if (call.DashOffset < 0)
+                            call.DashOffset = FunctionCall.DashSpace;
+                    }
+
                 }
             }
 

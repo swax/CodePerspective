@@ -17,6 +17,7 @@ namespace XLibrary
 
         public MainForm()
         {
+
             InitializeComponent();
 
             ResetTimer.Interval = 1000 / XRay.HitFrames;
@@ -24,7 +25,7 @@ namespace XLibrary
 
             AddPanel(new TreePanelGdiPlus(this, XRay.RootNode));
 
-            UpdateText();
+            UpdateText();          
         }
 
         private void ResetTimer_Tick(object sender, EventArgs e)

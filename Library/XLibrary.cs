@@ -49,6 +49,7 @@ namespace XLibrary
         static int EdgeHashOffset;
         static bool InitComplete;
 
+
         public static void TestInit(string path)
         {
             if (LoadNodeMap(path))
@@ -57,7 +58,6 @@ namespace XLibrary
                 MainForm.Show();
             }
         }
-
 
         public static void Init(bool trackFlow, bool trackInstances)
         {

@@ -22,6 +22,7 @@ namespace XBuilder
 
         bool SideBySide; // if true change the file name and refs to xray.etc..
 
+        XNodeOut RootNode;
         XNodeOut FileNode;
         XNodeOut CurrentNode;
 
@@ -31,10 +32,12 @@ namespace XBuilder
 
         public bool TrackFlow = true; // if this is true, then track thread needs to be true
         bool TrackInstances = false;
+        bool TrackExternal = true;
         
 
         public XDecompile(XNodeOut root, string sourcePath, string outDir)
         {
+            RootNode = root;
             FileNode = root.AddNode(Path.GetFileName(sourcePath), XObjType.File);
             OriginalPath = sourcePath;
             OutputDir = outDir;
@@ -157,7 +160,7 @@ namespace XBuilder
                         string nextLine = string.Join(" ", line).FilterComment(); ;
 
                         while(!nextLine.Contains(")"))
-                            nextLine = reader.ReadLine().FilterComment(); ;
+                            nextLine = reader.ReadLine().FilterComment();
                     }
 
                     else if (line[0] == ".class")
@@ -180,7 +183,12 @@ namespace XBuilder
                                 CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
                         }
 
-                        CurrentNode = CurrentNode.AddNode(namespaces.Last(), XObjType.Class);
+                        string className = namespaces.Last();
+                        int pos = className.LastIndexOf('`');
+                        if (pos != -1)
+                            className = className.Substring(0, pos);
+
+                        CurrentNode = CurrentNode.AddNode(className, XObjType.Class);
                     }
 
                     else if (line[0] == ".method")
@@ -248,8 +256,9 @@ namespace XBuilder
                                 entry = false;
                             }
                         }
-
-                        InjectMethodEnter(CurrentNode);
+                        
+                        if(!CurrentNode.Exclude)
+                            InjectMethodEnter(CurrentNode);
                     }
 
                     else if (line[0] == ".property") // ignore for now
@@ -277,10 +286,18 @@ namespace XBuilder
                             inCatch = true; // inject after indent set
                         }
 
-                        else if (line.Length > 1 && line[1] == "ret")
+                        else if (TrackFlow && !CurrentNode.Exclude && line.Length > 1 && line[1] == "ret")
                         {
                             Debug.Assert(line.Length == 2);
-                            InjectMethodExit(line, CurrentNode);
+                            
+                            XIL.RemoveLine(); // remove ret call
+
+                            XIL.AppendLine();
+                            AddLine(line[0] + " nop // XRay - Redirected return address"); // anything jumping to return, will jump here instead and allow us to log exit
+
+                            InjectMethodExit(CurrentNode);
+            
+                            AddLine("ret"); // put ret call back in
                         }
 
                         else if (line.Length > 1 && line[1].EndsWith(".s"))
@@ -293,7 +310,126 @@ namespace XBuilder
                             Debug.Assert(line.Length == 3); 
                             XIL.RemoveLine();
                             line[1] = line[1].Replace(".s", "");
-                            XIL.AppendLine(string.Join(" ", line));
+                            AddLine(string.Join(" ", line) + " // XRay - removed .s");
+                        }
+
+                        // external method call tracking
+                        if (TrackExternal && TrackFlow && !CurrentNode.Exclude && line.Length > 1 &&
+                            (line[1].StartsWith("constrained.") || line[1].StartsWith("call") || 
+                             line[1].StartsWith("callvirt") || line[1].StartsWith("calli")))
+                        {
+                            
+                            Debug.Assert(!line[1].StartsWith("calli")); // whats the format of calli?
+
+                            // any line starting with a constrained prefix is immediately followed by a call virt
+                            string[] constrainedLine = null;
+                            if (line[1].StartsWith("constrained."))
+                            {
+                                XIL.RemoveLine(); // save constrained line a inject after external method tracking
+                                constrainedLine = line; 
+                                line = reader.SplitNextLine(XIL); // read in callvirt
+                            }
+
+                            string parse = string.Join(" ", line);
+
+                            // get function name
+                            int pos = parse.LastIndexOf('(');
+                            Debug.Assert(pos != -1);
+                            int pos2 = parse.LastIndexOf("::") + 2;
+                            Debug.Assert(pos2 != 1 && pos2 < pos);
+                            string functionName = parse.Substring(pos2, pos - pos2);
+
+                            parse = parse.Substring(0, pos2 - 2); // cut out what we just parsed
+
+                            // strip template info, read forward mark if in template
+                            string withoutTemplate = "";
+                            int inTemplate = 0;
+                            for (int i = 0; i < parse.Length; i++)
+                            {
+                                if (parse[i] == '<')
+                                    inTemplate++;
+                                else if (parse[i] == '>')
+                                    inTemplate--;
+                                else if (inTemplate == 0)
+                                    withoutTemplate += parse[i];
+                            }
+
+                            parse = withoutTemplate;
+
+                            // now should just be namespace and extern dec to space
+                            pos = parse.LastIndexOf(' ');
+                            parse = parse.Substring(pos + 1);
+
+                            // we only care if this function is external
+                            if (parse.StartsWith("["))
+                            {
+                                pos = parse.IndexOf("]");
+                                string external = parse.Substring(1, pos - 1);
+                                string namespaces = parse.Substring(pos + 1);
+
+                                pos = namespaces.LastIndexOf('`');
+                                if (pos != -1)
+                                    namespaces = namespaces.Substring(0, pos);
+
+                                if (!assemblies.Contains(external))
+                                {
+                                    // add external file to root
+                                    XNodeOut node = RootNode.Nodes.FirstOrDefault(n => n.Name == external) as XNodeOut;
+
+                                    if (node == null)
+                                        node = RootNode.AddNode(external, XObjType.File);
+
+                                    // traverse or add namespace to root
+                                    string[] names = namespaces.Split('.');
+
+                                    for (int i = 0; i < names.Length; i++)
+                                    {
+                                        string name = names[i];
+
+                                        XNodeOut next = node.Nodes.FirstOrDefault(n => n.Name == name) as XNodeOut;
+
+                                        XObjType objType = (i == names.Length - 1) ? XObjType.Class : XObjType.Namespace;
+                                        node = next ?? node.AddNode(name, objType);
+                                    }
+
+                                    node = node.AddNode(functionName, XObjType.Method);
+                                    node.Lines = 20;
+
+
+                                    // add wrapping for external tracking
+
+                                    // remove function
+                                    XIL.RemoveLine();
+
+                                    // inject method enter - re-route IL address to function to ensure it is logged
+                                    XIL.AppendLine();
+
+                                    string address = (constrainedLine != null) ? constrainedLine[0] : line[0];
+                                    AddLine(address + " nop // XRay - Redirect external method begin");
+                                    XIL.AppendLine();
+                                    InjectMethodEnter(node);
+
+                                    // add function line - strip IL address
+                                    if(constrainedLine != null)
+                                        XIL.AppendLine(string.Join(" ", constrainedLine.Skip(1).ToArray()));
+
+                                    string nextLine = string.Join(" ", line.Skip(1).ToArray());
+                                    XIL.AppendLine(nextLine);
+
+                                    // read over rest of function until ')'
+                                    while (!nextLine.Contains(")"))
+                                    {
+                                        nextLine = reader.ReadLine();
+                                        XIL.AppendLine(nextLine);
+                                    }
+
+                                    // inject exit
+                                    InjectMethodExit(node);
+                                }
+                                //Debug.WriteLine(handled + " / " + external + " / " + namespacez + " / " + functionName);
+                            }
+                            //else
+                                //Debug.WriteLine("Internal / " + functionName);
                         }
 
 
@@ -302,7 +438,7 @@ namespace XBuilder
                             CurrentNode.Indent++;
                             CurrentNode.IndentString += "  ";
 
-                            if (inCatch)
+                            if (inCatch && TrackFlow && !CurrentNode.Exclude)
                                 InjectMethodCatch(CurrentNode);
                         }
 
@@ -364,11 +500,12 @@ namespace XBuilder
             XIL.AppendLine(CurrentNode.IndentString + line);
         }
 
-        private void InjectMethodEnter(XNode node)
+        private void InjectMethodEnter(XNodeOut node)
         {
+            Debug.Assert(!node.Exclude);
+
             XIL.AppendLine();
-            AddLine("// XRay");
-            AddLine("ldc.i4  " + node.ID.ToString());
+            AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method enter");
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodEnter(int32)");
 
             if (TrackInstances)
@@ -389,24 +526,18 @@ namespace XBuilder
         public int AllowedAdds;
         public int AddsDone;
 
-        private void InjectMethodExit(string[] line, XNodeOut node)
+        private void InjectMethodExit( XNodeOut node)
         {
-            if (!TrackFlow || node.Exclude)
-                return;
+            Debug.Assert(!node.Exclude);
+            Debug.Assert(TrackFlow);
 
             if (AddsDone >= AllowedAdds)
                 return;
 
-            XIL.RemoveLine(); // remove ret call
-
             XIL.AppendLine();
-            AddLine("// XRay");
-            AddLine(line[0] + " nop"); // anything jumping to return, will jump here instead and allow us to log exit
-
-            AddLine("ldc.i4  " + node.ID.ToString());
+            AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method Exit" );
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodExit(int32)");
-
-            AddLine("ret"); // put ret call back in
+            XIL.AppendLine();
 
             AddsDone++;
         }
@@ -415,11 +546,11 @@ namespace XBuilder
 
         private void InjectMethodCatch(XNodeOut node)
         {
-            if (!TrackFlow || node.Exclude)
-                return;
+            Debug.Assert(!node.Exclude);
+            Debug.Assert(TrackFlow);
 
-            AddLine("// XRay");
-            AddLine("ldc.i4  " + node.ID.ToString());
+            XIL.AppendLine();
+            AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method Catch");
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodCatch(int32)");
             XIL.AppendLine();
         }

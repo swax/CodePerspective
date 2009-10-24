@@ -1,37 +1,61 @@
 ﻿
 do the whole selection system and tomorrow maybe wrap 
+	use method enter/exit for external methods, ensure that stack stuff works
+		additional stack size for exit func should be enough for enter/exit around function
+		
+	re-route method enter IL code to nop and remove IL address from method
+		
+	refactor/clean up new code	
+	
 	left/right keys - zoom in/out
 
 	look at functions with links that are no longer active
 		see if function could have returned without triggering an exit
 		test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
 
+	double click details, show callers/callees, can be used to debug the above
+	option in xray to keep call/timing stats
+
+	right click zoom menu with items of the whole tree of what the mouse is over, current level checked
+
 	show array/map sizes in debug
 	
 	show status in interface that filtering/ignoring is on and allow through drop down deselection or clearing
 		
+	menu item to draw box around smaller or just a group of functions and zoom in only on that
 		
-	external function calls
+	external function call
+		first just treat external as another block, then do perimeter formatting
+		tool strip item to show hide external
+		when zoomed in on item show  rest of app as external
+	
+		put all external in a single node
+		each size of external node is 1
+		take sum of external and divide it by the perimiter size
+		the result is the size in pixes of each supporting node
+		if less than one, double perimiter and make 2 layers of nodes
+		use permimiter because there will be no calls traced between
+		  external functions
+	
+		investigate method enter excludes
+			
+		when name set with ' break and find out where its coming from
+			option to create unique blocks for diff template types
+			right now just all the same
 		each external function has an id
 		nodes marked as external
 		normal call map function -> id
 		but enter/exit external around function
-		parsing
-			if call or call virt
-			parse ignore instace/class next is return type, then after ' ' is the method
-			parse first [ ] brackets, if it is a tracked assembly ignore
-			else hash entire method signature to ending )
-			create id for hash
+
 goal
 	if todo items helps me understand app better then its higher on the list
 	ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
-	extend with options, fix bugs
-	next weekend hook up external methods
 	in my brain coding is visual, i make connections between objects, but in practice i dont code with objects, 
 		but text and am forced to imagine the visual which blows your mind the larger the program becomes
 	then the 3d shit, go gibson
 	Test - SwarmNLP (simple), Paint.Net, RiseOp (straight c#), Wells (VB), Storm (many files mixed code), release/debug
 		world wind still active??
+	priorities - external, spring, 3d
 
 xray gui
 	right click option to show msil for function, or fields of a class, msil could have hyper links to other functions

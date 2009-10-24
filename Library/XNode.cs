@@ -44,7 +44,11 @@ namespace XLibrary
 
             string parent = Parent.FullName();
 
-            return (parent == "") ? Name : parent + "." + Name;
+            string myName = Name;
+            if (ObjType == XObjType.File)
+                myName = "(" + Name + ")";
+
+            return (parent == "") ? myName : parent + "." + myName;
         }
 
 

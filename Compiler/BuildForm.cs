@@ -24,12 +24,12 @@ namespace XBuilder
         {
             InitializeComponent();
 
-            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(FlowBox,
+            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(TrackFlowCheckBox,
 @"Checked: Calls between functions are traced
 
 Unchecked: Slightly less overhead.");
 
-            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(SidebySideBox,
+            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(SidebySideCheckBox,
 @"Checked: XRay copies and re-compiles the selected files then runs them side by side the originals.
           This case maintains the relative paths the original files had for configuration, etc...
 
@@ -72,16 +72,23 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
         private void ReCompileButton_Click(object sender, EventArgs e)
         {
+            ReCompile(false);
+
+        }
+
+        private void ReCompile(bool test)
+        {
             FileItem[] files = FileList.Items.Cast<FileItem>().ToArray();
 
             if (files.Length == 0)
                 return;
 
-            ReCompileButton.Enabled = false;
-            LaunchButton.Enabled = false;
+            OptionsPanel.Enabled = false;
 
-            bool trackFlow = FlowBox.Checked;
-            bool sidebySide = SidebySideBox.Checked;
+            bool trackFlow = TrackFlowCheckBox.Checked;
+            bool trackExternal = TrackExternalCheckBox.Checked;
+            bool trackAnon = TrackAnonCheckBox.Checked;
+            bool sidebySide = SidebySideCheckBox.Checked;
 
             new Thread(() =>
             {
@@ -107,6 +114,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                     XNodeOut.NextID = 0;
                     XNodeOut root = new XNodeOut(null, "root", XObjType.Root);
+                    root.AddNode("External", XObjType.ExtRoot).External = true;
 
                     string errorLog = "";
 
@@ -116,6 +124,8 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                         XDecompile file = new XDecompile(root, item.FilePath, OutputDir);
 
                         file.TrackFlow = trackFlow;
+                        file.TrackExternal = trackExternal;
+                        file.TrackAnon = trackAnon;
 
                         try
                         {
@@ -135,7 +145,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                         file.AddsDone = 0;
 
                         status("Scanning", item.Name);
-                        file.ScanLines(assemblies);
+                        file.ScanLines(assemblies, test);
 
                         status("Recompiling", item.Name);
                         item.RecompiledPath = file.Compile();
@@ -174,10 +184,10 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     summary = summary.Replace("Unmanaged pointers are not a verifiable type.",
                         "Unmanaged pointers are not a verifiable type. (Ignore)");
 
-                    if(sidebySide)
+                    if (sidebySide)
                         summary = summary.Replace("Unable to resolve token.",
                             "UUnable to resolve token. (Try turning off side by side)");
-                    
+
 
                     //todo token error - turn off side by side
 
@@ -191,12 +201,11 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                 }
 
 
-                // success
+
                 RunInGui(() =>
                 {
                     Text = "XRay";
-                    ReCompileButton.Enabled = true;
-                    LaunchButton.Enabled = true;
+                    OptionsPanel.Enabled = true;
                 });
 
 
@@ -267,7 +276,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                 return;
             }
 
-            if (SidebySideBox.Checked)
+            if (SidebySideCheckBox.Checked)
                 OutputDir = SourceDir;
             else
                 OutputDir = Path.Combine(SourceDir, "XRay");
@@ -291,6 +300,11 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         private void SidebySideBox_CheckedChanged(object sender, EventArgs e)
         {
             UpdateOutputPath();
+        }
+
+        private void TestCompile_Click(object sender, EventArgs e)
+        {
+            ReCompile(true);
         }
     }
 

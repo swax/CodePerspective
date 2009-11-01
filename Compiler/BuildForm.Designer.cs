@@ -35,10 +35,15 @@
             this.AddLink = new System.Windows.Forms.LinkLabel();
             this.RemoveLink = new System.Windows.Forms.LinkLabel();
             this.ShowMapButton = new System.Windows.Forms.Button();
-            this.FlowBox = new System.Windows.Forms.CheckBox();
-            this.SidebySideBox = new System.Windows.Forms.CheckBox();
+            this.TrackFlowCheckBox = new System.Windows.Forms.CheckBox();
+            this.SidebySideCheckBox = new System.Windows.Forms.CheckBox();
             this.ResetLink = new System.Windows.Forms.LinkLabel();
             this.OutputLink = new System.Windows.Forms.LinkLabel();
+            this.TrackExternalCheckBox = new System.Windows.Forms.CheckBox();
+            this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
+            this.TestCompile = new System.Windows.Forms.Button();
+            this.OptionsPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // FileList
@@ -50,7 +55,7 @@
             this.FileList.Location = new System.Drawing.Point(12, 36);
             this.FileList.Name = "FileList";
             this.FileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.FileList.Size = new System.Drawing.Size(313, 121);
+            this.FileList.Size = new System.Drawing.Size(326, 95);
             this.FileList.TabIndex = 2;
             // 
             // label1
@@ -64,8 +69,7 @@
             // 
             // ReCompileButton
             // 
-            this.ReCompileButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ReCompileButton.Location = new System.Drawing.Point(12, 212);
+            this.ReCompileButton.Location = new System.Drawing.Point(18, 66);
             this.ReCompileButton.Name = "ReCompileButton";
             this.ReCompileButton.Size = new System.Drawing.Size(99, 23);
             this.ReCompileButton.TabIndex = 4;
@@ -75,8 +79,7 @@
             // 
             // LaunchButton
             // 
-            this.LaunchButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.LaunchButton.Location = new System.Drawing.Point(222, 212);
+            this.LaunchButton.Location = new System.Drawing.Point(123, 66);
             this.LaunchButton.Name = "LaunchButton";
             this.LaunchButton.Size = new System.Drawing.Size(99, 23);
             this.LaunchButton.TabIndex = 5;
@@ -89,7 +92,7 @@
             this.AddLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.AddLink.AutoSize = true;
             this.AddLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.AddLink.Location = new System.Drawing.Point(201, 20);
+            this.AddLink.Location = new System.Drawing.Point(214, 20);
             this.AddLink.Name = "AddLink";
             this.AddLink.Size = new System.Drawing.Size(26, 13);
             this.AddLink.TabIndex = 7;
@@ -102,7 +105,7 @@
             this.RemoveLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.RemoveLink.AutoSize = true;
             this.RemoveLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.RemoveLink.Location = new System.Drawing.Point(233, 20);
+            this.RemoveLink.Location = new System.Drawing.Point(246, 20);
             this.RemoveLink.Name = "RemoveLink";
             this.RemoveLink.Size = new System.Drawing.Size(47, 13);
             this.RemoveLink.TabIndex = 8;
@@ -112,8 +115,7 @@
             // 
             // ShowMapButton
             // 
-            this.ShowMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.ShowMapButton.Location = new System.Drawing.Point(117, 212);
+            this.ShowMapButton.Location = new System.Drawing.Point(123, 95);
             this.ShowMapButton.Name = "ShowMapButton";
             this.ShowMapButton.Size = new System.Drawing.Size(99, 23);
             this.ShowMapButton.TabIndex = 9;
@@ -121,39 +123,37 @@
             this.ShowMapButton.UseVisualStyleBackColor = true;
             this.ShowMapButton.Click += new System.EventHandler(this.ShowMapButton_Click);
             // 
-            // FlowBox
+            // TrackFlowCheckBox
             // 
-            this.FlowBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.FlowBox.AutoSize = true;
-            this.FlowBox.Checked = true;
-            this.FlowBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.FlowBox.Location = new System.Drawing.Point(20, 172);
-            this.FlowBox.Name = "FlowBox";
-            this.FlowBox.Size = new System.Drawing.Size(117, 17);
-            this.FlowBox.TabIndex = 10;
-            this.FlowBox.Text = "Track function flow";
-            this.FlowBox.UseVisualStyleBackColor = true;
+            this.TrackFlowCheckBox.AutoSize = true;
+            this.TrackFlowCheckBox.Checked = true;
+            this.TrackFlowCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.TrackFlowCheckBox.Location = new System.Drawing.Point(13, 3);
+            this.TrackFlowCheckBox.Name = "TrackFlowCheckBox";
+            this.TrackFlowCheckBox.Size = new System.Drawing.Size(117, 17);
+            this.TrackFlowCheckBox.TabIndex = 10;
+            this.TrackFlowCheckBox.Text = "Track function flow";
+            this.TrackFlowCheckBox.UseVisualStyleBackColor = true;
             // 
-            // SidebySideBox
+            // SidebySideCheckBox
             // 
-            this.SidebySideBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.SidebySideBox.AutoSize = true;
-            this.SidebySideBox.Checked = true;
-            this.SidebySideBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.SidebySideBox.Location = new System.Drawing.Point(143, 172);
-            this.SidebySideBox.Name = "SidebySideBox";
-            this.SidebySideBox.Size = new System.Drawing.Size(85, 17);
-            this.SidebySideBox.TabIndex = 11;
-            this.SidebySideBox.Text = "Side-by-Side";
-            this.SidebySideBox.UseVisualStyleBackColor = true;
-            this.SidebySideBox.CheckedChanged += new System.EventHandler(this.SidebySideBox_CheckedChanged);
+            this.SidebySideCheckBox.AutoSize = true;
+            this.SidebySideCheckBox.Checked = true;
+            this.SidebySideCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.SidebySideCheckBox.Location = new System.Drawing.Point(13, 26);
+            this.SidebySideCheckBox.Name = "SidebySideCheckBox";
+            this.SidebySideCheckBox.Size = new System.Drawing.Size(104, 17);
+            this.SidebySideCheckBox.TabIndex = 11;
+            this.SidebySideCheckBox.Text = "Run side by side";
+            this.SidebySideCheckBox.UseVisualStyleBackColor = true;
+            this.SidebySideCheckBox.CheckedChanged += new System.EventHandler(this.SidebySideBox_CheckedChanged);
             // 
             // ResetLink
             // 
             this.ResetLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ResetLink.AutoSize = true;
             this.ResetLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.ResetLink.Location = new System.Drawing.Point(286, 20);
+            this.ResetLink.Location = new System.Drawing.Point(299, 20);
             this.ResetLink.Name = "ResetLink";
             this.ResetLink.Size = new System.Drawing.Size(35, 13);
             this.ResetLink.TabIndex = 12;
@@ -167,34 +167,81 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.OutputLink.AutoEllipsis = true;
             this.OutputLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.OutputLink.Location = new System.Drawing.Point(12, 250);
+            this.OutputLink.Location = new System.Drawing.Point(9, 291);
             this.OutputLink.Name = "OutputLink";
-            this.OutputLink.Size = new System.Drawing.Size(309, 13);
+            this.OutputLink.Size = new System.Drawing.Size(322, 13);
             this.OutputLink.TabIndex = 13;
             this.OutputLink.TabStop = true;
             this.OutputLink.Text = "Output: Path";
             this.OutputLink.Visible = false;
             this.OutputLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OutputLink_LinkClicked);
             // 
+            // TrackExternalCheckBox
+            // 
+            this.TrackExternalCheckBox.AutoSize = true;
+            this.TrackExternalCheckBox.Checked = true;
+            this.TrackExternalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.TrackExternalCheckBox.Location = new System.Drawing.Point(153, 3);
+            this.TrackExternalCheckBox.Name = "TrackExternalCheckBox";
+            this.TrackExternalCheckBox.Size = new System.Drawing.Size(140, 17);
+            this.TrackExternalCheckBox.TabIndex = 14;
+            this.TrackExternalCheckBox.Text = "Track external functions";
+            this.TrackExternalCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // OptionsPanel
+            // 
+            this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Controls.Add(this.TestCompile);
+            this.OptionsPanel.Controls.Add(this.TrackAnonCheckBox);
+            this.OptionsPanel.Controls.Add(this.SidebySideCheckBox);
+            this.OptionsPanel.Controls.Add(this.TrackExternalCheckBox);
+            this.OptionsPanel.Controls.Add(this.ReCompileButton);
+            this.OptionsPanel.Controls.Add(this.LaunchButton);
+            this.OptionsPanel.Controls.Add(this.ShowMapButton);
+            this.OptionsPanel.Controls.Add(this.TrackFlowCheckBox);
+            this.OptionsPanel.Location = new System.Drawing.Point(12, 158);
+            this.OptionsPanel.Name = "OptionsPanel";
+            this.OptionsPanel.Size = new System.Drawing.Size(326, 130);
+            this.OptionsPanel.TabIndex = 15;
+            // 
+            // TrackAnonCheckBox
+            // 
+            this.TrackAnonCheckBox.AutoSize = true;
+            this.TrackAnonCheckBox.Location = new System.Drawing.Point(153, 26);
+            this.TrackAnonCheckBox.Name = "TrackAnonCheckBox";
+            this.TrackAnonCheckBox.Size = new System.Drawing.Size(154, 17);
+            this.TrackAnonCheckBox.TabIndex = 15;
+            this.TrackAnonCheckBox.Text = "Track anonymous methods";
+            this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // TestCompile
+            // 
+            this.TestCompile.Location = new System.Drawing.Point(18, 95);
+            this.TestCompile.Name = "TestCompile";
+            this.TestCompile.Size = new System.Drawing.Size(99, 23);
+            this.TestCompile.TabIndex = 16;
+            this.TestCompile.Text = "Test Compile";
+            this.TestCompile.UseVisualStyleBackColor = true;
+            this.TestCompile.Click += new System.EventHandler(this.TestCompile_Click);
+            // 
             // BuildForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(337, 272);
+            this.ClientSize = new System.Drawing.Size(350, 313);
+            this.Controls.Add(this.OptionsPanel);
             this.Controls.Add(this.OutputLink);
             this.Controls.Add(this.ResetLink);
-            this.Controls.Add(this.SidebySideBox);
-            this.Controls.Add(this.FlowBox);
-            this.Controls.Add(this.ShowMapButton);
             this.Controls.Add(this.RemoveLink);
             this.Controls.Add(this.AddLink);
-            this.Controls.Add(this.LaunchButton);
-            this.Controls.Add(this.ReCompileButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.FileList);
             this.Name = "BuildForm";
             this.Text = "XRay";
+            this.OptionsPanel.ResumeLayout(false);
+            this.OptionsPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -209,10 +256,14 @@
         private System.Windows.Forms.LinkLabel AddLink;
         private System.Windows.Forms.LinkLabel RemoveLink;
         private System.Windows.Forms.Button ShowMapButton;
-        private System.Windows.Forms.CheckBox FlowBox;
-        private System.Windows.Forms.CheckBox SidebySideBox;
+        private System.Windows.Forms.CheckBox TrackFlowCheckBox;
+        private System.Windows.Forms.CheckBox SidebySideCheckBox;
         private System.Windows.Forms.LinkLabel ResetLink;
         private System.Windows.Forms.LinkLabel OutputLink;
+        private System.Windows.Forms.CheckBox TrackExternalCheckBox;
+        private System.Windows.Forms.Panel OptionsPanel;
+        private System.Windows.Forms.CheckBox TrackAnonCheckBox;
+        private System.Windows.Forms.Button TestCompile;
 
     }
 }

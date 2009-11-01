@@ -20,6 +20,9 @@ namespace XLibrary
         bool DoResize = true;
         Bitmap DisplayBuffer;
 
+        bool ShowOutside = true;
+        bool ShowExternal = true;
+
         Color UnknownColor = Color.Black;
         Color FileColor = Color.Black;
         Color NamespaceColor = Color.DarkBlue;
@@ -41,7 +44,7 @@ namespace XLibrary
         SolidBrush MultiHoldingBrush = new SolidBrush(Color.Yellow);
         
         Color CallColor = Color.Blue;
-        Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black)) { EndCap = LineCap.ArrowAnchor };
+        Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black));// { EndCap = LineCap.ArrowAnchor };
         Pen ShowCallOutPen = new Pen(Color.FromArgb(32, Color.Red));
         Pen ShowCallInPen = new Pen(Color.FromArgb(32, Color.Blue));
         Pen HoldingCallPen = new Pen(Color.FromArgb(32, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
@@ -62,7 +65,8 @@ namespace XLibrary
 
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
 
-        internal XNodeIn Root;
+        internal XNodeIn Root = new XNodeIn(Root.Nodes.Where(
+        internal XNodeIn ExtRoot = XRay.RootNode.Nodes.First(n => n.External) as XNodeIn;
 
         SolidBrush[] OverBrushes = new SolidBrush[7];
 
@@ -89,7 +93,7 @@ namespace XLibrary
         Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
 
 
-        public TreePanelGdiPlus(MainForm main, XNodeIn root)
+        public TreePanelGdiPlus(MainForm main)
         {
             InitializeComponent();
 
@@ -98,7 +102,7 @@ namespace XLibrary
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             MainForm = main;
-            Root = root;
+            Root = XRay.RootNode;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
@@ -129,6 +133,7 @@ namespace XLibrary
             Dictionary<int, Color> objColors = new Dictionary<int, Color>();
 
             objColors[(int)XObjType.Root] = UnknownColor;
+            objColors[(int)XObjType.ExtRoot] = UnknownColor;
             objColors[(int)XObjType.File] = FileColor;
             objColors[(int)XObjType.Namespace] = NamespaceColor;
             objColors[(int)XObjType.Class] = ClassColor;
@@ -173,7 +178,20 @@ namespace XLibrary
 
             if (DoResize || XRay.CoverChange)
             {
-                Root.SetArea(new RectangleD(0, 0, Width, Height));
+                int offset = 0;
+                int centerWidth = Width;
+
+                if (ShowOutside)
+                {
+                    offset = centerWidth * 1 / 4;
+                    centerWidth -= offset;
+                }
+                if (ShowExternal)
+                {
+                    centerWidth -= centerWidth * 1 / 4;
+                }
+
+                Root.SetArea(new RectangleD(offset, 0, centerWidth, Height));
 
                 PositionMap.Clear();
                 PositionMap[Root.ID] = Root;
@@ -181,6 +199,24 @@ namespace XLibrary
                 SizeNode(buffer, Root);
             }
 
+            if (ShowOutside)
+            {
+                // create alternate hit map?/
+
+                // draw from root, those hit, excluding current root
+
+                // psuedo root
+            }
+
+            if (ShowExternal)
+            {
+                //DrawNode(buffer, Root, 0);
+
+                // create a psuedo root for the external
+            }
+            
+            // psuedo root
+            // dont show external
             DrawNode(buffer, Root, 0);
 
             // draw ignored over nodes ignored may contain

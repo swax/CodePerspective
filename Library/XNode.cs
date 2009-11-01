@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public enum XObjType { Root, File, Namespace, Class, Method, Field }
+    public enum XObjType { Root, ExtRoot, File, Namespace, Class, Method, Field }
 
     public class InputValue
     {
@@ -36,6 +36,9 @@ namespace XLibrary
 
         public XNode Parent;
         public List<XNode> Nodes = new List<XNode>();
+
+        public bool External;
+
 
         public string FullName()
         {
@@ -104,6 +107,7 @@ namespace XLibrary
         public int Lines;
         public int Indent;
         public string IndentString = "    "; // 2 for class, 2 for method
+        
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -111,8 +115,11 @@ namespace XLibrary
             Name = name;
             ObjType = objType;
 
-            ID = NextID++;
+            if(parent != null)
+                External = parent.External;
 
+            ID = NextID++;
+            
             //Debug.WriteLine(string.Format("Added {0}: {1}", objType, FullName()));
         }
 
@@ -133,13 +140,9 @@ namespace XLibrary
 
         public int ComputeSums()
         {
-            // dont count anonymous methods/classes
-            foreach (XNode node in Nodes.Where(n => n.Name.StartsWith("'")).ToArray())
-                Nodes.Remove(node);
-
             int sum = Lines;
 
-            foreach (XNodeOut node in Nodes)
+            foreach (XNodeOut node in Nodes.Cast<XNodeOut>().Where(n => !n.Exclude))
                 sum += node.ComputeSums();
 
             Value = sum;
@@ -169,6 +172,7 @@ namespace XLibrary
             // name x
             // type 4
             // value 4
+            // external 1
             // id 8
             // optional parent id 8
 
@@ -187,6 +191,9 @@ namespace XLibrary
 
             BitConverter.GetBytes(Value).CopyTo(temp, pos);
             pos += 4;
+
+            BitConverter.GetBytes(External).CopyTo(temp, pos);
+            pos += 1;
 
             BitConverter.GetBytes(ID).CopyTo(temp, pos);
             pos += 4;
@@ -252,7 +259,8 @@ namespace XLibrary
             node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
             node.Value = BitConverter.ToInt32(stream.Read(4), 0);
-            node.Lines = node.Value; 
+            node.Lines = node.Value;
+            node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
 
             if(stream.Position < startPos + totalSize)

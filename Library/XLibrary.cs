@@ -110,6 +110,7 @@ namespace XLibrary
 
         static bool LoadNodeMap(string path)
         {
+            RootNode = null;
             DatPath = path;
             FunctionCount = 0;
             Dictionary<int, XNodeIn> map = new Dictionary<int, XNodeIn>();

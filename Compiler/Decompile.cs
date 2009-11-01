@@ -31,9 +31,9 @@ namespace XBuilder
         StringBuilder XIL = new StringBuilder(4096);
 
         public bool TrackFlow = true; // if this is true, then track thread needs to be true
-        bool TrackInstances = false;
-        bool TrackExternal = true;
-        
+        public bool TrackInstances = false;
+        public bool TrackExternal = true;
+        public bool TrackAnon = false;
 
         public XDecompile(XNodeOut root, string sourcePath, string outDir)
         {
@@ -42,8 +42,6 @@ namespace XBuilder
             OriginalPath = sourcePath;
             OutputDir = outDir;
             SideBySide = Path.GetDirectoryName(sourcePath) == outDir;
-
-            //RootNode = RootNode.AddNode(
         }
 
         internal void Decompile()
@@ -93,12 +91,13 @@ namespace XBuilder
             File.Delete(DasmPath); // so it can be replaced with asm exe
         }
 
-        internal void ScanLines(List<string> assemblies)
+        internal void ScanLines(List<string> assemblies, bool test)
         {
             XIL.Length = 0;
             CurrentNode = FileNode;
   
-            InjectLibrary("XLibrary", "1:0:0:0");
+            if(!test)
+                InjectLibrary("XLibrary", "1:0:0:0");
 
             bool stripSig = false;
 
@@ -108,7 +107,7 @@ namespace XBuilder
                 {
                     string[] line = reader.SplitNextLine(XIL);
 
-                    if (line.Length == 0)
+                    if (test || line.Length == 0)
                         continue;
 
                     else if (line[0] == ".assembly")
@@ -139,6 +138,12 @@ namespace XBuilder
                             XIL.RemoveLine();
                     }
 
+                    else if (line[0] == ".file")
+                    {
+                        // embedded files have a .hash that we won't be messing with, they require a hash
+                        stripSig = false;
+                    }
+
                     else if (line[0] == ".hash" && stripSig)
                     {
                         XIL.RemoveLine();
@@ -152,14 +157,14 @@ namespace XBuilder
                         }
                     }
 
-                    // remove assembly's public key
+             // remove assembly's public key
                     else if (line[0] == ".publickey")
                     {
                         XIL.RemoveLine();
 
                         string nextLine = string.Join(" ", line).FilterComment(); ;
 
-                        while(!nextLine.Contains(")"))
+                        while (!nextLine.Contains(")"))
                             nextLine = reader.ReadLine().FilterComment();
                     }
 
@@ -189,6 +194,10 @@ namespace XBuilder
                             className = className.Substring(0, pos);
 
                         CurrentNode = CurrentNode.AddNode(className, XObjType.Class);
+
+                        // exclude if we dont track anon classes
+                        if (!TrackAnon && className.StartsWith("'"))
+                            CurrentNode.Exclude = true;
                     }
 
                     else if (line[0] == ".method")
@@ -205,14 +214,18 @@ namespace XBuilder
                         CurrentNode = CurrentNode.AddNode(name, XObjType.Method);
 
                         // dont inject tracking code under these conditions
-                        if (name.StartsWith("'") || // don't track generated methods
-                            line.Contains("abstract") ||
+                        if (line.Contains("abstract") ||
                             line.Where(s => s.StartsWith("pinvokeimpl")).FirstOrDefault() != null ||
-                            (line.Contains("runtime") && line.Contains("managed")))// runtime managed at end of function indicates the body should be empty
+                            (line.Contains("runtime") && line.Contains("managed")) || // 'runtime managed' / 'managed internalcall' at end of function indicates the body should be empty
+                            (line.Contains("managed") && line.Contains("internalcall")))
                         {
                             CurrentNode.Exclude = true;
                             continue;
                         }
+
+                        // exclude if we dont track anony methods, but dont continue cause entry point could still be inside
+                        if (!TrackAnon && name.StartsWith("'"))
+                            CurrentNode.Exclude = true;
 
                         // scan for entry, break on .maxstack or }
                         // read the whole method before the {
@@ -256,8 +269,8 @@ namespace XBuilder
                                 entry = false;
                             }
                         }
-                        
-                        if(!CurrentNode.Exclude)
+
+                        if (!CurrentNode.Exclude)
                             InjectMethodEnter(CurrentNode);
                     }
 
@@ -289,25 +302,25 @@ namespace XBuilder
                         else if (TrackFlow && !CurrentNode.Exclude && line.Length > 1 && line[1] == "ret")
                         {
                             Debug.Assert(line.Length == 2);
-                            
+
                             XIL.RemoveLine(); // remove ret call
 
                             XIL.AppendLine();
                             AddLine(line[0] + " nop // XRay - Redirected return address"); // anything jumping to return, will jump here instead and allow us to log exit
 
                             InjectMethodExit(CurrentNode);
-            
+
                             AddLine("ret"); // put ret call back in
                         }
 
-                        else if (line.Length > 1 && line[1].EndsWith(".s"))
+                        else if (line.Length > 1 && (TrackFlow || TrackExternal) && line[1].EndsWith(".s"))
                         {
                             // when we insert code we add more instructions, br is the branch instruction
                             // and br.s is the short version allowing a max jump of 255 places which may
                             // not be valid after our injection.  Strip the .s, and run ilasm with /optimize
                             // to add them back in
 
-                            Debug.Assert(line.Length == 3); 
+                            Debug.Assert(line.Length == 3);
                             XIL.RemoveLine();
                             line[1] = line[1].Replace(".s", "");
                             AddLine(string.Join(" ", line) + " // XRay - removed .s");
@@ -315,10 +328,10 @@ namespace XBuilder
 
                         // external method call tracking
                         if (TrackExternal && TrackFlow && !CurrentNode.Exclude && line.Length > 1 &&
-                            (line[1].StartsWith("constrained.") || line[1].StartsWith("call") || 
+                            (line[1].StartsWith("constrained.") || line[1].StartsWith("call") ||
                              line[1].StartsWith("callvirt") || line[1].StartsWith("calli")))
                         {
-                            
+
                             Debug.Assert(!line[1].StartsWith("calli")); // whats the format of calli?
 
                             // any line starting with a constrained prefix is immediately followed by a call virt
@@ -326,13 +339,16 @@ namespace XBuilder
                             if (line[1].StartsWith("constrained."))
                             {
                                 XIL.RemoveLine(); // save constrained line a inject after external method tracking
-                                constrainedLine = line; 
+                                constrainedLine = line;
                                 line = reader.SplitNextLine(XIL); // read in callvirt
                             }
 
                             string parse = string.Join(" ", line);
 
                             // get function name
+                            if (!parse.Contains("::"))
+                                continue; // if no :: then caller is accessing a global internal function that is already tracked
+
                             int pos = parse.LastIndexOf('(');
                             Debug.Assert(pos != -1);
                             int pos2 = parse.LastIndexOf("::") + 2;
@@ -361,75 +377,75 @@ namespace XBuilder
                             parse = parse.Substring(pos + 1);
 
                             // we only care if this function is external
-                            if (parse.StartsWith("["))
+                            if (!parse.StartsWith("["))
+                                continue;
+
+                            pos = parse.IndexOf("]");
+                            string external = parse.Substring(1, pos - 1);
+                            string namespaces = parse.Substring(pos + 1);
+
+                            pos = namespaces.LastIndexOf('`');
+                            if (pos != -1)
+                                namespaces = namespaces.Substring(0, pos);
+
+                            // if already tracked, skip
+                            if (assemblies.Contains(external))
+                                continue;
+
+                            // add external file to root
+                            XNodeOut extRoot = RootNode.Nodes.First(n => n.External) as XNodeOut;
+                            XNodeOut node = extRoot.Nodes.FirstOrDefault(n => n.Name == external) as XNodeOut;
+
+                            if (node == null)
+                                node = extRoot.AddNode(external, XObjType.File);
+
+                            // traverse or add namespace to root
+                            string[] names = namespaces.Split('.');
+
+                            for (int i = 0; i < names.Length; i++)
                             {
-                                pos = parse.IndexOf("]");
-                                string external = parse.Substring(1, pos - 1);
-                                string namespaces = parse.Substring(pos + 1);
+                                string name = names[i];
 
-                                pos = namespaces.LastIndexOf('`');
-                                if (pos != -1)
-                                    namespaces = namespaces.Substring(0, pos);
+                                XNodeOut next = node.Nodes.FirstOrDefault(n => n.Name == name) as XNodeOut;
 
-                                if (!assemblies.Contains(external))
-                                {
-                                    // add external file to root
-                                    XNodeOut node = RootNode.Nodes.FirstOrDefault(n => n.Name == external) as XNodeOut;
-
-                                    if (node == null)
-                                        node = RootNode.AddNode(external, XObjType.File);
-
-                                    // traverse or add namespace to root
-                                    string[] names = namespaces.Split('.');
-
-                                    for (int i = 0; i < names.Length; i++)
-                                    {
-                                        string name = names[i];
-
-                                        XNodeOut next = node.Nodes.FirstOrDefault(n => n.Name == name) as XNodeOut;
-
-                                        XObjType objType = (i == names.Length - 1) ? XObjType.Class : XObjType.Namespace;
-                                        node = next ?? node.AddNode(name, objType);
-                                    }
-
-                                    node = node.AddNode(functionName, XObjType.Method);
-                                    node.Lines = 20;
-
-
-                                    // add wrapping for external tracking
-
-                                    // remove function
-                                    XIL.RemoveLine();
-
-                                    // inject method enter - re-route IL address to function to ensure it is logged
-                                    XIL.AppendLine();
-
-                                    string address = (constrainedLine != null) ? constrainedLine[0] : line[0];
-                                    AddLine(address + " nop // XRay - Redirect external method begin");
-                                    XIL.AppendLine();
-                                    InjectMethodEnter(node);
-
-                                    // add function line - strip IL address
-                                    if(constrainedLine != null)
-                                        XIL.AppendLine(string.Join(" ", constrainedLine.Skip(1).ToArray()));
-
-                                    string nextLine = string.Join(" ", line.Skip(1).ToArray());
-                                    XIL.AppendLine(nextLine);
-
-                                    // read over rest of function until ')'
-                                    while (!nextLine.Contains(")"))
-                                    {
-                                        nextLine = reader.ReadLine();
-                                        XIL.AppendLine(nextLine);
-                                    }
-
-                                    // inject exit
-                                    InjectMethodExit(node);
-                                }
-                                //Debug.WriteLine(handled + " / " + external + " / " + namespacez + " / " + functionName);
+                                XObjType objType = (i == names.Length - 1) ? XObjType.Class : XObjType.Namespace;
+                                node = next ?? node.AddNode(name, objType);
                             }
-                            //else
-                                //Debug.WriteLine("Internal / " + functionName);
+
+                            node = node.AddNode(functionName, XObjType.Method);
+                            node.Lines = 1;
+
+
+                            // add wrapping for external tracking
+
+                            // remove function
+                            XIL.RemoveLine();
+
+                            // inject method enter - re-route IL address to function to ensure it is logged
+                            XIL.AppendLine();
+
+                            string address = (constrainedLine != null) ? constrainedLine[0] : line[0];
+                            AddLine(address + " nop // XRay - Redirect external method begin");
+                            XIL.AppendLine();
+                            InjectMethodEnter(node);
+
+                            // add function line - strip IL address
+                            if (constrainedLine != null)
+                                XIL.AppendLine(string.Join(" ", constrainedLine.Skip(1).ToArray()));
+
+                            string nextLine = string.Join(" ", line.Skip(1).ToArray());
+                            XIL.AppendLine(nextLine);
+
+                            // read over rest of function until ')'
+                            while (!nextLine.Contains(")"))
+                            {
+                                nextLine = reader.ReadLine();
+                                XIL.AppendLine(nextLine);
+                            }
+
+                            // inject exit
+                            InjectMethodExit(node);
+
                         }
 
 

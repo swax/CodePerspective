@@ -23,7 +23,7 @@ namespace XLibrary
             ResetTimer.Interval = 1000 / XRay.HitFrames;
             ResetTimer.Enabled = true;
 
-            AddPanel(new TreePanelGdiPlus(this, XRay.RootNode));
+            AddPanel(new TreePanelGdiPlus(this));
 
             UpdateText();          
         }
@@ -107,7 +107,7 @@ namespace XLibrary
 
             ToolStripMenuItem gdiItem = new ToolStripMenuItem("GDI+", null, (s2, e2) =>
             {
-                AddPanel(new TreePanelGdiPlus(this, XRay.RootNode));
+                AddPanel(new TreePanelGdiPlus(this));
             });
 
             ToolStripMenuItem wpfItem = new ToolStripMenuItem("WPF", null, (s2, e2) =>

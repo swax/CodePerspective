@@ -33,25 +33,32 @@
             this.SelectedLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.HitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowOnlyHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResetMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ViewPanel = new System.Windows.Forms.Panel();
-            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.callsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowRTCallsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowAllCallsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ViewOutsideMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ViewExternalMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.BottomStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // BottomStrip
             // 
+            this.BottomStrip.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.BottomStrip.Dock = System.Windows.Forms.DockStyle.None;
             this.BottomStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SelectedLabel});
             this.BottomStrip.Location = new System.Drawing.Point(0, 249);
             this.BottomStrip.Name = "BottomStrip";
-            this.BottomStrip.Size = new System.Drawing.Size(292, 22);
+            this.BottomStrip.Size = new System.Drawing.Size(106, 22);
             this.BottomStrip.TabIndex = 1;
             this.BottomStrip.Text = "statusStrip1";
             // 
@@ -69,7 +76,8 @@
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.optionsToolStripMenuItem,
+            this.HitsMenuItem,
+            this.callsToolStripMenuItem,
             this.ViewMenuItem,
             this.DebugMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -78,38 +86,79 @@
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
-            // optionsToolStripMenuItem
+            // HitsMenuItem
             // 
-            this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.HitsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ShowOnlyHitMenuItem,
-            this.ResetMenuItem,
-            this.toolStripMenuItem1,
-            this.ShowAllCallsMenuItem});
-            this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-            this.optionsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
-            this.optionsToolStripMenuItem.Text = "Options";
+            this.ResetMenuItem});
+            this.HitsMenuItem.Name = "HitsMenuItem";
+            this.HitsMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.HitsMenuItem.Text = "Hits";
             // 
             // ShowOnlyHitMenuItem
             // 
             this.ShowOnlyHitMenuItem.CheckOnClick = true;
             this.ShowOnlyHitMenuItem.Name = "ShowOnlyHitMenuItem";
-            this.ShowOnlyHitMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowOnlyHitMenuItem.Size = new System.Drawing.Size(146, 22);
             this.ShowOnlyHitMenuItem.Text = "Show only hit";
             this.ShowOnlyHitMenuItem.Click += new System.EventHandler(this.ShowOnlyHitToolStripMenuItem_Click);
             // 
             // ResetMenuItem
             // 
             this.ResetMenuItem.Name = "ResetMenuItem";
-            this.ResetMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ResetMenuItem.Size = new System.Drawing.Size(146, 22);
             this.ResetMenuItem.Text = "Reset hit";
             this.ResetMenuItem.Click += new System.EventHandler(this.ResetMenuItem_Click);
             // 
+            // callsToolStripMenuItem
+            // 
+            this.callsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ShowRTCallsMenuItem,
+            this.ShowAllCallsMenuItem});
+            this.callsToolStripMenuItem.Name = "callsToolStripMenuItem";
+            this.callsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.callsToolStripMenuItem.Text = "Calls";
+            // 
+            // ShowRTCallsMenuItem
+            // 
+            this.ShowRTCallsMenuItem.CheckOnClick = true;
+            this.ShowRTCallsMenuItem.Name = "ShowRTCallsMenuItem";
+            this.ShowRTCallsMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowRTCallsMenuItem.Text = "Show real time";
+            this.ShowRTCallsMenuItem.Click += new System.EventHandler(this.ShowRTMenuItem_Click);
+            // 
+            // ShowAllCallsMenuItem
+            // 
+            this.ShowAllCallsMenuItem.CheckOnClick = true;
+            this.ShowAllCallsMenuItem.Name = "ShowAllCallsMenuItem";
+            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowAllCallsMenuItem.Text = "Show all";
+            this.ShowAllCallsMenuItem.Click += new System.EventHandler(this.ShowAllCallsMenuItem_Click);
+            // 
             // ViewMenuItem
             // 
+            this.ViewMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ViewOutsideMenuItem,
+            this.ViewExternalMenuItem});
             this.ViewMenuItem.Name = "ViewMenuItem";
             this.ViewMenuItem.Size = new System.Drawing.Size(44, 20);
             this.ViewMenuItem.Text = "View";
-            this.ViewMenuItem.DropDownOpening += new System.EventHandler(this.ViewMenuItem_DropDownOpening);
+            // 
+            // ViewOutsideMenuItem
+            // 
+            this.ViewOutsideMenuItem.CheckOnClick = true;
+            this.ViewOutsideMenuItem.Name = "ViewOutsideMenuItem";
+            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewOutsideMenuItem.Text = "Outside";
+            this.ViewOutsideMenuItem.Click += new System.EventHandler(this.ViewOutsideMenuItem_Click);
+            // 
+            // ViewExternalMenuItem
+            // 
+            this.ViewExternalMenuItem.CheckOnClick = true;
+            this.ViewExternalMenuItem.Name = "ViewExternalMenuItem";
+            this.ViewExternalMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewExternalMenuItem.Text = "External";
+            this.ViewExternalMenuItem.Click += new System.EventHandler(this.ViewExternalMenuItem_Click);
             // 
             // DebugMenuItem
             // 
@@ -118,41 +167,27 @@
             this.DebugMenuItem.Text = "Debug";
             this.DebugMenuItem.Click += new System.EventHandler(this.DebugMenuItem_Click);
             // 
-            // ViewPanel
+            // ViewHostPanel
             // 
-            this.ViewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.ViewPanel.Location = new System.Drawing.Point(0, 27);
-            this.ViewPanel.Name = "ViewPanel";
-            this.ViewPanel.Size = new System.Drawing.Size(292, 219);
-            this.ViewPanel.TabIndex = 3;
-            // 
-            // toolStripMenuItem1
-            // 
-            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(149, 6);
-            // 
-            // ShowAllCallsMenuItem
-            // 
-            this.ShowAllCallsMenuItem.CheckOnClick = true;
-            this.ShowAllCallsMenuItem.Name = "ShowAllCallsMenuItem";
-            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.ShowAllCallsMenuItem.Text = "Show all calls";
-            this.ShowAllCallsMenuItem.Click += new System.EventHandler(this.ShowAllCallsMenuItem_Click);
+            this.ViewHostPanel.Location = new System.Drawing.Point(0, 27);
+            this.ViewHostPanel.Name = "ViewHostPanel";
+            this.ViewHostPanel.Size = new System.Drawing.Size(292, 222);
+            this.ViewHostPanel.TabIndex = 3;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 271);
-            this.Controls.Add(this.ViewPanel);
+            this.Controls.Add(this.ViewHostPanel);
             this.Controls.Add(this.BottomStrip);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "MainForm";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TreeForm_FormClosing);
             this.BottomStrip.ResumeLayout(false);
             this.BottomStrip.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
@@ -168,13 +203,16 @@
         private System.Windows.Forms.StatusStrip BottomStrip;
         private System.Windows.Forms.Timer ResetTimer;
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem HitsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ShowOnlyHitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ResetMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ViewMenuItem;
-        private System.Windows.Forms.Panel ViewPanel;
         private System.Windows.Forms.ToolStripMenuItem DebugMenuItem;
-        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem callsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowRTCallsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ShowAllCallsMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ViewOutsideMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ViewExternalMenuItem;
+        private System.Windows.Forms.Panel ViewHostPanel;
     }
 }

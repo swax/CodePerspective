@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class TreePanelGdiPlus : UserControl, ITreePanel
+    public partial class TreePanelGdiPlus : UserControl
     {
         public MainForm MainForm;
 
@@ -20,10 +20,12 @@ namespace XLibrary
         bool DoResize = true;
         Bitmap DisplayBuffer;
 
-        bool ShowOutside = true;
-        bool ShowExternal = true;
-        bool ShowingOutside = true;
-        bool ShowingExternal = true;
+        internal bool ShowOutside;
+        internal bool ShowExternal;
+        bool ShowingOutside;
+        bool ShowingExternal;
+
+        internal bool ShowCalls = true;
 
         Color UnknownColor = Color.Black;
         Color FileColor = Color.Black;
@@ -204,7 +206,7 @@ namespace XLibrary
 
                 if (ShowingOutside)
                 {
-                    offset = centerWidth * 1 / 4;
+                    offset = Width * 1 / 4;
                     centerWidth -= offset;
 
                     InternalRoot.SetArea(new RectangleD(0, 0, offset, Height));
@@ -213,7 +215,7 @@ namespace XLibrary
                 }
                 if (ShowingExternal)
                 {
-                    int extWidth = centerWidth * 1 / 4;
+                    int extWidth = Width * 1 / 4;
                     centerWidth -= extWidth;
 
                     ExternalRoot.SetArea(new RectangleD(offset + centerWidth, 0, extWidth, Height));
@@ -268,8 +270,9 @@ namespace XLibrary
                             if (IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
                                 continue;
 
-                        if (call.StillInside > 0)
+                        if (call.StillInside > 0 && ShowCalls)
                             buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF );
+
                         else if (XRay.ShowAllCalls)
                         {
                             //buffer.DrawLine(ShowCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
@@ -281,7 +284,8 @@ namespace XLibrary
                             buffer.DrawLine(ShowCallOutPen, start, mid);
                             buffer.DrawLine(ShowCallInPen, mid, end);
                         }
-                        if (call.Hit > 0)
+
+                        if (call.Hit > 0 && ShowCalls)
                         {
                             Pen pen = CallPen[call.Hit];
                             pen.DashOffset = call.DashOffset;
@@ -587,6 +591,13 @@ namespace XLibrary
         public void Redraw()
         {
             DoRedraw = true;
+            Invalidate();
+        }
+
+        // re-calcs the sizes of all nodes
+        public void RecalcSizes()
+        {
+            DoResize = true;
             Invalidate();
         }
 

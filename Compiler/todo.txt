@@ -1,21 +1,5 @@
 ﻿
-do the whole selection system and tomorrow maybe wrap 
-
-show only hit when zoomed in on not hit node
-	filter calls from left over to right, or right to left, only middle can talk to both side\AZ																																																																													Q
-
-	when show app external selected
-		right 1/4 of screen is for hit external functions
-	when show app internal selected
-		left 1/4 of screen is for hit internal functions not in current view
-
-	inverse external area with black bg?
-
-	with this setup, we don't need to pre-calculate the size of the external functions
-		use top area above 1/4s as label to what is shown below
-		
-	reset hit when zoom is changed
-
+crash on show hit in test
 
 	*** click
 		right click - show tree of all layers, for each select, ignore, details, zoom
@@ -29,9 +13,6 @@ show only hit when zoomed in on not hit node
 	
 			option in xray to keep call/timing stats
 			
-	when zoomed in to a node, reset extenal hit map
-		for each entry in the external hit map draw a node (constant size) so that the user can see where calls are coming form
-		or just let user manually reset hit status on toolbar
 
 	left/right keys - zoom in/out
 
@@ -56,14 +37,6 @@ show only hit when zoomed in on not hit node
 
 	show array/map sizes in debug
 	
-
-	external perimeter
-		take sum of external and divide it by the perimiter size
-		the result is the size in pixes of each supporting node
-		if less than one, double perimiter and make 2 layers of nodes
-		use permimiter because there will be no calls traced between
-		  external functions
-
 
 goal
 	if todo items helps me understand app better then its higher on the list

@@ -114,14 +114,15 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                     XNodeOut.NextID = 0;
                     XNodeOut root = new XNodeOut(null, "root", XObjType.Root);
-                    root.AddNode("External", XObjType.ExtRoot).External = true;
+                    XNodeOut extRoot = root.AddNode("Not XRayed", XObjType.External);
+                    XNodeOut intRoot = root.AddNode("XRayed", XObjType.Internal);
 
                     string errorLog = "";
 
                     // foreach file
                     foreach (FileItem item in files)
                     {
-                        XDecompile file = new XDecompile(root, item.FilePath, OutputDir);
+                        XDecompile file = new XDecompile(intRoot, extRoot, item.FilePath, OutputDir);
 
                         file.TrackFlow = trackFlow;
                         file.TrackExternal = trackExternal;

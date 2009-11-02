@@ -22,7 +22,7 @@ namespace XBuilder
 
         bool SideBySide; // if true change the file name and refs to xray.etc..
 
-        XNodeOut RootNode;
+        XNodeOut ExtRoot;
         XNodeOut FileNode;
         XNodeOut CurrentNode;
 
@@ -35,10 +35,10 @@ namespace XBuilder
         public bool TrackExternal = true;
         public bool TrackAnon = false;
 
-        public XDecompile(XNodeOut root, string sourcePath, string outDir)
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, string sourcePath, string outDir)
         {
-            RootNode = root;
-            FileNode = root.AddNode(Path.GetFileName(sourcePath), XObjType.File);
+            ExtRoot = extRoot;
+            FileNode = intRoot.AddNode(Path.GetFileName(sourcePath), XObjType.File);
             OriginalPath = sourcePath;
             OutputDir = outDir;
             SideBySide = Path.GetDirectoryName(sourcePath) == outDir;
@@ -393,11 +393,10 @@ namespace XBuilder
                                 continue;
 
                             // add external file to root
-                            XNodeOut extRoot = RootNode.Nodes.First(n => n.External) as XNodeOut;
-                            XNodeOut node = extRoot.Nodes.FirstOrDefault(n => n.Name == external) as XNodeOut;
+                            XNodeOut node = ExtRoot.Nodes.FirstOrDefault(n => n.Name == external) as XNodeOut;
 
                             if (node == null)
-                                node = extRoot.AddNode(external, XObjType.File);
+                                node = ExtRoot.AddNode(external, XObjType.File);
 
                             // traverse or add namespace to root
                             string[] names = namespaces.Split('.');

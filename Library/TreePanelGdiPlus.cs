@@ -22,6 +22,8 @@ namespace XLibrary
 
         bool ShowOutside = true;
         bool ShowExternal = true;
+        bool ShowingOutside = true;
+        bool ShowingExternal = true;
 
         Color UnknownColor = Color.Black;
         Color FileColor = Color.Black;
@@ -64,9 +66,12 @@ namespace XLibrary
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
 
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
+        Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>();
 
-        internal XNodeIn Root = new XNodeIn(Root.Nodes.Where(
-        internal XNodeIn ExtRoot = XRay.RootNode.Nodes.First(n => n.External) as XNodeIn;
+        internal XNodeIn CurrentRoot;
+        XNodeIn InternalRoot;
+        XNodeIn ExternalRoot;
+        XNodeIn TopRoot;        
 
         SolidBrush[] OverBrushes = new SolidBrush[7];
 
@@ -102,7 +107,11 @@ namespace XLibrary
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             MainForm = main;
-            Root = XRay.RootNode;
+
+            TopRoot = XRay.RootNode;
+            InternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
+            ExternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
+            CurrentRoot = InternalRoot;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
@@ -133,7 +142,8 @@ namespace XLibrary
             Dictionary<int, Color> objColors = new Dictionary<int, Color>();
 
             objColors[(int)XObjType.Root] = UnknownColor;
-            objColors[(int)XObjType.ExtRoot] = UnknownColor;
+            objColors[(int)XObjType.External] = UnknownColor;
+            objColors[(int)XObjType.Internal] = UnknownColor;
             objColors[(int)XObjType.File] = FileColor;
             objColors[(int)XObjType.Namespace] = NamespaceColor;
             objColors[(int)XObjType.Class] = ClassColor;
@@ -161,7 +171,7 @@ namespace XLibrary
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
-            if ((!DoRedraw && !DoResize) || Root == null)
+            if ((!DoRedraw && !DoResize) || CurrentRoot == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
                 return;
@@ -174,50 +184,55 @@ namespace XLibrary
             buffer.Clear(Color.White);
 
             if (XRay.CoverChange)
-                RecalcCover(Root);
+            {
+                RecalcCover(InternalRoot);
+                RecalcCover(ExternalRoot);
+            }
+
+            Debug.Assert(CurrentRoot != TopRoot); // current root should be intenalRoot in this case
+
+            ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
+            ShowingExternal = ShowExternal && !CurrentRoot.External;
 
             if (DoResize || XRay.CoverChange)
             {
                 int offset = 0;
                 int centerWidth = Width;
 
-                if (ShowOutside)
+                PositionMap.Clear();
+                CenterMap.Clear();
+
+                if (ShowingOutside)
                 {
                     offset = centerWidth * 1 / 4;
                     centerWidth -= offset;
+
+                    InternalRoot.SetArea(new RectangleD(0, 0, offset, Height));
+                    PositionMap[InternalRoot.ID] = InternalRoot;
+                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
                 }
-                if (ShowExternal)
+                if (ShowingExternal)
                 {
-                    centerWidth -= centerWidth * 1 / 4;
+                    int extWidth = centerWidth * 1 / 4;
+                    centerWidth -= extWidth;
+
+                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth, 0, extWidth, Height));
+                    PositionMap[ExternalRoot.ID] = ExternalRoot;
+                    SizeNode(buffer, ExternalRoot, null, false);
                 }
 
-                Root.SetArea(new RectangleD(offset, 0, centerWidth, Height));
-
-                PositionMap.Clear();
-                PositionMap[Root.ID] = Root;
-
-                SizeNode(buffer, Root);
+                CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
+                PositionMap[CurrentRoot.ID] = CurrentRoot;
+                SizeNode(buffer, CurrentRoot, null, true);
             }
 
-            if (ShowOutside)
-            {
-                // create alternate hit map?/
+            if (ShowingOutside)
+                DrawNode(buffer, InternalRoot, 0);
 
-                // draw from root, those hit, excluding current root
+            if (ShowingExternal)
+                DrawNode(buffer, ExternalRoot, 0);    
 
-                // psuedo root
-            }
-
-            if (ShowExternal)
-            {
-                //DrawNode(buffer, Root, 0);
-
-                // create a psuedo root for the external
-            }
-            
-            // psuedo root
-            // dont show external
-            DrawNode(buffer, Root, 0);
+            DrawNode(buffer, CurrentRoot, 0);
 
             // draw ignored over nodes ignored may contain
             foreach (XNodeIn ignored in IgnoredNodes.Values)
@@ -236,21 +251,25 @@ namespace XLibrary
 
                     if (call != null && 
                         (XRay.ShowAllCalls || call.Hit > 0 || call.StillInside > 0) &&
+                        (CenterMap.ContainsKey(call.Source) || CenterMap.ContainsKey(call.Destination)) &&
                         PositionMap.ContainsKey(call.Source) &&
                         PositionMap.ContainsKey(call.Destination))
                     {
+                        XNodeIn source = PositionMap[call.Source];
+                        XNodeIn destination = PositionMap[call.Destination];
+
                         // if there are items we're filtering on then only show calls to those nodes
                         if (SelectedNodes.Count > 0)
-                            if (!IsNodeFiltered(true, call.Source) && !IsNodeFiltered(true, call.Destination))
+                            if (!IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
                                 continue;
 
                         // do after select filter so we can have ignored nodes inside selected, but not the otherway around
                         if (IgnoredNodes.Count > 0)
-                            if (IsNodeFiltered(false, call.Source) || IsNodeFiltered(false, call.Destination))
+                            if (IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
                                 continue;
 
                         if (call.StillInside > 0)
-                            buffer.DrawLine(HoldingCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
+                            buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF );
                         else if (XRay.ShowAllCalls)
                         {
                             //buffer.DrawLine(ShowCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
@@ -266,7 +285,7 @@ namespace XLibrary
                         {
                             Pen pen = CallPen[call.Hit];
                             pen.DashOffset = call.DashOffset;
-                            buffer.DrawLine(pen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF );
+                            buffer.DrawLine(pen, source.CenterF, destination.CenterF);
                         }    
                     }
                 }
@@ -330,12 +349,12 @@ namespace XLibrary
             XRay.CoverChange = false;
         }
 
-        private bool IsNodeFiltered(bool select, int id)
+        private bool IsNodeFiltered(bool select, XNodeIn node)
         {
             Dictionary<int, XNodeIn> map = select ? SelectedNodes : IgnoredNodes;
 
-            foreach (XNodeIn node in XRay.Nodes[id].GetParents())
-                if (map.ContainsKey(node.ID))
+            foreach (XNodeIn parent in node.GetParents())
+                if (map.ContainsKey(parent.ID))
                     return true;
 
             return false;
@@ -359,14 +378,14 @@ namespace XLibrary
 
         const int Border = 4;
 
-        private void SizeNode(Graphics buffer, XNodeIn root)
+        private void SizeNode(Graphics buffer, XNodeIn root, XNodeIn exclude, bool center)
         {
             if (!root.Show)
                 return;
 
-            var nodes = root.Nodes.Cast<XNodeIn>()
-                            .Where(n => n.Show)
-                            .Select(n => n as InputValue);
+            var nodes = from n in root.Nodes.Cast<XNodeIn>()
+                        where n.Show && n != exclude
+                        select n as InputValue;
 
             List<Sector> sectors = new TreeMap(nodes, root.AreaD.Size).Results;
 
@@ -387,8 +406,11 @@ namespace XLibrary
                 node.SetArea(sector.Rect);
                 PositionMap[node.ID] = node;
 
+                if (center)
+                    CenterMap[node.ID] = node;
+
                 if(sector.Rect.Width > 1 && sector.Rect.Height > 1)
-                    SizeNode(buffer, node);
+                    SizeNode(buffer, node, exclude, center);
             }
         }
 
@@ -522,7 +544,12 @@ namespace XLibrary
         {
             ClearHovered();
 
-            TestHovered(Root, loc);
+            if (ShowingOutside)
+                TestHovered(InternalRoot, loc);
+            if (ShowingExternal)
+                TestHovered(ExternalRoot, loc);
+
+            TestHovered(CurrentRoot, loc);
 
             int hash = 0;
             GuiHovered.ForEach(n => hash = n.ID ^ hash);
@@ -661,10 +688,10 @@ namespace XLibrary
             }
             else
             {
-                if (Root.Parent == null)
+                if (CurrentRoot.Parent == null)
                     return;
 
-                SetRoot(Root.Parent as XNodeIn);
+                SetRoot(CurrentRoot.Parent as XNodeIn);
             }
 
             // put cursor in the same block after the view changes
@@ -676,7 +703,8 @@ namespace XLibrary
 
         void SetRoot(XNodeIn node)
         {
-            Root = node;
+            // setting internal root will auto show properly sized external root area if showing it is enabled
+            CurrentRoot = (node == TopRoot) ? InternalRoot : node;
 
             MainForm.UpdateText();
 
@@ -699,7 +727,7 @@ namespace XLibrary
 
         public XNodeIn GetRoot()
         {
-            return Root;
+            return CurrentRoot;
         }
 
         public void Dispose2()

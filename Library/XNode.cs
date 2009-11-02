@@ -12,7 +12,17 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public enum XObjType { Root, ExtRoot, File, Namespace, Class, Method, Field }
+    public enum XObjType 
+    { 
+        Root, 
+        External,
+        Internal,
+        File, 
+        Namespace, 
+        Class, 
+        Method, 
+        Field
+    }
 
     public class InputValue
     {
@@ -115,7 +125,10 @@ namespace XLibrary
             Name = name;
             ObjType = objType;
 
-            if(parent != null)
+            if (objType == XObjType.External)
+                External = true;
+
+            else if(parent != null) // else important cause external objs parent is not tagged as external
                 External = parent.External;
 
             ID = NextID++;
@@ -224,7 +237,7 @@ namespace XLibrary
         internal bool Hovered;
         internal bool Selected;
         internal bool Ignored;
-
+      
         internal bool Show = true;
 
         internal RectangleD AreaD { get; private set; }

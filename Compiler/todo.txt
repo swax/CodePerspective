@@ -1,6 +1,9 @@
 ﻿
 do the whole selection system and tomorrow maybe wrap 
 
+show only hit when zoomed in on not hit node
+	filter calls from left over to right, or right to left, only middle can talk to both side\AZ																																																																													Q
+
 	when show app external selected
 		right 1/4 of screen is for hit external functions
 	when show app internal selected
@@ -28,7 +31,7 @@ do the whole selection system and tomorrow maybe wrap
 			
 	when zoomed in to a node, reset extenal hit map
 		for each entry in the external hit map draw a node (constant size) so that the user can see where calls are coming form
-		
+		or just let user manually reset hit status on toolbar
 
 	left/right keys - zoom in/out
 

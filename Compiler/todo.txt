@@ -1,23 +1,48 @@
 ﻿
-crash on show hit in test
+now
+	show only hit in test mode
+	show only hit when zoomed in on unhit
+		
+	backwards/forwards button in details form, grey ot when cant go back, need to keep a history at least
+	maybe just show parents, no type info, and children if not a function
+		
+	in details - highlight red in interface 
+		Name
+		Type
+		Parents - flow panel of links?
+		# Callers - count - double click resets details interace to that node,zooms in on it
+		# Callees - count
+		  clicking on any highlights in blue on interface
+		
+		timer updating stats
+		
+		timing
+			node  
+				timing on bool
+				accumulated time as int
+				hit count used to find avg accumulated time
+				reset option to reset timing on a func
+				this way we dont need to keep a time stat for every function call
+		
+		perf menu or dialog
+			can show functions with most hits
+			functions wiht most time in side
+			functions with most time per hit
+		
+		
+		double clicking on caller / callee will traverse to that class, light up as red in the interface, put a blue circle around it
+		show caller / calle in tree format?
+		
+		look at functions with links that are no longer active
+			see if function could have returned without triggering an exit
+			test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
 
-	*** click
-		right click - show tree of all layers, for each select, ignore, details, zoom
-			
-		in details - double clicking on caller / callee will traverse to that class, light up as red in the interface, put a blue circle around it
-			show caller / calle in tree format?
-			
-			look at functions with links that are no longer active
-				see if function could have returned without triggering an exit
-				test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
-	
-			option in xray to keep call/timing stats
-			
+		option in xray to keep call/timing stats
+		
 
 	left/right keys - zoom in/out
 
 	tool  strip
-		show hide external / internal callers
 		clear filtering withen active
 		button when errors in the debug log
 		item to draw box around smaller or just a group of functions and zoom in only on that

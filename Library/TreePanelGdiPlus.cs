@@ -39,6 +39,9 @@ namespace XLibrary
         Pen[] ObjPens;
         Pen[] ObjFocused;
 
+        internal static Dictionary<int, Color> ObjColors = new Dictionary<int, Color>();
+
+
         SolidBrush NothingBrush = new SolidBrush(Color.White);
 
         SolidBrush EntryBrush = new SolidBrush(Color.LightGreen);
@@ -136,21 +139,20 @@ namespace XLibrary
 
             for (int i = 0; i < OverBrushes.Length; i++)
             {
-                int brightness = 255 / OverBrushes.Length * (OverBrushes.Length - i);
+                int brightness = 255 / (OverBrushes.Length  + 1) * (OverBrushes.Length - i);
                 OverBrushes[i] = new SolidBrush(Color.FromArgb(brightness, brightness, 255));
             }
 
             // set colors of differnt brush / pen arrays
-            Dictionary<int, Color> objColors = new Dictionary<int, Color>();
-
-            objColors[(int)XObjType.Root] = UnknownColor;
-            objColors[(int)XObjType.External] = UnknownColor;
-            objColors[(int)XObjType.Internal] = UnknownColor;
-            objColors[(int)XObjType.File] = FileColor;
-            objColors[(int)XObjType.Namespace] = NamespaceColor;
-            objColors[(int)XObjType.Class] = ClassColor;
-            objColors[(int)XObjType.Field] = FieldColor;
-            objColors[(int)XObjType.Method] = MethodColor;
+            ObjColors.Clear();
+            ObjColors[(int)XObjType.Root] = UnknownColor;
+            ObjColors[(int)XObjType.External] = UnknownColor;
+            ObjColors[(int)XObjType.Internal] = UnknownColor;
+            ObjColors[(int)XObjType.File] = FileColor;
+            ObjColors[(int)XObjType.Namespace] = NamespaceColor;
+            ObjColors[(int)XObjType.Class] = ClassColor;
+            ObjColors[(int)XObjType.Field] = FieldColor;
+            ObjColors[(int)XObjType.Method] = MethodColor;
 
             var objTypes = Enum.GetValues(typeof(XObjType));
            
@@ -161,10 +163,10 @@ namespace XLibrary
 
             for (int i = 0; i < objTypes.Length; i++ )
             {
-                ObjBrushes[i] = new SolidBrush(objColors[i]);
-                ObjBrushesDithered[i] = new SolidBrush(Color.FromArgb(128, objColors[i]));
-                ObjPens[i] = new Pen(objColors[i]);
-                ObjFocused[i] = new Pen(objColors[i], 3);
+                ObjBrushes[i] = new SolidBrush(ObjColors[i]);
+                ObjBrushesDithered[i] = new SolidBrush(Color.FromArgb(128, ObjColors[i]));
+                ObjPens[i] = new Pen(ObjColors[i]);
+                ObjFocused[i] = new Pen(ObjColors[i], 3);
             }
         }
 
@@ -607,7 +609,7 @@ namespace XLibrary
             if (node == null)
                 return;
 
-            ToggleNode(SelectedNodes, node);
+            new DetailsForm(node).Show();
         }
 
         void ToggleNode(Dictionary<int, XNodeIn> map, XNodeIn node)
@@ -638,27 +640,45 @@ namespace XLibrary
             }
             else if (e.Button == MouseButtons.Right)
             {
-                XNodeIn node = GuiHovered.LastOrDefault();
-                if (node == null)
-                    return;
-
-                bool selected = SelectedNodes.ContainsKey(node.ID);
-                bool ignored = IgnoredNodes.ContainsKey(node.ID);
-
                 ContextMenu menu = new ContextMenu();
 
-                menu.MenuItems.Add(new MenuItem("Filter", (s, a) =>
-                    ToggleNode(SelectedNodes, node)) { Checked = selected });
-
-                menu.MenuItems.Add(new MenuItem("Ignore", (s, a) =>
-                    ToggleNode(IgnoredNodes, node)) { Checked = ignored });
-
-                menu.MenuItems.Add(new MenuItem("Clear All", (s, a) =>
+                string indent = "";
+                foreach (XNodeIn node in GuiHovered)
                 {
-                    SelectedNodes.Clear();
-                    IgnoredNodes.Clear();
-                    Redraw();
-                }));
+                    bool selected = SelectedNodes.ContainsKey(node.ID);
+                    bool ignored = IgnoredNodes.ContainsKey(node.ID);
+
+                    menu.MenuItems.Add(new MenuItem(indent + node.Name, new MenuItem[] 
+                    {
+                        new MenuItem("Details", (s, a) =>
+                            new DetailsForm(node).Show()),
+
+                        new MenuItem("Zoom", (s, a) =>
+                            SetRoot(node)),
+                            
+                        new MenuItem("-"),
+
+                        new MenuItem("Filter", (s, a) =>
+                            ToggleNode(SelectedNodes, node)) { Checked = selected },
+
+                        new MenuItem("Ignore", (s, a) =>
+                            ToggleNode(IgnoredNodes, node)) { Checked = ignored }
+                    }));
+
+                    indent += "  ";
+                }
+
+                if (SelectedNodes.Count > 0 || IgnoredNodes.Count > 0)
+                {
+                    menu.MenuItems.Add("-");
+
+                    menu.MenuItems.Add(new MenuItem("Clear Filtering", (s, a) =>
+                    {
+                        SelectedNodes.Clear();
+                        IgnoredNodes.Clear();
+                        Redraw();
+                    }));
+                }
 
                 menu.Show(this, e.Location);
             }

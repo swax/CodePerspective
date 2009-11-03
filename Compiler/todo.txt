@@ -3,8 +3,29 @@ now
 	show only hit in test mode
 	show only hit when zoomed in on unhit
 		
+	hyperlink bread crubs for details x -> y -> z  clicking on arrows drops down other children
 	backwards/forwards button in details form, grey ot when cant go back, need to keep a history at least
+	calers/callees in expanding panel with splitter between so they expand
+		include class in call name
+	blink outline red when details form is opened for element
+	
 	maybe just show parents, no type info, and children if not a function
+	
+	layout
+	    treemap	
+			sizing nodes
+				constant, method size, time in func, hits, avg time in func
+		spring
+
+	override
+		allow user to click view MSIL
+		user can edit MSIL
+		save, compile and activate override
+		override needs to be specified as a compile option
+		if override, and new code, then run new code, else run original code
+		
+		can an entire late bound application be written from scratch inside, c#, later compiled without xray bindings, can xray build itself another xray??
+		
 		
 	in details - highlight red in interface 
 		Name

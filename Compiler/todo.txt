@@ -4,6 +4,10 @@ now
 	show only hit when zoomed in on unhit
 	show unhit for code coverage
 			
+			
+	if room in tree map, put name in upper left and resize under it
+		takes care of outside/external panel labels, put some dark black borders between though
+			
 	layout
 	    treemap	
 			sizing nodes
@@ -23,6 +27,9 @@ now
 		blink green outline when navigated
 		clicking on call in list, blinks the link
 			show under call dots
+			
+		hook back/forward buttons up to details
+		sorting list view
 			
 		refresh link at bottom
 		higher than method views sum children in long
@@ -71,6 +78,11 @@ now
 
 	show array/map sizes in debug
 	
+	future 
+		people write and modify code as the app runs
+		people can collaborate and write running software in real time
+		full introspection and manipulation of all running objects
+
 
 goal
 	if todo items helps me understand app better then its higher on the list

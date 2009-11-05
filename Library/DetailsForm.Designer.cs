@@ -86,7 +86,7 @@
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Calls";
+            this.columnHeader2.Text = "Calls in";
             this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader2.Width = 75;
             // 
@@ -160,7 +160,7 @@
             // 
             // columnHeader6
             // 
-            this.columnHeader6.Text = "Calls";
+            this.columnHeader6.Text = "Calls out";
             this.columnHeader6.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader6.Width = 75;
             // 
@@ -204,7 +204,6 @@
             // 
             // ParentsLink
             // 
-            this.ParentsLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ParentsLink.AutoSize = true;
             this.ParentsLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.ParentsLink.Location = new System.Drawing.Point(7, 9);
@@ -217,7 +216,6 @@
             // 
             // ChildrenLink
             // 
-            this.ChildrenLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ChildrenLink.AutoSize = true;
             this.ChildrenLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.ChildrenLink.Location = new System.Drawing.Point(56, 9);
@@ -232,7 +230,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.ControlLight;
+            this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(428, 357);
             this.Controls.Add(this.ChildrenLink);
             this.Controls.Add(this.ParentsLink);

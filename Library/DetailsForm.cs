@@ -176,10 +176,10 @@ namespace XLibrary
             if (call.TotalHits == 0)
                 return;
 
-            long avgTicks = call.TotalTicks / call.TotalHits;
+            long avgTicks = call.TotalCallTime / call.TotalHits;
 
-            SubItems.Add(TicksToString(avgTicks));
-            SubItems.Add(TicksToString(call.TotalTicks));
+            SubItems.Add(TicksToString(call.TotalCallTime - call.TotalTimeOutsideDest));
+            SubItems.Add(TicksToString(call.TotalCallTime));
         }
 
         private string TicksToString(long ticks)

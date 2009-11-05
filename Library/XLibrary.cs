@@ -282,11 +282,12 @@ namespace XLibrary
 
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
+                // work backwards from position on stack to position of the exit
                 for (int i = flow.Pos; i >= 0; i--)
                     if (flow.Stack[i].Method == method)
                     {
                         int exit = flow.Pos;
-                        flow.Pos = i - 1;
+                        flow.Pos = i - 1; // set current position asap
 
                         // mark functions called as well as this function as not insde
                         for (int x = i; x <= exit; x++)
@@ -299,7 +300,10 @@ namespace XLibrary
                                 continue;
 
                             exited.Call.StillInside--;
-                            exited.Call.TotalTicks += ticks - exited.Ticks;
+                            exited.Call.TotalCallTime += ticks - exited.Ticks;
+
+                            if (x > 0 && flow.Stack[x - 1].Call != null)
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.Ticks;
                         }
 
                         if (i == 0)
@@ -322,8 +326,11 @@ namespace XLibrary
             if (CallLogging)
                 LogError("Thread {0}, Func {1}, Catch\r\n", thread, method);
 
+            long ticks = DateTime.Now.Ticks;
+
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
+                // work backwards from position on stack to position of the catch
                 for (int i = flow.Pos; i >= 0; i--)
                     if (flow.Stack[i].Method == method)
                     {
@@ -336,6 +343,8 @@ namespace XLibrary
                             StackItem exited = flow.Stack[x];
 
                             Nodes[exited.Method].StillInside--;
+                            exited.Call.TotalCallTime += ticks - exited.Ticks;
+
                             Nodes[exited.Method].ExceptionHit = ShowTicks;
 
                             if (exited.Call != null)
@@ -373,7 +382,7 @@ namespace XLibrary
     {
         internal int ThreadID;
 
-        internal int Pos = -1;
+        internal int Pos = -1; // current position on the stack
         internal StackItem[] Stack = new StackItem[XRay.MaxStack];
     }
 
@@ -398,7 +407,10 @@ namespace XLibrary
         internal int StillInside;
 
         internal int TotalHits;
-        internal long TotalTicks;
+        internal long TotalCallTime;
+        internal long TotalTimeOutsideDest;
+
+        internal long TotalTimeInsideDest { get { return TotalCallTime - TotalTimeInsideDest; } }
     }
 
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock

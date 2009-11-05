@@ -2,15 +2,8 @@
 now
 	show only hit in test mode
 	show only hit when zoomed in on unhit
-		
-	hyperlink bread crubs for details x -> y -> z  clicking on arrows drops down other children
-	backwards/forwards button in details form, grey ot when cant go back, need to keep a history at least
-	calers/callees in expanding panel with splitter between so they expand
-		include class in call name
-	blink outline red when details form is opened for element
-	
-	maybe just show parents, no type info, and children if not a function
-	
+	show unhit for code coverage
+			
 	layout
 	    treemap	
 			sizing nodes
@@ -26,15 +19,13 @@ now
 		
 		can an entire late bound application be written from scratch inside, c#, later compiled without xray bindings, can xray build itself another xray??
 		
-		
-	in details - highlight red in interface 
-		Name
-		Type
-		Parents - flow panel of links?
-		# Callers - count - double click resets details interace to that node,zooms in on it
-		# Callees - count
-		  clicking on any highlights in blue on interface
-		
+	details
+		blink green outline when navigated
+		clicking on call in list, blinks the link
+			show under call dots
+			
+		refresh link at bottom
+		higher than method views sum children in long
 		timer updating stats
 		
 		timing
@@ -44,15 +35,12 @@ now
 				hit count used to find avg accumulated time
 				reset option to reset timing on a func
 				this way we dont need to keep a time stat for every function call
+				keep same stop watch for each thread
 		
 		perf menu or dialog
 			can show functions with most hits
 			functions wiht most time in side
 			functions with most time per hit
-		
-		
-		double clicking on caller / callee will traverse to that class, light up as red in the interface, put a blue circle around it
-		show caller / calle in tree format?
 		
 		look at functions with links that are no longer active
 			see if function could have returned without triggering an exit

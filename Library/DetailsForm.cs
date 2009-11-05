@@ -11,77 +11,189 @@ namespace XLibrary
 {
     public partial class DetailsForm : Form
     {
-        XNodeIn Node;
+        LinkedListNode<XNode> Current;
+        LinkedList<XNode> History = new LinkedList<XNode>();
+
 
         public DetailsForm(XNodeIn node)
         {
             InitializeComponent();
 
-            Reload(node);
+            NavigateTo(node);
         }
 
-        private void Reload(XNodeIn node)
-        {            
-            Node = node;
+        private void NavigateTo(XNode node)
+        {
+            // remove anything after current node, add this node to top
+            while (Current != null && Current.Next != null)
+                History.RemoveLast();
 
-            NameLabel.Text = Node.Name;
-            TypeLabel.Text = Node.ObjType.ToString();
-            ParentsPanel.Controls.Clear();
-            ChildrenPanel.Controls.Clear();
+            Current = History.AddLast(node);
+            Reload();
+        }
+        
+        private void Reload()
+        {
+            XNode node = Current.Value;
+            string name = node.AppendClassName();
 
-            foreach(XNode parent in Node.GetParents())
-                AddFlowNode(parent, ParentsPanel);     
+            Text = "Details for (" + node.ObjType.ToString() + ") " + name;
 
-            foreach (XNode child in Node.Nodes)
-                AddFlowNode(child, ChildrenPanel);
+            ParentsLink.Enabled = node.Parent != null;
+            ChildrenLink.Enabled = node.Nodes.Count > 0;
+
+            BackLink.Enabled = Current.Previous != null;
+            ForwardLink.Enabled = Current.Next != null;
 
             CallersList.Items.Clear();
             CalledList.Items.Clear();
 
-            // only show caller/callees for functions
-            FunctionPanel.Visible = node.ObjType == XObjType.Method;
-            if (!FunctionPanel.Visible)
-                return;
-
-            int id = node.ID;
-            int count = 0;
-
-            
-            foreach (FunctionCall call in XRay.CallMap.Values
-                .TakeWhile(v => v != null)
-                .Where(v => v.Destination == id))
+            if (node.ObjType == XObjType.Method)
             {
-                XNode caller = XRay.Nodes[call.Source];
-                CallersList.Items.Add(caller.Name);
-                count++;
-            }
-            CallersLabel.Text = count.ToString() + " Callers";
+                FunctionPanel.Panel2Collapsed = false;
 
-            count = 0;
-            foreach (FunctionCall call in XRay.CallMap.Values
-                .TakeWhile(v => v != null)
-                .Where(v => v.Source == id))
-            {
-                XNode called = XRay.Nodes[call.Destination];
-                CalledList.Items.Add(called.Name);
-                count++;
+                int id = node.ID;
+                int count = 0;
+
+                foreach (FunctionCall call in XRay.CallMap.Values
+                    .TakeWhile(v => v != null)
+                    .Where(v => v.Destination == id))
+                {
+                    XNode caller = XRay.Nodes[call.Source];
+                    CallersList.Items.Add( new CallItem(call, caller));
+                    count++;
+                }
+                CallersLabel.Text = count.ToString() + " methods called " + name;
+
+                count = 0;
+                foreach (FunctionCall call in XRay.CallMap.Values
+                    .TakeWhile(v => v != null)
+                    .Where(v => v.Source == id))
+                {
+                    XNode called = XRay.Nodes[call.Destination];
+                    CalledList.Items.Add(new CallItem(call, called));
+                    count++;
+                }
+                CalledLabel.Text = name + " called " + count.ToString() + " methods";
             }
-            CalledLabel.Text = count.ToString() + " Called";
+            else
+            {
+                CallersLabel.Text = name + " has " + node.Nodes.Count.ToString() + " children";
+
+                FunctionPanel.Panel2Collapsed = true;
+                // when namespace selected, show children and total time inside / hits, summed for all children
+
+                // need refresh button, or time the update and if update takes longer than 100ms, then use refresh link
+                
+
+                foreach (XNode child in node.Nodes)
+                {
+                    CallersList.Items.Add(new CallItem(null, child));
+                }
+            }
         }
 
-        private void AddFlowNode(XNode node, FlowLayoutPanel panel)
+        private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            LinkLabel label = new LinkLabel()
+            ContextMenu menu = new ContextMenu();
+
+            string indent = "";
+            foreach (XNode parent in Current.Value.GetParents())
             {
-                Text = node.Name,
-                AutoSize = true,
-                LinkColor = TreePanelGdiPlus.ObjColors[(int)node.ObjType]
-            };
+                XNode copy = parent;
+                menu.MenuItems.Add(new MenuItem(indent + copy.Name, (s, a) => NavigateTo(copy)));
+                indent += "  ";
+            }
 
-            XNodeIn copy = node as XNodeIn; // so delegate works
-            label.Click += (s, a) => Reload(copy);
+            menu.Show(this, this.PointToClient(Cursor.Position));
+        }
 
-            panel.Controls.Add(label);
+        private void ChildrenLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            ContextMenu menu = new ContextMenu();
+
+            foreach (XNode child in Current.Value.Nodes)
+            {
+                XNode copy = child;
+                menu.MenuItems.Add(copy.Name, (s, a) => NavigateTo(copy));
+            }
+
+            menu.Show(this, this.PointToClient(Cursor.Position));
+        }
+
+        private void BackLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Current = Current.Previous;
+            Reload();
+        }
+
+        private void ForwardLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Current = Current.Next;
+            Reload();
+        }
+
+        private void CallersList_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (CallersList.SelectedItems.Count == 0)
+                return;
+
+            CallItem item = CallersList.SelectedItems[0] as CallItem;
+
+            NavigateTo(item.Node);
+        }
+
+        private void CalledList_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (CalledList.SelectedItems.Count == 0)
+                return;
+
+            CallItem item = CalledList.SelectedItems[0] as CallItem;
+
+            NavigateTo(item.Node);
+        }
+    }
+
+    class CallItem : ListViewItem
+    {
+        FunctionCall Call;
+        internal XNode Node;
+
+        public CallItem(FunctionCall call, XNode node)
+        {
+            Call = call;
+            Node = node;
+            Text = node.AppendClassName();
+
+            if (call == null)
+                return;
+
+            if (call.StillInside > 0 )
+                Text += " (" + call.StillInside.ToString() + " Still Inside)";
+
+            SubItems.Add(call.TotalHits.ToString());
+
+            if (call.TotalHits == 0)
+                return;
+
+            long avgTicks = call.TotalTicks / call.TotalHits;
+
+            SubItems.Add(TicksToString(avgTicks));
+            SubItems.Add(TicksToString(call.TotalTicks));
+        }
+
+        private string TicksToString(long ticks)
+        {
+            TimeSpan span = new TimeSpan(ticks);
+
+            if (span.TotalMinutes > 1)
+                return span.TotalMinutes.ToString("0.## min");
+            
+            else if (span.TotalSeconds > 1)
+                return span.TotalSeconds.ToString("0.## sec");
+            
+            else
+                return span.TotalMilliseconds.ToString() + " ms";
         }
 
     }

@@ -64,6 +64,13 @@ namespace XLibrary
             return (parent == "") ? myName : parent + "." + myName;
         }
 
+        internal string AppendClassName()
+        {
+            if (Parent != null && ObjType == XObjType.Method)
+                return Parent.Name + "." + Name;
+            else
+                return Name;
+        }
 
         internal XNode[] GetParents()
         {

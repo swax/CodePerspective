@@ -226,7 +226,7 @@ namespace XLibrary
             if (flow.Pos == -1)
             {
                 flow.Pos = 0;
-                flow.Stack[0] = new StackItem() { Method = method };
+                flow.Stack[0] = new StackItem() { Method = method, Ticks = DateTime.Now.Ticks };
                 node.EntryPoint++;
                 return;
             }
@@ -256,9 +256,10 @@ namespace XLibrary
                     source, method, call.Source, call.Destination);
 
             flow.Pos++;
-            flow.Stack[flow.Pos] = new StackItem() { Method = method, Call = call };
+            flow.Stack[flow.Pos] = new StackItem() { Method = method, Call = call, Ticks = DateTime.Now.Ticks };
 
             call.Hit = ShowTicks;
+            call.TotalHits++;
             call.StillInside++;
         }
 
@@ -277,6 +278,7 @@ namespace XLibrary
 
             // move back through stack array and find function
             // if a function threw then a lot of functions will be skipped
+            long ticks = DateTime.Now.Ticks;
 
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
@@ -293,16 +295,19 @@ namespace XLibrary
 
                             Nodes[exited.Method].StillInside--;
 
-                            if (exited.Call != null)
-                                exited.Call.StillInside--;
+                            if (exited.Call == null)
+                                continue;
+
+                            exited.Call.StillInside--;
+                            exited.Call.TotalTicks += ticks - exited.Ticks;
                         }
 
-                        if(i == 0)
+                        if (i == 0)
                             Nodes[method].EntryPoint--;
 
                         break;
                     }
-
+    
             // need a way to freeze app and debug these structures, perfect case for xray live reflection interfaces
             // solves the problem of constant output debug, can surf structure live and manip variables
         }
@@ -376,6 +381,7 @@ namespace XLibrary
     {
         internal int Method;
         internal FunctionCall Call;
+        internal long Ticks;
     }
 
     class FunctionCall
@@ -390,6 +396,9 @@ namespace XLibrary
         internal int DashOffset;
 
         internal int StillInside;
+
+        internal int TotalHits;
+        internal long TotalTicks;
     }
 
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock

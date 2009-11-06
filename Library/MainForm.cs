@@ -27,7 +27,6 @@ namespace XLibrary
 
             UpdateText();
 
-            ShowOnlyHitMenuItem.Checked = XRay.ShowOnlyHit;
             ShowAllCallsMenuItem.Checked = XRay.ShowAllCalls;
             ShowRTCallsMenuItem.Checked = TreeView.ShowCalls;
             ViewOutsideMenuItem.Checked = TreeView.ShowOutside;
@@ -88,9 +87,30 @@ namespace XLibrary
             Text = text;
         }
 
-        private void ShowOnlyHitToolStripMenuItem_Click(object sender, EventArgs e)
+        private void HitsMenuItem_DropDownOpening(object sender, EventArgs e)
         {
-            XRay.ShowOnlyHit = ShowOnlyHitMenuItem.Checked;
+            ShowAllHitsMenuItem.Checked = XRay.ShowHit == ShowHitMode.All;
+            ShowHitMenuItem.Checked = XRay.ShowHit == ShowHitMode.Hit;
+            ShowUnhitMenuItem.Checked = XRay.ShowHit == ShowHitMode.Unhit;
+        }
+
+        private void ShowAllHitsMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.ShowHit = ShowHitMode.All;
+            XRay.CoverChange = true; // force recalc
+            TreeView.Redraw();
+        }
+
+        private void ShowHitMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.ShowHit = ShowHitMode.Hit;
+            XRay.CoverChange = true; // force recalc
+            TreeView.Redraw();
+        }
+
+        private void ShowUnhitMenuItem_Click(object sender, EventArgs e)
+        {
+            XRay.ShowHit = ShowHitMode.Unhit;
             XRay.CoverChange = true; // force recalc
             TreeView.Redraw();
         }
@@ -130,6 +150,5 @@ namespace XLibrary
             TreeView.ShowExternal = ViewExternalMenuItem.Checked;
             TreeView.RecalcSizes();
         }
-
     }
 }

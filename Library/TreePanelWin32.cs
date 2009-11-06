@@ -245,7 +245,7 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
-                node.Show = (!XRay.ShowOnlyHit || XRay.CoveredFunctions[node.ID]);
+                //node.Show = (!XRay.ShowOnlyHit || XRay.CoveredFunctions[node.ID]);
 
                 if (node.Show)
                     root.Value += RecalcCover(node);

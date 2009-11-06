@@ -25,6 +25,9 @@ namespace XLibrary
         bool ShowingOutside;
         bool ShowingExternal;
 
+        internal bool ShowLabels = true;
+        float LabelPadding = 2;
+
         internal bool ShowCalls = true;
 
         Color UnknownColor = Color.Black;
@@ -373,8 +376,11 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
-                node.Show = (!XRay.ShowOnlyHit || XRay.CoveredFunctions[node.ID]);
-
+                node.Show = node.ObjType != XObjType.Method ||
+                    XRay.ShowHit == ShowHitMode.All ||
+                    (XRay.ShowHit == ShowHitMode.Hit && XRay.CoveredFunctions[node.ID]) ||
+                    (XRay.ShowHit == ShowHitMode.Unhit && !XRay.CoveredFunctions[node.ID]);
+                
                 if (node.Show)
                     root.Value += RecalcCover(node);
             }
@@ -389,11 +395,30 @@ namespace XLibrary
             if (!root.Show)
                 return;
 
+            RectangleD insideArea = root.AreaD;
+
+            if (ShowLabels)
+            {
+                // check if enough room in root box for label
+                SizeF labelSize = buffer.MeasureString(root.Name, TextFont);
+      
+                float minHeight = (root.Nodes.Count > 0) ? labelSize.Height * 2 : labelSize.Height;
+
+                if (root.AreaF.Height > minHeight && root.AreaF.Width > labelSize.Width )
+                {
+                    insideArea.Y += labelSize.Height;
+                    insideArea.Height -= labelSize.Height;
+                    root.RoomForLabel = true;
+                }
+                else
+                    root.RoomForLabel = false;
+            }
+
             var nodes = from n in root.Nodes.Cast<XNodeIn>()
                         where n.Show && n != exclude
                         select n as InputValue;
 
-            List<Sector> sectors = new TreeMap(nodes, root.AreaD.Size).Results;
+            List<Sector> sectors = new TreeMap(nodes, insideArea.Size).Results;
 
             foreach (Sector sector in sectors)
             {
@@ -403,11 +428,11 @@ namespace XLibrary
 
                 if (sector.Rect.X < Border) sector.Rect.X = Border;
                 if (sector.Rect.Y < Border) sector.Rect.Y = Border;
-                if (sector.Rect.X > root.AreaF.Width - Border) sector.Rect.X = root.AreaF.Width - Border;
-                if (sector.Rect.Y > root.AreaF.Height - Border) sector.Rect.Y = root.AreaF.Height - Border;
+                if (sector.Rect.X > insideArea.Width - Border) sector.Rect.X = insideArea.Width - Border;
+                if (sector.Rect.Y > insideArea.Height - Border) sector.Rect.Y = insideArea.Height - Border;
 
-                sector.Rect.X += root.AreaF.X;
-                sector.Rect.Y += root.AreaF.Y;
+                sector.Rect.X += insideArea.X;
+                sector.Rect.Y += insideArea.Y;
 
                 node.SetArea(sector.Rect);
                 PositionMap[node.ID] = node;
@@ -507,6 +532,10 @@ namespace XLibrary
 
                 buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
             }
+
+            // draw label
+            if (ShowLabels && node.RoomForLabel)
+                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.AreaF.X + LabelPadding, node.AreaF.Y + LabelPadding);
 
             if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)

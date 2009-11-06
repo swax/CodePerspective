@@ -258,7 +258,7 @@ namespace XLibrary
 
         internal int EntryPoint;
         internal int StillInside;
-
+        internal bool RoomForLabel;
 
         internal static XNodeIn Read(FileStream stream)
         {

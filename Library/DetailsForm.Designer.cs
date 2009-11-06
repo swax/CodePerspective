@@ -45,6 +45,9 @@
             this.ForwardLink = new System.Windows.Forms.LinkLabel();
             this.ParentsLink = new System.Windows.Forms.LinkLabel();
             this.ChildrenLink = new System.Windows.Forms.LinkLabel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.CumulativeRadio = new System.Windows.Forms.RadioButton();
+            this.PerCallRadio = new System.Windows.Forms.RadioButton();
             this.FunctionPanel.Panel1.SuspendLayout();
             this.FunctionPanel.Panel2.SuspendLayout();
             this.FunctionPanel.SuspendLayout();
@@ -73,7 +76,7 @@
             this.CallersList.FullRowSelect = true;
             this.CallersList.Location = new System.Drawing.Point(6, 16);
             this.CallersList.Name = "CallersList";
-            this.CallersList.Size = new System.Drawing.Size(418, 136);
+            this.CallersList.Size = new System.Drawing.Size(418, 127);
             this.CallersList.TabIndex = 11;
             this.CallersList.UseCompatibleStateImageBehavior = false;
             this.CallersList.View = System.Windows.Forms.View.Details;
@@ -86,19 +89,19 @@
             // 
             // columnHeader2
             // 
-            this.columnHeader2.Text = "Calls in";
+            this.columnHeader2.Text = "Calls to";
             this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader2.Width = 75;
             // 
             // columnHeader3
             // 
-            this.columnHeader3.Text = "Avg t";
+            this.columnHeader3.Text = "t in this";
             this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader3.Width = 75;
             // 
             // columnHeader4
             // 
-            this.columnHeader4.Text = "Sum t";
+            this.columnHeader4.Text = "t outside";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader4.Width = 75;
             // 
@@ -117,7 +120,7 @@
             this.FunctionPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.FunctionPanel.Location = new System.Drawing.Point(4, 37);
+            this.FunctionPanel.Location = new System.Drawing.Point(4, 55);
             this.FunctionPanel.Name = "FunctionPanel";
             this.FunctionPanel.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -130,8 +133,8 @@
             // 
             this.FunctionPanel.Panel2.Controls.Add(this.CalledList);
             this.FunctionPanel.Panel2.Controls.Add(this.CalledLabel);
-            this.FunctionPanel.Size = new System.Drawing.Size(424, 320);
-            this.FunctionPanel.SplitterDistance = 155;
+            this.FunctionPanel.Size = new System.Drawing.Size(424, 302);
+            this.FunctionPanel.SplitterDistance = 146;
             this.FunctionPanel.TabIndex = 15;
             // 
             // CalledList
@@ -147,7 +150,7 @@
             this.CalledList.FullRowSelect = true;
             this.CalledList.Location = new System.Drawing.Point(6, 16);
             this.CalledList.Name = "CalledList";
-            this.CalledList.Size = new System.Drawing.Size(418, 142);
+            this.CalledList.Size = new System.Drawing.Size(418, 133);
             this.CalledList.TabIndex = 12;
             this.CalledList.UseCompatibleStateImageBehavior = false;
             this.CalledList.View = System.Windows.Forms.View.Details;
@@ -166,13 +169,13 @@
             // 
             // columnHeader7
             // 
-            this.columnHeader7.Text = "Avg t";
+            this.columnHeader7.Text = "t in func";
             this.columnHeader7.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader7.Width = 75;
             // 
             // columnHeader8
             // 
-            this.columnHeader8.Text = "Sum t";
+            this.columnHeader8.Text = "t outside";
             this.columnHeader8.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader8.Width = 75;
             // 
@@ -226,12 +229,48 @@
             this.ChildrenLink.Text = "Children";
             this.ChildrenLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ChildrenLink_LinkClicked);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 30);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(56, 13);
+            this.label1.TabIndex = 20;
+            this.label1.Text = "Show time";
+            // 
+            // CumulativeRadio
+            // 
+            this.CumulativeRadio.AutoSize = true;
+            this.CumulativeRadio.Checked = true;
+            this.CumulativeRadio.Location = new System.Drawing.Point(74, 28);
+            this.CumulativeRadio.Name = "CumulativeRadio";
+            this.CumulativeRadio.Size = new System.Drawing.Size(76, 17);
+            this.CumulativeRadio.TabIndex = 21;
+            this.CumulativeRadio.TabStop = true;
+            this.CumulativeRadio.Text = "cumulative";
+            this.CumulativeRadio.UseVisualStyleBackColor = true;
+            this.CumulativeRadio.CheckedChanged += new System.EventHandler(this.CumulativeRadio_CheckedChanged);
+            // 
+            // PerCallRadio
+            // 
+            this.PerCallRadio.AutoSize = true;
+            this.PerCallRadio.Location = new System.Drawing.Point(157, 28);
+            this.PerCallRadio.Name = "PerCallRadio";
+            this.PerCallRadio.Size = new System.Drawing.Size(59, 17);
+            this.PerCallRadio.TabIndex = 22;
+            this.PerCallRadio.Text = "per call";
+            this.PerCallRadio.UseVisualStyleBackColor = true;
+            this.PerCallRadio.CheckedChanged += new System.EventHandler(this.PerCallRadio_CheckedChanged);
+            // 
             // DetailsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(428, 357);
+            this.Controls.Add(this.PerCallRadio);
+            this.Controls.Add(this.CumulativeRadio);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.ChildrenLink);
             this.Controls.Add(this.ParentsLink);
             this.Controls.Add(this.ForwardLink);
@@ -268,5 +307,8 @@
         private System.Windows.Forms.ColumnHeader columnHeader6;
         private System.Windows.Forms.ColumnHeader columnHeader7;
         private System.Windows.Forms.ColumnHeader columnHeader8;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.RadioButton CumulativeRadio;
+        private System.Windows.Forms.RadioButton PerCallRadio;
     }
 }

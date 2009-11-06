@@ -34,7 +34,9 @@
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.HitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ShowOnlyHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowAllHitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowUnhitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResetMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.callsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowRTCallsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,14 +60,14 @@
             this.SelectedLabel});
             this.BottomStrip.Location = new System.Drawing.Point(0, 249);
             this.BottomStrip.Name = "BottomStrip";
-            this.BottomStrip.Size = new System.Drawing.Size(106, 22);
+            this.BottomStrip.Size = new System.Drawing.Size(100, 22);
             this.BottomStrip.TabIndex = 1;
             this.BottomStrip.Text = "statusStrip1";
             // 
             // SelectedLabel
             // 
             this.SelectedLabel.Name = "SelectedLabel";
-            this.SelectedLabel.Size = new System.Drawing.Size(89, 17);
+            this.SelectedLabel.Size = new System.Drawing.Size(83, 17);
             this.SelectedLabel.Text = "Selected Object";
             // 
             // ResetTimer
@@ -89,25 +91,41 @@
             // HitsMenuItem
             // 
             this.HitsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ShowOnlyHitMenuItem,
+            this.ShowAllHitsMenuItem,
+            this.ShowHitMenuItem,
+            this.ShowUnhitMenuItem,
             this.ResetMenuItem});
             this.HitsMenuItem.Name = "HitsMenuItem";
-            this.HitsMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.HitsMenuItem.Size = new System.Drawing.Size(37, 20);
             this.HitsMenuItem.Text = "Hits";
+            this.HitsMenuItem.DropDownOpening += new System.EventHandler(this.HitsMenuItem_DropDownOpening);
             // 
-            // ShowOnlyHitMenuItem
+            // ShowAllHitsMenuItem
             // 
-            this.ShowOnlyHitMenuItem.CheckOnClick = true;
-            this.ShowOnlyHitMenuItem.Name = "ShowOnlyHitMenuItem";
-            this.ShowOnlyHitMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.ShowOnlyHitMenuItem.Text = "Show only hit";
-            this.ShowOnlyHitMenuItem.Click += new System.EventHandler(this.ShowOnlyHitToolStripMenuItem_Click);
+            this.ShowAllHitsMenuItem.Name = "ShowAllHitsMenuItem";
+            this.ShowAllHitsMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowAllHitsMenuItem.Text = "Show all";
+            this.ShowAllHitsMenuItem.Click += new System.EventHandler(this.ShowAllHitsMenuItem_Click);
+            // 
+            // ShowHitMenuItem
+            // 
+            this.ShowHitMenuItem.Name = "ShowHitMenuItem";
+            this.ShowHitMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowHitMenuItem.Text = "Show only hit";
+            this.ShowHitMenuItem.Click += new System.EventHandler(this.ShowHitMenuItem_Click);
+            // 
+            // ShowUnhitMenuItem
+            // 
+            this.ShowUnhitMenuItem.Name = "ShowUnhitMenuItem";
+            this.ShowUnhitMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowUnhitMenuItem.Text = "Show only unhit";
+            this.ShowUnhitMenuItem.Click += new System.EventHandler(this.ShowUnhitMenuItem_Click);
             // 
             // ResetMenuItem
             // 
             this.ResetMenuItem.Name = "ResetMenuItem";
-            this.ResetMenuItem.Size = new System.Drawing.Size(146, 22);
-            this.ResetMenuItem.Text = "Reset hit";
+            this.ResetMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ResetMenuItem.Text = "Reset what\'s been hit";
             this.ResetMenuItem.Click += new System.EventHandler(this.ResetMenuItem_Click);
             // 
             // callsToolStripMenuItem
@@ -116,14 +134,14 @@
             this.ShowRTCallsMenuItem,
             this.ShowAllCallsMenuItem});
             this.callsToolStripMenuItem.Name = "callsToolStripMenuItem";
-            this.callsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.callsToolStripMenuItem.Size = new System.Drawing.Size(41, 20);
             this.callsToolStripMenuItem.Text = "Calls";
             // 
             // ShowRTCallsMenuItem
             // 
             this.ShowRTCallsMenuItem.CheckOnClick = true;
             this.ShowRTCallsMenuItem.Name = "ShowRTCallsMenuItem";
-            this.ShowRTCallsMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowRTCallsMenuItem.Size = new System.Drawing.Size(155, 22);
             this.ShowRTCallsMenuItem.Text = "Show real time";
             this.ShowRTCallsMenuItem.Click += new System.EventHandler(this.ShowRTMenuItem_Click);
             // 
@@ -131,7 +149,7 @@
             // 
             this.ShowAllCallsMenuItem.CheckOnClick = true;
             this.ShowAllCallsMenuItem.Name = "ShowAllCallsMenuItem";
-            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(155, 22);
             this.ShowAllCallsMenuItem.Text = "Show all";
             this.ShowAllCallsMenuItem.Click += new System.EventHandler(this.ShowAllCallsMenuItem_Click);
             // 
@@ -141,14 +159,14 @@
             this.ViewOutsideMenuItem,
             this.ViewExternalMenuItem});
             this.ViewMenuItem.Name = "ViewMenuItem";
-            this.ViewMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.ViewMenuItem.Size = new System.Drawing.Size(41, 20);
             this.ViewMenuItem.Text = "View";
             // 
             // ViewOutsideMenuItem
             // 
             this.ViewOutsideMenuItem.CheckOnClick = true;
             this.ViewOutsideMenuItem.Name = "ViewOutsideMenuItem";
-            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(125, 22);
             this.ViewOutsideMenuItem.Text = "Outside";
             this.ViewOutsideMenuItem.Click += new System.EventHandler(this.ViewOutsideMenuItem_Click);
             // 
@@ -156,14 +174,14 @@
             // 
             this.ViewExternalMenuItem.CheckOnClick = true;
             this.ViewExternalMenuItem.Name = "ViewExternalMenuItem";
-            this.ViewExternalMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewExternalMenuItem.Size = new System.Drawing.Size(125, 22);
             this.ViewExternalMenuItem.Text = "External";
             this.ViewExternalMenuItem.Click += new System.EventHandler(this.ViewExternalMenuItem_Click);
             // 
             // DebugMenuItem
             // 
             this.DebugMenuItem.Name = "DebugMenuItem";
-            this.DebugMenuItem.Size = new System.Drawing.Size(54, 20);
+            this.DebugMenuItem.Size = new System.Drawing.Size(50, 20);
             this.DebugMenuItem.Text = "Debug";
             this.DebugMenuItem.Click += new System.EventHandler(this.DebugMenuItem_Click);
             // 
@@ -204,7 +222,7 @@
         private System.Windows.Forms.Timer ResetTimer;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem HitsMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ShowOnlyHitMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowHitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ResetMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ViewMenuItem;
         private System.Windows.Forms.ToolStripMenuItem DebugMenuItem;
@@ -214,5 +232,7 @@
         private System.Windows.Forms.ToolStripMenuItem ViewOutsideMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ViewExternalMenuItem;
         private System.Windows.Forms.Panel ViewHostPanel;
+        private System.Windows.Forms.ToolStripMenuItem ShowUnhitMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowAllHitsMenuItem;
     }
 }

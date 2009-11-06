@@ -11,6 +11,8 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
+    internal enum ShowHitMode { All, Hit, Unhit }
+
     public static class XRay
     {
         static MainForm MainForm;
@@ -22,7 +24,7 @@ namespace XLibrary
 
         static int FunctionCount;
 
-        internal static bool ShowOnlyHit;
+        internal static ShowHitMode ShowHit = ShowHitMode.All;
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
@@ -410,7 +412,7 @@ namespace XLibrary
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
 
-        internal long TotalTimeInsideDest { get { return TotalCallTime - TotalTimeInsideDest; } }
+        internal long TotalTimeInsideDest { get { return TotalCallTime - TotalTimeOutsideDest; } }
     }
 
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock

@@ -1,28 +1,20 @@
 ﻿
 now
-	show only hit in test mode
-	show only hit when zoomed in on unhit
-	show unhit for code coverage
+	bug - show only hit in test mode
+	test - show only hit when zoomed in on unhit
 			
-			
-	if room in tree map, put name in upper left and resize under it
+	labels - if node height double that of label size and node wide enought o fit label
+		reserve top part for label
+		draw label string in color of object
+		draw tree inside
 		takes care of outside/external panel labels, put some dark black borders between though
 			
 	layout
-	    treemap	
-			sizing nodes
-				constant, method size, time in func, hits, avg time in func
+		labels
+		treemap	
+			constant, method size, time in func, hits, avg time in func
 		spring
 
-	override
-		allow user to click view MSIL
-		user can edit MSIL
-		save, compile and activate override
-		override needs to be specified as a compile option
-		if override, and new code, then run new code, else run original code
-		
-		can an entire late bound application be written from scratch inside, c#, later compiled without xray bindings, can xray build itself another xray??
-		
 	details
 		blink green outline when navigated
 		clicking on call in list, blinks the link
@@ -32,39 +24,37 @@ now
 		sorting list view
 			
 		refresh link at bottom
-		higher than method views sum children in long
+		sum total time of all calls to functions in higher than method details
 		timer updating stats
 		
-		timing
-			node  
-				timing on bool
-				accumulated time as int
-				hit count used to find avg accumulated time
-				reset option to reset timing on a func
-				this way we dont need to keep a time stat for every function call
-				keep same stop watch for each thread
-		
-		perf menu or dialog
-			can show functions with most hits
-			functions wiht most time in side
-			functions with most time per hit
-		
-		look at functions with links that are no longer active
-			see if function could have returned without triggering an exit
-			test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
-
-		option in xray to keep call/timing stats
-		
-
+	perf menu or dialog
+		can show functions with most hits
+		functions wiht most time in side
+		functions with most time per hit
+		reset option to reset timing on a func
+	
 	left/right keys - zoom in/out
+		
+	look at functions with links that are no longer active
+		see if function could have returned without triggering an exit
+		test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
 
 	tool  strip
 		clear filtering withen active
 		button when errors in the debug log
 		item to draw box around smaller or just a group of functions and zoom in only on that
 		
+	override
+		allow user to click view MSIL
+		user can edit MSIL
+		save, compile and activate override
+		override needs to be specified as a compile option
+		if override, and new code, then run new code, else run original code
+		
+		can an entire late bound application be written from scratch inside, c#, later compiled without xray bindings, can xray build itself another xray??
+		
 
-	hold down tab or a toggel button to show labels in upper right of functions that can fit the label
+	hold down tab or a toggle button to show labels in upper right of functions that can fit the label
 	
 	when going from spring to tree map view, animate rest of map hiding, and called functions remaining, and moving towards gravity
 
@@ -97,10 +87,6 @@ goal
 
 xray gui
 	right click option to show msil for function, or fields of a class, msil could have hyper links to other functions
-	show calls - internal, external in, external out
-		toolbar to toggle the above, plus clear filters
-	some sort of bread crumbs in visualizer to go forward/back more easily - could be done with wrap panel
-		drop down shows other nodes
 	mouse over instance count
 	   for green nodes (entry points) display the instance count
 	current redraw time / fps
@@ -108,8 +94,7 @@ xray gui
 		saves current select/ignore settings, user can label as 'transfer graph' etc..
 	show notice somewhere on gui if there are entries in the debug log
 	how too zoom in on piddly functions?
-	right click extended info - shows hit rate, maybe timing, what functions have been called from it
-	
+
 springs
 	only show hit boxes
 	free moving, hanging, the repulse each other

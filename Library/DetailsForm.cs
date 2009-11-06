@@ -14,6 +14,8 @@ namespace XLibrary
         LinkedListNode<XNode> Current;
         LinkedList<XNode> History = new LinkedList<XNode>();
 
+        bool ShowPerCall = false;
+
 
         public DetailsForm(XNodeIn node)
         {
@@ -60,7 +62,7 @@ namespace XLibrary
                     .Where(v => v.Destination == id))
                 {
                     XNode caller = XRay.Nodes[call.Source];
-                    CallersList.Items.Add( new CallItem(call, caller));
+                    CallersList.Items.Add( new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
                 CallersLabel.Text = count.ToString() + " methods called " + name;
@@ -71,7 +73,7 @@ namespace XLibrary
                     .Where(v => v.Source == id))
                 {
                     XNode called = XRay.Nodes[call.Destination];
-                    CalledList.Items.Add(new CallItem(call, called));
+                    CalledList.Items.Add(new CallItem(call, called, ShowPerCall));
                     count++;
                 }
                 CalledLabel.Text = name + " called " + count.ToString() + " methods";
@@ -88,7 +90,7 @@ namespace XLibrary
 
                 foreach (XNode child in node.Nodes)
                 {
-                    CallersList.Items.Add(new CallItem(null, child));
+                    CallersList.Items.Add(new CallItem(null, child, ShowPerCall));
                 }
             }
         }
@@ -152,6 +154,24 @@ namespace XLibrary
 
             NavigateTo(item.Node);
         }
+
+        private void CumulativeRadio_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!CumulativeRadio.Checked)
+                return;
+
+            ShowPerCall = false;
+            Reload();
+        }
+
+        private void PerCallRadio_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!PerCallRadio.Checked)
+                return;
+
+            ShowPerCall = true;
+            Reload();
+        }
     }
 
     class CallItem : ListViewItem
@@ -159,7 +179,7 @@ namespace XLibrary
         FunctionCall Call;
         internal XNode Node;
 
-        public CallItem(FunctionCall call, XNode node)
+        public CallItem(FunctionCall call, XNode node, bool perCall)
         {
             Call = call;
             Node = node;
@@ -176,24 +196,34 @@ namespace XLibrary
             if (call.TotalHits == 0)
                 return;
 
-            long avgTicks = call.TotalCallTime / call.TotalHits;
+            long outside = call.TotalTimeOutsideDest;
+            long inside = call.TotalTimeInsideDest;
 
-            SubItems.Add(TicksToString(call.TotalCallTime - call.TotalTimeOutsideDest));
-            SubItems.Add(TicksToString(call.TotalCallTime));
+            if (perCall)
+            {
+                outside /= call.TotalHits;
+                inside /= call.TotalHits;
+            }
+
+            SubItems.Add(TicksToString(inside));
+            SubItems.Add(TicksToString(outside));
         }
 
         private string TicksToString(long ticks)
         {
+            if (ticks == 0)
+                return "0";
+
             TimeSpan span = new TimeSpan(ticks);
 
             if (span.TotalMinutes > 1)
-                return span.TotalMinutes.ToString("0.## min");
-            
+                return span.TotalMinutes.ToString("0.## m");
             else if (span.TotalSeconds > 1)
-                return span.TotalSeconds.ToString("0.## sec");
-            
+                return span.TotalSeconds.ToString("0.## s");
+            else if (span.TotalMilliseconds > 1)
+                return span.TotalMilliseconds.ToString("0.## ms");
             else
-                return span.TotalMilliseconds.ToString() + " ms";
+                return (span.TotalMilliseconds* 1000).ToString() + " us";
         }
 
     }

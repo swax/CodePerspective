@@ -3,17 +3,16 @@ now
 	bug - show only hit in test mode
 	test - show only hit when zoomed in on unhit
 			
-	labels - if node height double that of label size and node wide enought o fit label
-		reserve top part for label
-		draw label string in color of object
-		draw tree inside
-		takes care of outside/external panel labels, put some dark black borders between though
-			
 	layout
 		labels
 		treemap	
 			constant, method size, time in func, hits, avg time in func
 		spring
+		3d option for both, xna treemap, xna 3d spring nodes call map
+
+	legend
+		colors
+		timing - 1000 us in 1 ms / 1000 ms in 1 s / 60 s in 1 m
 
 	details
 		blink green outline when navigated
@@ -26,12 +25,15 @@ now
 		refresh link at bottom
 		sum total time of all calls to functions in higher than method details
 		timer updating stats
+		if same details window already open use that
+		tooltips for list headers, say that this, is this, sum is sum of all times in bottom pane
 		
 	perf menu or dialog
 		can show functions with most hits
 		functions wiht most time in side
 		functions with most time per hit
 		reset option to reset timing on a func
+		is call rate another metric??
 	
 	left/right keys - zoom in/out
 		
@@ -67,9 +69,11 @@ now
 			re-compiled reflector failing to launch
 
 	show array/map sizes in debug
-	
+		show in debug settings exe was compiled with 
+		
 	future 
 		people write and modify code as the app runs
+			able to override funcs and save result
 		people can collaborate and write running software in real time
 		full introspection and manipulation of all running objects
 
@@ -147,10 +151,15 @@ memory tracking
 function tree map
 	how to draw/show anonymous methods
 	
-	when borders added, enter/exit will surround external function, still given ids same as before
-	
 	larger xray? these are apps running on your computer as blocks (size by memory, height by cpu) 
 		borders are external services - hard drives, network interfaces, sound, display, etc...
+
+sub function tracking
+   break every block where there's a branch in msil into it's own node
+	  with enter/exit overrides there
+   can use normal flow tracking and spring to see how internals of function are operating
+	  can't really use names, but can double click code, and the spring org will give a good sense of whats going on
+   
 
 3d function tree map
 	constant square size, height dependnent on amount of code (cities)
@@ -201,7 +210,11 @@ names
 	soul, spirit, ghost, phantom, spectre
 	xray.net
 	flow, clarity, system, getting a 'sense' 
+	seesharp
 	
+	license
+		fair support license
+		general public license
 
 editor
 	click on blocks, edit code

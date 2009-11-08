@@ -52,22 +52,19 @@
             // 
             // BottomStrip
             // 
-            this.BottomStrip.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.BottomStrip.Dock = System.Windows.Forms.DockStyle.None;
             this.BottomStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SelectedLabel});
             this.BottomStrip.Location = new System.Drawing.Point(0, 249);
             this.BottomStrip.Name = "BottomStrip";
-            this.BottomStrip.Size = new System.Drawing.Size(100, 22);
+            this.BottomStrip.Size = new System.Drawing.Size(292, 22);
             this.BottomStrip.TabIndex = 1;
             this.BottomStrip.Text = "statusStrip1";
             // 
             // SelectedLabel
             // 
+            this.SelectedLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SelectedLabel.Name = "SelectedLabel";
-            this.SelectedLabel.Size = new System.Drawing.Size(83, 17);
+            this.SelectedLabel.Size = new System.Drawing.Size(96, 17);
             this.SelectedLabel.Text = "Selected Object";
             // 
             // ResetTimer
@@ -96,35 +93,35 @@
             this.ShowUnhitMenuItem,
             this.ResetMenuItem});
             this.HitsMenuItem.Name = "HitsMenuItem";
-            this.HitsMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.HitsMenuItem.Size = new System.Drawing.Size(40, 20);
             this.HitsMenuItem.Text = "Hits";
             this.HitsMenuItem.DropDownOpening += new System.EventHandler(this.HitsMenuItem_DropDownOpening);
             // 
             // ShowAllHitsMenuItem
             // 
             this.ShowAllHitsMenuItem.Name = "ShowAllHitsMenuItem";
-            this.ShowAllHitsMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowAllHitsMenuItem.Size = new System.Drawing.Size(185, 22);
             this.ShowAllHitsMenuItem.Text = "Show all";
             this.ShowAllHitsMenuItem.Click += new System.EventHandler(this.ShowAllHitsMenuItem_Click);
             // 
             // ShowHitMenuItem
             // 
             this.ShowHitMenuItem.Name = "ShowHitMenuItem";
-            this.ShowHitMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowHitMenuItem.Size = new System.Drawing.Size(185, 22);
             this.ShowHitMenuItem.Text = "Show only hit";
             this.ShowHitMenuItem.Click += new System.EventHandler(this.ShowHitMenuItem_Click);
             // 
             // ShowUnhitMenuItem
             // 
             this.ShowUnhitMenuItem.Name = "ShowUnhitMenuItem";
-            this.ShowUnhitMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ShowUnhitMenuItem.Size = new System.Drawing.Size(185, 22);
             this.ShowUnhitMenuItem.Text = "Show only unhit";
             this.ShowUnhitMenuItem.Click += new System.EventHandler(this.ShowUnhitMenuItem_Click);
             // 
             // ResetMenuItem
             // 
             this.ResetMenuItem.Name = "ResetMenuItem";
-            this.ResetMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.ResetMenuItem.Size = new System.Drawing.Size(185, 22);
             this.ResetMenuItem.Text = "Reset what\'s been hit";
             this.ResetMenuItem.Click += new System.EventHandler(this.ResetMenuItem_Click);
             // 
@@ -134,14 +131,14 @@
             this.ShowRTCallsMenuItem,
             this.ShowAllCallsMenuItem});
             this.callsToolStripMenuItem.Name = "callsToolStripMenuItem";
-            this.callsToolStripMenuItem.Size = new System.Drawing.Size(41, 20);
+            this.callsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.callsToolStripMenuItem.Text = "Calls";
             // 
             // ShowRTCallsMenuItem
             // 
             this.ShowRTCallsMenuItem.CheckOnClick = true;
             this.ShowRTCallsMenuItem.Name = "ShowRTCallsMenuItem";
-            this.ShowRTCallsMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.ShowRTCallsMenuItem.Size = new System.Drawing.Size(152, 22);
             this.ShowRTCallsMenuItem.Text = "Show real time";
             this.ShowRTCallsMenuItem.Click += new System.EventHandler(this.ShowRTMenuItem_Click);
             // 
@@ -149,7 +146,7 @@
             // 
             this.ShowAllCallsMenuItem.CheckOnClick = true;
             this.ShowAllCallsMenuItem.Name = "ShowAllCallsMenuItem";
-            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.ShowAllCallsMenuItem.Size = new System.Drawing.Size(152, 22);
             this.ShowAllCallsMenuItem.Text = "Show all";
             this.ShowAllCallsMenuItem.Click += new System.EventHandler(this.ShowAllCallsMenuItem_Click);
             // 
@@ -159,14 +156,14 @@
             this.ViewOutsideMenuItem,
             this.ViewExternalMenuItem});
             this.ViewMenuItem.Name = "ViewMenuItem";
-            this.ViewMenuItem.Size = new System.Drawing.Size(41, 20);
+            this.ViewMenuItem.Size = new System.Drawing.Size(44, 20);
             this.ViewMenuItem.Text = "View";
             // 
             // ViewOutsideMenuItem
             // 
             this.ViewOutsideMenuItem.CheckOnClick = true;
             this.ViewOutsideMenuItem.Name = "ViewOutsideMenuItem";
-            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(115, 22);
             this.ViewOutsideMenuItem.Text = "Outside";
             this.ViewOutsideMenuItem.Click += new System.EventHandler(this.ViewOutsideMenuItem_Click);
             // 
@@ -174,14 +171,14 @@
             // 
             this.ViewExternalMenuItem.CheckOnClick = true;
             this.ViewExternalMenuItem.Name = "ViewExternalMenuItem";
-            this.ViewExternalMenuItem.Size = new System.Drawing.Size(125, 22);
+            this.ViewExternalMenuItem.Size = new System.Drawing.Size(115, 22);
             this.ViewExternalMenuItem.Text = "External";
             this.ViewExternalMenuItem.Click += new System.EventHandler(this.ViewExternalMenuItem_Click);
             // 
             // DebugMenuItem
             // 
             this.DebugMenuItem.Name = "DebugMenuItem";
-            this.DebugMenuItem.Size = new System.Drawing.Size(50, 20);
+            this.DebugMenuItem.Size = new System.Drawing.Size(54, 20);
             this.DebugMenuItem.Text = "Debug";
             this.DebugMenuItem.Click += new System.EventHandler(this.DebugMenuItem_Click);
             // 

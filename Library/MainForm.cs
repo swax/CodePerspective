@@ -25,7 +25,8 @@ namespace XLibrary
             ResetTimer.Interval = 1000 / XRay.HitFrames;
             ResetTimer.Enabled = true;
 
-            UpdateText();
+            Text = "c0re XRay"; 
+            UpdateStatus();
 
             ShowAllCallsMenuItem.Checked = XRay.ShowAllCalls;
             ShowRTCallsMenuItem.Checked = TreeView.ShowCalls;
@@ -75,16 +76,9 @@ namespace XLibrary
             TreeView.Redraw();
         }
 
-        public void UpdateText()
+        public void UpdateStatus()
         {
-            string text = "XRay: " + Path.GetFileName(Application.ExecutablePath).Split('.')[0];
-
-            string name = TreeView.GetRoot().FullName();
-
-            if(name != "")
-                text += " - " + name;
-
-            Text = text;
+            SelectedLabel.Text = "Viewing " + TreeView.GetRoot().FullName();
         }
 
         private void HitsMenuItem_DropDownOpening(object sender, EventArgs e)

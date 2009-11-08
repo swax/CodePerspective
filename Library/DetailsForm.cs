@@ -196,13 +196,13 @@ namespace XLibrary
             if (call.TotalHits == 0)
                 return;
 
-            long outside = call.TotalTimeOutsideDest;
             long inside = call.TotalTimeInsideDest;
-
+            long outside = call.TotalTimeOutsideDest;
+           
             if (perCall)
             {
-                outside /= call.TotalHits;
                 inside /= call.TotalHits;
+                outside /= call.TotalHits;
             }
 
             SubItems.Add(TicksToString(inside));
@@ -215,15 +215,18 @@ namespace XLibrary
                 return "0";
 
             TimeSpan span = new TimeSpan(ticks);
+            
+            if (span.TotalMinutes >= 1)
+                return span.TotalMinutes.ToString("0.00 m");
 
-            if (span.TotalMinutes > 1)
-                return span.TotalMinutes.ToString("0.## m");
-            else if (span.TotalSeconds > 1)
-                return span.TotalSeconds.ToString("0.## s");
-            else if (span.TotalMilliseconds > 1)
-                return span.TotalMilliseconds.ToString("0.## ms");
+            else if (span.TotalSeconds >= 1)
+                return span.TotalSeconds.ToString("0.00 s");
+
+            else if (span.TotalMilliseconds >= 1)
+                return span.TotalMilliseconds.ToString("0.00 ms");
+
             else
-                return (span.TotalMilliseconds* 1000).ToString() + " us";
+                return (span.TotalMilliseconds * 1000).ToString("0.##") + " us";
         }
 
     }

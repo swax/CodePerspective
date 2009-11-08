@@ -53,11 +53,15 @@ namespace XLibrary
         SolidBrush HoldingBrush = new SolidBrush(Color.FromArgb(255, 255, 192));
         SolidBrush MultiHoldingBrush = new SolidBrush(Color.Yellow);
         
+        // border between outside/external panels
+        int BorderWidth = 4;
+        SolidBrush BorderBrush = new SolidBrush(Color.Silver);
+
         Color CallColor = Color.Blue;
         Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black));// { EndCap = LineCap.ArrowAnchor };
-        Pen ShowCallOutPen = new Pen(Color.FromArgb(32, Color.Red));
-        Pen ShowCallInPen = new Pen(Color.FromArgb(32, Color.Blue));
-        Pen HoldingCallPen = new Pen(Color.FromArgb(32, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
+        Pen ShowCallOutPen = new Pen(Color.FromArgb(48, Color.Red));
+        Pen ShowCallInPen = new Pen(Color.FromArgb(48, Color.Blue));
+        Pen HoldingCallPen = new Pen(Color.FromArgb(48, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
         
 
         Color HitColor = Color.FromArgb(255, 192, 128);
@@ -68,13 +72,14 @@ namespace XLibrary
 
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
+        SolidBrush LabelBgBrush = new SolidBrush(Color.FromArgb(128, Color.White));
         Font TextFont = new Font("tahoma", 9, FontStyle.Bold );
 
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
 
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
-        Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>();
+        Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
 
         internal XNodeIn CurrentRoot;
         XNodeIn InternalRoot;
@@ -93,7 +98,7 @@ namespace XLibrary
 
         int HoverHash;
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
-        XNode[] NodesHovered = new XNodeIn[]{};
+        XNodeIn[] NodesHovered = new XNodeIn[] { };
 
         XNodeIn FocusedNode;
 
@@ -142,8 +147,8 @@ namespace XLibrary
 
             for (int i = 0; i < OverBrushes.Length; i++)
             {
-                int brightness = 255 / (OverBrushes.Length  + 1) * (OverBrushes.Length - i);
-                OverBrushes[i] = new SolidBrush(Color.FromArgb(brightness, brightness, 255));
+                int brightness = 128 / (OverBrushes.Length  + 1) * (OverBrushes.Length - i);
+                OverBrushes[i] = new SolidBrush(Color.FromArgb(128 + brightness, 128 + brightness, 255));
             }
 
             // set colors of differnt brush / pen arrays
@@ -214,7 +219,7 @@ namespace XLibrary
                     offset = Width * 1 / 4;
                     centerWidth -= offset;
 
-                    InternalRoot.SetArea(new RectangleD(0, 0, offset, Height));
+                    InternalRoot.SetArea(new RectangleD(0, 0, offset - BorderWidth, Height));
                     PositionMap[InternalRoot.ID] = InternalRoot;
                     SizeNode(buffer, InternalRoot, CurrentRoot, false);
                 }
@@ -223,7 +228,7 @@ namespace XLibrary
                     int extWidth = Width * 1 / 4;
                     centerWidth -= extWidth;
 
-                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth, 0, extWidth, Height));
+                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth + BorderWidth, 0, extWidth - BorderWidth, Height));
                     PositionMap[ExternalRoot.ID] = ExternalRoot;
                     SizeNode(buffer, ExternalRoot, null, false);
                 }
@@ -234,10 +239,16 @@ namespace XLibrary
             }
 
             if (ShowingOutside)
+            {
+                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
                 DrawNode(buffer, InternalRoot, 0);
+            }
 
             if (ShowingExternal)
-                DrawNode(buffer, ExternalRoot, 0);    
+            {
+                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
+                DrawNode(buffer, ExternalRoot, 0);
+            }
 
             DrawNode(buffer, CurrentRoot, 0);
 
@@ -314,7 +325,7 @@ namespace XLibrary
                 float indentAmount = 0;
 
                 // find the size of the background box
-                foreach (XNode node in NodesHovered)
+                foreach (XNode node in NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel))
                 {
                     SizeF size = buffer.MeasureString(node.Name, TextFont);
 
@@ -337,7 +348,7 @@ namespace XLibrary
                 // draw background
                 buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
 
-                foreach (XNodeIn node in NodesHovered)
+                foreach (XNodeIn node in NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel))
                 {
                     // dither label if it is not on screen
                     if(GuiHovered.Contains(node))
@@ -400,18 +411,22 @@ namespace XLibrary
             if (ShowLabels)
             {
                 // check if enough room in root box for label
-                SizeF labelSize = buffer.MeasureString(root.Name, TextFont);
-      
-                float minHeight = (root.Nodes.Count > 0) ? labelSize.Height * 2 : labelSize.Height;
+                RectangleF label = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
+          
 
-                if (root.AreaF.Height > minHeight && root.AreaF.Width > labelSize.Width )
+                float minHeight = (root.Nodes.Count > 0) ? label.Height * 2 : label.Height;
+
+                if (root.AreaF.Height > minHeight && root.AreaF.Width > label.Width + LabelPadding * 2)
                 {
-                    insideArea.Y += labelSize.Height;
-                    insideArea.Height -= labelSize.Height;
+                    label.X += LabelPadding;
+                    label.Y += LabelPadding;
+
+                    insideArea.Y += label.Height;
+                    insideArea.Height -= label.Height;
+
                     root.RoomForLabel = true;
+                    root.LabelRect = label;
                 }
-                else
-                    root.RoomForLabel = false;
             }
 
             var nodes = from n in root.Nodes.Cast<XNodeIn>()
@@ -437,9 +452,11 @@ namespace XLibrary
                 node.SetArea(sector.Rect);
                 PositionMap[node.ID] = node;
 
+                node.RoomForLabel = false; // cant do above without graphic artifacts
+
                 if (center)
                     CenterMap[node.ID] = node;
-
+                
                 if(sector.Rect.Width > 1 && sector.Rect.Height > 1)
                     SizeNode(buffer, node, exclude, center);
             }
@@ -535,7 +552,10 @@ namespace XLibrary
 
             // draw label
             if (ShowLabels && node.RoomForLabel)
-                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.AreaF.X + LabelPadding, node.AreaF.Y + LabelPadding);
+            {
+                buffer.FillRectangle(LabelBgBrush, node.LabelRect);
+                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
+            }
 
             if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)
@@ -596,13 +616,13 @@ namespace XLibrary
 
                 if (GuiHovered.Count > 0)
                 {
-                    NodesHovered = GuiHovered.Last().GetParents();
-                    MainForm.SelectedLabel.Text = GuiHovered.Last().FullName();
+                    NodesHovered = GuiHovered.Last().GetParents().Cast<XNodeIn>().ToArray();
+                    //MainForm.SelectedLabel.Text = GuiHovered.Last().FullName();
                 }
                 else
                 {
                     NodesHovered = new XNodeIn[] { };
-                    MainForm.SelectedLabel.Text = "";
+                    //MainForm.SelectedLabel.Text = "";
                 }
             }
         }
@@ -672,12 +692,15 @@ namespace XLibrary
                 ContextMenu menu = new ContextMenu();
 
                 string indent = "";
-                foreach (XNodeIn node in GuiHovered)
+                //foreach (XNodeIn node in GuiHovered)
+                //{
+                XNodeIn node = GuiHovered.LastOrDefault();
+                if (node != null)
                 {
                     bool selected = SelectedNodes.ContainsKey(node.ID);
                     bool ignored = IgnoredNodes.ContainsKey(node.ID);
 
-                    menu.MenuItems.Add(new MenuItem(indent + node.Name, new MenuItem[] 
+                    menu.MenuItems.Add(new MenuItem(indent + node.ObjType.ToString() + " " + node.Name, new MenuItem[] 
                     {
                         new MenuItem("Details", (s, a) =>
                             new DetailsForm(node).Show()),
@@ -766,7 +789,7 @@ namespace XLibrary
             // setting internal root will auto show properly sized external root area if showing it is enabled
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;
 
-            MainForm.UpdateText();
+            MainForm.UpdateStatus();
 
             DoResize = true;
             Refresh();

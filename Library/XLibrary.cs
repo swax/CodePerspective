@@ -51,6 +51,8 @@ namespace XLibrary
         static int EdgeHashOffset;
         static bool InitComplete;
 
+        static Stopwatch Watch = new Stopwatch();
+
 
         public static void TestInit(string path)
         {
@@ -68,6 +70,8 @@ namespace XLibrary
                 LogError("Init already called");
                 return;
             }
+
+            Watch.Start();
 
             // read compiled settings
             if (trackFlow)
@@ -228,7 +232,7 @@ namespace XLibrary
             if (flow.Pos == -1)
             {
                 flow.Pos = 0;
-                flow.Stack[0] = new StackItem() { Method = method, Ticks = DateTime.Now.Ticks };
+                flow.Stack[0] = new StackItem() { Method = method, Ticks = Watch.ElapsedTicks };
                 node.EntryPoint++;
                 return;
             }
@@ -258,7 +262,7 @@ namespace XLibrary
                     source, method, call.Source, call.Destination);
 
             flow.Pos++;
-            flow.Stack[flow.Pos] = new StackItem() { Method = method, Call = call, Ticks = DateTime.Now.Ticks };
+            flow.Stack[flow.Pos] = new StackItem() { Method = method, Call = call, Ticks = Watch.ElapsedTicks };
 
             call.Hit = ShowTicks;
             call.TotalHits++;
@@ -280,7 +284,7 @@ namespace XLibrary
 
             // move back through stack array and find function
             // if a function threw then a lot of functions will be skipped
-            long ticks = DateTime.Now.Ticks;
+            long ticks = Watch.ElapsedTicks;
 
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
@@ -328,7 +332,7 @@ namespace XLibrary
             if (CallLogging)
                 LogError("Thread {0}, Func {1}, Catch\r\n", thread, method);
 
-            long ticks = DateTime.Now.Ticks;
+            long ticks = Watch.ElapsedTicks;
 
             ThreadFlow flow;
             if (FlowMap.TryGetValue(thread, out flow))
@@ -351,6 +355,9 @@ namespace XLibrary
 
                             if (exited.Call != null)
                                 exited.Call.StillInside--;
+
+                            if (x > 0 && flow.Stack[x - 1].Call != null)
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.Ticks;
                         }
 
                         break;

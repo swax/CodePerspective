@@ -41,8 +41,9 @@
             this.OutputLink = new System.Windows.Forms.LinkLabel();
             this.TrackExternalCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
-            this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
             this.TestCompile = new System.Windows.Forms.Button();
+            this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
+            this.GraphButton = new System.Windows.Forms.Button();
             this.OptionsPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -192,6 +193,7 @@
             // 
             this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Controls.Add(this.GraphButton);
             this.OptionsPanel.Controls.Add(this.TestCompile);
             this.OptionsPanel.Controls.Add(this.TrackAnonCheckBox);
             this.OptionsPanel.Controls.Add(this.SidebySideCheckBox);
@@ -205,6 +207,16 @@
             this.OptionsPanel.Size = new System.Drawing.Size(326, 130);
             this.OptionsPanel.TabIndex = 15;
             // 
+            // TestCompile
+            // 
+            this.TestCompile.Location = new System.Drawing.Point(18, 95);
+            this.TestCompile.Name = "TestCompile";
+            this.TestCompile.Size = new System.Drawing.Size(99, 23);
+            this.TestCompile.TabIndex = 16;
+            this.TestCompile.Text = "Test Compile";
+            this.TestCompile.UseVisualStyleBackColor = true;
+            this.TestCompile.Click += new System.EventHandler(this.TestCompile_Click);
+            // 
             // TrackAnonCheckBox
             // 
             this.TrackAnonCheckBox.AutoSize = true;
@@ -215,15 +227,15 @@
             this.TrackAnonCheckBox.Text = "Track anonymous methods";
             this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
             // 
-            // TestCompile
+            // GraphButton
             // 
-            this.TestCompile.Location = new System.Drawing.Point(18, 95);
-            this.TestCompile.Name = "TestCompile";
-            this.TestCompile.Size = new System.Drawing.Size(99, 23);
-            this.TestCompile.TabIndex = 16;
-            this.TestCompile.Text = "Test Compile";
-            this.TestCompile.UseVisualStyleBackColor = true;
-            this.TestCompile.Click += new System.EventHandler(this.TestCompile_Click);
+            this.GraphButton.Location = new System.Drawing.Point(224, 66);
+            this.GraphButton.Name = "GraphButton";
+            this.GraphButton.Size = new System.Drawing.Size(99, 23);
+            this.GraphButton.TabIndex = 17;
+            this.GraphButton.Text = "Graphing";
+            this.GraphButton.UseVisualStyleBackColor = true;
+            this.GraphButton.Click += new System.EventHandler(this.GraphButton_Click);
             // 
             // BuildForm
             // 
@@ -264,6 +276,7 @@
         private System.Windows.Forms.Panel OptionsPanel;
         private System.Windows.Forms.CheckBox TrackAnonCheckBox;
         private System.Windows.Forms.Button TestCompile;
+        private System.Windows.Forms.Button GraphButton;
 
     }
 }

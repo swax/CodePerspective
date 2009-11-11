@@ -307,6 +307,11 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         {
             ReCompile(true);
         }
+
+        private void GraphButton_Click(object sender, EventArgs e)
+        {
+            new GraphForm().Show();
+        }
     }
 
     public class FileItem

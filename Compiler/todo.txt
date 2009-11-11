@@ -1,7 +1,23 @@
 ﻿
 now
+	size nodes by other parameters
+	show only nodes that have been recently called
+	position recently called nodes by way of a descending call tree
+		switch to show only hit
+		size nodes based on half of available area
+		give nodes a charge, lines a spring
+		methods in same class attract
+		edges have magnetism / spring
+		nodes attract/repel baseed on relationship
+
+	show only hit, is showing classes with no methods in them
+	details not working when show only hit is on, details of unhit nodes
+	real-time search docked on status bar with X to close, like firefox, 
+
 	bug - show only hit in test mode
 	test - show only hit when zoomed in on unhit
+			 
+	
 			
 	layout
 		labels

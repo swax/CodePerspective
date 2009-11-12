@@ -415,7 +415,7 @@ namespace XLibrary
 
             RectangleD insideArea = root.AreaD;
 
-            if (ShowLabels)
+            if (ShowLabels && (!ShowGraph || root.ObjType == XObjType.Method))
             {
                 // check if enough room in root box for label
                 RectangleF label = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));

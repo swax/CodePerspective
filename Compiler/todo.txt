@@ -61,7 +61,9 @@ now
 		clear filtering withen active
 		button when errors in the debug log
 		item to draw box around smaller or just a group of functions and zoom in only on that
-		
+	
+	option to not use windows forms, and late bind test with rpc hookups	
+	
 	override
 		allow user to click view MSIL
 		user can edit MSIL

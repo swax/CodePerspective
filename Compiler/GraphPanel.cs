@@ -22,6 +22,7 @@ namespace XBuilder
         List<Spring> Springs = new List<Spring>();
 
         SolidBrush NodeBrush = new SolidBrush(Color.Blue);
+        Pen SpringPen = new Pen(Color.Black);
 
         Stopwatch Watch = new Stopwatch();
         long LastRun;
@@ -89,8 +90,13 @@ namespace XBuilder
 
             buffer.Clear(Color.White);
 
+            foreach (Spring spring in Springs)
+                buffer.DrawLine(SpringPen, spring.EndA.Position, spring.EndB.Position);
+
             foreach (Node node in Nodes)
                 buffer.FillEllipse(NodeBrush, node.Position.X, node.Position.Y, NodeRadius, NodeRadius);
+
+            
 
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);

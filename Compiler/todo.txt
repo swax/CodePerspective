@@ -1,7 +1,7 @@
 ﻿
 now
 	size nodes by other parameters
-	show only nodes that have been recently called
+	show only nodes that have been recently called in called
 	position recently called nodes by way of a descending call tree
 		switch to show only hit
 		size nodes based on half of available area
@@ -16,9 +16,14 @@ now
 
 	bug - show only hit in test mode
 	test - show only hit when zoomed in on unhit
-			 
-	
-			
+
+	if calls array near exhausted, make a debug log
+
+	thread time graph
+		x axis time - moving forward in real time
+		y axis each thread
+		each function a different color along thread column
+
 	layout
 		labels
 		treemap	

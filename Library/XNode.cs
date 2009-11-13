@@ -27,11 +27,11 @@ namespace XLibrary
     public class InputValue
     {
         public string Name;
-        public int Value;
+        public long Value;
 
         public InputValue() { }
 
-        public InputValue(string name, int value)
+        public InputValue(string name, long value)
         {
             Name = name;
             Value = value;
@@ -209,7 +209,7 @@ namespace XLibrary
             BitConverter.GetBytes((int)ObjType).CopyTo(temp, pos);
             pos += 4;
 
-            BitConverter.GetBytes(Value).CopyTo(temp, pos);
+            BitConverter.GetBytes(Lines).CopyTo(temp, pos);
             pos += 4;
 
             BitConverter.GetBytes(External).CopyTo(temp, pos);
@@ -242,9 +242,6 @@ namespace XLibrary
         internal int Lines; // save here so final value can be manipulated
 
         internal bool Hovered;
-        internal bool Selected;
-        internal bool Ignored;
-      
         internal bool Show = true;
 
         internal RectangleD AreaD { get; private set; }
@@ -262,6 +259,9 @@ namespace XLibrary
         internal bool RoomForLabel;
         internal RectangleF LabelRect;
 
+        internal SharedDictionary<FunctionCall> CalledIn;
+        internal SharedDictionary<FunctionCall> CallsOut;
+
 
         internal static XNodeIn Read(FileStream stream)
         {
@@ -269,7 +269,7 @@ namespace XLibrary
             // name size 4
             // name x
             // type 4
-            // value 4
+            // lines 4
             // id 8
             // optional parent id 8
 
@@ -281,8 +281,8 @@ namespace XLibrary
             int nameSize = BitConverter.ToInt32(stream.Read(4), 0);
             node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
-            node.Value = BitConverter.ToInt32(stream.Read(4), 0);
-            node.Lines = node.Value;
+            node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
+            node.Value = node.Lines; // default
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
 

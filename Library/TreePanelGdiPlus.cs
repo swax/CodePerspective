@@ -12,12 +12,16 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
+    public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
+    public enum HitLayouts { All, Hit, Unhit }
+
     public partial class TreePanelGdiPlus : UserControl
     {
         public MainForm MainForm;
 
         bool DoRedraw = true;
         bool DoResize = true;
+        bool DoRevalue = true;
         Bitmap DisplayBuffer;
 
         internal bool ShowOutside;
@@ -25,8 +29,11 @@ namespace XLibrary
         bool ShowingOutside;
         bool ShowingExternal;
 
-        bool ShowGraph = true;
+        bool ShowGraph = false ;
 
+        internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
+        internal HitLayouts HitLayout = HitLayouts.All;
+        
         internal bool ShowLabels = true;
         float LabelPadding = 2;
            
@@ -197,10 +204,14 @@ namespace XLibrary
 
             buffer.Clear(Color.White);
 
-            if (XRay.CoverChange)
+            if (DoRevalue || XRay.CoverChange)
             {
                 RecalcCover(InternalRoot);
                 RecalcCover(ExternalRoot);
+
+                XRay.CoverChange = false;
+                DoRevalue = false;
+                DoResize = true;
             }
 
             Debug.Assert(CurrentRoot != TopRoot); // current root should be intenalRoot in this case
@@ -208,7 +219,7 @@ namespace XLibrary
             ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
             ShowingExternal = ShowExternal && !CurrentRoot.External;
 
-            if (DoResize || XRay.CoverChange)
+            if (DoResize)
             {
                 int offset = 0;
                 int centerWidth = Width;
@@ -268,6 +279,9 @@ namespace XLibrary
                 for (int i = 0; i < XRay.CallMap.Length; i++)
                 {
                     FunctionCall call = XRay.CallMap.Values[i];
+                     
+                    // foreach node in position map, draw its call destinations if this destination
+                    // is also in the call map, dont need to loop through all calls
 
                     if (call != null && 
                         (XRay.ShowAllCalls || call.Hit > 0 || call.StillInside > 0) &&
@@ -373,7 +387,6 @@ namespace XLibrary
 
             DoRedraw = false;
             DoResize = false;
-            XRay.CoverChange = false;
         }
 
         private bool IsNodeFiltered(bool select, XNodeIn node)
@@ -387,23 +400,48 @@ namespace XLibrary
             return false;
         }
 
-        private int RecalcCover(XNodeIn root)
+        private long RecalcCover(XNodeIn root)
         {
-            // only leaves have real value
-            root.Value = (root.Nodes.Count == 0) ? root.Lines : 0;
+
+            root.Value = 0;
+
+
+            // only leaves have usable value
+            if (root.Nodes.Count == 0)
+            {
+                switch (SizeLayout)
+                {
+                    case SizeLayouts.Constant:
+                        root.Value = 1;
+                        break;
+                    case SizeLayouts.MethodSize:
+                        root.Value = root.Lines;
+                        break;
+                    case SizeLayouts.TimeInMethod:
+                        
+                        break;
+                    case SizeLayouts.Hits:
+                        break;
+                    case SizeLayouts.TimePerHit:
+                        break;
+
+                }
+            }
 
             foreach (XNodeIn node in root.Nodes)
             {
                 node.Show = node.ObjType != XObjType.Method ||
-                    XRay.ShowHit == ShowHitMode.All ||
-                    (XRay.ShowHit == ShowHitMode.Hit && XRay.CoveredFunctions[node.ID]) ||
-                    (XRay.ShowHit == ShowHitMode.Unhit && !XRay.CoveredFunctions[node.ID]);
-                
+                    HitLayout == HitLayouts.All ||
+                    (HitLayout == HitLayouts.Hit && XRay.CoveredFunctions[node.ID]) ||
+                    (HitLayout == HitLayouts.Unhit && !XRay.CoveredFunctions[node.ID]);
+
                 if (node.Show)
                     root.Value += RecalcCover(node);
             }
 
-            return root.Value;                
+            Debug.Assert(root.Value >= 0);
+
+            return root.Value;
         }
 
         const int Border = 4;
@@ -659,6 +697,13 @@ namespace XLibrary
         public void RecalcSizes()
         {
             DoResize = true;
+            Invalidate();
+        }
+
+        // re-calcs the sizes of all nodes
+        public void RecalcVales()
+        {
+            DoRevalue = true;
             Invalidate();
         }
 

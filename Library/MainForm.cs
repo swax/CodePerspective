@@ -83,37 +83,33 @@ namespace XLibrary
 
         private void HitsMenuItem_DropDownOpening(object sender, EventArgs e)
         {
-            ShowAllHitsMenuItem.Checked = XRay.ShowHit == ShowHitMode.All;
-            ShowHitMenuItem.Checked = XRay.ShowHit == ShowHitMode.Hit;
-            ShowUnhitMenuItem.Checked = XRay.ShowHit == ShowHitMode.Unhit;
+            ShowAllHitsMenuItem.Checked = TreeView.HitLayout == HitLayouts.All;
+            ShowHitMenuItem.Checked = TreeView.HitLayout == HitLayouts.Hit;
+            ShowUnhitMenuItem.Checked = TreeView.HitLayout == HitLayouts.Unhit;
         }
 
         private void ShowAllHitsMenuItem_Click(object sender, EventArgs e)
         {
-            XRay.ShowHit = ShowHitMode.All;
-            XRay.CoverChange = true; // force recalc
-            TreeView.Redraw();
+            TreeView.HitLayout = HitLayouts.All;
+            TreeView.RecalcVales();
         }
 
         private void ShowHitMenuItem_Click(object sender, EventArgs e)
         {
-            XRay.ShowHit = ShowHitMode.Hit;
-            XRay.CoverChange = true; // force recalc
-            TreeView.Redraw();
+            TreeView.HitLayout = HitLayouts.Hit;
+            TreeView.RecalcVales();
         }
 
         private void ShowUnhitMenuItem_Click(object sender, EventArgs e)
         {
-            XRay.ShowHit = ShowHitMode.Unhit;
-            XRay.CoverChange = true; // force recalc
-            TreeView.Redraw();
+            TreeView.HitLayout = HitLayouts.Unhit;
+            TreeView.RecalcVales();
         }
 
         private void ResetMenuItem_Click(object sender, EventArgs e)
         {
             XRay.CoveredFunctions.SetAll(false);
-            XRay.CoverChange = true; // force recalc
-            TreeView.Redraw();
+            TreeView.RecalcVales();
         }
 
         private void DebugMenuItem_Click(object sender, EventArgs e)
@@ -143,6 +139,45 @@ namespace XLibrary
         {
             TreeView.ShowExternal = ViewExternalMenuItem.Checked;
             TreeView.RecalcSizes();
+        }
+
+        private void SizesMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            ConstantMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Constant;
+            MethodSizeMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.MethodSize;
+            TimeInMethodMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimeInMethod;
+            SizeHitsMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Hits;
+            TimePerHitMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimePerHit;
+        }
+
+        private void ConstantMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SizeLayout = SizeLayouts.Constant;
+            TreeView.RecalcVales();
+        }
+
+        private void MethodSizeMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SizeLayout = SizeLayouts.MethodSize;
+            TreeView.RecalcVales();
+        }
+
+        private void TimeInMethodMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SizeLayout = SizeLayouts.TimeInMethod;
+            TreeView.RecalcVales();
+        }
+
+        private void SizeHitsMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SizeLayout = SizeLayouts.Hits;
+            TreeView.RecalcVales();
+        }
+
+        private void TimePerHitMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.SizeLayout = SizeLayouts.TimePerHit;
+            TreeView.RecalcVales();
         }
     }
 }

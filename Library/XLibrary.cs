@@ -11,8 +11,6 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    internal enum ShowHitMode { All, Hit, Unhit }
-
     public static class XRay
     {
         static MainForm MainForm;
@@ -24,7 +22,6 @@ namespace XLibrary
 
         static int FunctionCount;
 
-        internal static ShowHitMode ShowHit = ShowHitMode.All;
         internal static bool CoverChange;
         internal static BitArray CoveredFunctions;
 
@@ -41,8 +38,10 @@ namespace XLibrary
         
         internal static bool FlowTracking = false; // must be compiled in, can be ignored later
         internal const int MaxStack = 512;
-        internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(1000);
-        internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(100000);
+        internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
+        internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
+
+        internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
         internal static string DatPath;
         internal static bool CallLogging;
@@ -188,7 +187,7 @@ namespace XLibrary
                 LogError("Thread {0}, Func {1}, Enter\r\n", thread, method);
 
             // mark covered, should probably check if show covered is checked
-            if (!CoveredFunctions[node.ID])
+            if (!CoveredFunctions[method])
             {
                 CoverChange = true;
 
@@ -204,7 +203,7 @@ namespace XLibrary
             node.FunctionHit = ShowTicks;
 
             if (node.ObjType != XObjType.Method)
-                LogError("{0} {1} Hit", node.ObjType, node.ID);
+                LogError("{0} {1} Hit", node.ObjType, method);
 
             if (ThreadTracking && thread != 0)
             {
@@ -267,6 +266,24 @@ namespace XLibrary
             call.Hit = ShowTicks;
             call.TotalHits++;
             call.StillInside++;
+
+            // add link to node that its been called
+            if (TrackCallGraph)
+            {
+                if (node.CalledIn == null)
+                    node.CalledIn = new SharedDictionary<FunctionCall>(1);
+                if (!node.CalledIn.Contains(source))
+                    node.CalledIn.Add(source, call);
+
+                if (Nodes[source] == null)
+                    return;
+                node = Nodes[source];
+
+                if (node.CallsOut == null)
+                    node.CallsOut = new SharedDictionary<FunctionCall>(1);
+                if (!node.CallsOut.Contains(method))
+                    node.CallsOut.Add(method, call);
+            }
         }
 
         public static void MethodExit(int method)
@@ -381,7 +398,7 @@ namespace XLibrary
             }
         }
 
-        static void LogError(string text, params object[] args)
+        static internal void LogError(string text, params object[] args)
         {
             ErrorMap[string.Format(text, args)] = true;
         }
@@ -431,7 +448,6 @@ namespace XLibrary
         internal int Length;
         internal T[] Values;
 
-        int KeyMax = 100000;
         Dictionary<int, int> Map = new Dictionary<int, int>();
 
         internal SharedDictionary(int keyMax)
@@ -457,11 +473,24 @@ namespace XLibrary
             return false;
         }
 
+        object Resize = new object();
+
         internal void Add(int hash, T call)
         {
             if (Length >= Values.Length)
             {
-                // todo log error, in future user should specify call map size in build
+                lock (Resize)
+                {
+                    // check again cause another thread locked may release when values has been resized
+                    if (Length >= Values.Length)
+                    {
+                        T[] resized = new T[Values.Length * 2];
+                        Values.CopyTo(resized, 0);
+                        Values = resized;
+                        XRay.LogError("Shared Dictionary resized to " + resized.Length.ToString());
+                    }
+                }
+
                 return;
             }
 

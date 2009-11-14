@@ -273,56 +273,52 @@ namespace XLibrary
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperRightCorner(), ignored.AreaF.LowerLeftCorner());
                 }
 
-            // draw flow
+            // draw calls
             if (XRay.FlowTracking)
             {
-                for (int i = 0; i < XRay.CallMap.Length; i++)
+                var showCalls = PositionMap.Values
+                                           .Where(n => n.CallsOut != null)
+                                           .SelectMany(n => n.CallsOut.Values.Take(n.CallsOut.Length))
+                                           .Where(c => (XRay.ShowAllCalls || c.Hit > 0 || c.StillInside > 0) &&
+                                                       // when zoomed only shows into and out of the center
+                                                       (CenterMap.ContainsKey(c.Source) || CenterMap.ContainsKey(c.Destination)) &&
+                                                       PositionMap.ContainsKey(c.Destination));
+
+                foreach (FunctionCall call in showCalls)
                 {
-                    FunctionCall call = XRay.CallMap.Values[i];
-                     
-                    // foreach node in position map, draw its call destinations if this destination
-                    // is also in the call map, dont need to loop through all calls
+                    XNodeIn source = PositionMap[call.Source];
+                    XNodeIn destination = PositionMap[call.Destination];
 
-                    if (call != null && 
-                        (XRay.ShowAllCalls || call.Hit > 0 || call.StillInside > 0) &&
-                        (CenterMap.ContainsKey(call.Source) || CenterMap.ContainsKey(call.Destination)) &&
-                        PositionMap.ContainsKey(call.Source) &&
-                        PositionMap.ContainsKey(call.Destination))
+                    // if there are items we're filtering on then only show calls to those nodes
+                    if (SelectedNodes.Count > 0)
+                        if (!IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
+                            continue;
+
+                    // do after select filter so we can have ignored nodes inside selected, but not the otherway around
+                    if (IgnoredNodes.Count > 0)
+                        if (IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
+                            continue;
+
+                    if (call.StillInside > 0 && ShowCalls)
+                        buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF);
+
+                    else if (XRay.ShowAllCalls)
                     {
-                        XNodeIn source = PositionMap[call.Source];
-                        XNodeIn destination = PositionMap[call.Destination];
+                        //buffer.DrawLine(ShowCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
 
-                        // if there are items we're filtering on then only show calls to those nodes
-                        if (SelectedNodes.Count > 0)
-                            if (!IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
-                                continue;
+                        PointF start = PositionMap[call.Source].CenterF;
+                        PointF end = PositionMap[call.Destination].CenterF;
+                        PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
 
-                        // do after select filter so we can have ignored nodes inside selected, but not the otherway around
-                        if (IgnoredNodes.Count > 0)
-                            if (IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
-                                continue;
+                        buffer.DrawLine(ShowCallOutPen, start, mid);
+                        buffer.DrawLine(ShowCallInPen, mid, end);
+                    }
 
-                        if (call.StillInside > 0 && ShowCalls)
-                            buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF );
-
-                        else if (XRay.ShowAllCalls)
-                        {
-                            //buffer.DrawLine(ShowCallPen, PositionMap[call.Source].CenterF, PositionMap[call.Destination].CenterF);
-
-                            PointF start = PositionMap[call.Source].CenterF;
-                            PointF end  = PositionMap[call.Destination].CenterF;
-                            PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
-
-                            buffer.DrawLine(ShowCallOutPen, start, mid);
-                            buffer.DrawLine(ShowCallInPen, mid, end);
-                        }
-
-                        if (call.Hit > 0 && ShowCalls)
-                        {
-                            Pen pen = CallPen[call.Hit];
-                            pen.DashOffset = call.DashOffset;
-                            buffer.DrawLine(pen, source.CenterF, destination.CenterF);
-                        }    
+                    if (call.Hit > 0 && ShowCalls)
+                    {
+                        Pen pen = CallPen[call.Hit];
+                        pen.DashOffset = call.DashOffset;
+                        buffer.DrawLine(pen, source.CenterF, destination.CenterF);
                     }
                 }
             }
@@ -418,11 +414,18 @@ namespace XLibrary
                         root.Value = root.Lines;
                         break;
                     case SizeLayouts.TimeInMethod:
-                        
+                        // why is this negetive?? HAVENT RETURNED YET, property should return 0 i think if  neg, or detect still inside and return that
+                        if(root.CallsOut != null)
+                            for (int i = 0; i < root.CallsOut.Length; i++)
+                                root.Value += root.CallsOut.Values[i].TotalTimeInsideDest;
                         break;
                     case SizeLayouts.Hits:
+                        if (root.CallsOut != null)
+                            for (int i = 0; i < root.CallsOut.Length; i++)
+                                root.Value += root.CallsOut.Values[i].TotalHits;
                         break;
                     case SizeLayouts.TimePerHit:
+                        // average of averages - use an average property
                         break;
 
                 }

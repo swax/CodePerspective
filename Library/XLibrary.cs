@@ -473,33 +473,25 @@ namespace XLibrary
             return false;
         }
 
-        object Resize = new object();
-
         internal void Add(int hash, T call)
         {
-            if (Length >= Values.Length)
+            // locking isnt so bad because once app is running, add won't be called so much
+            lock (this)
             {
-                lock (Resize)
+                if (Length >= Values.Length)
                 {
-                    // check again cause another thread locked may release when values has been resized
-                    if (Length >= Values.Length)
-                    {
-                        T[] resized = new T[Values.Length * 2];
-                        Values.CopyTo(resized, 0);
-                        Values = resized;
-                        XRay.LogError("Shared Dictionary resized to " + resized.Length.ToString());
-                    }
+                    T[] resized = new T[Values.Length * 2];
+                    Values.CopyTo(resized, 0);
+                    Values = resized;
+
                 }
 
-                return;
+                int index = Length;
+                Map[hash] = index;
+                Values[index] = call;
+
+                Length++;
             }
-
-            // should probably lock this... speed or low chance errors? a dangerous game
-            int index = Length;
-            Map[hash] = index;
-            Values[index] = call;
-
-            Length++;
         }   
     }
 

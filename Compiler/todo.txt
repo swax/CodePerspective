@@ -21,7 +21,7 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 
 now2
-	try to implement timeInfunc recalc, and improved call graph drawing
+	try to implement timeInfunc recalc,
 		determine if functioncall should use direct links to nodes and not ids
 	more sizing options
 	option to show rendering time in debug

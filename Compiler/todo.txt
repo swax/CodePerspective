@@ -29,9 +29,16 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 							count again intersections of target node
 								keep lowest
 					
-			try inserting target at multiple rank positions
-				
-	
+find intersections for edge source y1 to dest y2
+
+foreach node in source rank that is not connected to the edge
+	for each edge of that source node
+		if y of source of source node is < y of eval node AND
+		y of dest node > y of eval dest node
+			increase cross over
+			set boundary that changed node must be greater than for no cross over
+			
+evaluate change			
 
 
 2. min distance without crossing adjacent nodes

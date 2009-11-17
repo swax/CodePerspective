@@ -20,6 +20,19 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 
 1. minimize cross over
+	foreach rank
+		foreach node
+			foreach edge of node
+				if edge intersections > 0
+					count intersections of all target nodes edges
+						try inserting lower rankd node to different positions (random, closest to source, use intersection information to form boundaries)
+							count again intersections of target node
+								keep lowest
+					
+			try inserting target at multiple rank positions
+				
+	
+
 
 2. min distance without crossing adjacent nodes
 

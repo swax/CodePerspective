@@ -19,18 +19,56 @@ coordnates of nodes to keep edges short, and the final step routes edge splines.
 In dot, higher edge weights have the effect of causing edges to be shorter and straighter. 
 
 
+1. minimize cross over
+
+2. min distance without crossing adjacent nodes
+
+*** IF ORIGINAL edge is reversed, reverse intermediate edges
+move temp nodes in rank to the outside??
+
+generate x nodes
+generate y directed links
+	nodes can be linked to itself
+pick random node
+set rank 0
+foreach downlink
+	set downlink rank 1
+		foreach down down link
+			if not ranked, set to 2
+			if ranked 
+
+weed out single nodes
+
+divide view into ranks and place nodes at each rank
+
+keep path of traversed nodes
+	if cycle detected, reverse the direction
+	
+if not all nodes mapped,
+   start mapping at another random node
+
+run continuous test of random combinations
+
+
+map random node rank 0, parents empty
+
+map nodes (rank, parents)
+	foreach downlink
+		if in parents, reverse link direction
+		else
+			set rank
+				map nodes(rank, parents) 
+
 
 now2
 	try to implement timeInfunc recalc,
 		determine if functioncall should use direct links to nodes and not ids
-	more sizing options
 	option to show rendering time in debug
 	show new metrics in details, sum children, show object type as column
 	light up detail selections
-
+	mouse over give more details in certain view modes
 
 now
-	size nodes by other parameters
 	show only nodes that have been recently called in called
 	position recently called nodes by way of a descending call tree
 		switch to show only hit

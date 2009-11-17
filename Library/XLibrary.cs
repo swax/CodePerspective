@@ -436,7 +436,17 @@ namespace XLibrary
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
 
-        internal long TotalTimeInsideDest { get { return TotalCallTime - TotalTimeOutsideDest; } }
+        internal long TotalTimeInsideDest
+        {
+            get
+            {
+                // if still inside called function return 0 for this
+                if (TotalTimeOutsideDest > TotalCallTime)
+                    return 0;
+
+                return TotalCallTime - TotalTimeOutsideDest;
+            }
+        }
     }
 
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock
@@ -483,7 +493,6 @@ namespace XLibrary
                     T[] resized = new T[Values.Length * 2];
                     Values.CopyTo(resized, 0);
                     Values = resized;
-
                 }
 
                 int index = Length;

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{BF8E36ED-DB37-401C-94F9-DDECDBB67405}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -56,17 +56,11 @@
     <Compile Include="BuildForm.Designer.cs">
       <DependentUpon>BuildForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="GraphForm.cs">
+    <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GraphForm.Designer.cs">
-      <DependentUpon>GraphForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GraphPanel.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="GraphPanel.Designer.cs">
-      <DependentUpon>GraphPanel.cs</DependentUpon>
+    <Compile Include="TestForm.Designer.cs">
+      <DependentUpon>TestForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -74,18 +68,17 @@
       <DependentUpon>BuildForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="GraphForm.resx">
-      <DependentUpon>GraphForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="GraphPanel.resx">
-      <DependentUpon>GraphPanel.cs</DependentUpon>
+    <EmbeddedResource Include="TestForm.resx">
+      <DependentUpon>TestForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestPanel.resx">
+      <DependentUpon>TestPanel.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -100,6 +93,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="TestPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TestPanel.Designer.cs">
+      <DependentUpon>TestPanel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>

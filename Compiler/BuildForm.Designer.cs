@@ -41,9 +41,9 @@
             this.OutputLink = new System.Windows.Forms.LinkLabel();
             this.TrackExternalCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.GraphButton = new System.Windows.Forms.Button();
             this.TestCompile = new System.Windows.Forms.Button();
             this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
-            this.GraphButton = new System.Windows.Forms.Button();
             this.OptionsPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -70,7 +70,7 @@
             // 
             // ReCompileButton
             // 
-            this.ReCompileButton.Location = new System.Drawing.Point(18, 66);
+            this.ReCompileButton.Location = new System.Drawing.Point(13, 66);
             this.ReCompileButton.Name = "ReCompileButton";
             this.ReCompileButton.Size = new System.Drawing.Size(99, 23);
             this.ReCompileButton.TabIndex = 4;
@@ -207,9 +207,19 @@
             this.OptionsPanel.Size = new System.Drawing.Size(326, 130);
             this.OptionsPanel.TabIndex = 15;
             // 
+            // GraphButton
+            // 
+            this.GraphButton.Location = new System.Drawing.Point(290, 66);
+            this.GraphButton.Name = "GraphButton";
+            this.GraphButton.Size = new System.Drawing.Size(33, 23);
+            this.GraphButton.TabIndex = 17;
+            this.GraphButton.Text = "X";
+            this.GraphButton.UseVisualStyleBackColor = true;
+            this.GraphButton.Click += new System.EventHandler(this.GraphButton_Click);
+            // 
             // TestCompile
             // 
-            this.TestCompile.Location = new System.Drawing.Point(18, 95);
+            this.TestCompile.Location = new System.Drawing.Point(13, 95);
             this.TestCompile.Name = "TestCompile";
             this.TestCompile.Size = new System.Drawing.Size(99, 23);
             this.TestCompile.TabIndex = 16;
@@ -226,16 +236,6 @@
             this.TrackAnonCheckBox.TabIndex = 15;
             this.TrackAnonCheckBox.Text = "Track anonymous methods";
             this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // GraphButton
-            // 
-            this.GraphButton.Location = new System.Drawing.Point(224, 66);
-            this.GraphButton.Name = "GraphButton";
-            this.GraphButton.Size = new System.Drawing.Size(99, 23);
-            this.GraphButton.TabIndex = 17;
-            this.GraphButton.Text = "Graphing";
-            this.GraphButton.UseVisualStyleBackColor = true;
-            this.GraphButton.Click += new System.EventHandler(this.GraphButton_Click);
             // 
             // BuildForm
             // 

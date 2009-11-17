@@ -1,6 +1,6 @@
 ﻿namespace XBuilder
 {
-    partial class GraphPanel
+    partial class TestPanel
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,30 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.PhysicsTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
-            // PhysicsTimer
-            // 
-            this.PhysicsTimer.Enabled = true;
-            this.PhysicsTimer.Interval = 30;
-            this.PhysicsTimer.Tick += new System.EventHandler(this.PhysicsTimer_Tick);
-            // 
-            // GraphPanel
+            // TestPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "GraphPanel";
-            this.Size = new System.Drawing.Size(180, 169);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.GraphPanel_Paint);
-            this.Resize += new System.EventHandler(this.GraphPanel_Resize);
+            this.Name = "TestPanel";
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.TestPanel_Paint);
+            this.Resize += new System.EventHandler(this.TestPanel_Resize);
             this.ResumeLayout(false);
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Timer PhysicsTimer;
     }
 }

@@ -310,7 +310,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
         private void GraphButton_Click(object sender, EventArgs e)
         {
-            new GraphForm().Show();
+            new TestForm().Show();
         }
     }
 

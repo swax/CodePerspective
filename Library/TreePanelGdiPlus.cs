@@ -415,17 +415,31 @@ namespace XLibrary
                         break;
                     case SizeLayouts.TimeInMethod:
                         // why is this negetive?? HAVENT RETURNED YET, property should return 0 i think if  neg, or detect still inside and return that
-                        if(root.CallsOut != null)
-                            for (int i = 0; i < root.CallsOut.Length; i++)
-                                root.Value += root.CallsOut.Values[i].TotalTimeInsideDest;
+                        if (root.CalledIn != null)
+                            for (int i = 0; i < root.CalledIn.Length; i++)
+                                root.Value += root.CalledIn.Values[i].TotalTimeInsideDest;
                         break;
                     case SizeLayouts.Hits:
-                        if (root.CallsOut != null)
-                            for (int i = 0; i < root.CallsOut.Length; i++)
-                                root.Value += root.CallsOut.Values[i].TotalHits;
+                        if (root.CalledIn != null)
+                            for (int i = 0; i < root.CalledIn.Length; i++)
+                                root.Value += root.CalledIn.Values[i].TotalHits;
                         break;
                     case SizeLayouts.TimePerHit:
-                        // average of averages - use an average property
+                        if (root.CalledIn != null)
+                        {
+                            int count = 0;
+
+                            for (int i = 0; i < root.CalledIn.Length; i++)
+                                if (root.CalledIn.Values[i].TotalHits > 0)
+                                {
+                                    count++;
+                                    root.Value += root.CalledIn.Values[i].TotalTimeInsideDest / root.CalledIn.Values[i].TotalHits;
+                                }
+
+                            if (count > 0)
+                                root.Value /= count;
+                        }
+
                         break;
 
                 }

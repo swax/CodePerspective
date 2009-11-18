@@ -30,7 +30,12 @@ namespace XBuilder
 
         private void LayoutButton_Click(object sender, EventArgs e)
         {
-            testPanel1.Graph();
+            testPanel1.LayoutGraph();
+        }
+
+        private void UncrossButton_Click(object sender, EventArgs e)
+        {
+            testPanel1.Uncross();
         }
     }
 }

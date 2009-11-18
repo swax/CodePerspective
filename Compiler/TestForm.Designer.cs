@@ -35,6 +35,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.testPanel1 = new XBuilder.TestPanel();
             this.LayoutButton = new System.Windows.Forms.Button();
+            this.UncrossButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -59,7 +60,7 @@
             this.SetButton.Name = "SetButton";
             this.SetButton.Size = new System.Drawing.Size(75, 23);
             this.SetButton.TabIndex = 4;
-            this.SetButton.Text = "Set";
+            this.SetButton.Text = "Reset";
             this.SetButton.UseVisualStyleBackColor = true;
             this.SetButton.Click += new System.EventHandler(this.SetButton_Click);
             // 
@@ -86,7 +87,7 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.testPanel1.Location = new System.Drawing.Point(12, 41);
             this.testPanel1.Name = "testPanel1";
-            this.testPanel1.Size = new System.Drawing.Size(442, 296);
+            this.testPanel1.Size = new System.Drawing.Size(507, 296);
             this.testPanel1.TabIndex = 7;
             // 
             // LayoutButton
@@ -99,11 +100,22 @@
             this.LayoutButton.UseVisualStyleBackColor = true;
             this.LayoutButton.Click += new System.EventHandler(this.LayoutButton_Click);
             // 
+            // UncrossButton
+            // 
+            this.UncrossButton.Location = new System.Drawing.Point(425, 12);
+            this.UncrossButton.Name = "UncrossButton";
+            this.UncrossButton.Size = new System.Drawing.Size(75, 23);
+            this.UncrossButton.TabIndex = 9;
+            this.UncrossButton.Text = "Uncross";
+            this.UncrossButton.UseVisualStyleBackColor = true;
+            this.UncrossButton.Click += new System.EventHandler(this.UncrossButton_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(466, 349);
+            this.ClientSize = new System.Drawing.Size(531, 349);
+            this.Controls.Add(this.UncrossButton);
             this.Controls.Add(this.LayoutButton);
             this.Controls.Add(this.testPanel1);
             this.Controls.Add(this.EdgesBox);
@@ -127,6 +139,7 @@
         private System.Windows.Forms.Label label2;
         private TestPanel testPanel1;
         private System.Windows.Forms.Button LayoutButton;
+        private System.Windows.Forms.Button UncrossButton;
 
     }
 }

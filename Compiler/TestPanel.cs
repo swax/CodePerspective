@@ -125,7 +125,7 @@ namespace XBuilder
             }
         }
 
-        internal void Graph()
+        internal void LayoutGraph()
         {
             Groups.Clear();
             Nodes.ForEach(n => n.Rank = null);
@@ -253,6 +253,90 @@ namespace XBuilder
             Invalidate();
         }
 
+
+        internal void Uncross()
+        {
+            /*1. minimize cross over
+	            foreach rank
+		            foreach node
+			            foreach edge of node
+				            if edge intersections > 0
+					            count intersections of all target nodes edges
+						            try inserting lower rankd node to different positions (random, closest to source, use intersection information to form boundaries)
+							            count again intersections of target node
+								            keep lowest
+            					
+            find intersections for edge source y1 to dest y2
+
+            foreach node in source rank that is not connected to the edge
+	            for each edge of that source node
+		            if y of source of source node is < y of eval node AND
+		            y of dest node > y of eval dest node
+			            increase cross over
+			            set boundary that changed node must be greater than for no cross over
+            			
+            evaluate change	
+             */
+
+            foreach (var rankMap in Groups)
+            {
+                foreach (int rank in rankMap.Keys.OrderBy(k => k))
+                {
+                    foreach (var node in rankMap[rank])
+                    {
+                        foreach (var edge in node.Edges.Where(e => e.Source == node))
+                        {
+                            int count = GetIntersections(edge, rankMap[rank]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // evaluate all parent edges of nodes and get total intersections
+            // determine where to place to minimize intersections
+                // maybe do interactively while laying out rank
+
+        private int GetIntersections(Edge testEdge, List<Node> sourcePeers)
+        {
+            int intersections = 0;
+            float lowerbound = 0;
+            float upperbound = float.MaxValue;
+
+
+            // for each peer to the source node we're testing (source's own edges dont cross)
+            foreach(var peer in sourcePeers.Where(sp => sp != testEdge.Source))
+                // test if peer edge crosses test edge
+                foreach (var peerEdge in peer.Edges.Where(e => e.Source == peer))
+                {
+                    if (peer.Location.Y < testEdge.Source.Location.Y &&
+                        peerEdge.Destination.Location.Y > testEdge.Destination.Location.Y)
+                    {
+                        intersections++;
+
+                        if (peerEdge.Destination.Location.Y > lowerbound)
+                            lowerbound = peerEdge.Destination.Location.Y;
+                    }
+
+                    else if (peer.Location.Y > testEdge.Source.Location.Y &&
+                             peerEdge.Destination.Location.Y < testEdge.Destination.Location.Y)
+                    {
+                        intersections++;
+
+                        if(peerEdge.Destination.Location.Y < upperbound)
+                            upperbound = peerEdge.Destination.Location.Y;
+                    }
+                }
+
+            if (lowerbound < upperbound)
+            {
+                // use rank instead of y values
+                // there is a clear position node can be be moved between
+            }
+
+
+           return intersections;
+        }
     }
 
     [DebuggerDisplay("ID = {ID}")]

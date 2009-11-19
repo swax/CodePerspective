@@ -33,9 +33,11 @@
             this.SetButton = new System.Windows.Forms.Button();
             this.EdgesBox = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.testPanel1 = new XBuilder.TestPanel();
             this.LayoutButton = new System.Windows.Forms.Button();
             this.UncrossButton = new System.Windows.Forms.Button();
+            this.MinDistButton = new System.Windows.Forms.Button();
+            this.testPanel1 = new XBuilder.TestPanel();
+            this.AutoButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -80,16 +82,6 @@
             this.label2.TabIndex = 5;
             this.label2.Text = "Edges";
             // 
-            // testPanel1
-            // 
-            this.testPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.testPanel1.Location = new System.Drawing.Point(12, 41);
-            this.testPanel1.Name = "testPanel1";
-            this.testPanel1.Size = new System.Drawing.Size(507, 296);
-            this.testPanel1.TabIndex = 7;
-            // 
             // LayoutButton
             // 
             this.LayoutButton.Location = new System.Drawing.Point(344, 13);
@@ -110,11 +102,43 @@
             this.UncrossButton.UseVisualStyleBackColor = true;
             this.UncrossButton.Click += new System.EventHandler(this.UncrossButton_Click);
             // 
+            // MinDistButton
+            // 
+            this.MinDistButton.Location = new System.Drawing.Point(506, 12);
+            this.MinDistButton.Name = "MinDistButton";
+            this.MinDistButton.Size = new System.Drawing.Size(75, 23);
+            this.MinDistButton.TabIndex = 10;
+            this.MinDistButton.Text = "Min Dist";
+            this.MinDistButton.UseVisualStyleBackColor = true;
+            this.MinDistButton.Click += new System.EventHandler(this.MinDistButton_Click);
+            // 
+            // testPanel1
+            // 
+            this.testPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.testPanel1.Location = new System.Drawing.Point(12, 41);
+            this.testPanel1.Name = "testPanel1";
+            this.testPanel1.Size = new System.Drawing.Size(656, 296);
+            this.testPanel1.TabIndex = 7;
+            // 
+            // AutoButton
+            // 
+            this.AutoButton.Location = new System.Drawing.Point(587, 12);
+            this.AutoButton.Name = "AutoButton";
+            this.AutoButton.Size = new System.Drawing.Size(75, 23);
+            this.AutoButton.TabIndex = 11;
+            this.AutoButton.Text = "Auto";
+            this.AutoButton.UseVisualStyleBackColor = true;
+            this.AutoButton.Click += new System.EventHandler(this.AutoButton_Click);
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(531, 349);
+            this.ClientSize = new System.Drawing.Size(680, 349);
+            this.Controls.Add(this.AutoButton);
+            this.Controls.Add(this.MinDistButton);
             this.Controls.Add(this.UncrossButton);
             this.Controls.Add(this.LayoutButton);
             this.Controls.Add(this.testPanel1);
@@ -140,6 +164,8 @@
         private TestPanel testPanel1;
         private System.Windows.Forms.Button LayoutButton;
         private System.Windows.Forms.Button UncrossButton;
+        private System.Windows.Forms.Button MinDistButton;
+        private System.Windows.Forms.Button AutoButton;
 
     }
 }

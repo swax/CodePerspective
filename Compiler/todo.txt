@@ -18,6 +18,33 @@ coordnates of nodes to keep edges short, and the final step routes edge splines.
 
 In dot, higher edge weights have the effect of causing edges to be shorter and straighter. 
 
+BUG: 50/100 reversed edges spanning multiple ranks
+
+test adding/removing node and calling rank specifically on new node to position wihtout having to rerun evreything
+
+3. min dist
+	figure out closest distance between all edges
+		if lower or higher then cloest rank boundary
+			keep distance by a certain offset
+
+4. make nodes blocks of varying size
+	keep constant spacing between blocks when positing in uncross phase
+	
+5. keep or loose temp nodes?
+	 option to layout without temp, uncross uses far edges to position ranks
+
+at end of this, organize all notes and potential algs into test graph source file, and comment code some more as needed
+
+
+
+
+
+3. min distance
+	make y offset min distance for all ranks the offset of the rank with the most nodes
+	fit other ranks to closest offset position to all connections, without exceeded other node boundaries
+
+	
+
 
 1. minimize cross over
 	foreach rank
@@ -78,6 +105,8 @@ map nodes (rank, parents)
 		else
 			set rank
 				map nodes(rank, parents) 
+
+
 
 
 now2

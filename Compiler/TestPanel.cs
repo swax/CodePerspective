@@ -18,16 +18,18 @@ namespace XBuilder
 
         List<Node> Nodes = new List<Node>();
         List<Edge> Edges = new List<Edge>();
-        List<Dictionary<int, List<Node>>> Groups = new List<Dictionary<int, List<Node>>>(); // list of groups, each group is a rank map
+        List<Graph> Graphs = new List<Graph>();
 
         SolidBrush NodeBrush = new SolidBrush(Color.Black);
-        SolidBrush TempBrush = new SolidBrush(Color.Green);
+        SolidBrush TempBrush = new SolidBrush(Color.LimeGreen);
         Pen SourcePen = new Pen(Color.Red);
         Pen DestPen = new Pen(Color.Blue);
         Pen TempPen = new Pen(Color.Green);
 
         Random RndGen = new Random();
         int NextID = 1;
+
+        const int MinInternodeDistance = 25;
 
 
         public TestPanel()
@@ -37,6 +39,7 @@ namespace XBuilder
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+
         }
 
         internal void ResetText(int nodeCount, int edgeCount)
@@ -127,11 +130,17 @@ namespace XBuilder
 
         internal void LayoutGraph()
         {
-            Groups.Clear();
+            Graphs.Clear();
+
+            Nodes = Nodes.Where(n => !n.Filler).ToList();
             Nodes.ForEach(n => n.Rank = null);
+
+            Edges = Edges.Where(e => !e.Filler).ToList();
+            Edges.ForEach(e => e.Reversed = false);
 
             do
             {
+                
                 Dictionary<int, Node> group = new Dictionary<int, Node>();
 
                 Node node = Nodes.First(n => n.Rank == null);
@@ -139,11 +148,25 @@ namespace XBuilder
                 // first figure out ranks
                 node.Phase1(group, 0, new List<Node>());
 
-                // get the min rank form the above step, use to offset ranks properly
+                /* get the min rank form the above step, use to offset ranks properly
                 int lowestRank = group.Values.Min(n => n.Rank).Value;
                 int offset = Math.Abs(lowestRank);
                 foreach (var n in group.Values)
-                    n.Rank += offset;
+                    n.Rank += offset;*/
+
+                // normalize ranks (for missing ranks, decrease following node ranks)
+                int i = -1;
+                int currentRank = int.MinValue;
+                foreach (var n in group.Values.OrderBy(v => v.Rank))
+                {
+                    if (n.Rank != currentRank)
+                    {
+                        currentRank = n.Rank.Value;
+                        i++;
+                    }
+
+                    n.Rank = i;
+                }
 
                 // once all nodes ranked, run back through and create any intermediate nodes
                 List<Node> filler = new List<Node>();
@@ -183,7 +206,8 @@ namespace XBuilder
                                 tempEdge = new Edge()
                                 {
                                     Source = tempNode,
-                                    Destination = new Node()// CREATE ID??
+                                    Destination = new Node(),// CREATE ID??
+                                    Filler = true
                                 };
 
                                 nextRank++;
@@ -202,7 +226,7 @@ namespace XBuilder
               
                 // also at this stage put all nodes into a rank based multi-map
                 Dictionary<int, List<Node>> rankMap = new Dictionary<int, List<Node>>();
-                Groups.Add(rankMap);
+                Graphs.Add(new Graph() { RankMap = rankMap });
 
                 foreach (var n in group.Values)
                 {
@@ -217,46 +241,128 @@ namespace XBuilder
 
 
             int groupOffset = 0;
-            int total = Groups.Sum(rm => rm.Values.Sum(l => l.Count));
+            int total = Graphs.Sum(g => g.RankMap.Values.Sum(l => l.Count));
 
             // give each group a height proportional to their contents
 
-            foreach (var rankMap in Groups)
+            foreach (var graph in Graphs)
             {
-                int groupHeight = Height * rankMap.Values.Sum(l => l.Count) / total;
+                var rankMap = graph.RankMap;
+
+                graph.Height = Height * rankMap.Values.Sum(l => l.Count) / total;
+                graph.Offset = groupOffset;
 
                 int spaceX = Width / (rankMap.Count + 1);
                 int xOffset = spaceX;
 
                 foreach (int rank in rankMap.Keys.OrderBy(k => k))
                 {
-                    int spaceY = groupHeight / (rankMap[rank].Count + 1);
-                    int yOffset = spaceY;
-
-
-                    foreach (var node in rankMap[rank])
-                    {
-                        node.Location.X = xOffset;
-                        node.Location.Y = groupOffset + yOffset;
-
-                        yOffset += spaceY;
-                    }
-
+                    PositionRank(graph,rankMap[rank],  xOffset);
 
                     xOffset += spaceX;
                 }
 
-                groupOffset += groupHeight;
+                groupOffset += graph.Height;
             }
 
             DoRedraw = true;
             Invalidate();
         }
 
+        private static void PositionRank(Graph graph, List<Node> nodes, float xOffset)
+        {
+            int spaceY = graph.Height / (nodes.Count + 1);
+            int yOffset = spaceY;
 
+
+            foreach (var node in nodes)
+            {
+                node.Location.X = xOffset;
+                node.Location.Y = graph.Offset + yOffset;
+
+                yOffset += spaceY;
+            }
+        }
+
+        
         internal void Uncross()
         {
-            /*1. minimize cross over
+            foreach (var graph in Graphs)
+            {
+                var rankMap = graph.RankMap;
+
+                // foreach rank list
+                foreach(int i in rankMap.Keys.OrderBy(k => k).ToArray())
+                {
+                    var nodes = rankMap[i];
+
+                    // foreach node average y pos form all connected edges
+                    foreach (var node in nodes.Where(n => n.Edges.Count > 0))
+                        node.Location.Y = node.Edges.Average(e => (e.Source == node) ? e.Destination.Location.Y : e.Source.Location.Y);
+
+                    // set rank list to new node list
+                    rankMap[i] = nodes.OrderBy(n => n.Location.Y).ToList();
+
+                    PositionRank(graph, rankMap[i], nodes[0].Location.X);
+                }
+                // order list of y pos to node
+            } 
+                    // reset y positions of nodes in rank
+
+            DoRedraw = true;
+            Invalidate();
+        }
+
+        internal void MinDistance()
+        {
+            foreach (var graph in Graphs)
+            {
+                var rankMap = graph.RankMap;
+
+                // foreach rank list
+                foreach (int i in rankMap.Keys.OrderBy(k => k).ToArray())
+                {
+                    var nodes = rankMap[i];
+
+                    // foreach node average y pos form all connected edges
+                    for (int x = 0; x < nodes.Count; x++)
+                    {
+                        var node = nodes[x];
+
+                        if (node.Edges.Count == 0)
+                            continue;
+
+                        float lowerbound = (x > 0) ? nodes[x - 1].Location.Y : 0;
+                        lowerbound += MinInternodeDistance;
+
+                        float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].Location.Y : float.MaxValue;
+                        upperbound -= MinInternodeDistance;
+
+                        if (lowerbound >= upperbound)
+                            continue;
+
+                        float optimalY = node.Edges.Average(e => (e.Source == node) ? e.Destination.Location.Y : e.Source.Location.Y);
+
+                        if (optimalY < lowerbound)
+                            optimalY = lowerbound;
+
+                        else if (optimalY > upperbound)
+                            optimalY = upperbound;
+
+                        node.Location.Y = optimalY;
+                    }
+                }
+                // order list of y pos to node
+            }
+            // reset y positions of nodes in rank
+
+            DoRedraw = true;
+            Invalidate();
+        }
+
+        /*internal void Uncross2()
+        {
+            1. minimize cross over
 	            foreach rank
 		            foreach node
 			            foreach edge of node
@@ -276,7 +382,7 @@ namespace XBuilder
 			            set boundary that changed node must be greater than for no cross over
             			
             evaluate change	
-             */
+             
 
             foreach (var rankMap in Groups)
             {
@@ -291,7 +397,7 @@ namespace XBuilder
                     }
                 }
             }
-        }
+        }*/
 
         // evaluate all parent edges of nodes and get total intersections
             // determine where to place to minimize intersections
@@ -337,6 +443,8 @@ namespace XBuilder
 
            return intersections;
         }
+
+
     }
 
     [DebuggerDisplay("ID = {ID}")]
@@ -366,14 +474,14 @@ namespace XBuilder
             group[ID] = this;
 
             foreach (Edge edge in from e in Edges
-                                 where e.Source == this
+                                 where e.Source == this && e.Destination != this
                                  select e)
             {
                 if (parents.Contains(edge.Destination))
                 {
                     edge.Source = edge.Destination;
                     edge.Destination = this;
-                    edge.Reversed = true;
+                    edge.Reversed = !edge.Reversed;
                     continue;
                 }
 
@@ -382,7 +490,7 @@ namespace XBuilder
             }
 
             foreach (Node parent in from e in Edges
-                                    where e.Destination == this
+                                    where e.Destination == this && e.Source != this
                                     select e.Source)
             {
                 if (parent.Rank == null) // dont re-rank higher nodes
@@ -392,7 +500,13 @@ namespace XBuilder
                     parent.Phase1(group, rank - 1, new List<Node>());
                 }
             }
+
+
         }
+
+  
+
+
     }
 
     [DebuggerDisplay("{Source.ID} -> {Destination.ID}")]
@@ -401,7 +515,16 @@ namespace XBuilder
         internal Node Source;
         internal Node Destination;
 
+        internal bool Filler;
         internal bool Reversed;
+    }
+
+    class Graph
+    {
+        internal Dictionary<int, List<Node>> RankMap = new Dictionary<int, List<Node>>();
+
+        internal int Height;
+        internal int Offset;
     }
 
 }

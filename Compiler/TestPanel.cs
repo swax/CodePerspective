@@ -31,7 +31,6 @@ namespace XBuilder
 
         const int MinInternodeDistance = 25;
 
-
         public TestPanel()
         {
             InitializeComponent();
@@ -138,23 +137,30 @@ namespace XBuilder
             Edges = Edges.Where(e => !e.Filler).ToList();
             Edges.ForEach(e => e.Reversed = false);
 
+            // do while still more graph groups to process
             do
             {
-                
+                // group nodes into connected graphs
                 Dictionary<int, Node> group = new Dictionary<int, Node>();
 
+                // add first unranked node to a graph
                 Node node = Nodes.First(n => n.Rank == null);
+                node.Layout(group, 0, new List<Node>(), new List<string>());
 
-                // first figure out ranks
-                node.Phase1(group, 0, new List<Node>());
+                // while group contains unranked nodes
+                while(group.Values.Any(n => n.Rank == null))
+                {
+                    // head node to start traversal
+                    node = group.Values.First(n => n.Rank == null);
 
-                /* get the min rank form the above step, use to offset ranks properly
-                int lowestRank = group.Values.Min(n => n.Rank).Value;
-                int offset = Math.Abs(lowestRank);
-                foreach (var n in group.Values)
-                    n.Rank += offset;*/
+                    // only way node could be in group is if child added it, so there is a minrank
+                    // min rank is 1 back from the lowest ranked child of the node
+                    int? minRank = node.OutboundEdges.Min(e => e.Destination.Rank.HasValue ? e.Destination.Rank : int.MaxValue);
 
-                // normalize ranks (for missing ranks, decrease following node ranks)
+                    node.Layout(group, minRank.Value - 1, new List<Node>(), new List<string>());
+                }
+
+                // normalize ranks so sequential without any missing between
                 int i = -1;
                 int currentRank = int.MinValue;
                 foreach (var n in group.Values.OrderBy(v => v.Rank))
@@ -177,11 +183,7 @@ namespace XBuilder
                                           where e.Source == n
                                           select e)
                     {
-                        if(edge.Source.Rank > edge.Destination.Rank)
-                        {
-                            int p = 0;
-                            p++;
-                        }
+                        Debug.Assert(edge.Source == edge.Destination || edge.Source.Rank < edge.Destination.Rank);
                         
                         // create intermediate nodes
                         if (edge.Destination.Rank.Value > n.Rank.Value + 1)
@@ -191,7 +193,7 @@ namespace XBuilder
                             Edge tempEdge = edge;
                             int nextRank = n.Rank.Value + 1;
                             Node target = edge.Destination ;
-                            edge.Destination = new Node();// CREATE ID??
+                            edge.Destination = new Node(); // used as init for tempNode below
 
                             do
                             {
@@ -212,7 +214,7 @@ namespace XBuilder
                                 tempEdge = new Edge()
                                 {
                                     Source = tempNode,
-                                    Destination = new Node(),// CREATE ID??
+                                    Destination = new Node(), // initd above as tempNode 
                                     Reversed = edge.Reversed,
                                     Filler = true
                                 };
@@ -229,9 +231,12 @@ namespace XBuilder
                     }
                 }
 
+                // add filler nodes to the group
                 filler.ForEach(n => group[n.ID] = n);
               
-                // also at this stage put all nodes into a rank based multi-map
+
+
+                // put all nodes into a rank based multi-map
                 Dictionary<int, List<Node>> rankMap = new Dictionary<int, List<Node>>();
                 Graphs.Add(new Graph() { RankMap = rankMap });
 
@@ -463,68 +468,65 @@ namespace XBuilder
         internal int? Rank;
         internal bool Filler;
 
-        // rank nodes and reverse cycles, ideally start at parent node
-        internal void Phase1(Dictionary<int, Node> group, int rank, List<Node> parents)
+        internal IEnumerable<Edge> OutboundEdges;
+        internal IEnumerable<Edge> InboundEdges;
+
+
+        internal Node()
         {
-            // parents only has nodes if caller is iterating through children
-            if (parents.Contains(this))
-            {
-                Node destination = parents.Single(n => n == this);
-                int destinationRank = destination.Rank.Value;
-                int sourceRank = parents.Last().Rank.Value;
+            InboundEdges = Edges.Where(e => e.Destination == this && e.Source != this);
+            OutboundEdges = Edges.Where(e => e.Source == this && e.Destination != this);
+        }
 
-                // destination rank should be less than source
-                if (destinationRank < sourceRank)
-                {
-                }
-                else
-                {
-                }
-
-                Edge edge = destination.Edges.Single(e => e.Source == parents.Last() &&
-                                                             e.Destination == this);
-
-                edge.Source = edge.Destination;
-                edge.Destination = this;
-                edge.Reversed = !edge.Reversed;
-                return;
-            }
+        // rank nodes and reverse cycles, ideally start at parent node
+        internal void Layout(Dictionary<int, Node> group, int minRank, List<Node> parents, List<string> debugLog)
+        {
+            debugLog.Add(string.Format("Entered Node ID {0} rank {1}", ID, Rank));
 
             // node already ranked correctly, no need to re-rank subordinates
-            if (Rank != null && Rank.Value == rank)
+            if (Rank != null && Rank.Value >= minRank)
                 return;
 
+            int? prevRank = Rank;
 
             // only increase rank
-            if (Rank == null || rank > Rank.Value)
-                Rank = rank;
+            Debug.Assert(Rank == null || minRank > Rank.Value);
+            Rank = minRank;
 
-            
-            // check if rank is larger than children
-            foreach (Edge edge in from e in Edges
-                                  where e.Source == this && e.Destination != this
-                                  select e)
-            {
-                if (edge.Destination.Rank != null &&
-                    edge.Destination.Rank.Value < Rank.Value)
-                {
-                    int p = 0;
-                }
-            }
+            debugLog.Add(string.Format("Node ID {0} rank set from {1} to {2}", ID, prevRank, Rank));
 
             parents.Add(this);
             group[ID] = this;
 
-            foreach (Edge edge in from e in Edges
-                                 where e.Source == this && e.Destination != this
-                                 select e)
+            foreach (Edge edge in OutboundEdges)
             {
-        
+                if (parents.Contains(edge.Destination))
+                {
+                    // destination rank should be less than source
+                    Debug.Assert(edge.Destination.Rank < edge.Source.Rank);
+
+                    debugLog.Add(string.Format("Switching edge {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
+                    
+                    edge.Source = edge.Destination;
+                    edge.Destination = this;
+                    edge.Reversed = !edge.Reversed;
+
+                    continue;
+                }
+
                 // pass copy of parents list so that sub can add elemenets without affecting next iteration
-                edge.Destination.Phase1(group, Rank.Value + 1, parents.ToList());
+                debugLog.Add(string.Format("Traversing to child {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
+                
+                edge.Destination.Layout(group, Rank.Value + 1, parents.ToList(), debugLog);
+                
+                debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
             }
 
-            foreach (Node parent in from e in Edges
+            // record so later group can be traversed for null ranked members so layout can be run on them
+            foreach (Edge edge in InboundEdges)
+                group[edge.Source.ID] = edge.Source;
+
+            /*foreach (Node parent in from e in Edges
                                     where e.Destination == this && e.Source != this
                                     select e.Source)
             {
@@ -549,17 +551,21 @@ namespace XBuilder
                         Debug.Assert(false);
                     }
 
+                    //parent.Rank = min - 1;
+
                     // pass copy of parents list so that sub can add elemenets without affecting next iteration
-                    parent.Phase1(group, min - 1, new List<Node>());
+                    debugLog.Add(string.Format("Traversing to parent  {0} -> {1}, rank {2} -> {3}", ID, parent.ID, Rank, parent.Rank));
+                    parent.Layout(group, min - 1, new List<Node>(), debugLog);
+                    debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
                 }
-            }
+            }*/
 
-
+            debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
   
 
-
+        
     }
 
     [DebuggerDisplay("{Source.ID} -> {Destination.ID}")]

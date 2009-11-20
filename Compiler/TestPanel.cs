@@ -177,6 +177,12 @@ namespace XBuilder
                                           where e.Source == n
                                           select e)
                     {
+                        if(edge.Source.Rank > edge.Destination.Rank)
+                        {
+                            int p = 0;
+                            p++;
+                        }
+                        
                         // create intermediate nodes
                         if (edge.Destination.Rank.Value > n.Rank.Value + 1)
                         {
@@ -207,6 +213,7 @@ namespace XBuilder
                                 {
                                     Source = tempNode,
                                     Destination = new Node(),// CREATE ID??
+                                    Reversed = edge.Reversed,
                                     Filler = true
                                 };
 
@@ -447,7 +454,7 @@ namespace XBuilder
 
     }
 
-    [DebuggerDisplay("ID = {ID}")]
+    [DebuggerDisplay("ID = {ID}, Rank = {Rank}")]
     class Node
     {
         internal int ID;
@@ -459,16 +466,51 @@ namespace XBuilder
         // rank nodes and reverse cycles, ideally start at parent node
         internal void Phase1(Dictionary<int, Node> group, int rank, List<Node> parents)
         {
+            // parents only has nodes if caller is iterating through children
+            if (parents.Contains(this))
+            {
+                Node destination = parents.Single(n => n == this);
+                int destinationRank = destination.Rank.Value;
+                int sourceRank = parents.Last().Rank.Value;
+
+                // destination rank should be less than source
+                if (destinationRank < sourceRank)
+                {
+                }
+                else
+                {
+                }
+
+                Edge edge = destination.Edges.Single(e => e.Source == parents.Last() &&
+                                                             e.Destination == this);
+
+                edge.Source = edge.Destination;
+                edge.Destination = this;
+                edge.Reversed = !edge.Reversed;
+                return;
+            }
 
             // node already ranked correctly, no need to re-rank subordinates
             if (Rank != null && Rank.Value == rank)
                 return;
-            
+
+
             // only increase rank
             if (Rank == null || rank > Rank.Value)
                 Rank = rank;
 
             
+            // check if rank is larger than children
+            foreach (Edge edge in from e in Edges
+                                  where e.Source == this && e.Destination != this
+                                  select e)
+            {
+                if (edge.Destination.Rank != null &&
+                    edge.Destination.Rank.Value < Rank.Value)
+                {
+                    int p = 0;
+                }
+            }
 
             parents.Add(this);
             group[ID] = this;
@@ -477,16 +519,9 @@ namespace XBuilder
                                  where e.Source == this && e.Destination != this
                                  select e)
             {
-                if (parents.Contains(edge.Destination))
-                {
-                    edge.Source = edge.Destination;
-                    edge.Destination = this;
-                    edge.Reversed = !edge.Reversed;
-                    continue;
-                }
-
+        
                 // pass copy of parents list so that sub can add elemenets without affecting next iteration
-                edge.Destination.Phase1(group, rank + 1, parents.ToList());
+                edge.Destination.Phase1(group, Rank.Value + 1, parents.ToList());
             }
 
             foreach (Node parent in from e in Edges
@@ -496,8 +531,26 @@ namespace XBuilder
                 if (parent.Rank == null) // dont re-rank higher nodes
                 {
 
+                    int min = int.MaxValue;
+
+                    foreach (int value in from e in parent.Edges
+                                          where e.Source == parent &&
+                                                e.Destination != parent &&
+                                                e.Destination.Rank != null
+                                          select e.Destination.Rank.Value)
+                    {
+                        if (value < min)
+                            min = value;
+                    }
+
+                    if (min == int.MaxValue)
+                    {
+                        // should not happen cause caller (child) should have rank
+                        Debug.Assert(false);
+                    }
+
                     // pass copy of parents list so that sub can add elemenets without affecting next iteration
-                    parent.Phase1(group, rank - 1, new List<Node>());
+                    parent.Phase1(group, min - 1, new List<Node>());
                 }
             }
 

@@ -21,10 +21,41 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 
 
+button to add 5 random nodes, re-run layout
+	if node has parents
+		set rank to 1 + max parent rank
+	else if node has children
+		set rank of newly added node to 1 - min child
+	
+	re-run insert intermedite nodes
+	uncross
+	min distance
+	
+give nodes random sizes that add up to x% of total area
+	layout / uncross works the same
+	min distance works similarly , but takes node size into account when figuring min distance between nodes
+
 BUG: A -> B, B -> A, temp node should be created so loop can be seen
 
+call graph layout - transition
+	size all called nodes into graph
+	show lines forwards as red, backwards as blue
+	moving dashed blue line for active calls
+	
+	real time show only recently called nodes in graph, can experiment with graphing
+		need to be actively drawing
+		with other system, only new call paths need to spark an update
+		
+	definitely need some stats to show
+		re-calcs/sec,   re-calc time
+		re-size/sec,  re-size time
+		re-draw/sec, re-draw time
+		ability in interface to speedup/slowdown update speed
 
+	anyway to group like nodes/classes/namespaces in graph??
+		probably work better for a elastic call graph and give related functions gravity
 
+	call graph would work well for internal function view as well
 
 
 flow through entire list of children first

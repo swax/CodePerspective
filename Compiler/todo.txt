@@ -20,6 +20,7 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 
 
+call lines will later come from sub part of function that is calling, in left to right call graph
 
 button to add 5 random nodes, re-run layout
 	if node has parents
@@ -30,6 +31,11 @@ button to add 5 random nodes, re-run layout
 	re-run insert intermedite nodes
 	uncross
 	min distance
+	
+	how to know if x axis ranks intersect
+	
+	** new edges could also be added, 
+		just need to make sure graph is re-drawn in same order everytime
 	
 give nodes random sizes that add up to x% of total area
 	layout / uncross works the same

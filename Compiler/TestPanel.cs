@@ -21,6 +21,8 @@ namespace XBuilder
         List<Graph> Graphs = new List<Graph>();
 
         SolidBrush NodeBrush = new SolidBrush(Color.Black);
+        Pen NodePen = new Pen(Color.Black);
+
         SolidBrush TempBrush = new SolidBrush(Color.LimeGreen);
         Pen SourcePen = new Pen(Color.Red);
         Pen DestPen = new Pen(Color.Blue);
@@ -29,7 +31,11 @@ namespace XBuilder
         Random RndGen = new Random();
         int NextID = 1;
 
+        bool CallGraphOn;
+
+
         const int MinInternodeDistance = 25;
+
 
         public TestPanel()
         {
@@ -41,15 +47,22 @@ namespace XBuilder
 
         }
 
-        internal void ResetText(int nodeCount, int edgeCount)
+        internal void Reset(int nodeCount, int edgeCount, int weightMax)
         {
+            CallGraphOn = false;
+
             Nodes.Clear();
             Edges.Clear();
             
             NextID = 1;
 
             for (int i = 0; i < nodeCount; i++)
-                Nodes.Add(new Node() { ID = NextID++, Location = new PointF(RndGen.Next(Width), RndGen.Next(Height)) });
+                Nodes.Add(new Node()
+                {
+                    ID = NextID++,
+                    Weight = RndGen.Next(weightMax),
+                    Location = new PointF(RndGen.Next(Width), RndGen.Next(Height))
+                });
 
             for (int i = 0; i < edgeCount; i++)
             {
@@ -68,9 +81,13 @@ namespace XBuilder
                 edge.Destination.Edges.Add(edge);
             }
 
+            DoResize = true;
             DoRedraw = true;
             Invalidate();
         }
+
+        double Reduce = 0.5;
+
 
         private void TestPanel_Paint(object sender, PaintEventArgs e)
         {
@@ -89,7 +106,35 @@ namespace XBuilder
 
             buffer.Clear(Color.White);
 
- 
+            if (DoResize)
+            {
+
+                if (CallGraphOn)
+                    Relayout();
+                else
+                {
+                    double totalWeight = Nodes.Sum(n => n.Weight);
+                    double totalArea = Width * Height;
+
+                    double weightToPix = totalArea / totalWeight * Reduce;
+
+                    Nodes.ForEach(n =>
+                    {
+                        n.Height = (int)Math.Sqrt(n.Weight * weightToPix);
+                    });
+
+                }
+
+            }
+
+            
+            Nodes.ForEach(n =>
+            {
+                float half = n.Height / 2;
+                buffer.DrawRectangle(NodePen, n.Location.X - half, n.Location.Y - half, n.Height, n.Height);
+
+                buffer.FillEllipse(n.Filler ? TempBrush : NodeBrush, n.Location.X - 5, n.Location.Y - 5, 10, 10);
+            });
 
             Edges.ForEach(e2 =>
             {
@@ -102,10 +147,7 @@ namespace XBuilder
             });
 
 
-            Nodes.ForEach(n =>
-            {
-                buffer.FillEllipse(n.Filler ? TempBrush : NodeBrush, n.Location.X - 5, n.Location.Y - 5, 10, 10);
-            });
+    
 
 
 
@@ -128,6 +170,15 @@ namespace XBuilder
         }
 
         internal void LayoutGraph()
+        {
+            CallGraphOn = true;
+
+            DoResize = true;
+
+            Invalidate();
+        }
+
+        internal void Relayout()
         {
             Graphs.Clear();
 
@@ -252,16 +303,39 @@ namespace XBuilder
             } while (Nodes.Any(n => n.Rank == null));
 
 
+            //
+            double totalWeight = Nodes.Sum(n => n.Weight);
+            double totalArea = Width * Height;
+
             int groupOffset = 0;
-            int total = Graphs.Sum(g => g.RankMap.Values.Sum(l => l.Count));
 
-            // give each group a height proportional to their contents
+            double weightToPix = totalArea / totalWeight;
+            Nodes.ForEach(n => n.Height = (float)Math.Sqrt(n.Weight * weightToPix));
 
-            foreach (var graph in Graphs)
+            // sum the heights of the biggest ranks of each graph
+            float[] maxRankHeights = Graphs.Select(g => g.RankMap.Values.Max(rank => rank.Sum(n => n.Height))).ToArray();
+            float stackHeight = maxRankHeights.Sum();
+
+            float reduce = Height / stackHeight / 2;
+
+            // check x axis reduce, and if less use that one
+            // do for all graphs at once so proportions stay the same
+
+
+            Nodes.ForEach(n => n.Height *= reduce);
+
+
+            // give each group a height proportional to their contents height
+
+            for(int i = 0; i < Graphs.Count; i++)
             {
+                var graph = Graphs[i];
+
+              
+
                 var rankMap = graph.RankMap;
 
-                graph.Height = Height * rankMap.Values.Sum(l => l.Count) / total;
+                graph.Height = (int)((float)Height * maxRankHeights[i] / stackHeight);
                 graph.Offset = groupOffset;
 
                 int spaceX = Width / (rankMap.Count + 1);
@@ -372,99 +446,26 @@ namespace XBuilder
             Invalidate();
         }
 
-        /*internal void Uncross2()
+        internal void AddNodes(int count)
         {
-            1. minimize cross over
-	            foreach rank
-		            foreach node
-			            foreach edge of node
-				            if edge intersections > 0
-					            count intersections of all target nodes edges
-						            try inserting lower rankd node to different positions (random, closest to source, use intersection information to form boundaries)
-							            count again intersections of target node
-								            keep lowest
-            					
-            find intersections for edge source y1 to dest y2
-
-            foreach node in source rank that is not connected to the edge
-	            for each edge of that source node
-		            if y of source of source node is < y of eval node AND
-		            y of dest node > y of eval dest node
-			            increase cross over
-			            set boundary that changed node must be greater than for no cross over
-            			
-            evaluate change	
-             
-
-            foreach (var rankMap in Groups)
+            for (int i = 0; i < count; i++)
             {
-                foreach (int rank in rankMap.Keys.OrderBy(k => k))
-                {
-                    foreach (var node in rankMap[rank])
-                    {
-                        foreach (var edge in node.Edges.Where(e => e.Source == node))
-                        {
-                            int count = GetIntersections(edge, rankMap[rank]);
-                        }
-                    }
-                }
+                Node x = new Node() { ID = NextID++ };
+
+                // connect to random
             }
-        }*/
-
-        // evaluate all parent edges of nodes and get total intersections
-            // determine where to place to minimize intersections
-                // maybe do interactively while laying out rank
-
-        private int GetIntersections(Edge testEdge, List<Node> sourcePeers)
-        {
-            int intersections = 0;
-            float lowerbound = 0;
-            float upperbound = float.MaxValue;
-
-
-            // for each peer to the source node we're testing (source's own edges dont cross)
-            foreach(var peer in sourcePeers.Where(sp => sp != testEdge.Source))
-                // test if peer edge crosses test edge
-                foreach (var peerEdge in peer.Edges.Where(e => e.Source == peer))
-                {
-                    if (peer.Location.Y < testEdge.Source.Location.Y &&
-                        peerEdge.Destination.Location.Y > testEdge.Destination.Location.Y)
-                    {
-                        intersections++;
-
-                        if (peerEdge.Destination.Location.Y > lowerbound)
-                            lowerbound = peerEdge.Destination.Location.Y;
-                    }
-
-                    else if (peer.Location.Y > testEdge.Source.Location.Y &&
-                             peerEdge.Destination.Location.Y < testEdge.Destination.Location.Y)
-                    {
-                        intersections++;
-
-                        if(peerEdge.Destination.Location.Y < upperbound)
-                            upperbound = peerEdge.Destination.Location.Y;
-                    }
-                }
-
-            if (lowerbound < upperbound)
-            {
-                // use rank instead of y values
-                // there is a clear position node can be be moved between
-            }
-
-
-           return intersections;
         }
-
-
     }
 
     [DebuggerDisplay("ID = {ID}, Rank = {Rank}")]
     class Node
     {
         internal int ID;
+        internal int Weight;
         internal List<Edge> Edges = new List<Edge>();
+
         internal PointF Location;
+        internal float Height;
         internal int? Rank;
         internal bool Filler;
 

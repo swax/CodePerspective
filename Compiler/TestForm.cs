@@ -21,7 +21,7 @@ namespace XBuilder
         {
             try
             {
-                testPanel1.ResetText(int.Parse(NodesBox.Text), int.Parse(EdgesBox.Text));
+                testPanel1.Reset(int.Parse(NodesBox.Text), int.Parse(EdgesBox.Text), int.Parse(WeightBox.Text));
             }
             catch
             {
@@ -46,8 +46,8 @@ namespace XBuilder
         private void AutoButton_Click(object sender, EventArgs e)
         {
             testPanel1.LayoutGraph();
-            
-            for(int i = 0; i < 7; i++)
+
+            for (int i = 0; i < 7; i++)
                 testPanel1.Uncross();
 
             for (int i = 0; i < 7; i++)

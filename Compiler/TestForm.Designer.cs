@@ -36,8 +36,10 @@
             this.LayoutButton = new System.Windows.Forms.Button();
             this.UncrossButton = new System.Windows.Forms.Button();
             this.MinDistButton = new System.Windows.Forms.Button();
-            this.testPanel1 = new XBuilder.TestPanel();
             this.AutoButton = new System.Windows.Forms.Button();
+            this.testPanel1 = new XBuilder.TestPanel();
+            this.WeightBox = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -84,7 +86,7 @@
             // 
             // LayoutButton
             // 
-            this.LayoutButton.Location = new System.Drawing.Point(344, 13);
+            this.LayoutButton.Location = new System.Drawing.Point(263, 42);
             this.LayoutButton.Name = "LayoutButton";
             this.LayoutButton.Size = new System.Drawing.Size(75, 23);
             this.LayoutButton.TabIndex = 8;
@@ -94,7 +96,7 @@
             // 
             // UncrossButton
             // 
-            this.UncrossButton.Location = new System.Drawing.Point(425, 12);
+            this.UncrossButton.Location = new System.Drawing.Point(344, 41);
             this.UncrossButton.Name = "UncrossButton";
             this.UncrossButton.Size = new System.Drawing.Size(75, 23);
             this.UncrossButton.TabIndex = 9;
@@ -104,7 +106,7 @@
             // 
             // MinDistButton
             // 
-            this.MinDistButton.Location = new System.Drawing.Point(506, 12);
+            this.MinDistButton.Location = new System.Drawing.Point(425, 41);
             this.MinDistButton.Name = "MinDistButton";
             this.MinDistButton.Size = new System.Drawing.Size(75, 23);
             this.MinDistButton.TabIndex = 10;
@@ -112,19 +114,9 @@
             this.MinDistButton.UseVisualStyleBackColor = true;
             this.MinDistButton.Click += new System.EventHandler(this.MinDistButton_Click);
             // 
-            // testPanel1
-            // 
-            this.testPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.testPanel1.Location = new System.Drawing.Point(12, 41);
-            this.testPanel1.Name = "testPanel1";
-            this.testPanel1.Size = new System.Drawing.Size(656, 296);
-            this.testPanel1.TabIndex = 7;
-            // 
             // AutoButton
             // 
-            this.AutoButton.Location = new System.Drawing.Point(587, 12);
+            this.AutoButton.Location = new System.Drawing.Point(344, 13);
             this.AutoButton.Name = "AutoButton";
             this.AutoButton.Size = new System.Drawing.Size(75, 23);
             this.AutoButton.TabIndex = 11;
@@ -132,11 +124,39 @@
             this.AutoButton.UseVisualStyleBackColor = true;
             this.AutoButton.Click += new System.EventHandler(this.AutoButton_Click);
             // 
+            // testPanel1
+            // 
+            this.testPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.testPanel1.Location = new System.Drawing.Point(12, 86);
+            this.testPanel1.Name = "testPanel1";
+            this.testPanel1.Size = new System.Drawing.Size(775, 375);
+            this.testPanel1.TabIndex = 7;
+            // 
+            // WeightBox
+            // 
+            this.WeightBox.Location = new System.Drawing.Point(176, 43);
+            this.WeightBox.Name = "WeightBox";
+            this.WeightBox.Size = new System.Drawing.Size(68, 20);
+            this.WeightBox.TabIndex = 15;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(106, 46);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(64, 13);
+            this.label3.TabIndex = 14;
+            this.label3.Text = "Weight Max";
+            // 
             // TestForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(680, 349);
+            this.ClientSize = new System.Drawing.Size(799, 473);
+            this.Controls.Add(this.WeightBox);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.AutoButton);
             this.Controls.Add(this.MinDistButton);
             this.Controls.Add(this.UncrossButton);
@@ -166,6 +186,8 @@
         private System.Windows.Forms.Button UncrossButton;
         private System.Windows.Forms.Button MinDistButton;
         private System.Windows.Forms.Button AutoButton;
+        private System.Windows.Forms.TextBox WeightBox;
+        private System.Windows.Forms.Label label3;
 
     }
 }

@@ -118,11 +118,7 @@ namespace XBuilder
 
                     double weightToPix = totalArea / totalWeight * Reduce;
 
-                    Nodes.ForEach(n =>
-                    {
-                        n.Height = (int)Math.Sqrt(n.Weight * weightToPix);
-                    });
-
+                    Nodes.ForEach(n => n.Size = (int)Math.Sqrt(n.Weight * weightToPix));
                 }
 
             }
@@ -130,8 +126,8 @@ namespace XBuilder
             
             Nodes.ForEach(n =>
             {
-                float half = n.Height / 2;
-                buffer.DrawRectangle(NodePen, n.Location.X - half, n.Location.Y - half, n.Height, n.Height);
+                float half = n.Size / 2;
+                buffer.DrawRectangle(NodePen, n.Location.X - half, n.Location.Y - half, n.Size, n.Size);
 
                 buffer.FillEllipse(n.Filler ? TempBrush : NodeBrush, n.Location.X - 5, n.Location.Y - 5, 10, 10);
             });
@@ -310,42 +306,49 @@ namespace XBuilder
             int groupOffset = 0;
 
             double weightToPix = totalArea / totalWeight;
-            Nodes.ForEach(n => n.Height = (float)Math.Sqrt(n.Weight * weightToPix));
+            Nodes.ForEach(n => n.Size = (float)Math.Sqrt(n.Weight * weightToPix));
 
             // sum the heights of the biggest ranks of each graph
-            float[] maxRankHeights = Graphs.Select(g => g.RankMap.Values.Max(rank => rank.Sum(n => n.Height))).ToArray();
+            float[] maxRankHeights = Graphs.Select(g => g.RankMap.Values.Max(rank => rank.Sum(n => n.Size))).ToArray();
             float stackHeight = maxRankHeights.Sum();
 
-            float reduce = Height / stackHeight / 2;
+            float heightReduce = Height / stackHeight;
 
             // check x axis reduce, and if less use that one
             // do for all graphs at once so proportions stay the same
 
+            // find graph with max width, buy summing max node in each rank
+            float[] maxRankWidths = Graphs.Select(g => g.RankMap.Values.Sum(rank => rank.Max(n => n.Size))).ToArray();
 
-            Nodes.ForEach(n => n.Height *= reduce);
+            float widthReduce = Width / maxRankWidths.Max(); ;
+
+            float reduce = Math.Min(heightReduce, widthReduce) / 1;
+
+            Nodes.ForEach(n => n.Size *= reduce);
 
 
-            // give each group a height proportional to their contents height
+            // give each group a height proportional to their max rank height
 
             for(int i = 0; i < Graphs.Count; i++)
             {
                 var graph = Graphs[i];
-
-              
 
                 var rankMap = graph.RankMap;
 
                 graph.Height = (int)((float)Height * maxRankHeights[i] / stackHeight);
                 graph.Offset = groupOffset;
 
-                int spaceX = Width / (rankMap.Count + 1);
-                int xOffset = spaceX;
+                float freespace = Width - maxRankWidths[i] * reduce;
+
+                float spaceX = freespace / (rankMap.Count + 1);
+                float xOffset = spaceX;
 
                 foreach (int rank in rankMap.Keys.OrderBy(k => k))
                 {
-                    PositionRank(graph,rankMap[rank],  xOffset);
+                    List<Node> nodes = rankMap[rank];
+                    PositionRank(graph, nodes,  xOffset);
 
-                    xOffset += spaceX;
+                    xOffset += nodes.Max(n => n.Size) + spaceX;
                 }
 
                 groupOffset += graph.Height;
@@ -357,8 +360,12 @@ namespace XBuilder
 
         private static void PositionRank(Graph graph, List<Node> nodes, float xOffset)
         {
-            int spaceY = graph.Height / (nodes.Count + 1);
-            int yOffset = spaceY;
+            float totalHeight = nodes.Sum(n => n.Size);
+
+            float freespace = graph.Height - totalHeight;
+
+            float spaceY = freespace / (nodes.Count + 1); // space between each block
+            float yOffset = spaceY;
 
 
             foreach (var node in nodes)
@@ -366,7 +373,7 @@ namespace XBuilder
                 node.Location.X = xOffset;
                 node.Location.Y = graph.Offset + yOffset;
 
-                yOffset += spaceY;
+                yOffset += node.Size + spaceY;
             }
         }
 
@@ -465,7 +472,7 @@ namespace XBuilder
         internal List<Edge> Edges = new List<Edge>();
 
         internal PointF Location;
-        internal float Height;
+        internal float Size; // width and height
         internal int? Rank;
         internal bool Filler;
 

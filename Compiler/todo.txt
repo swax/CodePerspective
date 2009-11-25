@@ -20,6 +20,20 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 
 
+
+save node location as percent and init redraw with that so min dist doesnt need to be called
+
+
+
+
+
+view
+   show scope of call graph
+   show options - showing calls from outside of scope- (outside icon)
+				  showing calls external to scope - (show external icon)
+				  could label as calls to/from xrayed/non xrayed code
+
+
 call lines will later come from sub part of function that is calling, in left to right call graph
 
 button to add 5 random nodes, re-run layout

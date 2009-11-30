@@ -33,6 +33,16 @@
             this.SelectedLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.LayoutMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.SizesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ConstantMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MethodSizeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TimeInMethodMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SizeHitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TimePerHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.layoutToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.TreeMapMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CallGraphMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowAllHitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ShowHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -46,15 +56,6 @@
             this.ViewExternalMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
-            this.layoutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SizesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ConstantMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.MethodSizeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.TimeInMethodMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SizeHitsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.TimePerHitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.TreeMapMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CallGraphMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BottomStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -84,7 +85,7 @@
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.layoutToolStripMenuItem,
+            this.LayoutMenu,
             this.HitsMenuItem,
             this.callsToolStripMenuItem,
             this.ViewMenuItem,
@@ -94,6 +95,86 @@
             this.menuStrip1.Size = new System.Drawing.Size(292, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
+            // 
+            // LayoutMenu
+            // 
+            this.LayoutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.layoutToolStripMenuItem1,
+            this.SizesMenuItem});
+            this.LayoutMenu.Name = "LayoutMenu";
+            this.LayoutMenu.Size = new System.Drawing.Size(52, 20);
+            this.LayoutMenu.Text = "Layout";
+            this.LayoutMenu.DropDownOpening += new System.EventHandler(this.LayoutMenu_DropDownOpening);
+            // 
+            // SizesMenuItem
+            // 
+            this.SizesMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ConstantMenuItem,
+            this.MethodSizeMenuItem,
+            this.TimeInMethodMenuItem,
+            this.SizeHitsMenuItem,
+            this.TimePerHitMenuItem});
+            this.SizesMenuItem.Name = "SizesMenuItem";
+            this.SizesMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.SizesMenuItem.Text = "Sizes";
+            // 
+            // ConstantMenuItem
+            // 
+            this.ConstantMenuItem.Name = "ConstantMenuItem";
+            this.ConstantMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.ConstantMenuItem.Text = "Constant";
+            this.ConstantMenuItem.Click += new System.EventHandler(this.ConstantMenuItem_Click);
+            // 
+            // MethodSizeMenuItem
+            // 
+            this.MethodSizeMenuItem.Name = "MethodSizeMenuItem";
+            this.MethodSizeMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.MethodSizeMenuItem.Text = "Method Size";
+            this.MethodSizeMenuItem.Click += new System.EventHandler(this.MethodSizeMenuItem_Click);
+            // 
+            // TimeInMethodMenuItem
+            // 
+            this.TimeInMethodMenuItem.Name = "TimeInMethodMenuItem";
+            this.TimeInMethodMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.TimeInMethodMenuItem.Text = "Time in Method";
+            this.TimeInMethodMenuItem.Click += new System.EventHandler(this.TimeInMethodMenuItem_Click);
+            // 
+            // SizeHitsMenuItem
+            // 
+            this.SizeHitsMenuItem.Name = "SizeHitsMenuItem";
+            this.SizeHitsMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.SizeHitsMenuItem.Text = "Hits";
+            this.SizeHitsMenuItem.Click += new System.EventHandler(this.SizeHitsMenuItem_Click);
+            // 
+            // TimePerHitMenuItem
+            // 
+            this.TimePerHitMenuItem.Name = "TimePerHitMenuItem";
+            this.TimePerHitMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.TimePerHitMenuItem.Text = "Time per Hit";
+            this.TimePerHitMenuItem.Click += new System.EventHandler(this.TimePerHitMenuItem_Click);
+            // 
+            // layoutToolStripMenuItem1
+            // 
+            this.layoutToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.TreeMapMenuItem,
+            this.CallGraphMenuItem});
+            this.layoutToolStripMenuItem1.Name = "layoutToolStripMenuItem1";
+            this.layoutToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.layoutToolStripMenuItem1.Text = "Layout";
+            // 
+            // TreeMapMenuItem
+            // 
+            this.TreeMapMenuItem.Name = "TreeMapMenuItem";
+            this.TreeMapMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.TreeMapMenuItem.Text = "TreeMap";
+            this.TreeMapMenuItem.Click += new System.EventHandler(this.TreeMapMenuItem_Click);
+            // 
+            // CallGraphMenuItem
+            // 
+            this.CallGraphMenuItem.Name = "CallGraphMenuItem";
+            this.CallGraphMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.CallGraphMenuItem.Text = "Call Graph";
+            this.CallGraphMenuItem.Click += new System.EventHandler(this.CallGraphMenuItem_Click);
             // 
             // HitsMenuItem
             // 
@@ -173,16 +254,16 @@
             // 
             this.ViewOutsideMenuItem.CheckOnClick = true;
             this.ViewOutsideMenuItem.Name = "ViewOutsideMenuItem";
-            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(125, 22);
-            this.ViewOutsideMenuItem.Text = "Outside";
+            this.ViewOutsideMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewOutsideMenuItem.Text = "Outside zoom";
             this.ViewOutsideMenuItem.Click += new System.EventHandler(this.ViewOutsideMenuItem_Click);
             // 
             // ViewExternalMenuItem
             // 
             this.ViewExternalMenuItem.CheckOnClick = true;
             this.ViewExternalMenuItem.Name = "ViewExternalMenuItem";
-            this.ViewExternalMenuItem.Size = new System.Drawing.Size(125, 22);
-            this.ViewExternalMenuItem.Text = "External";
+            this.ViewExternalMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ViewExternalMenuItem.Text = "Not XRayed";
             this.ViewExternalMenuItem.Click += new System.EventHandler(this.ViewExternalMenuItem_Click);
             // 
             // DebugMenuItem
@@ -201,76 +282,6 @@
             this.ViewHostPanel.Name = "ViewHostPanel";
             this.ViewHostPanel.Size = new System.Drawing.Size(292, 222);
             this.ViewHostPanel.TabIndex = 3;
-            // 
-            // layoutToolStripMenuItem
-            // 
-            this.layoutToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.TreeMapMenuItem,
-            this.CallGraphMenuItem,
-            this.SizesMenuItem});
-            this.layoutToolStripMenuItem.Name = "layoutToolStripMenuItem";
-            this.layoutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
-            this.layoutToolStripMenuItem.Text = "Layout";
-            // 
-            // SizesMenuItem
-            // 
-            this.SizesMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ConstantMenuItem,
-            this.MethodSizeMenuItem,
-            this.TimeInMethodMenuItem,
-            this.SizeHitsMenuItem,
-            this.TimePerHitMenuItem});
-            this.SizesMenuItem.Name = "SizesMenuItem";
-            this.SizesMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.SizesMenuItem.Text = "Sizes";
-            this.SizesMenuItem.DropDownOpening += new System.EventHandler(this.SizesMenuItem_DropDownOpening);
-            // 
-            // ConstantMenuItem
-            // 
-            this.ConstantMenuItem.Name = "ConstantMenuItem";
-            this.ConstantMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.ConstantMenuItem.Text = "Constant";
-            this.ConstantMenuItem.Click += new System.EventHandler(this.ConstantMenuItem_Click);
-            // 
-            // MethodSizeMenuItem
-            // 
-            this.MethodSizeMenuItem.Name = "MethodSizeMenuItem";
-            this.MethodSizeMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.MethodSizeMenuItem.Text = "Method Size";
-            this.MethodSizeMenuItem.Click += new System.EventHandler(this.MethodSizeMenuItem_Click);
-            // 
-            // TimeInMethodMenuItem
-            // 
-            this.TimeInMethodMenuItem.Name = "TimeInMethodMenuItem";
-            this.TimeInMethodMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.TimeInMethodMenuItem.Text = "Time in Method";
-            this.TimeInMethodMenuItem.Click += new System.EventHandler(this.TimeInMethodMenuItem_Click);
-            // 
-            // SizeHitsMenuItem
-            // 
-            this.SizeHitsMenuItem.Name = "SizeHitsMenuItem";
-            this.SizeHitsMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.SizeHitsMenuItem.Text = "Hits";
-            this.SizeHitsMenuItem.Click += new System.EventHandler(this.SizeHitsMenuItem_Click);
-            // 
-            // TimePerHitMenuItem
-            // 
-            this.TimePerHitMenuItem.Name = "TimePerHitMenuItem";
-            this.TimePerHitMenuItem.Size = new System.Drawing.Size(157, 22);
-            this.TimePerHitMenuItem.Text = "Time per Hit";
-            this.TimePerHitMenuItem.Click += new System.EventHandler(this.TimePerHitMenuItem_Click);
-            // 
-            // TreeMapMenuItem
-            // 
-            this.TreeMapMenuItem.Name = "TreeMapMenuItem";
-            this.TreeMapMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.TreeMapMenuItem.Text = "TreeMap";
-            // 
-            // CallGraphMenuItem
-            // 
-            this.CallGraphMenuItem.Name = "CallGraphMenuItem";
-            this.CallGraphMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.CallGraphMenuItem.Text = "Call Graph";
             // 
             // MainForm
             // 
@@ -311,13 +322,14 @@
         private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.ToolStripMenuItem ShowUnhitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ShowAllHitsMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem layoutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem LayoutMenu;
         private System.Windows.Forms.ToolStripMenuItem SizesMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ConstantMenuItem;
         private System.Windows.Forms.ToolStripMenuItem MethodSizeMenuItem;
         private System.Windows.Forms.ToolStripMenuItem TimeInMethodMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SizeHitsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem TimePerHitMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem layoutToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem TreeMapMenuItem;
         private System.Windows.Forms.ToolStripMenuItem CallGraphMenuItem;
     }

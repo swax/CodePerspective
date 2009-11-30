@@ -12,6 +12,7 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
+    public enum LayoutType { TreeMap, CallGraph }
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
     public enum HitLayouts { All, Hit, Unhit }
 
@@ -31,6 +32,7 @@ namespace XLibrary
 
         bool ShowGraph = false ;
 
+        internal LayoutType ViewLayout = LayoutType.TreeMap;
         internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         internal HitLayouts HitLayout = HitLayouts.All;
         
@@ -219,51 +221,10 @@ namespace XLibrary
             ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
             ShowingExternal = ShowExternal && !CurrentRoot.External;
 
-            if (DoResize)
-            {
-                int offset = 0;
-                int centerWidth = Width;
-
-                PositionMap.Clear();
-                CenterMap.Clear();
-
-                if (ShowingOutside)
-                {
-                    offset = Width * 1 / 4;
-                    centerWidth -= offset;
-
-                    InternalRoot.SetArea(new RectangleD(0, 0, offset - BorderWidth, Height));
-                    PositionMap[InternalRoot.ID] = InternalRoot;
-                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
-                }
-                if (ShowingExternal)
-                {
-                    int extWidth = Width * 1 / 4;
-                    centerWidth -= extWidth;
-
-                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth + BorderWidth, 0, extWidth - BorderWidth, Height));
-                    PositionMap[ExternalRoot.ID] = ExternalRoot;
-                    SizeNode(buffer, ExternalRoot, null, false);
-                }
-
-                CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
-                PositionMap[CurrentRoot.ID] = CurrentRoot;
-                SizeNode(buffer, CurrentRoot, null, true);
-            }
-
-            if (ShowingOutside)
-            {
-                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
-                DrawNode(buffer, InternalRoot, 0);
-            }
-
-            if (ShowingExternal)
-            {
-                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
-                DrawNode(buffer, ExternalRoot, 0);
-            }
-
-            DrawNode(buffer, CurrentRoot, 0);
+            if (ViewLayout == LayoutType.TreeMap)
+                DrawTreeMap(buffer);
+            else if (ViewLayout == LayoutType.CallGraph)
+                DrawCallGraph(buffer);
 
             // draw ignored over nodes ignored may contain
             foreach (XNodeIn ignored in IgnoredNodes.Values)
@@ -290,14 +251,12 @@ namespace XLibrary
                     XNodeIn destination = PositionMap[call.Destination];
 
                     // if there are items we're filtering on then only show calls to those nodes
-                    if (SelectedNodes.Count > 0)
-                        if (!IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
-                            continue;
+                    if (SelectedNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
+                        continue;
 
                     // do after select filter so we can have ignored nodes inside selected, but not the otherway around
-                    if (IgnoredNodes.Count > 0)
-                        if (IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
-                            continue;
+                    if (IgnoredNodes.Count > 0 && IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
+                        continue;
 
                     if (call.StillInside > 0 && ShowCalls)
                         buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF);
@@ -383,6 +342,368 @@ namespace XLibrary
 
             DoRedraw = false;
             DoResize = false;
+        }
+
+        private void DrawCallGraph(Graphics buffer)
+        {
+            if (DoResize)
+            {
+                PositionMap.Clear();
+                CenterMap.Clear();
+
+                // iternate nodes at this zoom level
+                AddCalledNodes(CurrentRoot, true);
+                    
+                if(ShowOutside)
+                    AddCalledNodes(InternalRoot, false);
+
+                if (ShowExternal)
+                    AddCalledNodes(ExternalRoot, false);
+
+                // todo need way to identify ext/outside nodes graphically
+
+                // todo addition to in/out bound call list triggers resize
+
+                if (PositionMap.Count == 0)
+                    return;
+
+                // group nodes in position map into graphs
+                foreach(XNodeIn node in PositionMap.Values)
+                    node.Rank = null;
+                
+                do
+                {
+                    // group nodes into connected graphs
+                    Dictionary<int, XNodeIn> graph = new Dictionary<int, XNodeIn>();
+
+                    // add first unranked node to a graph
+                    XNodeIn node = PositionMap.Values.First(n => n.Rank == null);
+
+                    LayoutGraph(graph, node, 0, new List<int>());
+
+                    // while group contains unranked nodes
+                    while (graph.Values.Any(n => n.Rank == null))
+                    {
+                        // head node to start traversal
+                        node = graph.Values.First(n => n.Rank == null);
+
+                        // only way node could be in group is if child added it, so there is a minrank
+                        // min rank is 1 back from the lowest ranked child of the node
+                        int? minRank = node.CallsOut.Values.Take(node.CallsOut.Length).Min(e =>
+                        {
+                            if (PositionMap.ContainsKey(e.Destination))
+                            {
+                                XNodeIn dest = PositionMap[e.Destination];
+                                if (dest.Rank.HasValue)
+                                    return dest.Rank.Value;
+                            }
+
+                            return int.MaxValue;
+                        });
+
+                        LayoutGraph(graph, node, minRank.Value - 1, new List<int>());//, new List<string>());
+                    }
+
+                    // normalize ranks so sequential without any missing between
+                    int i = -1;
+                    int currentRank = int.MinValue;
+                    foreach (var n in graph.Values.OrderBy(v => v.Rank))
+                    {
+                        if (n.Rank != currentRank)
+                        {
+                            currentRank = n.Rank.Value;
+                            i++;
+                        }
+
+                        n.Rank = i;
+                    }
+
+
+                    // put all nodes into a rank based multi-map
+                    Rank[] ranks = new Rank[i + 1];
+
+                    foreach (var n in graph.Values)
+                        ranks[n.Rank.Value].Column.Add(n);
+                    
+                    foreach (var source in graph.Values)
+                    {
+                        for ( i = 0; i < source.CallsOut.Length; i++ )
+                        {
+                            FunctionCall edge = source.CallsOut.Values[i];
+
+                            if (!graph.ContainsKey(edge.Destination))
+                                continue;
+
+                            if (edge.Source == edge.Destination)
+                                continue;
+
+                            XNodeIn destination = graph[edge.Destination];
+
+                            //Debug.Assert(source == destination || source.Rank < destination.Rank);
+
+                            if (edge.TempPath != null)
+                                edge.TempPath.Clear();
+
+                            // ** if destination is not 1 forward/1 back then create temp nodes
+
+                            // ** make sure that uncross takes into account calls in / out positions
+                            // dont take into accont edgse with draw set to false when doing min distance
+
+                            // create intermediate nodes
+                            if (source.Rank != destination.Rank +1 ||
+                                source.Rank != destination.Rank - 1)
+                            {
+                                if (edge.TempPath == null)
+                                    edge.TempPath = new List<XNodeIn>();
+
+                                bool increase = destination.Rank > source.Rank;
+                                int nextRank = increase ? source.Rank.Value + 1 : source.Rank.Value - 1;
+                                XNodeIn lastNode = source;
+
+                                while (nextRank != destination.Rank)
+                                {
+                                    // create new node
+                                    XNodeIn temp = new XNodeIn();
+                                    temp.Rank = nextRank;
+                                    temp.Value = 10; // todo make smarter - 
+                                    
+                                    // add to temp path, rank map
+                                    edge.TempPath.Add(temp);
+                                    ranks[nextRank].Column.Add(temp);
+                                    //PositionMap[ not needed because we dont need any mouse over events? just follow along and draw from list, not id
+                                    
+                                    // add calls in/out, 2 temp lists in/out??
+                                    //lastNode.CallsOut.Add(
+
+                                    nextRank = increase ? nextRank + 1 : nextRank - 1;
+                                }
+
+                                // change edge destination to temp node, until rank equals true destination
+
+                                
+                                //TODO do add edge because its used to uncross????
+                                // dont need to add inbound edge to real node because inbound edges
+                                // only traversed in layout which is called before this
+                                //destination.Edges.Add(tempEdge);
+                            }
+                        }
+                    }
+
+                    // uncross graph 
+                    for (int x = 0; x < 3; x++)
+                    {
+                        foreach(Rank rank in ranks)
+                        {
+                            // foreach call in/out and temp nodes in/out
+
+                            /* foreach node average y pos form all connected edges
+                            foreach (var node in rank.Column.Where(n => n.Edges.Count > 0))
+                                node.ScaledLocation.Y = node.Edges.Average(e => (e.Source == node) ? e.Destination.ScaledLocation.Y : e.Source.ScaledLocation.Y);
+
+                            // set rank list to new node list
+                            rank.Column = rank.Column.OrderBy(n => n.ScaledLocation.Y).ToList();
+
+                            PositionRank(graph, rank, rank.Column[0].ScaledLocation.X);*/
+                        }
+                    }
+
+
+                } while (PositionMap.Values.Any(n => n.Rank == null));
+
+                // add intermediates
+
+                // rank / position
+
+                // add nodes to groups while iterating inside/outisde
+                // then add intermediates, and rank, only need to min dist on each call?
+
+
+                int offset = 0;
+                int centerWidth = Width;
+
+
+                if (ShowingOutside)
+                {
+                    offset = Width * 1 / 4;
+                    centerWidth -= offset;
+
+                    InternalRoot.SetArea(new RectangleD(0, 0, offset - BorderWidth, Height));
+                    PositionMap[InternalRoot.ID] = InternalRoot;
+                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
+                }
+                if (ShowingExternal)
+                {
+                    int extWidth = Width * 1 / 4;
+                    centerWidth -= extWidth;
+
+                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth + BorderWidth, 0, extWidth - BorderWidth, Height));
+                    PositionMap[ExternalRoot.ID] = ExternalRoot;
+                    SizeNode(buffer, ExternalRoot, null, false);
+                }
+
+                CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
+                PositionMap[CurrentRoot.ID] = CurrentRoot;
+                SizeNode(buffer, CurrentRoot, null, true);
+            }
+
+            // draw nodes in position list
+
+            // mode to trim view to show active calls only, redrawing often
+
+            if (ShowingOutside)
+            {
+                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
+                DrawNode(buffer, InternalRoot, 0);
+            }
+
+            if (ShowingExternal)
+            {
+                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
+                DrawNode(buffer, ExternalRoot, 0);
+            }
+
+            DrawNode(buffer, CurrentRoot, 0);
+
+
+        }
+
+        private void LayoutGraph(Dictionary<int, XNodeIn> graph, XNodeIn node, int minRank, List<int> parents)
+        {
+            //debugLog.Add(string.Format("Entered Node ID {0} rank {1}", ID, Rank));
+
+            // node already ranked correctly, no need to re-rank subordinates
+            if (node.Rank != null && node.Rank.Value >= minRank)
+                return;
+
+            int? prevRank = node.Rank;
+
+            // only increase rank
+            Debug.Assert(node.Rank == null || minRank > node.Rank.Value);
+            node.Rank = minRank;
+
+            //debugLog.Add(string.Format("Node ID {0} rank set from {1} to {2}", ID, prevRank, Rank));
+
+            parents.Add(node.ID);
+            graph[node.ID] = node;
+
+            if(node.CallsOut != null)
+                for(int i = 0; i < node.CallsOut.Length; i++)
+                {
+                    FunctionCall edge = node.CallsOut.Values[i];
+         
+                    if (parents.Contains(edge.Destination))
+                    {
+                        // destination rank should be less than source
+                        //Debug.Assert(edge.Destination.Rank < edge.Source.Rank);
+
+                        //debugLog.Add(string.Format("Switching edge {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
+
+                        //edge.Source = edge.Destination;
+                        //edge.Destination = this;
+                        //edge.Reversed = !edge.Reversed;
+
+                        continue;
+                    }
+
+                // pass copy of parents list so that sub can add elemenets without affecting next iteration
+                //debugLog.Add(string.Format("Traversing to child {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
+
+                if(PositionMap.ContainsKey(edge.Destination))
+                    LayoutGraph(graph, PositionMap[edge.Destination], node.Rank.Value + 1, parents.ToList());//, debugLog);
+
+                //debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
+            }
+
+            // record so later group can be traversed for null ranked members (parents) so layout can be run on them
+            if(node.CalledIn != null)
+                for (int i = 0; i < node.CalledIn.Length; i++)
+                {
+                    FunctionCall edge = node.CalledIn.Values[i];
+
+                    if (PositionMap.ContainsKey(edge.Source))
+                        graph[edge.Source] = PositionMap[edge.Source];
+                }
+            // check if same edges down go back up and create intermediates in that case?
+
+            //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
+        }
+
+        private void AddCalledNodes(XNodeIn root, bool center)
+        {
+            if ((root.CalledIn != null && root.CalledIn.Length > 0) ||
+                (root.CallsOut != null && root.CallsOut.Length > 0))
+            {
+                if (center)
+                {
+                    PositionMap.Add(root.ID, root);
+                    CenterMap.Add(root.ID, root);
+                }
+
+                // if not center then only add if connected to center
+                else if ((root.CalledIn != null && root.CalledIn.Values.Take(root.CalledIn.Length).Any(c => CenterMap.ContainsKey(c.Source))) ||
+                         (root.CallsOut != null && root.CallsOut.Values.Take(root.CallsOut.Length).Any(c => CenterMap.ContainsKey(c.Destination))))
+                {
+                    PositionMap.Add(root.ID, root);
+                }
+            }
+         
+            foreach (XNodeIn sub in root.Nodes)
+                if(sub != InternalRoot) // when traversing outside root, dont interate back into center root
+                    AddCalledNodes(sub, center);
+        }
+
+        private void DrawTreeMap(Graphics buffer)
+        {
+            if (DoResize)
+            {
+                int offset = 0;
+                int centerWidth = Width;
+
+                PositionMap.Clear();
+                CenterMap.Clear();
+
+                // diff size position call for call graph?
+                // iternate nodes at this zoom level
+                // add nodes to groups while iterating inside/outisde
+                // then add intermediates, and rank, only need to min dist on each call?
+
+                if (ShowingOutside)
+                {
+                    offset = Width * 1 / 4;
+                    centerWidth -= offset;
+
+                    InternalRoot.SetArea(new RectangleD(0, 0, offset - BorderWidth, Height));
+                    PositionMap[InternalRoot.ID] = InternalRoot;
+                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
+                }
+                if (ShowingExternal)
+                {
+                    int extWidth = Width * 1 / 4;
+                    centerWidth -= extWidth;
+
+                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth + BorderWidth, 0, extWidth - BorderWidth, Height));
+                    PositionMap[ExternalRoot.ID] = ExternalRoot;
+                    SizeNode(buffer, ExternalRoot, null, false);
+                }
+
+                CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
+                PositionMap[CurrentRoot.ID] = CurrentRoot;
+                SizeNode(buffer, CurrentRoot, null, true);
+            }
+
+            if (ShowingOutside)
+            {
+                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
+                DrawNode(buffer, InternalRoot, 0);
+            }
+
+            if (ShowingExternal)
+            {
+                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
+                DrawNode(buffer, ExternalRoot, 0);
+            }
+
+            DrawNode(buffer, CurrentRoot, 0);
         }
 
         private bool IsNodeFiltered(bool select, XNodeIn node)
@@ -889,4 +1210,23 @@ namespace XLibrary
         {
         }
     }
+
+
+    class Graph
+    {
+        internal List<Rank> Ranks = new List<Rank>();
+
+        internal float ScaledHeight;
+        internal float ScaledOffset;
+    }
+
+    class Rank
+    {
+        internal int Order;
+
+        internal List<XNodeIn> Column = new List<XNodeIn>();
+
+        internal float MinNodeSpace;
+    }
+
 }

@@ -13,7 +13,6 @@ namespace XBuilder
     public partial class TestPanel : UserControl
     {
         bool DoRedraw = true;
-        bool DoResize = true;
         Bitmap DisplayBuffer;
 
         List<Node> Nodes = new List<Node>();
@@ -58,7 +57,7 @@ namespace XBuilder
                 {
                     ID = NextID++,
                     Weight = RndGen.Next(weightMax),
-                    Location = new PointF(RndGen.Next(Width), RndGen.Next(Height))
+                    ScaledLocation = new PointF((float)RndGen.NextDouble(), (float)RndGen.NextDouble())
                 });
 
             for (int i = 0; i < edgeCount; i++)
@@ -90,29 +89,29 @@ namespace XBuilder
             do
             {
                 // group nodes into connected graphs
-                Dictionary<int, Node> group = new Dictionary<int, Node>();
+                Dictionary<int, Node> graph = new Dictionary<int, Node>();
 
                 // add first unranked node to a graph
                 Node node = Nodes.First(n => n.Rank == null);
-                node.Layout(group, 0, new List<Node>(), new List<string>());
+                node.Layout(graph, 0, new List<Node>(), new List<string>());
 
                 // while group contains unranked nodes
-                while (group.Values.Any(n => n.Rank == null))
+                while (graph.Values.Any(n => n.Rank == null))
                 {
                     // head node to start traversal
-                    node = group.Values.First(n => n.Rank == null);
+                    node = graph.Values.First(n => n.Rank == null);
 
                     // only way node could be in group is if child added it, so there is a minrank
                     // min rank is 1 back from the lowest ranked child of the node
                     int? minRank = node.OutboundEdges.Min(e => e.Destination.Rank.HasValue ? e.Destination.Rank : int.MaxValue);
 
-                    node.Layout(group, minRank.Value - 1, new List<Node>(), new List<string>());
+                    node.Layout(graph, minRank.Value - 1, new List<Node>(), new List<string>());
                 }
 
                 // normalize ranks so sequential without any missing between
                 int i = -1;
                 int currentRank = int.MinValue;
-                foreach (var n in group.Values.OrderBy(v => v.Rank))
+                foreach (var n in graph.Values.OrderBy(v => v.Rank))
                 {
                     if (n.Rank != currentRank)
                     {
@@ -123,10 +122,24 @@ namespace XBuilder
                     n.Rank = i;
                 }
 
-                // once all nodes ranked, run back through and create any intermediate nodes
-                List<Node> filler = new List<Node>();
 
-                foreach (var n in group.Values)
+                // put all nodes into a rank based multi-map
+                Dictionary<int, Rank> rankMap = new Dictionary<int, Rank>();
+
+
+                foreach (var n in graph.Values)
+                {
+                    int index = n.Rank.Value;
+
+                    if (!rankMap.ContainsKey(index))
+                        rankMap[index] = new Rank() { Order = index };
+
+                    rankMap[index].Column.Add(n);
+                }
+
+
+                // once all nodes ranked, run back through and create any intermediate nodes
+                foreach (var n in graph.Values)
                 {
                     foreach (Edge edge in from e in n.Edges
                                           where e.Source == n
@@ -155,8 +168,9 @@ namespace XBuilder
                                 tempEdge.Destination = tempNode;
                                 tempNode.Edges.Add(tempEdge);
 
-
-                                filler.Add(tempNode);
+                                rankMap[nextRank].Column.Add(tempNode);
+                                graph[tempNode.ID] = tempNode;
+                          
                                 Nodes.Add(tempNode);
 
 
@@ -181,25 +195,7 @@ namespace XBuilder
                         }
                     }
                 }
-
-                // add filler nodes to the group
-                filler.ForEach(n => group[n.ID] = n);
-
-
-
-                // put all nodes into a rank based multi-map
-                Dictionary<int, Rank> rankMap = new Dictionary<int, Rank>();
-
-
-                foreach (var n in group.Values)
-                {
-                    int index = n.Rank.Value;
-
-                    if (!rankMap.ContainsKey(index))
-                        rankMap[index] = new Rank() { Order = index };
-
-                    rankMap[index].Column.Add(n);
-                }
+        
 
                 Graphs.Add(new Graph() { Ranks = rankMap.Values.OrderBy(r => r.Order).ToList() });
 
@@ -210,10 +206,15 @@ namespace XBuilder
 
 
 
+            double totalWeight = Nodes.Sum(n => n.Weight);
+            double totalArea = 1; // Width* Height;
+
+            double weightToPix = totalArea / totalWeight * Reduce;
+
+            Nodes.ForEach(n => n.ScaledSize = (int)Math.Sqrt(n.Weight * weightToPix));
 
 
 
-            DoResize = true;
             DoRedraw = true;
             Invalidate();
         }
@@ -226,7 +227,7 @@ namespace XBuilder
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
-            if (!DoRedraw && !DoResize)
+            if (!DoRedraw )
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
                 return;
@@ -238,30 +239,18 @@ namespace XBuilder
 
             buffer.Clear(Color.White);
 
-            if (DoResize)
-            {
+            float fullSize = (float) Math.Min(Width, Height) / 2;
 
-                if (CallGraphOn)
-                    Relayout();
-                else
-                {
-                    double totalWeight = Nodes.Sum(n => n.Weight);
-                    double totalArea = Width * Height;
-
-                    double weightToPix = totalArea / totalWeight * Reduce;
-
-                    Nodes.ForEach(n => n.Size = (int)Math.Sqrt(n.Weight * weightToPix));
-                }
-
-            }
-
-            
             Nodes.ForEach(n =>
             {
-                float half = n.Size / 2;
+                n.Location.X = Width * n.ScaledLocation.X;
+                n.Location.Y = Height * n.ScaledLocation.Y;
+
+                float size = fullSize * n.ScaledSize;
+                float halfSize = size / 2;
 
                 if(!n.Filler)
-                    buffer.DrawRectangle(NodePen, n.Location.X - half, n.Location.Y - half, n.Size, n.Size);
+                    buffer.DrawRectangle(NodePen, n.Location.X - halfSize, n.Location.Y - halfSize, size, size);
 
                 if(!CallGraphOn)
                     buffer.FillEllipse(n.Filler ? TempBrush : NodeBrush, n.Location.X - 5, n.Location.Y - 5, 10, 10);
@@ -271,8 +260,8 @@ namespace XBuilder
             {
                 if (!CallGraphOn)
                 {
-                    PointF start = e2.Source.Location;
-                    PointF end = e2.Destination.Location;
+                    PointF start = e2.Source.ScaledLocation;
+                    PointF end = e2.Destination.ScaledLocation;
                     PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
 
                     buffer.DrawLine(e2.Reversed ? TempPen : SourcePen, start, mid);
@@ -294,7 +283,6 @@ namespace XBuilder
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
 
             DoRedraw = false;
-            DoResize = false;
         }
 
         private void TestPanel_Resize(object sender, EventArgs e)
@@ -303,86 +291,85 @@ namespace XBuilder
             {
                 DisplayBuffer = new Bitmap(Width, Height);
 
-                DoResize = true;
+                DoRedraw = true;
+
                 Invalidate();
             }
         }
 
         internal void LayoutGraph()
         {
-            CallGraphOn = true;
+            Relayout();
 
-            DoResize = true;
+            CallGraphOn = true;
 
             Invalidate();
         }
 
         internal void Relayout()
         {
-            
-            //
             double totalWeight = Nodes.Sum(n => n.Weight);
-            double totalArea = Width * Height;
+            double totalArea = 1; // Width* Height;
             double weightToPix = totalArea / totalWeight;
-            Nodes.ForEach(n => n.Size = (float)Math.Sqrt(n.Weight * weightToPix));
+            Nodes.ForEach(n => n.ScaledSize = (float)Math.Sqrt(n.Weight * weightToPix));
 
             // sum the heights of the biggest ranks of each graph
-            float[] maxRankHeights = Graphs.Select(g => g.Ranks.Max(rank => rank.Column.Sum(n => n.Size))).ToArray();
+            float[] maxRankHeights = Graphs.Select(g => g.Ranks.Max(rank => rank.Column.Sum(n => n.ScaledSize))).ToArray();
             float stackHeight = maxRankHeights.Sum();
 
-            float heightReduce = Height / stackHeight;
+            float heightReduce = 1 / stackHeight;
 
             // check x axis reduce, and if less use that one
             // do for all graphs at once so proportions stay the same
 
             // find graph with max width, buy summing max node in each rank
-            float[] maxRankWidths = Graphs.Select(g => g.Ranks.Sum(rank => rank.Column.Max(n => n.Size))).ToArray();
+            float[] maxRankWidths = Graphs.Select(g => g.Ranks.Sum(rank => rank.Column.Max(n => n.ScaledSize))).ToArray();
 
-            float widthReduce = Width / maxRankWidths.Max(); ;
+            float widthReduce = 1 / maxRankWidths.Max(); ;
 
             float reduce = (float) ( Math.Min(heightReduce, widthReduce) * 0.75);
 
-            Nodes.ForEach(n => n.Size *= reduce);
+            Nodes.ForEach(n => n.ScaledSize *= reduce);
 
 
             // give each group a height proportional to their max rank height
-            int groupOffset = 0;
+            float groupOffset = 0;
             
             for(int i = 0; i < Graphs.Count; i++)
             {
                 var graph = Graphs[i];
 
-                graph.Height = (int)((float)Height * maxRankHeights[i] / stackHeight);
-                graph.Offset = groupOffset;
+                graph.ScaledHeight = maxRankHeights[i] / stackHeight;
+                graph.ScaledOffset = groupOffset;
 
-                float freespace = Width - maxRankWidths[i] * reduce;
+                float freespace = 1 - maxRankWidths[i] * reduce;
 
                 float spaceX = freespace / (graph.Ranks.Count + 1);
                 float xOffset = spaceX;
 
                 foreach (var rank in graph.Ranks)
                 {
-                    float maxSize = rank.Column.Max(n => n.Size);
+                    float maxSize = rank.Column.Max(n => n.ScaledSize);
 
                     PositionRank(graph, rank, xOffset + maxSize / 2);
 
                     xOffset += maxSize + spaceX;
                 }
 
-                groupOffset += graph.Height;
+                groupOffset += graph.ScaledHeight;
             }
 
             DoRedraw = true;
             Invalidate();
         }
 
-        private static void PositionRank(Graph graph, Rank rank, float xOffset)
+        private void PositionRank(Graph graph, Rank rank, float xOffset)
         {
             var nodes = rank.Column;
 
-            float totalHeight = nodes.Sum(n => n.Size);
+            float totalHeight = nodes.Sum(n => n.ScaledSize);
 
-            float freespace = graph.Height - totalHeight;
+            float freespace = 1 * graph.ScaledHeight - totalHeight;
 
             float ySpace = freespace / (nodes.Count + 1); // space between each block
             rank.MinNodeSpace = Math.Min(ySpace, 16);
@@ -391,10 +378,10 @@ namespace XBuilder
 
             foreach (var node in nodes)
             {
-                node.Location.X = xOffset;
-                node.Location.Y = graph.Offset + yOffset + node.Size / 2;
+                node.ScaledLocation.X = xOffset;
+                node.ScaledLocation.Y = 1 * graph.ScaledOffset + yOffset + node.ScaledSize / 2;
 
-                yOffset += node.Size + ySpace;
+                yOffset += node.ScaledSize + ySpace;
             }
         }
 
@@ -406,12 +393,12 @@ namespace XBuilder
                 {
                     // foreach node average y pos form all connected edges
                     foreach (var node in rank.Column.Where(n => n.Edges.Count > 0))
-                        node.Location.Y = node.Edges.Average(e => (e.Source == node) ? e.Destination.Location.Y : e.Source.Location.Y);
+                        node.ScaledLocation.Y = node.Edges.Average(e => (e.Source == node) ? e.Destination.ScaledLocation.Y : e.Source.ScaledLocation.Y);
 
                     // set rank list to new node list
-                    rank.Column = rank.Column.OrderBy(n => n.Location.Y).ToList();
+                    rank.Column = rank.Column.OrderBy(n => n.ScaledLocation.Y).ToList();
 
-                    PositionRank(graph, rank, rank.Column[0].Location.X);
+                    PositionRank(graph, rank, rank.Column[0].ScaledLocation.X);
                 }
 
             DoRedraw = true;
@@ -435,19 +422,19 @@ namespace XBuilder
                         if (node.Edges.Count == 0)
                             continue;
 
-                        float halfSize = node.Size / 2;
+                        float halfSize = node.ScaledSize / 2;
 
-                        float lowerbound = (x > 0) ? nodes[x - 1].Location.Y + (nodes[x - 1].Size / 2) : 0;
+                        float lowerbound = (x > 0) ? nodes[x - 1].ScaledLocation.Y + (nodes[x - 1].ScaledSize / 2) : 0;
                         lowerbound += rank.MinNodeSpace;
 
-                        float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].Location.Y - (nodes[x + 1].Size / 2) : float.MaxValue;
+                        float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].ScaledLocation.Y - (nodes[x + 1].ScaledSize / 2) : float.MaxValue;
                         upperbound -= rank.MinNodeSpace;
 
                         Debug.Assert(lowerbound <= upperbound);
                         if (lowerbound >= upperbound)
                             continue;
 
-                        float optimalY = node.Edges.Average(e => (e.Source == node) ? e.Destination.Location.Y : e.Source.Location.Y);
+                        float optimalY = node.Edges.Average(e => (e.Source == node) ? e.Destination.ScaledLocation.Y : e.Source.ScaledLocation.Y);
 
                         if (optimalY - halfSize < lowerbound)
                             optimalY = lowerbound + halfSize;
@@ -455,7 +442,7 @@ namespace XBuilder
                         else if (optimalY + halfSize > upperbound)
                             optimalY = upperbound - halfSize;
 
-                        node.Location.Y = optimalY;
+                        node.ScaledLocation.Y = optimalY;
                     }
                 }
                 // order list of y pos to node
@@ -471,11 +458,12 @@ namespace XBuilder
     class Node
     {
         internal int ID;
-        internal int Weight;
+        internal double Weight;
         internal List<Edge> Edges = new List<Edge>();
 
         internal PointF Location;
-        internal float Size; // width and height
+        internal PointF ScaledLocation;
+        internal float ScaledSize; // width and height
         internal int? Rank;
         internal bool Filler;
 
@@ -537,11 +525,10 @@ namespace XBuilder
             foreach (Edge edge in InboundEdges)
                 group[edge.Source.ID] = edge.Source;
 
+            // check if same edges down go back up and create intermediates in that case?
+
             debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
-
-  
-
         
     }
 
@@ -577,8 +564,8 @@ namespace XBuilder
     {
         internal List<Rank> Ranks = new List<Rank>();
 
-        internal int Height;
-        internal int Offset;
+        internal float ScaledHeight;
+        internal float ScaledOffset;
     }
 
     class Rank

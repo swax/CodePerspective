@@ -436,6 +436,9 @@ namespace XLibrary
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
 
+        internal List<XNodeIn> TempPath; // only draw edge if this is null or empty
+
+
         internal long TotalTimeInsideDest
         {
             get

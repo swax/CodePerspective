@@ -141,15 +141,6 @@ namespace XLibrary
             TreeView.RecalcSizes();
         }
 
-        private void SizesMenuItem_DropDownOpening(object sender, EventArgs e)
-        {
-            ConstantMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Constant;
-            MethodSizeMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.MethodSize;
-            TimeInMethodMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimeInMethod;
-            SizeHitsMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Hits;
-            TimePerHitMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimePerHit;
-        }
-
         private void ConstantMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.Constant;
@@ -178,6 +169,30 @@ namespace XLibrary
         {
             TreeView.SizeLayout = SizeLayouts.TimePerHit;
             TreeView.RecalcVales();
+        }
+
+        private void CallGraphMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.ViewLayout = LayoutType.CallGraph;
+            TreeView.RecalcSizes();
+        }
+
+        private void TreeMapMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.ViewLayout = LayoutType.TreeMap;
+            TreeView.RecalcSizes();
+        }
+
+        private void LayoutMenu_DropDownOpening(object sender, EventArgs e)
+        {
+            ConstantMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Constant;
+            MethodSizeMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.MethodSize;
+            TimeInMethodMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimeInMethod;
+            SizeHitsMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Hits;
+            TimePerHitMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimePerHit;
+
+            TreeMapMenuItem.Checked = TreeView.ViewLayout == LayoutType.TreeMap;
+            CallGraphMenuItem.Checked = TreeView.ViewLayout == LayoutType.CallGraph;
         }
     }
 }

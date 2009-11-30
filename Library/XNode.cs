@@ -262,6 +262,8 @@ namespace XLibrary
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
 
+        internal int? Rank;
+
 
         internal static XNodeIn Read(FileStream stream)
         {

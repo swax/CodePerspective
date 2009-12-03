@@ -38,10 +38,8 @@ namespace XLibrary
             Output.AppendLine("");
             Output.AppendLine("StackMap:");
 
-            for (int i = 0; i < XRay.FlowMap.Length; i++)
+            foreach (ThreadFlow flow in XRay.FlowMap)
             {
-                ThreadFlow flow = XRay.FlowMap.Values[i];
-
                 if (flow == null)
                     continue;
 

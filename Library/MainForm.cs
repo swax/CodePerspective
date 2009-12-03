@@ -58,9 +58,8 @@ namespace XLibrary
             if (XRay.FlowTracking)
             {
                 // time out function calls
-                for (int i = 0; i < XRay.CallMap.Length; i++)
+                foreach (FunctionCall call in XRay.CallMap)
                 {
-                    FunctionCall call = XRay.CallMap.Values[i];
                     if (call != null && call.Hit > 0)
                     {
                         call.Hit--;
@@ -78,7 +77,7 @@ namespace XLibrary
 
         public void UpdateStatus()
         {
-            SelectedLabel.Text = "Viewing " + TreeView.GetRoot().FullName();
+            SelectedLabel.Text = "Viewing " + TreeView.CurrentRoot.FullName();
         }
 
         private void HitsMenuItem_DropDownOpening(object sender, EventArgs e)

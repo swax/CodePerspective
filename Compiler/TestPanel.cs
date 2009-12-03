@@ -189,6 +189,7 @@ namespace XBuilder
 
                             } while (tempEdge.Destination != target);
 
+                            // TODO do need to add edge to assist in uncross?
                             // dont need to add inbound edge to real node because inbound edges
                             // only traversed in layout which is called before this
                             //target.Edges.Add(tempEdge);
@@ -211,7 +212,7 @@ namespace XBuilder
 
             double weightToPix = totalArea / totalWeight * Reduce;
 
-            Nodes.ForEach(n => n.ScaledSize = (int)Math.Sqrt(n.Weight * weightToPix));
+            Nodes.ForEach(n => n.ScaledSize = (float)Math.Sqrt(n.Weight * weightToPix));
 
 
 

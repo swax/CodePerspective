@@ -436,7 +436,7 @@ namespace XLibrary
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
 
-        internal List<XNodeIn> TempPath; // only draw edge if this is null or empty
+        internal List<XNodeIn> Intermediates; // only draw edge if this is null or empty
 
 
         internal long TotalTimeInsideDest
@@ -455,7 +455,7 @@ namespace XLibrary
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock
     // one thread needs to be able to write values fast
     // while another threads need to be able to read values fast
-    class SharedDictionary<T> 
+    class SharedDictionary<T>  : IEnumerable<T>
         where T : class
     {
         internal int Length;
@@ -504,7 +504,27 @@ namespace XLibrary
 
                 Length++;
             }
-        }   
+        }
+
+        #region IEnumerable<T> Members
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < Length; i++)
+                yield return Values[i];
+        }
+
+        #endregion
+
+        #region IEnumerable Members
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            for (int i = 0; i < Length; i++)
+                yield return Values[i];
+        }
+
+        #endregion
     }
 
 }

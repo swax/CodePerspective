@@ -19,12 +19,15 @@ coordnates of nodes to keep edges short, and the final step routes edge splines.
 In dot, higher edge weights have the effect of causing edges to be shorter and straighter. 
 
 
-
+draw label above node in call graph class:method, mouse over for more details
 
 save node location as percent and init redraw with that so min dist doesnt need to be called
 
 
+replace shared dictionary calls wiht new enumerable methods
 
+with function tracking in xray - code coverage tracking should be there as well
+   dont need to track every line, just every sequential block of code
 
 
 view

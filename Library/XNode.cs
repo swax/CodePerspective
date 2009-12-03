@@ -262,7 +262,11 @@ namespace XLibrary
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
 
+        // call graph view
         internal int? Rank;
+        internal List<XNodeIn> Adjacents;
+        internal PointF ScaledLocation;
+        internal float ScaledSize; // width and height
 
 
         internal static XNodeIn Read(FileStream stream)

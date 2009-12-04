@@ -552,97 +552,94 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            if (node.ObjType == XObjType.Method)
+            // blue selection area
+            SolidBrush rectBrush = NothingBrush;
+            if (node.Hovered)
             {
-                // blue selection area
-                SolidBrush rectBrush = NothingBrush;
-                if (node.Hovered)
+                if (depth > OverBrushes.Length - 1)
+                    depth = OverBrushes.Length - 1;
+
+                rectBrush = OverBrushes[depth];
+            }
+
+            bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
+
+
+            buffer.FillRectangle(rectBrush, node.AreaF);
+
+            bool needBorder = true;
+
+            // red hit check if function is hit
+            if (XRay.FlowTracking && node.StillInside > 0)
+            {
+                needBorder = false;
+
+                if (node.EntryPoint > 0)
                 {
-                    if (depth > OverBrushes.Length - 1)
-                        depth = OverBrushes.Length - 1;
-
-                    rectBrush = OverBrushes[depth];
-                }
-
-                bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
-
-
-                buffer.FillRectangle(rectBrush, node.AreaF);
-
-                bool needBorder = true;
-
-                // red hit check if function is hit
-                if (XRay.FlowTracking && node.StillInside > 0)
-                {
-                    needBorder = false;
-
-                    if (node.EntryPoint > 0)
-                    {
-                        if (XRay.ThreadTracking && node.ConflictHit > 0)
-                            buffer.FillRectangle(MultiEntryBrush, node.AreaF);
-                        else
-                            buffer.FillRectangle(EntryBrush, node.AreaF);
-                    }
-                    else
-                    {
-                        if (XRay.ThreadTracking && node.ConflictHit > 0)
-                            buffer.FillRectangle(MultiHoldingBrush, node.AreaF);
-                        else
-                            buffer.FillRectangle(HoldingBrush, node.AreaF);
-                    }
-                }
-
-                // not an else if, draw over holding or entry
-                if (node.ExceptionHit > 0)
-                {
-                    needBorder = false;
-                    buffer.FillRectangle(ExceptionBrush[node.FunctionHit], node.AreaF);
-                }
-
-                else if (node.FunctionHit > 0)
-                {
-                    needBorder = false;
-
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        buffer.FillRectangle(MultiHitBrush[node.FunctionHit], node.AreaF);
+                        buffer.FillRectangle(MultiEntryBrush, node.AreaF);
                     else
-                        buffer.FillRectangle(HitBrush[node.FunctionHit], node.AreaF);
-                }
-
-                // if just a point, drawing a border messes up pixels
-                if (pointBorder)
-                {
-                    if (SelectedNodes.ContainsKey(node.ID))
-                        buffer.FillRectangle(SelectedBrush, node.AreaF);
-                    else if (IgnoredNodes.ContainsKey(node.ID))
-                        buffer.FillRectangle(IgnoredBrush, node.AreaF);
-
-                    else if (needBorder) // dont draw the point if already lit up
-                        buffer.FillRectangle(ObjBrushes[(int)node.ObjType], node.AreaF);
+                        buffer.FillRectangle(EntryBrush, node.AreaF);
                 }
                 else
                 {
-                    Pen pen = null;
-
-                    if (SelectedNodes.ContainsKey(node.ID))
-                        pen = SelectedPen;
-                    else if (IgnoredNodes.ContainsKey(node.ID))
-                        pen = IgnoredPen;
-
-                    else if (FocusedNode == node)
-                        pen = ObjFocused[(int)node.ObjType];
+                    if (XRay.ThreadTracking && node.ConflictHit > 0)
+                        buffer.FillRectangle(MultiHoldingBrush, node.AreaF);
                     else
-                        pen = ObjPens[(int)node.ObjType];
-
-                    buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                        buffer.FillRectangle(HoldingBrush, node.AreaF);
                 }
+            }
 
-                // draw label
-                if (ShowLabels && node.RoomForLabel)
-                {
-                    buffer.FillRectangle(LabelBgBrush, node.LabelRect);
-                    buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
-                }
+            // not an else if, draw over holding or entry
+            if (node.ExceptionHit > 0)
+            {
+                needBorder = false;
+                buffer.FillRectangle(ExceptionBrush[node.FunctionHit], node.AreaF);
+            }
+
+            else if (node.FunctionHit > 0)
+            {
+                needBorder = false;
+
+                if (XRay.ThreadTracking && node.ConflictHit > 0)
+                    buffer.FillRectangle(MultiHitBrush[node.FunctionHit], node.AreaF);
+                else
+                    buffer.FillRectangle(HitBrush[node.FunctionHit], node.AreaF);
+            }
+
+            // if just a point, drawing a border messes up pixels
+            if (pointBorder)
+            {
+                if (SelectedNodes.ContainsKey(node.ID))
+                    buffer.FillRectangle(SelectedBrush, node.AreaF);
+                else if (IgnoredNodes.ContainsKey(node.ID))
+                    buffer.FillRectangle(IgnoredBrush, node.AreaF);
+
+                else if (needBorder) // dont draw the point if already lit up
+                    buffer.FillRectangle(ObjBrushes[(int)node.ObjType], node.AreaF);
+            }
+            else
+            {
+                Pen pen = null;
+
+                if (SelectedNodes.ContainsKey(node.ID))
+                    pen = SelectedPen;
+                else if (IgnoredNodes.ContainsKey(node.ID))
+                    pen = IgnoredPen;
+
+                else if (FocusedNode == node)
+                    pen = ObjFocused[(int)node.ObjType];
+                else
+                    pen = ObjPens[(int)node.ObjType];
+
+                buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+            }
+
+            // draw label
+            if (ShowLabels && node.RoomForLabel)
+            {
+                buffer.FillRectangle(LabelBgBrush, node.LabelRect);
+                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
             }
 
             if (node.AreaF.Width > 1 && node.AreaF.Height > 1)

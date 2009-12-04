@@ -5,6 +5,26 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
+/*Based on call graph in test panel
+  
+The dot algorithm produces a ranked layout of a graph honoring edge directions. 
+It is particularly appropriate for displaying hierarchies or directed acyclic 
+graphs. The basic layout scheme is attributed to Sugiyama et al. The specific 
+algorithm used by dot follows the steps described by Gansner et al.
+
+dot draws a graph in four main phases. Knowing this helps you to understand what 
+kind of layouts dot makes and how you can control them. The layout procedure used 
+by dot relies on the graph being acyclic. Thus, the first step is to break any 
+cycles which occur in the input graph by reversing the internal direction of 
+certain cyclic edges. The next step assigns nodes to discrete ranks or levels. 
+In a top-to-bottom drawing, ranks determine Y coordinates. Edges that span more 
+than one rank are broken into chains of virtual nodes and unit-length edges. The 
+third step orders nodes within ranks to avoid crossings. The fourth step sets X 
+coordnates of nodes to keep edges short, and the final step routes edge splines.
+
+In dot, higher edge weights have the effect of causing edges to be shorter and straighter. 
+ */
+
 namespace XLibrary
 {
     partial class TreePanelGdiPlus
@@ -258,8 +278,8 @@ namespace XLibrary
 
             }
 
-
-
+            // graph created in relative coords so it doesnt need to be re-computed each resize, only on recalc
+                
             float fullSize = (float)Math.Min(Width, Height) / 2;
 
             foreach (var node in Graphs.SelectMany(g => g.Nodes()))
@@ -272,8 +292,24 @@ namespace XLibrary
                     Height * node.ScaledLocation.Y - halfSize,
                     size, size));
 
-                if(node.ID != 0) // dont draw intermediate nodes
-                    DrawNode(buffer, node, 0);
+                if (node.ID == 0) // dont draw intermediate nodes
+                    continue;
+
+                DrawNode(buffer, node, 0);
+
+                // check if enough room in box for label
+                node.RoomForLabel = false;
+                RectangleF label = new RectangleF(node.AreaF.Location, buffer.MeasureString(node.Name, TextFont));
+
+                if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
+                    label.Width < node.AreaF.Width + LabelPadding * 2)
+                {
+                    label.X += LabelPadding;
+                    label.Y += LabelPadding;
+
+                    node.RoomForLabel = true;
+                    node.LabelRect = label;
+                }
             }
 
             // call intermediate calls, color call graph correctly

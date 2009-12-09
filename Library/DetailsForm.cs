@@ -57,9 +57,7 @@ namespace XLibrary
                 int id = node.ID;
                 int count = 0;
 
-                foreach (FunctionCall call in XRay.CallMap.Values
-                    .TakeWhile(v => v != null)
-                    .Where(v => v.Destination == id))
+                foreach (FunctionCall call in XRay.CallMap.Where(v => v.Destination == id))
                 {
                     XNode caller = XRay.Nodes[call.Source];
                     CallersList.Items.Add( new CallItem(call, caller, ShowPerCall));
@@ -68,9 +66,7 @@ namespace XLibrary
                 CallersLabel.Text = count.ToString() + " methods called " + name;
 
                 count = 0;
-                foreach (FunctionCall call in XRay.CallMap.Values
-                    .TakeWhile(v => v != null)
-                    .Where(v => v.Source == id))
+                foreach (FunctionCall call in XRay.CallMap.Where(v => v.Source == id))
                 {
                     XNode called = XRay.Nodes[call.Destination];
                     CalledList.Items.Add(new CallItem(call, called, ShowPerCall));

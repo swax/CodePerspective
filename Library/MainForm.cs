@@ -90,25 +90,25 @@ namespace XLibrary
         private void ShowAllHitsMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.HitLayout = HitLayouts.All;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void ShowHitMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.HitLayout = HitLayouts.Hit;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void ShowUnhitMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.HitLayout = HitLayouts.Unhit;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void ResetMenuItem_Click(object sender, EventArgs e)
         {
             XRay.CoveredFunctions.SetAll(false);
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void DebugMenuItem_Click(object sender, EventArgs e)
@@ -143,43 +143,43 @@ namespace XLibrary
         private void ConstantMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.Constant;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void MethodSizeMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.MethodSize;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void TimeInMethodMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.TimeInMethod;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void SizeHitsMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.Hits;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void TimePerHitMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.SizeLayout = SizeLayouts.TimePerHit;
-            TreeView.RecalcVales();
+            TreeView.RecalcValues();
         }
 
         private void CallGraphMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.ViewLayout = LayoutType.CallGraph;
-            TreeView.RecalcSizes();
+            TreeView.RecalcValues ();
         }
 
         private void TreeMapMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.ViewLayout = LayoutType.TreeMap;
-            TreeView.RecalcSizes();
+            TreeView.RecalcValues();
         }
 
         private void LayoutMenu_DropDownOpening(object sender, EventArgs e)

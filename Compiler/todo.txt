@@ -1,165 +1,114 @@
 ﻿
-call graph doesnt need to be re-calced on re-size, just when new nodes are hit
-	detect when call graph is changed and set to false when graph is redrawn - use node cover as an exmple
 
-draw label above node in call graph class:method, mouse over for more details
+call graph 
+	figure out if enough room next to node for label
 
-save node location as percent and init redraw with that so min dist doesnt need to be called
+	view
+	   show scope of call graph, really need a splitter or seperate window to show both simultaneously
+			mouse overs replicate over both views
+	   show options - showing calls from outside of scope- (outside icon)
+					  showing calls external to scope - (show external icon)
+					  could label as calls to/from xrayed/non xrayed code
 
+	A -> B, B -> A, temp node should be created so loop can be seen
 
-replace shared dictionary calls wiht new enumerable methods
+	real-time mode, (show recently called) build graph based on current active nodes
 
-with function tracking in xray - code coverage tracking should be there as well
-   dont need to track every line, just every sequential block of code
+	left docked view options wouldnt be bad, if tree/call shown simultaneously then splitter there
+	right side docked is properties of whats clicked on, each have push pin hiding
+	show all calls default in call graph
 
+	reset timing - like reset hit option
 
-view
-   show scope of call graph, really need a splitter or seperate window to show both simultaneously
-		mouse overs replicate over both views
-   show options - showing calls from outside of scope- (outside icon)
-				  showing calls external to scope - (show external icon)
-				  could label as calls to/from xrayed/non xrayed code
-
-
-call lines will later come from sub part of function that is calling, in left to right call graph
-
-button to add 5 random nodes, re-run layout
-	if node has parents
-		set rank to 1 + max parent rank
-	else if node has children
-		set rank of newly added node to 1 - min child
+	select node - highlight connected edges
+	mouse over line - highlight, descriptive tool tip
 	
-	re-run insert intermedite nodes
-	uncross
-	min distance
 	
-	how to know if x axis ranks intersect
-	
-	** new edges could also be added, 
-		just need to make sure graph is re-drawn in same order everytime
-	
-give nodes random sizes that add up to x% of total area
-	layout / uncross works the same
-	min distance works similarly , but takes node size into account when figuring min distance between nodes
-
-BUG: A -> B, B -> A, temp node should be created so loop can be seen
-
-call graph layout - transition
-	size all called nodes into graph
-	show lines forwards as red, backwards as blue
-	moving dashed blue line for active calls
-	
-	real time show only recently called nodes in graph, can experiment with graphing
-		need to be actively drawing
-		with other system, only new call paths need to spark an update
-		
-	definitely need some stats to show
-		re-calcs/sec,   re-calc time
-		re-size/sec,  re-size time
-		re-draw/sec, re-draw time
-		ability in interface to speedup/slowdown update speed
-
-	anyway to group like nodes/classes/namespaces in graph??
-		probably work better for a elastic call graph and give related functions gravity
-
-	call graph would work well for internal function view as well
-
-
-flow through entire list of children first
-	keep track of node parents
-		if any unranked parents at end of child run
-			look at all of parents children, give rank of 1 - lowest ranked child
-				re-run alg on that parent
-				
-	this way we start with first (entry) node, run through linearly from that, and tack on alternate parents later
-		works great for application call graph, and for general graphs as well
-
-
-test adding/removing node and calling rank specifically on new node to position wihtout having to rerun evreything
-
-3. min dist
-	figure out closest distance between all edges
-		if lower or higher then cloest rank boundary
-			keep distance by a certain offset
-
-4. make nodes blocks of varying size
-	keep constant spacing between blocks when positing in uncross phase
-	
-
-at end of this, organize all notes and potential algs into test graph source file, and comment code some more as needed
+stats
+	re-calcs/sec,   re-calc time
+	re-size/sec,  re-size time
+	re-draw/sec, re-draw time
+	ability in interface to speedup/slowdown update speed
 
 
 
+----X-Ray
+  if xrayed application detects ctrl alt x, current
+    app gui is frozen, and xray for app fades over.
+  do for silverlight app as well
+    debug interfaces as you build them
+    if function doesnt work, fix it in real time
+      so next click doesnt call an exception, but does something.
+
+  each piece of the app compiles independently
+    the code is compiled as the program runs
+      each step fleshing out the program
+
+GOAL: USE X RAY TO BUILD AN ENTIRE APPLICATION WITHOUT CLOSING 
+IT!!!  Debugging, error checking as new components added. 
+Actual program never closed.
+Taking out one component could cause a whole mesh of components 
+to fail, but never the whole system, always a ROOT component to 
+start from again.  add function, write in C#, compile and 
+attach at runtime inside.  not called directly but wrapped 
+around a component layer that pipes in/out variable 
+input/outputs
+
+root component is a loop always starting to try starting the 
+first attached components.
+
+the root component never stops.
+
+interactive application can be built and never closed. a 
+webserver or 'free' project where people can build components 
+and attach.  links between components could even be over the 
+network.
+
+might already exist 'in functional' programming. but this is 
+higher level.  the nucleus is procedural.  while the program 
+build on procedural parts is acts functional.
+-----
 
 
-3. min distance
-	make y offset min distance for all ranks the offset of the rank with the most nodes
-	fit other ranks to closest offset position to all connections, without exceeded other node boundaries
+xray dll mode starts a mini http server embedded in dll
+   serves div pages colered as blocks
+   use javascript to click blocks zoom
 
-	
+  each dll has an embedded web server that when activated shows
+    whats going on in system
 
-
-1. minimize cross over
-	foreach rank
-		foreach node
-			foreach edge of node
-				if edge intersections > 0
-					count intersections of all target nodes edges
-						try inserting lower rankd node to different positions (random, closest to source, use intersection information to form boundaries)
-							count again intersections of target node
-								keep lowest
-					
-find intersections for edge source y1 to dest y2
-
-foreach node in source rank that is not connected to the edge
-	for each edge of that source node
-		if y of source of source node is < y of eval node AND
-		y of dest node > y of eval dest node
-			increase cross over
-			set boundary that changed node must be greater than for no cross over
-			
-evaluate change			
+  if running as http then can go into xray mode at will, release with
+    xray inside and debug on demand, use a browser on any machine to
+    debug your app. go to the xray port
+    every second each http listening xray object pings the main port
+       takes it if available, serves as a directory for other xray
+       apps
 
 
-2. min distance without crossing adjacent nodes
+>-------
+IF ALL APPS/DLLS xrayed on system, can view 'insides' of any running process at any time. 
 
-*** IF ORIGINAL edge is reversed, reverse intermediate edges
-move temp nodes in rank to the outside??
+ when not viewed - full speed, when viewed - html page updtating - 
 
-generate x nodes
-generate y directed links
-	nodes can be linked to itself
-pick random node
-set rank 0
-foreach downlink
-	set downlink rank 1
-		foreach down down link
-			if not ranked, set to 2
-			if ranked 
+http://127.0.0.1:34234:XRay/c/program files/myapp.dll
 
-weed out single nodes
+entry function checks if xray server up, if not inits it, if entry function already has a 
+version then create a new one
+xray server can be queried for all active running xray instances on the system
 
-divide view into ranks and place nodes at each rank
+xray instances themselves can be check by xraying xray monitor exe file. then starting up 
+xray server to monitor itself. real test of xray is can it monitor itself
 
-keep path of traversed nodes
-	if cycle detected, reverse the direction
-	
-if not all nodes mapped,
-   start mapping at another random node
+xray your system dlls and always know what applications are doing
 
-run continuous test of random combinations
+could run task manager where window is giant tree map of all processes running on the 
+system - everything able to be zoomed in on. complete knowledge of the running system - 
+'seeing' the code. app can see itself run
 
-
-map random node rank 0, parents empty
-
-map nodes (rank, parents)
-	foreach downlink
-		if in parents, reverse link direction
-		else
-			set rank
-				map nodes(rank, parents) 
-
-
+XRAY - can IL code be shown for functions, recompiled and injected into the app
+can XRay build a set of dynamic functions that call each other at any time a function can 
+be removed, improved, but the app itself is never turned off
+<---------
 
 
 now2
@@ -204,8 +153,6 @@ now
 
 	layout
 		labels
-		treemap	
-			constant, method size, time in func, hits, avg time in func
 		spring
 		3d option for both, xna treemap, xna 3d spring nodes call map
 
@@ -289,7 +236,9 @@ goal
 		world wind, WPF, mscorlib, reflector
 	testing: investigate how color control works in paint.net
 	priorities - external, details, spring, 3d
-
+    totally translucent operating system
+    get xray working with webstorm / silverlight
+    
 xray gui
 	right click option to show msil for function, or fields of a class, msil could have hyper links to other functions
 	mouse over instance count
@@ -360,8 +309,10 @@ sub function tracking
 	  with enter/exit overrides there
    can use normal flow tracking and spring to see how internals of function are operating
 	  can't really use names, but can double click code, and the spring org will give a good sense of whats going on
+   code coverage stats can be given by tracking hit/unhit blocks
+	   shade nodes by percent thats been covered (more red if less covered)
+   call lines will come from sub  function of node with-in node
    
-
 3d function tree map
 	constant square size, height dependnent on amount of code (cities)
 	fly through like hackers
@@ -372,6 +323,16 @@ sub function tracking
 	code on walls of box
 	code lights up white when function is run
 	wsad/mouselook fly through, click highlights selected
+	 
+	flying white dot cars through program city
+	   use 2d xray app to figure out how to generate paths
+		  hide everything but methods, and show calls in lanes
+			 find shortest path to destination node
+  		   start off in direction of node, if hit a wall, chage direction
+  		   set height of car based on distance traveling
+				 lower = farther, higher = short jumps
+     			 color by number of bounaries crossed, class, namespace, 
+
 	 
 release 
 	open source with donate button

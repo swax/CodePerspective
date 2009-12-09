@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -192,7 +193,7 @@ namespace XLibrary
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
-            if ((!DoRedraw && !DoResize) || CurrentRoot == null)
+            if ((!DoRedraw && !DoRevalue && !DoResize) || CurrentRoot == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
                 return;
@@ -204,25 +205,17 @@ namespace XLibrary
 
             buffer.Clear(Color.White);
 
-            if (DoRevalue || XRay.CoverChange)
-            {
-                RecalcCover(InternalRoot);
-                RecalcCover(ExternalRoot);
-
-                XRay.CoverChange = false;
-                DoRevalue = false;
-                DoResize = true;
-            }
-
             Debug.Assert(CurrentRoot != TopRoot); // current root should be intenalRoot in this case
 
             ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
             ShowingExternal = ShowExternal && !CurrentRoot.External;
 
+
             if (ViewLayout == LayoutType.TreeMap)
                 DrawTreeMap(buffer);
             else if (ViewLayout == LayoutType.CallGraph)
                 DrawCallGraph(buffer);
+
 
             // draw ignored over nodes ignored may contain
             foreach (XNodeIn ignored in IgnoredNodes.Values)
@@ -300,8 +293,7 @@ namespace XLibrary
             // draw mouse over label
             PointF pos = PointToClient(Cursor.Position);
             if (NodesHovered.Length > 0 && 
-                ClientRectangle.Contains((int)pos.X, (int)pos.Y) &&
-                NodesHovered.Last().ObjType == XObjType.Method)
+                ClientRectangle.Contains((int)pos.X, (int)pos.Y))
             {
                 // for each node selected, get size, figure out bg size and indents, then pass again and draw
 
@@ -313,7 +305,7 @@ namespace XLibrary
                 float indentAmount = 0;
 
                 // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
-                var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel);
+                var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || ViewLayout == LayoutType.CallGraph);
 
                 // find the size of the background box
                 foreach (XNode node in labels)
@@ -339,6 +331,77 @@ namespace XLibrary
                 // draw background
                 buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
 
+
+                #region call graph debugging
+                /* useful for debugging call graph
+                var debugNode = NodesHovered.Last();
+                string debugString = "";
+
+                float sum = 0;
+                float count = 0;
+
+
+                debugString += string.Format("My Loc {0}\r\n", debugNode.ScaledLocation.Y);
+
+                if (debugNode.CallsOut != null)
+                    foreach (var call in debugNode.CallsOut)
+                        if (PositionMap.ContainsKey(call.Destination))
+                        {
+                            if (call.Intermediates != null && call.Intermediates.Count > 0)
+                            {
+                                sum += call.Intermediates[0].ScaledLocation.Y;
+                                debugString += string.Format("Out intermediate {0}\r\n", call.Intermediates[0].ScaledLocation.Y);
+                            }
+                            else
+                            {
+                                sum += PositionMap[call.Destination].ScaledLocation.Y;
+                                debugString += string.Format("Out node {0}\r\n", PositionMap[call.Destination].ScaledLocation.Y);
+                            }
+
+                            count++;
+                        }
+
+                if (debugNode.CalledIn != null)
+                    foreach (var call in debugNode.CalledIn)
+                        if (PositionMap.ContainsKey(call.Source))
+                        {
+                            if (call.Intermediates != null && call.Intermediates.Count > 0)
+                            {
+                                sum += call.Intermediates.Last().ScaledLocation.Y;
+                                debugString += string.Format("In intermediate {0}\r\n", call.Intermediates.Last().ScaledLocation.Y);
+                            }
+                            else
+                            {
+                                sum += PositionMap[call.Source].ScaledLocation.Y;
+                                debugString += string.Format("In node {0}\r\n", PositionMap[call.Source].ScaledLocation.Y);
+                            }
+                            count++;
+                        }
+
+                // should only be attached to intermediate nodes
+                if (debugNode.Adjacents != null)
+                {
+                    Debug.Assert(debugNode.ID == 0); // adjacents should only be on temp nodes
+
+                    foreach (var adj in debugNode.Adjacents)
+                    {
+                        debugString += string.Format("Adj {0}\r\n", adj.ScaledLocation.Y);
+
+                        sum += adj.ScaledLocation.Y;
+                        count++;
+                    }
+                }
+
+                if (count != 0)
+                {
+                    float result = sum / count;
+                    debugString += string.Format("My Avg {0}\r\n", result);
+                }
+
+                buffer.DrawString(debugString, TextFont, ObjBrushes[(int)debugNode.ObjType], pos.X, pos.Y);*/
+                #endregion
+
+
                 foreach (XNodeIn node in labels)
                 {
                     // dither label if it is not on screen
@@ -356,11 +419,20 @@ namespace XLibrary
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
 
             DoRedraw = false;
-            DoResize = false;
         }
 
         private void DrawTreeMap(Graphics buffer)
         {
+            if (DoRevalue || XRay.CoverChange)
+            {
+                RecalcCover(InternalRoot);
+                RecalcCover(ExternalRoot);
+
+                XRay.CoverChange = false;
+                DoRevalue = false;
+                DoResize = true;
+            }
+
             if (DoResize)
             {
                 int offset = 0;
@@ -391,6 +463,8 @@ namespace XLibrary
                 CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
                 PositionMap[CurrentRoot.ID] = CurrentRoot;
                 SizeNode(buffer, CurrentRoot, null, true);
+
+                DoResize = false;
             }
 
             if (ShowingOutside)
@@ -439,24 +513,24 @@ namespace XLibrary
                     case SizeLayouts.TimeInMethod:
                         // why is this negetive?? HAVENT RETURNED YET, property should return 0 i think if  neg, or detect still inside and return that
                         if (root.CalledIn != null)
-                            for (int i = 0; i < root.CalledIn.Length; i++)
-                                root.Value += root.CalledIn.Values[i].TotalTimeInsideDest;
+                            foreach (FunctionCall call in root.CalledIn)
+                                root.Value += call.TotalTimeInsideDest;
                         break;
                     case SizeLayouts.Hits:
                         if (root.CalledIn != null)
-                            for (int i = 0; i < root.CalledIn.Length; i++)
-                                root.Value += root.CalledIn.Values[i].TotalHits;
+                            foreach (FunctionCall call in root.CalledIn)
+                                root.Value += call.TotalHits;
                         break;
                     case SizeLayouts.TimePerHit:
                         if (root.CalledIn != null)
                         {
                             int count = 0;
 
-                            for (int i = 0; i < root.CalledIn.Length; i++)
-                                if (root.CalledIn.Values[i].TotalHits > 0)
+                            foreach (FunctionCall call in root.CalledIn)
+                                if (call.TotalHits > 0)
                                 {
                                     count++;
-                                    root.Value += root.CalledIn.Values[i].TotalTimeInsideDest / root.CalledIn.Values[i].TotalHits;
+                                    root.Value += call.TotalTimeInsideDest / call.TotalHits;
                                 }
 
                             if (count > 0)
@@ -493,7 +567,7 @@ namespace XLibrary
 
             RectangleD insideArea = root.AreaD;
 
-            if (ShowLabels && root.ObjType == XObjType.Method)
+            if (ShowLabels)
             {
                 // check if enough room in root box for label
                 RectangleF label = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
@@ -632,7 +706,14 @@ namespace XLibrary
                 else
                     pen = ObjPens[(int)node.ObjType];
 
-                buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                try
+                {
+                    buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                }
+                catch (Exception ex)
+                {
+                    File.WriteAllText("debug.txt", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}\r\n", ex, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height));
+                }
             }
 
             // draw label
@@ -719,7 +800,6 @@ namespace XLibrary
             if (hash != HoverHash)
             {
                 HoverHash = hash;
-                Redraw();
 
                 if (GuiHovered.Count > 0)
                 {
@@ -731,6 +811,8 @@ namespace XLibrary
                     NodesHovered = new XNodeIn[] { };
                     //MainForm.SelectedLabel.Text = "";
                 }
+
+                Redraw();
             }
         }
 
@@ -760,7 +842,7 @@ namespace XLibrary
         }
 
         // re-calcs the sizes of all nodes
-        public void RecalcVales()
+        public void RecalcValues()
         {
             DoRevalue = true;
             Invalidate();

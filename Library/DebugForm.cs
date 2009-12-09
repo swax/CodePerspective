@@ -57,12 +57,8 @@ namespace XLibrary
             Output.AppendLine("");
             Output.AppendLine("CallMap:");
 
-            for(int i = 0; i < XRay.CallMap.Length; i++)
-            {
-                FunctionCall call = XRay.CallMap.Values[i];
-                if(call != null)
-                    Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside );
-            }
+            foreach(FunctionCall call in XRay.CallMap)
+                Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside );
 
             // function calls
             Output.AppendLine("");

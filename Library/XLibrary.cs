@@ -26,6 +26,7 @@ namespace XLibrary
         internal static BitArray CoveredFunctions;
 
         internal static bool ShowAllCalls;
+        internal static bool CallChange;
 
         internal const int HitFrames = 15;
         internal const int ShowTicks = HitFrames - 1; // first index
@@ -254,6 +255,26 @@ namespace XLibrary
             {
                 call = new FunctionCall() { Source = source, Destination = method };
                 CallMap.Add(hash, call);
+
+                // add link to node that its been called
+                if (TrackCallGraph)
+                {
+                    if (node.CalledIn == null)
+                        node.CalledIn = new SharedDictionary<FunctionCall>(1);
+                    if (!node.CalledIn.Contains(source))
+                        node.CalledIn.Add(source, call);
+
+                    if (Nodes[source] == null)
+                        return;
+                    var srcNode = Nodes[source];
+
+                    if (srcNode.CallsOut == null)
+                        srcNode.CallsOut = new SharedDictionary<FunctionCall>(1);
+                    if (!srcNode.CallsOut.Contains(method))
+                        srcNode.CallsOut.Add(method, call);
+                }
+
+                CallChange = true;
             }
 
             if (source != call.Source || method != call.Destination)
@@ -266,24 +287,6 @@ namespace XLibrary
             call.Hit = ShowTicks;
             call.TotalHits++;
             call.StillInside++;
-
-            // add link to node that its been called
-            if (TrackCallGraph)
-            {
-                if (node.CalledIn == null)
-                    node.CalledIn = new SharedDictionary<FunctionCall>(1);
-                if (!node.CalledIn.Contains(source))
-                    node.CalledIn.Add(source, call);
-
-                if (Nodes[source] == null)
-                    return;
-                node = Nodes[source];
-
-                if (node.CallsOut == null)
-                    node.CallsOut = new SharedDictionary<FunctionCall>(1);
-                if (!node.CallsOut.Contains(method))
-                    node.CallsOut.Add(method, call);
-            }
         }
 
         public static void MethodExit(int method)

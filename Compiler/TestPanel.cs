@@ -497,7 +497,18 @@ namespace XBuilder
             OutboundEdges = Edges.Where(e => e.Source == this && e.Destination != this);
         }
 
-        // rank nodes and reverse cycles, ideally start at parent node
+
+
+        /*
+        flow through entire list of children first
+	        keep track of node parents
+		        if any unranked parents at end of child run
+			        look at all of parents children, give rank of 1 - lowest ranked child
+				        re-run alg on that parent
+        				
+	        this way we start with first (entry) node, run through linearly from that, and tack on alternate parents later
+		        works great for application call graph, and for general graphs as well
+        */
         internal void Layout(Dictionary<int, Node> group, int minRank, List<Node> parents, List<string> debugLog)
         {
             debugLog.Add(string.Format("Entered Node ID {0} rank {1}", ID, Rank));

@@ -71,6 +71,12 @@ namespace XLibrary
                 return;
             }
 
+            Init2(trackFlow, trackInstances);
+        }
+
+        public static void Init2(bool trackFlow, bool trackInstances)
+        {
+
             Watch.Start();
 
             // read compiled settings
@@ -97,21 +103,19 @@ namespace XLibrary
             InitComplete = true;
 
             // boot up the xray gui
-            if (Gui == null)
+            if (Gui != null)
+                return;
+
+            Gui = new Thread(() =>
             {
-                Gui = new Thread(ShowGui);
-                Gui.SetApartmentState(ApartmentState.STA);
-                Gui.Start();
-            }
-        }
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
 
-        public static void ShowGui()
-        {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-
-            MainForm = new MainForm();
-            Application.Run(MainForm);
+                MainForm = new MainForm();
+                Application.Run(MainForm);
+            });
+            Gui.SetApartmentState(ApartmentState.STA);
+            Gui.Start();
         }
 
         static bool LoadNodeMap(string path)
@@ -165,6 +169,19 @@ namespace XLibrary
 
         public static void MethodEnter(int method)
         {
+            /*if (!InitComplete)
+            {
+
+                lock (Thread.CurrentThread)
+                {
+                    if (!InitComplete)
+                        Init2(true, false);
+
+                    InitComplete = true;
+                }
+            }*/
+
+
             if (Nodes == null) // static classes init'ing in the entry points class can cause this
                 return;
 

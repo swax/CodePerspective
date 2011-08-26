@@ -579,8 +579,9 @@ namespace XBuilder
                 outFile.Write(buffer);
 
             string windir = Environment.GetEnvironmentVariable("windir");
-            string ilasm = Path.Combine(windir, "Microsoft.NET\\Framework\\v2.0.50727\\ilasm.exe");
-
+            string ilasm = Path.Combine(windir, "Microsoft.NET\\Framework\\v4.0.30319\\ilasm.exe");
+            //string ilasm = Path.Combine(windir, "Microsoft.NET\\Framework\\v2.0.50727\\ilasm.exe");
+            
             // C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\ilasm.exe RiseOp
 
             // assemble file

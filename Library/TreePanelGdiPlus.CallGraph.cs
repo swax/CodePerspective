@@ -31,6 +31,8 @@ namespace XLibrary
     {
         List<Graph> Graphs = new List<Graph>();
 
+        const int MinCallNodeSize = 5;
+
         private void DrawCallGraph(Graphics buffer)
         {
             if (DoRevalue || XRay.CallChange || XRay.CoverChange)
@@ -72,35 +74,88 @@ namespace XLibrary
             {
                 float fullSize = (float)Math.Min(Width, Height) / 2;
 
-                foreach (var node in Graphs.SelectMany(g => g.Nodes()))
+                foreach (var graph in Graphs)
                 {
-                    float size = fullSize * node.ScaledSize;
-
-                    float halfSize = size / 2;
-
-                    if (size < 3)
-                        size = 3;
-
-                    node.SetArea(new RectangleD(
-                        Width * node.ScaledLocation.X - halfSize,
-                        Height * node.ScaledLocation.Y - halfSize,
-                        size, size));
-
-                    if (node.ID == 0) // dont draw intermediate nodes
-                        continue;
-
-                    // check if enough room in box for label
-                    node.RoomForLabel = false;
-                    RectangleF label = new RectangleF(node.AreaF.Location, buffer.MeasureString(node.Name, TextFont));
-
-                    if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
-                        label.Width < node.AreaF.Width + LabelPadding * 2)
+                    for (int i = 0; i < graph.Ranks.Length; i++)
                     {
-                        label.X += LabelPadding;
-                        label.Y += LabelPadding;
+                        var rank = graph.Ranks[i];
 
-                        node.RoomForLabel = true;
-                        node.LabelRect = label;
+                        float right = Width;
+                        if (ShowLabels)
+                        {
+                            if (i < graph.Ranks.Length - 1)
+                                right = Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                                        (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
+                        }
+
+                        for (int x = 0; x < rank.Column.Count; x++)
+                        {
+                            var node = rank.Column[x];
+
+                            float size = fullSize * node.ScaledSize;
+
+                            float halfSize = size / 2;
+
+                            if (size < MinCallNodeSize)
+                                size = MinCallNodeSize;
+
+                            node.SetArea(new RectangleD(
+                                Width * node.ScaledLocation.X - halfSize,
+                                Height * node.ScaledLocation.Y - halfSize,
+                                size, size));
+
+                            if (node.ID == 0) // dont draw intermediate nodes
+                                continue;
+
+                            // check if enough room in box for label
+                            node.RoomForLabel = false;
+
+                            if (ShowLabels)
+                            {
+                                SizeF textSize = buffer.MeasureString(node.Name, TextFont);
+
+                                //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
+                                float left = node.AreaF.Right;
+                                float top = graph.ScaledOffset;
+                                if (x != 0)
+                                {
+                                    float distance = rank.Column[x].ScaledLocation.Y - rank.Column[x - 1].ScaledLocation.Y;
+                                    top = rank.Column[x - 1].ScaledLocation.Y + (distance / 2);
+                                }
+
+                                float bottom = graph.ScaledOffset + graph.ScaledHeight;
+                                if (x < rank.Column.Count - 1)
+                                {
+                                    float distance = rank.Column[x + 1].ScaledLocation.Y - rank.Column[x].ScaledLocation.Y;
+                                    bottom = rank.Column[x].ScaledLocation.Y + (distance / 2);
+                                }
+ 
+                                float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
+                                top = (node.ScaledLocation.Y - distanceFromCenter) * Height;
+                                bottom = (node.ScaledLocation.Y + distanceFromCenter) * Height;
+
+                                
+                                node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
+
+                                if (textSize.Height < node.LabelRect.Height && textSize.Width < node.LabelRect.Width)
+                                {
+                                    node.RoomForLabel = true;
+
+                                    node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2) - (textSize.Height / 2);
+                                    node.LabelRect.Height = textSize.Height;
+                                }
+
+                                /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
+                                    label.Width < node.AreaF.Width + LabelPadding * 2)
+                                {
+                                    label.X += LabelPadding;
+                                    label.Y += LabelPadding;
+
+                                    node.RoomForLabel = true;
+                                    node.LabelRect = label;
+                                }*/
+                            }
+                        }
                     }
                 }
 
@@ -428,10 +483,10 @@ namespace XLibrary
                     float halfSize = node.ScaledSize / 2;
 
                     float lowerbound = (x > 0) ? nodes[x - 1].ScaledLocation.Y + (nodes[x - 1].ScaledSize / 2) : 0;
-                    lowerbound += rank.MinNodeSpace;
+                    lowerbound += rank.MinHeightSpace;
 
                     float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].ScaledLocation.Y - (nodes[x + 1].ScaledSize / 2) : float.MaxValue;
-                    upperbound -= rank.MinNodeSpace;
+                    upperbound -= rank.MinHeightSpace;
 
                     Debug.Assert(lowerbound <= upperbound);
                     if (lowerbound >= upperbound)
@@ -459,9 +514,8 @@ namespace XLibrary
             float freespace = 1 * graph.ScaledHeight - totalHeight;
 
             float ySpace = freespace / (nodes.Count + 1); // space between each block
-            rank.MinNodeSpace = (float) Math.Min(ySpace, 4.0 / (double) Height);
+            rank.MinHeightSpace = (float) Math.Min(ySpace, 4.0 / (double) Height);
             float yOffset = ySpace;
-
 
             foreach (var node in nodes)
             {
@@ -607,11 +661,9 @@ namespace XLibrary
 
         class Rank
         {
-            internal int Order;
-
             internal List<XNodeIn> Column = new List<XNodeIn>();
 
-            internal float MinNodeSpace;
+            internal float MinHeightSpace;
         }
     }
 }

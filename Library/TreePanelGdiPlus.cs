@@ -500,7 +500,7 @@ namespace XLibrary
 
 
             // only leaves have usable value
-            if (root.Nodes.Count == 0)
+            if (root.ObjType == XObjType.Method)
             {
                 switch (SizeLayout)
                 {

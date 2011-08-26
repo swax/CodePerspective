@@ -21,8 +21,6 @@ namespace XLibrary
         double CurrentHeight;
         bool DrawingVertically;
 
-        readonly int MinWidth = 3;
-
 
         public TreeMap(IEnumerable<InputValue> values, SizeD size)
         {

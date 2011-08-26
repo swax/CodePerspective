@@ -310,7 +310,26 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
         private void GraphButton_Click(object sender, EventArgs e)
         {
-            new TestForm().Show();
+            Guid? x = null;
+            Guid? y = Guid.NewGuid();
+
+            string a = x.ToString();
+            string b = y.ToString();
+
+            string c = string.Format("{0}  /  {1}", x, y);
+
+            string d = "hello " + x + " bill";
+
+            int pieceCount1 = (int)Math.Ceiling(5000 / (double)1000);
+
+
+            int pieceCount2 = (int)Math.Ceiling(5500 / (double)1000);
+
+
+            int pieceCount3 = (int)Math.Ceiling(500 / (double)1000);
+
+
+           // new TestForm().Show();
         }
     }
 

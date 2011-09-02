@@ -124,7 +124,8 @@ namespace XLibrary
         public int Lines;
         public int Indent;
         public string IndentString = "    "; // 2 for class, 2 for method
-        
+        public int AnonFuncs = 1;
+        public int AnonClasses = 1;
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -170,8 +171,10 @@ namespace XLibrary
             return sum;
         }
 
-        public void SaveTree(string dir)
+        public long SaveTree(string dir)
         {
+            long trackedObjects = 0;
+
             ComputeSums();
 
             string path = Path.Combine(dir, "XRay.dat");
@@ -179,13 +182,15 @@ namespace XLibrary
             byte[] temp = new byte[1024];
 
             using (FileStream stream = new FileStream(path, FileMode.Create))
-                Write(stream, temp);
+                trackedObjects += Write(stream, temp);
+
+            return trackedObjects;
         }
 
-        public void Write(FileStream stream, byte[] temp)
+        public long Write(FileStream stream, byte[] temp)
         {
             if (Exclude)
-                return;
+                return 0;
 
             // total size 4
             // name size 4
@@ -230,9 +235,12 @@ namespace XLibrary
             //write packet
             stream.Write(temp, 0, pos);
 
+            long trackedObjects = 1;
 
             foreach (XNodeOut child in Nodes.Cast<XNodeOut>())
-                child.Write(stream, temp);
+                trackedObjects += child.Write(stream, temp);
+
+            return trackedObjects;
         }
     }
 

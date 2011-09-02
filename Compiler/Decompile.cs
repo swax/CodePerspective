@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Mono.Cecil.Rocks;
 
 using XLibrary;
 
@@ -19,6 +24,7 @@ namespace XBuilder
         string ILPathOriginal;
         string AsmDir;
         string OutputDir;
+        FileItem Item;
 
         bool SideBySide; // if true change the file name and refs to xray.etc..
 
@@ -35,53 +41,363 @@ namespace XBuilder
         public bool TrackExternal = true;
         public bool TrackAnon = false;
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, string sourcePath, string outDir)
+        MethodReference XRayInitRef;
+        MethodReference EnterMethodRef;
+        MethodReference ExitMethodRef;
+        MethodReference CatchMethodRef;
+        MethodReference ClassConstructedRef;
+        MethodReference ClassDeconstructedRef;
+
+        public long LinesAdded = 0;
+
+
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, FileItem item, string outDir)
         {
             ExtRoot = extRoot;
-            FileNode = intRoot.AddNode(Path.GetFileName(sourcePath), XObjType.File);
-            OriginalPath = sourcePath;
+            FileNode = intRoot.AddNode(Path.GetFileName(item.FilePath), XObjType.File);
+            OriginalPath = item.FilePath;
             OutputDir = outDir;
-            SideBySide = Path.GetDirectoryName(sourcePath) == outDir;
+            SideBySide = Path.GetDirectoryName(item.FilePath) == outDir;
+            item.RecompiledPath = null; // reset
+            Item = item;
         }
 
-        internal void Decompile()
+        internal void MonoRecompile(List<string> assemblies)
+        {
+            // copy target file to build dir so we can re-compile a running app
+            string filename = Path.GetFileName(OriginalPath);
+            string buildDir = Path.Combine(Application.StartupPath, "recompile", filename);
+            Directory.CreateDirectory(buildDir);
+            
+            string assemblyPath = Path.Combine(buildDir, filename);
+            File.Copy(OriginalPath, assemblyPath, true);
+
+            AssemblyDefinition asm = AssemblyDefinition.ReadAssembly(assemblyPath);
+
+            // similar to using ilasm 4.0, adds // Metadata version: v4.0.30319 to disassembled version (though mscorlib ref stays original version)
+            // lets us link xlibrary without error because it uses 4.0 runtime as well
+            asm.MainModule.Runtime = TargetRuntime.Net_4_0; 
+
+            var asmDef = asm.MainModule.Assembly.Name;
+
+            var originalAsmName = asmDef.Name;
+
+            asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
+
+            if (assemblies.Contains(asmDef.Name))
+            {
+                asmDef.HasPublicKey = false;
+
+                if(SideBySide)
+                    asmDef.Name = "XRay." + asmDef.Name;
+            }
+
+            // string public key and re-name assemblies if needed
+            foreach (var asmRef in asm.MainModule.AssemblyReferences)
+                if (assemblies.Contains(asmRef.Name))
+                {
+                    asmRef.HasPublicKey = false;
+
+                    if (SideBySide)
+                        asmRef.Name = "XRay." + asmRef.Name;
+                }
+
+            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(bool), typeof(bool) }));
+			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
+            ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
+            CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) })); 
+            ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int) }));
+            ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int)}));
+            
+            
+            // iterate class nodes
+            foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
+            {
+                CurrentNode = FileNode;
+
+                string[] namespaces = classDef.Namespace.Split('.');
+
+                for (int i = 0; i < namespaces.Length - 1; i++)
+                    CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
+
+                RecompileClass(classDef, CurrentNode);
+            }
+
+            // init xray at assembly entry point, do last so it comes before method enter
+            if (asm.EntryPoint != null)
+            {
+                var processor = asm.EntryPoint.Body.GetILProcessor();
+
+                AddInstruction(asm.EntryPoint, 0, processor.Create(OpCodes.Ldc_I4, TrackFlow ? 1 : 0));
+                AddInstruction(asm.EntryPoint, 1, processor.Create(OpCodes.Ldc_I4, TrackInstances ? 1 : 0));
+                AddInstruction(asm.EntryPoint, 2, processor.Create(OpCodes.Call, XRayInitRef));
+            }
+
+            // compile
+            string newName = Path.GetFileName(OriginalPath);
+            if (SideBySide)
+                newName = "XRay." + newName;
+
+            Item.RecompiledPath = Path.Combine(OutputDir, newName);
+
+            File.Delete(Item.RecompiledPath); // delete prev compiled file
+
+            asm.Write(Item.RecompiledPath);
+        }
+
+        private XNodeOut RecompileClass(TypeDefinition classDef, XNodeOut parentNode)
+        {
+            if (classDef.Name.StartsWith("<>") && !TrackAnon)
+                return null;
+
+            var classNode = parentNode.AddNode(classDef.Name, XObjType.Class);
+
+            RecompileMethods(classDef, classNode);
+
+            foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class))
+            {
+                var nestedNode = RecompileClass(nestedDef, classNode);
+
+                // put anonymous classes in the functions that they were generated from
+                // ex -. Nested Class: <>c__DisplayClass15, has method: <FilterTextBox_TextChanged>b__11
+                if (nestedNode != null && nestedDef.Name.StartsWith("<>"))
+                {
+                    // iterate methods until method name found
+                    var anonMethod = nestedNode.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
+                    if (anonMethod == null)
+                        continue;
+
+                    string anonMethodName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
+
+                    // find corresponding method name
+                    var newParent = classNode.Nodes.FirstOrDefault(n => n.Name == anonMethodName) as XNodeOut;
+                    if (newParent == null)
+                        continue;
+
+                    // move this under that function
+                    classNode.Nodes.Remove(nestedNode);
+                    newParent.Nodes.Add(nestedNode);
+                    nestedNode.Parent = newParent;
+
+                    // rename
+                    nestedNode.Name = newParent.Name + ".class" + newParent.AnonClasses.ToString();
+                    newParent.AnonClasses++;
+
+                    foreach (var method in nestedNode.Nodes.Where(n => n.ObjType == XObjType.Method))
+                    {
+                        if (method.Name == ".ctor")
+                            method.Name = nestedNode.Name + ".init";
+                        else if (method.Name == ".cctor")
+                            method.Name = nestedNode.Name + ".static_init";
+                        else
+                        {
+                            method.Name = nestedNode.Name + ".func" + nestedNode.AnonFuncs.ToString();
+                            nestedNode.AnonFuncs++;
+                        }
+                    }
+                }
+            }
+
+            return classNode;
+        }
+
+
+        private void RecompileMethods(TypeDefinition classDef, XNodeOut classNode)
+        {
+            // iterate method nodes
+            foreach (var method in classDef.Methods)
+            {
+                XNodeOut methodNode = null;
+
+                // if anon method add inside parent method
+                if (method.Name.StartsWith("<"))
+                {
+                    if (!TrackAnon)
+                        continue;
+
+                    string parentMethod = method.Name.Substring(1, method.Name.IndexOf(">") - 1);
+
+                    var parentNode = classNode.Nodes.FirstOrDefault(n => n.Name == parentMethod) as XNodeOut;
+                    if (parentNode != null && !parentNode.Name.StartsWith("<>")) // dont rename anon classes, this is done elsewhere
+                    {
+                        string anonName = parentNode.Name + ".func" + parentNode.AnonFuncs.ToString();
+                        parentNode.AnonFuncs++;
+                        methodNode = parentNode.AddNode(anonName, XObjType.Method);
+                    }
+                }
+
+                if (methodNode == null)
+                {
+                    string methodName = method.Name;
+                    if (methodName == ".ctor")
+                        methodName = classDef.Name + ".init";
+                    else if (methodName == ".cctor")
+                        methodName = classDef.Name + ".static_init";
+
+                    methodNode = classNode.AddNode(methodName, XObjType.Method);
+                }
+
+                if (method.Body == null)
+                    continue;
+
+                // expands branches/jumps to support adddresses > 255
+                // possibly needed if injecting code into large functions
+                // OptimizeMacros at end of the function re-optimizes
+                method.Body.SimplifyMacros(); 
+
+                methodNode.Lines = method.Body.Instructions.Count;
+
+                var processor = method.Body.GetILProcessor();
+
+                for (int i = 0; i < method.Body.Instructions.Count; i++)
+                {
+                    var instruction = method.Body.Instructions[i];
+
+                    // record method exited
+                    if (TrackFlow && instruction.OpCode == OpCodes.Ret)
+                    {
+                        instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
+                        AddInstruction(method, i + 1, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                        AddInstruction(method, i + 2, processor.Create(OpCodes.Call, ExitMethodRef));
+                        AddInstruction(method, i + 3, processor.Create(OpCodes.Ret));
+
+                        i += 3;
+                    }
+
+                    // change calls to xray'd assemblies
+                    else if (TrackExternal && 
+                             (instruction.OpCode == OpCodes.Call ||
+                              instruction.OpCode == OpCodes.Calli ||
+                              instruction.OpCode == OpCodes.Callvirt))
+                    {
+                        var call = instruction.Operand as MethodReference;
+
+                        var scope = call.DeclaringType.Scope;
+
+                        if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
+                        {
+                            // is this scope type internal or external, should it be tracked externally?
+                            int adf = 0;
+                            adf++;
+                        }
+
+                        // if internal method call
+                        if (scope.MetadataScopeType != MetadataScopeType.AssemblyNameReference)
+                            continue;
+
+                        // if call to xrayed module
+                        if (scope.Name.StartsWith("XRay."))
+                            continue;
+
+                        string moduleName = scope.Name;
+                        string namespaces = (call.DeclaringType.DeclaringType != null) ? call.DeclaringType.DeclaringType.Namespace : call.DeclaringType.Namespace;
+                        string className  = call.DeclaringType.Name;
+                        string methodName = call.Name;
+
+                        // add external file to root
+                        XNodeOut node = ExtRoot.AddNode(moduleName, XObjType.File);
+
+                        // traverse or add namespace to root
+                        foreach(var name in namespaces.Split('.'))
+                            node = node.AddNode(name, XObjType.Namespace);
+
+                        node = node.AddNode(className, XObjType.Class);
+                        node = node.AddNode(methodName, XObjType.Method);
+
+                        node.Lines = 1;
+
+                        // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
+                        int offset = 0;
+                        if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Constrained)
+                        {
+                            i -= 1;
+                            offset = 1;
+                        }
+
+                        var oldPos = method.Body.Instructions[i];
+
+                        int pos = i;
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, node.ID));
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
+                        
+                        // method
+                        pos += 1 + offset;
+
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, node.ID));
+                        AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
+
+                        var newPos = method.Body.Instructions[i];
+                        UpdateExceptionHandlerPositions(method, oldPos, newPos);
+
+                        i = pos; // loop end will add 1 putting us right after last added function
+                    }
+                }
+
+                // record function was entered
+                AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
+
+                if (TrackInstances)
+                    if (method.Name == ".ctor")
+                    {
+                        AddInstruction(method, 2, processor.Create(OpCodes.Ldc_I4, methodNode.Parent.ID));
+                        AddInstruction(method, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
+                    }
+                    else if (method.Name == "Finalize")
+                    {
+                        AddInstruction(method, 2, processor.Create(OpCodes.Ldc_I4, methodNode.Parent.ID));
+                        AddInstruction(method, 3, processor.Create(OpCodes.Call, ClassDeconstructedRef));
+                    }
+
+                // record catches
+                if (TrackFlow)
+                    foreach (var handler in method.Body.ExceptionHandlers)
+                    {
+                        if (handler.HandlerType != ExceptionHandlerType.Catch)
+                            continue;
+
+                        int i = method.Body.Instructions.IndexOf(handler.HandlerStart);
+
+                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                        AddInstruction(method, i + 1, processor.Create(OpCodes.Call, CatchMethodRef));
+
+                        var oldPos = handler.HandlerStart;
+                        var newPos = method.Body.Instructions[i];
+
+                        UpdateExceptionHandlerPositions(method, oldPos, newPos);
+                    }
+
+                method.Body.OptimizeMacros();
+            }
+        }
+
+        internal void AddInstruction(MethodDefinition method, int pos, Instruction instruction)
+        {
+            method.Body.Instructions.Insert(pos, instruction);
+
+            LinesAdded++;
+        }
+
+        internal void UpdateExceptionHandlerPositions(MethodDefinition method, Instruction oldPos, Instruction newPos)
+        {
+            // replace prev instructions pointing to old address to new address
+            foreach (var check in method.Body.ExceptionHandlers)
+            {
+                if (check.TryStart == oldPos) check.TryStart = newPos; // empty try
+                if (check.TryEnd == oldPos) check.TryEnd = newPos;
+                if (check.HandlerStart == oldPos) check.HandlerStart = newPos;
+                if (check.HandlerEnd == oldPos) check.HandlerEnd = newPos;
+            }
+        }
+
+        internal void MsDecompile()
         {
             string name = Path.GetFileName(OriginalPath);
-
+           
             // create directories
             AsmDir = Path.Combine(Application.StartupPath, name);
-            Directory.CreateDirectory(AsmDir);
 
-            // clear previous files
-            foreach (string file in Directory.GetFiles(AsmDir))
-                File.Delete(file);
-
-            // remove spaces from name and move to dasm dir
-            DasmPath = Path.Combine(AsmDir, Path.GetFileName(OriginalPath).Replace(' ', '_'));
-            File.Copy(OriginalPath, DasmPath);
-  
-            // disassemble file
-            string ildasm = Path.Combine(Application.StartupPath, "ildasm.exe");
-            string ILName = Path.GetFileNameWithoutExtension(DasmPath) + ".il";
-            ProcessStartInfo info = new ProcessStartInfo(ildasm, Path.GetFileName(DasmPath) + " /utf8 /output=" + ILName);
-            info.WorkingDirectory = AsmDir;
-            info.UseShellExecute = false;
-            info.RedirectStandardOutput = true;
-
-            Process process = Process.Start(info);
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-
-            ILPath = Path.Combine(AsmDir, ILName);
-
-            // check output il for errors - no way to get ildasm to just output errrors
-            using(StreamReader read = new StreamReader(File.OpenRead(ILPath)))
-                while (!read.EndOfStream)
-                {
-                    string line = read.ReadLine();
-                    if (line.Contains("has no valid CLR header and cannot be disassembled"))
-                        throw new CompileError("Decompiling", ILPath, "Has no valid CLR header and cannot be disassembled");
-                }
+            Decompile(OriginalPath, AsmDir);
 
             ILPathOriginal = Path.Combine(AsmDir,  Path.GetFileNameWithoutExtension(DasmPath) + "_original.il");
           
@@ -89,6 +405,47 @@ namespace XBuilder
             File.Copy(ILPath, ILPathOriginal, true);
 
             File.Delete(DasmPath); // so it can be replaced with asm exe
+        }
+
+        /// <summary>
+        /// decompiles file at OriginalPath to AsmDir
+        /// </summary>
+        internal void Decompile(string exePath, string destinationDir)
+        {
+            string name = Path.GetFileName(exePath);
+
+            Directory.CreateDirectory(destinationDir);
+
+            // clear previous files
+            foreach (string file in Directory.GetFiles(destinationDir))
+                File.Delete(file);
+
+            // remove spaces from name and move to dasm dir
+            DasmPath = Path.Combine(destinationDir, Path.GetFileName(exePath).Replace(' ', '_'));
+            File.Copy(exePath, DasmPath);
+
+            // disassemble file
+            string ildasm = Path.Combine(Application.StartupPath, "ildasm.exe");
+            string ILName = Path.GetFileNameWithoutExtension(DasmPath) + ".il";
+            ProcessStartInfo info = new ProcessStartInfo(ildasm, Path.GetFileName(DasmPath) + " /utf8 /output=" + ILName);
+            info.WorkingDirectory = destinationDir;
+            info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
+
+            Process process = Process.Start(info);
+            string output = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            ILPath = Path.Combine(destinationDir, ILName);
+
+            // check output il for errors - no way to get ildasm to just output errrors
+            using (StreamReader read = new StreamReader(File.OpenRead(ILPath)))
+                while (!read.EndOfStream)
+                {
+                    string line = read.ReadLine();
+                    if (line.Contains("has no valid CLR header and cannot be disassembled"))
+                        throw new CompileError("Decompiling", ILPath, "Has no valid CLR header and cannot be disassembled");
+                }
         }
 
         internal void ScanLines(List<string> assemblies, bool test)
@@ -495,6 +852,8 @@ namespace XBuilder
             XIL.AppendLine("  .ver " + version);
             XIL.AppendLine("}");
             XIL.AppendLine();
+
+            LinesAdded += 5;
         }
 
         private void InjectGui()
@@ -508,6 +867,8 @@ namespace XBuilder
             AddLine("ldc.i4  " + (TrackInstances ? "1" : "0"));
             AddLine("call    void [XLibrary]XLibrary.XRay::Init(bool,bool)");
             XIL.AppendLine();
+
+            LinesAdded += 4;
         }
 
         private void AddLine(string line)
@@ -522,17 +883,20 @@ namespace XBuilder
             XIL.AppendLine();
             AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method enter");
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodEnter(int32)");
+            LinesAdded += 2;
 
             if (TrackInstances)
                 if (node.Name == ".ctor")
                 {
                     AddLine("ldc.i4  " + node.Parent.ID.ToString());
                     AddLine("call    void [XLibrary]XLibrary.XRay::Constructed(int32)");
+                    LinesAdded += 2;
                 }
                 else if (node.Name == "Finalize")
                 {
                     AddLine("ldc.i4  " + node.Parent.ID.ToString());
                     AddLine("call    void [XLibrary]XLibrary.XRay::Deconstructed(int32)");
+                    LinesAdded += 2;
                 }
 
             XIL.AppendLine();
@@ -555,6 +919,7 @@ namespace XBuilder
             XIL.AppendLine();
 
             AddsDone++;
+            LinesAdded += 2;
         }
 
         Dictionary<string, bool> errorMap = new Dictionary<string, bool>();
@@ -568,6 +933,8 @@ namespace XBuilder
             AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method Catch");
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodCatch(int32)");
             XIL.AppendLine();
+
+            LinesAdded += 2;
         }
 
         internal string Compile()

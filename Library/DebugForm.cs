@@ -47,7 +47,7 @@ namespace XLibrary
 
                 for (int x = 0; x <= flow.Pos; x++)
                 {
-                    XNodeIn node = XRay.Nodes[flow.Stack[x].Method];
+                    XNodeIn node = XRay.Nodes[flow.Stack[x].NodeID];
                     if(node != null)
                         Output.AppendFormat("    {0}: Hit: {1}, Inside: {2}\r\n", x, node.ID, node.StillInside);//, (XRay.NodeMap[flow.Stack[x]].StillInside > 0));
                 }

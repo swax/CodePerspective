@@ -44,14 +44,16 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
+                XObjType objType = XObjType.Method;
+
                 // iternate nodes at this zoom level
-                AddCalledNodes(CurrentRoot, true);
+                AddCalledNodes(CurrentRoot, true, objType);
 
                 if (ShowOutside)
-                    AddCalledNodes(InternalRoot, false);
+                    AddCalledNodes(InternalRoot, false, objType);
 
                 if (ShowExternal)
-                    AddCalledNodes(ExternalRoot, false);
+                    AddCalledNodes(ExternalRoot, false, objType);
 
                 // todo need way to identify ext/outside nodes graphically
 
@@ -167,7 +169,7 @@ namespace XLibrary
                 if (node.ID == 0) // dont draw intermediate nodes
                     continue;
 
-                DrawNode(buffer, node, 0);
+                DrawNode(buffer, node, 0, false);
             }
         }
 
@@ -380,13 +382,10 @@ namespace XLibrary
 
                                 lastNode = intermediate;
                                 nextRank = increase ? nextRank + 1 : nextRank - 1;
-
                             }
-
 
                             try
                             {
-
                                 lastNode.Adjacents.Add(destination);
                                 edge.Intermediates.Add(destination);
                             }
@@ -471,37 +470,49 @@ namespace XLibrary
         {
 
             // foreach rank list
-            foreach (Rank rank in graph.Ranks)
+            try
             {
-                var nodes = rank.Column;
-
-                // foreach node average y pos form all connected edges
-                for (int x = 0; x < nodes.Count; x++)
+                foreach (Rank rank in graph.Ranks)
                 {
-                    var node = nodes[x];
+                    var nodes = rank.Column;
 
-                    float halfSize = node.ScaledSize / 2;
+                    // foreach node average y pos form all connected edges
+                    for (int x = 0; x < nodes.Count; x++)
+                    {
+                        var node = nodes[x];
 
-                    float lowerbound = (x > 0) ? nodes[x - 1].ScaledLocation.Y + (nodes[x - 1].ScaledSize / 2) : 0;
-                    lowerbound += rank.MinHeightSpace;
+                        float halfSize = node.ScaledSize / 2;
 
-                    float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].ScaledLocation.Y - (nodes[x + 1].ScaledSize / 2) : float.MaxValue;
-                    upperbound -= rank.MinHeightSpace;
+                        float lowerbound = (x > 0) ? nodes[x - 1].ScaledLocation.Y + (nodes[x - 1].ScaledSize / 2) : 0;
+                        lowerbound += rank.MinHeightSpace;
 
-                    Debug.Assert(lowerbound <= upperbound);
-                    if (lowerbound >= upperbound)
-                        continue;
+                        float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].ScaledLocation.Y - (nodes[x + 1].ScaledSize / 2) : float.MaxValue;
+                        upperbound -= rank.MinHeightSpace;
 
-                    float optimalY = AvgPos(node);
+                        //Debug.Assert(lowerbound <= upperbound);
+                        if (lowerbound >= upperbound)
+                        {
+                            // usually if this happens they're very close
+                            XRay.LogError("lower bound greater than upper in layout. pos: {0}, nodeID: {1}, lower: {4}, upper: {5}, minheight: {6}", x, node.ID, lowerbound, upperbound, rank.MinHeightSpace);
+                            //continue;
+                        }
 
-                    if (optimalY - halfSize < lowerbound)
-                        optimalY = lowerbound + halfSize;
 
-                    else if (optimalY + halfSize > upperbound)
-                        optimalY = upperbound - halfSize;
+                        float optimalY = AvgPos(node);
 
-                    node.ScaledLocation.Y = optimalY;
+                        if (optimalY - halfSize < lowerbound)
+                            optimalY = lowerbound + halfSize;
+
+                        else if (optimalY + halfSize > upperbound)
+                            optimalY = upperbound - halfSize;
+
+                        node.ScaledLocation.Y = optimalY;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                XRay.LogError(ex.Message + "\r\n" + ex.StackTrace);
             }
         }
 
@@ -592,13 +603,13 @@ namespace XLibrary
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(XNodeIn root, bool center)
+        private void AddCalledNodes(XNodeIn root, bool center, XObjType objType)
         {
             if (!root.Show)
                 return;
 
-            if ((root.CalledIn != null && root.CalledIn.Length > 0) ||
-                (root.CallsOut != null && root.CallsOut.Length > 0))
+            if (root.ObjType == objType &&
+                ((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0)))
             {
                 if (center)
                 {
@@ -616,7 +627,7 @@ namespace XLibrary
 
             foreach (XNodeIn sub in root.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
-                    AddCalledNodes(sub, center);
+                    AddCalledNodes(sub, center, objType);
         }
 
         private void DrawGraphEdge(Graphics buffer, Pen pen, FunctionCall call, XNodeIn source, XNodeIn destination)

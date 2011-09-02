@@ -22,13 +22,17 @@ namespace XLibrary
         bool DrawingVertically;
 
 
-        public TreeMap(IEnumerable<InputValue> values, SizeD size)
+        public TreeMap(XNodeIn root, XNodeIn exclude, SizeD size)
         {
+            var values = from n in root.Nodes.Cast<XNodeIn>()
+                        where n.Show && n != exclude
+                        select n as InputValue;
+
             WorkArea = size;
             OriginalArea = size;
 
             double totalArea = WorkArea.Width * WorkArea.Height;
-            double totalValue = values.Sum(value => value.Value);
+            double totalValue = root.Value; // values.Sum(value => value.Value);
 
             var prepared = from v in values
                            orderby v.Value descending

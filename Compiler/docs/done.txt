@@ -1,0 +1,19 @@
+﻿
+application as function tree map
+
+highlight hit functions
+
+show path of code between functions
+
+show path as a ranked call graph
+
+extended info with timing information per method
+
+---
+put anonymous functions inside function
+
+show instructions added, show data objects tracked
+
+put anon classes in functions
+
+

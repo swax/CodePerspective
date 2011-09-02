@@ -1,0 +1,15 @@
+﻿
+
+
+ilspy.exe
+	there are a few internal resource calls to /ILSpy which is not the new resource name
+	baml files different between recompiled and original, Application tag modified, classes removed
+	Side by side works
+		try unmodified ilspy project build fresh
+		make note that apps with internal refs to assembly will not want to use side by side
+
+DragonFly
+	errors unable to resolve assembly
+
+mcforge.exe
+	working

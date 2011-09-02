@@ -60,6 +60,8 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                 FileList.Items.Add(new FileItem(path));
 
             UpdateOutputPath();
+
+            StatusLabel.Text = "Ready to Recompile";
         }
 
         private void RemoveLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -89,6 +91,9 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
             bool trackExternal = TrackExternalCheckBox.Checked;
             bool trackAnon = TrackAnonCheckBox.Checked;
             bool sidebySide = SidebySideCheckBox.Checked;
+            bool doVerify = RunVerifyCheckbox.Checked;
+            bool compileWithMS = MsToolsCheckbox.Checked;
+            bool decompileAgain = DecompileAgainCheckbox.Checked;
 
             new Thread(() =>
             {
@@ -99,8 +104,11 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     stepname = step;
 
                     RunInGui(() =>
-                        Text = "XRay - " + step + " " + name + "...");
+                        StatusLabel.Text = step + " " + name);
                 });
+
+                long linesAdded = 0;
+                long trackedObjects = 0;
 
                 try
                 {
@@ -112,65 +120,99 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     foreach (FileItem item in files)
                         assemblies.Add(Path.GetFileNameWithoutExtension(item.FilePath));
 
+                    string errorLog = "";
+
                     XNodeOut.NextID = 0;
                     XNodeOut root = new XNodeOut(null, "root", XObjType.Root);
                     XNodeOut extRoot = root.AddNode("Not XRayed", XObjType.External);
                     XNodeOut intRoot = root.AddNode("XRayed", XObjType.Internal);
 
-                    string errorLog = "";
-
-                    // foreach file
                     foreach (FileItem item in files)
                     {
-                        XDecompile file = new XDecompile(intRoot, extRoot, item.FilePath, OutputDir);
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir);
 
-                        file.TrackFlow = trackFlow;
-                        file.TrackExternal = trackExternal;
-                        file.TrackAnon = trackAnon;
+                        decompile.TrackFlow = trackFlow;
+                        decompile.TrackExternal = trackExternal;
+                        decompile.TrackAnon = trackAnon;
 
                         try
                         {
-                            status("Decompiling", item.Name);
-                            file.Decompile();
+                            if (compileWithMS)
+                            {
+                                status("Decompiling", item.Name);
+                                decompile.MsDecompile();
+
+                                // used for debugging tricky ilasm errors
+                                //for (int i = 0; i < int.MaxValue; i++)
+                                // {
+                                decompile.AllowedAdds = int.MaxValue; // i;
+                                decompile.AddsDone = 0;
+
+                                status("Scanning", item.Name);
+                                decompile.ScanLines(assemblies, test);
+
+                                status("Recompiling", item.Name);
+                                item.RecompiledPath = decompile.Compile();
+                                // }
+                            }
+                            else
+                            {
+                                status("Recompiling", item.Name);
+                                decompile.MonoRecompile(assemblies);
+                            }
+
+                            if (decompileAgain)
+                            {
+                                string filename = Path.GetFileName(item.FilePath);
+                                string compiler = compileWithMS ? "MS" : "Mono";
+
+                                // create directories
+                                var dir = Path.Combine(Application.StartupPath, "recompile", filename, compiler + "_original");
+                                decompile.Decompile(item.FilePath, dir);
+
+                                dir = Path.Combine(Application.StartupPath, "recompile", filename, compiler + "_new");
+                                decompile.Decompile(item.RecompiledPath, dir);
+                            }
                         }
                         catch (CompileError ex)
                         {
                             errorLog += item.Name + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
-                            continue;
+                        }
+                        catch (Exception ex)
+                        {
+                            RunInGui(() =>
+                            {
+                                MessageBox.Show("Error recompiling: " + ex.Message + "\r\n" + ex.StackTrace);
+                                StatusLabel.Text = "Error on " + item.Name;
+                                OptionsPanel.Enabled = true;
+                            });
+
+                            return;
                         }
 
-                        // used for debugging tricky ilasm errors
-                        //for (int i = 0; i < int.MaxValue; i++)
-                        // {
-                        file.AllowedAdds = int.MaxValue; // i;
-                        file.AddsDone = 0;
-
-                        status("Scanning", item.Name);
-                        file.ScanLines(assemblies, test);
-
-                        status("Recompiling", item.Name);
-                        item.RecompiledPath = file.Compile();
-                        // }
+                        linesAdded += decompile.LinesAdded;
                     }
 
                     // save node map before verifying because we dont want bogus verify 
                     // errors from preventing the dat file form being made
                     status("Saving Map", "");
-                    root.SaveTree(OutputDir);
+                    trackedObjects = root.SaveTree(OutputDir);
 
-                    // verify last and aggregate errors
-                    foreach (FileItem item in files)
-                    {
-                        try
+
+                    // verify last and aggregate errors'
+                    if (doVerify)
+                        foreach (FileItem item in files)
                         {
-                            status("Verifying", item.Name);
-                            XDecompile.Verify(item.RecompiledPath);
+                            try
+                            {
+                                status("Verifying", item.Name);
+                                XDecompile.Verify(item.RecompiledPath);
+                            }
+                            catch (CompileError ex)
+                            {
+                                errorLog += item.Name + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
+                            }
                         }
-                        catch (CompileError ex)
-                        {
-                            errorLog += item.Name + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
-                        }
-                    }
 
                     if (errorLog.Length > 0)
                         throw new CompileError(errorLog);
@@ -201,11 +243,10 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     RunInGui(() => MessageBox.Show("Error during " + stepname + ": " + ex.Message));
                 }
 
-
+                status(String.Format("Ready to Launch - {0:#,#} instructions added, {1:#,#} objects tracked", linesAdded, trackedObjects), "");
 
                 RunInGui(() =>
                 {
-                    Text = "XRay";
                     OptionsPanel.Enabled = true;
                 });
 
@@ -229,7 +270,10 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                 return;
             }
 
-            Process.Start(item.RecompiledPath);
+            ProcessStartInfo info = new ProcessStartInfo(item.RecompiledPath);
+            info.WorkingDirectory = Path.GetDirectoryName(item.RecompiledPath);
+
+            Process.Start(info);
         }
 
         private void ShowMapButton_Click(object sender, EventArgs e)
@@ -306,30 +350,6 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         private void TestCompile_Click(object sender, EventArgs e)
         {
             ReCompile(true);
-        }
-
-        private void GraphButton_Click(object sender, EventArgs e)
-        {
-            Guid? x = null;
-            Guid? y = Guid.NewGuid();
-
-            string a = x.ToString();
-            string b = y.ToString();
-
-            string c = string.Format("{0}  /  {1}", x, y);
-
-            string d = "hello " + x + " bill";
-
-            int pieceCount1 = (int)Math.Ceiling(5000 / (double)1000);
-
-
-            int pieceCount2 = (int)Math.Ceiling(5500 / (double)1000);
-
-
-            int pieceCount3 = (int)Math.Ceiling(500 / (double)1000);
-
-
-           // new TestForm().Show();
         }
     }
 

@@ -1,0 +1,39 @@
+﻿
+pan/zoom node graph view
+	dont draw elements not in view
+	z key to drag outline and zoom on that
+
+class level call graph
+	each instance (class) is a node
+		functions inside are a mini call graph
+		class is the node
+		edges are combined function calls in and out of class
+	works better for object stacks and tracking instace communication
+	also for inspecting object
+
+	are sub-classes combined with parent?
+
+configure decompile/recompile for diff .net platforms
+
+ability to get value of class variables, do real time reflection of running app
+
+global exception handling
+
+track class variables
+	in class node view
+	show variables as blocks in row at top of class block
+	show diff color access lines from function to varaible
+
+	gravitate functions towards class variables
+	treat variables like functions being called
+	that way they show in the node map
+
+ekg
+	take all the columns of the node graph and map to an ekg like line that pulses up and down
+
+key binding to show/hide xray for app
+
+a time line at the bottom of the app
+	shows blocks for running code, whitespace for nothing
+	diff rows for diff threads
+	always moving

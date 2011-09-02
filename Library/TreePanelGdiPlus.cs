@@ -83,7 +83,7 @@ namespace XLibrary
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
         SolidBrush LabelBgBrush = new SolidBrush(Color.FromArgb(128, Color.White));
-        Font TextFont = new Font("tahoma", 9, FontStyle.Bold );
+        Font TextFont = new Font("tahoma", 8, FontStyle.Bold );
 
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
         SolidBrush InstanceBrush = new SolidBrush(Color.Black);
@@ -470,16 +470,16 @@ namespace XLibrary
             if (ShowingOutside)
             {
                 buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
-                DrawNode(buffer, InternalRoot, 0);
+                DrawNode(buffer, InternalRoot, 0, true);
             }
 
             if (ShowingExternal)
             {
                 buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
-                DrawNode(buffer, ExternalRoot, 0);
+                DrawNode(buffer, ExternalRoot, 0, true);
             }
 
-            DrawNode(buffer, CurrentRoot, 0);
+            DrawNode(buffer, CurrentRoot, 0, true);
         }
 
         private bool IsNodeFiltered(bool select, XNodeIn node)
@@ -495,9 +495,7 @@ namespace XLibrary
 
         private long RecalcCover(XNodeIn root)
         {
-
             root.Value = 0;
-
 
             // only leaves have usable value
             if (root.ObjType == XObjType.Method)
@@ -538,13 +536,12 @@ namespace XLibrary
                         }
 
                         break;
-
                 }
             }
 
             foreach (XNodeIn node in root.Nodes)
             {
-                node.Show = node.ObjType != XObjType.Method ||
+                node.Show = //node.ObjType != XObjType.Method ||
                     HitLayout == HitLayouts.All ||
                     (HitLayout == HitLayouts.Hit && XRay.CoveredFunctions[node.ID]) ||
                     (HitLayout == HitLayouts.Unhit && !XRay.CoveredFunctions[node.ID]);
@@ -552,6 +549,9 @@ namespace XLibrary
                 if (node.Show)
                     root.Value += RecalcCover(node);
             }
+
+
+            //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
 
             Debug.Assert(root.Value >= 0);
 
@@ -588,11 +588,7 @@ namespace XLibrary
                 }
             }
 
-            var nodes = from n in root.Nodes.Cast<XNodeIn>()
-                        where n.Show && n != exclude
-                        select n as InputValue;
-
-            List<Sector> sectors = new TreeMap(nodes, insideArea.Size).Results;
+            List<Sector> sectors = new TreeMap(root, exclude, insideArea.Size).Results;
 
             foreach (Sector sector in sectors)
             {
@@ -621,7 +617,7 @@ namespace XLibrary
             }
         }
 
-        private void DrawNode(Graphics buffer, XNodeIn node, int depth)
+        private void DrawNode(Graphics buffer, XNodeIn node, int depth, bool drawChildren)
         {
             if (!node.Show)
                 return;
@@ -723,9 +719,9 @@ namespace XLibrary
                 buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
             }
 
-            if (node.AreaF.Width > 1 && node.AreaF.Height > 1)
+            if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)
-                    DrawNode(buffer, sub, depth + 1);
+                    DrawNode(buffer, sub, depth + 1, drawChildren);
 
 
             // after drawing children, draw instance tracking on top of it all
@@ -980,7 +976,7 @@ namespace XLibrary
                 Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
         }
 
-        void SetRoot(XNodeIn node)
+        public void SetRoot(XNodeIn node)
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;

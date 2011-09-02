@@ -41,6 +41,7 @@ namespace XLibrary
         internal const int MaxStack = 512;
         internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
         internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
+        internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -48,7 +49,6 @@ namespace XLibrary
         internal static bool CallLogging;
         internal static Dictionary<string, bool> ErrorMap = new Dictionary<string, bool>();
 
-        static int EdgeHashOffset;
         static bool InitComplete;
 
         static Stopwatch Watch = new Stopwatch();
@@ -61,8 +61,8 @@ namespace XLibrary
                 MainForm = new MainForm();
                 MainForm.Show();
             }
-        }
-
+        }           
+            
         public static void Init(bool trackFlow, bool trackInstances)
         {
             if (InitComplete)
@@ -76,46 +76,50 @@ namespace XLibrary
 
         public static void Init2(bool trackFlow, bool trackInstances)
         {
-
-            Watch.Start();
-
-            // read compiled settings
-            if (trackFlow)
+            try
             {
-                FlowTracking = true;
-                ThreadTracking = true;
+                Watch.Start();
+
+                // read compiled settings
+                if (trackFlow)
+                {
+                    FlowTracking = true;
+                    ThreadTracking = true;
+                }
+                InstanceTracking = trackInstances;
+
+                // data file with node info should be along side ext
+                string path = Path.Combine(Application.StartupPath, "XRay.dat");
+
+                LoadNodeMap(path);
+
+                // init tracking structures
+                CoveredFunctions = new BitArray(FunctionCount);
+
+                if (InstanceTracking)
+                    InstanceCount = new byte[FunctionCount];
+
+                InitComplete = true;
+
+                // boot up the xray gui
+                if (Gui != null)
+                    return;
+
+                Gui = new Thread(() =>
+                {
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
+
+                    MainForm = new MainForm();
+                    Application.Run(MainForm);
+                });
+                Gui.SetApartmentState(ApartmentState.STA);
+                Gui.Start();
             }
-            InstanceTracking = trackInstances;
-
-            // data file with node info should be along side ext
-            string path = Path.Combine(Application.StartupPath , "XRay.dat");
-
-            LoadNodeMap(path);
-
-            // init tracking structures
-            CoveredFunctions = new BitArray(FunctionCount);
-
-            if (InstanceTracking)
-                InstanceCount = new byte[FunctionCount];
-
-            EdgeHashOffset = int.MaxValue / (FunctionCount + 1);
-            
-            InitComplete = true;
-
-            // boot up the xray gui
-            if (Gui != null)
-                return;
-
-            Gui = new Thread(() =>
+            catch (Exception ex)
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-
-                MainForm = new MainForm();
-                Application.Run(MainForm);
-            });
-            Gui.SetApartmentState(ApartmentState.STA);
-            Gui.Start();
+                MessageBox.Show(ex.Message);
+            }
         }
 
         static bool LoadNodeMap(string path)
@@ -167,7 +171,7 @@ namespace XLibrary
             return false;
         }
 
-        public static void MethodEnter(int method)
+        public static void MethodEnter(int nodeID)
         {
             /*if (!InitComplete)
             {
@@ -185,13 +189,13 @@ namespace XLibrary
             if (Nodes == null) // static classes init'ing in the entry points class can cause this
                 return;
 
-            if (method >= Nodes.Length)
+            if (nodeID >= Nodes.Length)
             {
-                LogError("Method not in node array Func {0}, Array Size {1}\r\n", method, Nodes.Length);
+                LogError("Method not in node array Func {0}, Array Size {1}\r\n", nodeID, Nodes.Length);
                 return;
             }
 
-            XNodeIn node = Nodes[method];
+            XNodeIn node = Nodes[nodeID];
 
             // prevent having to check multiple times in mark hit and flow tracking
             if (node == null)
@@ -202,10 +206,10 @@ namespace XLibrary
                 thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                LogError("Thread {0}, Func {1}, Enter\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
 
             // mark covered, should probably check if show covered is checked
-            if (!CoveredFunctions[method])
+            if (!CoveredFunctions[nodeID])
             {
                 CoverChange = true;
 
@@ -221,7 +225,7 @@ namespace XLibrary
             node.FunctionHit = ShowTicks;
 
             if (node.ObjType != XObjType.Method)
-                LogError("{0} {1} Hit", node.ObjType, method);
+                LogError("{0} {1} Hit", node.ObjType, nodeID);
 
             if (ThreadTracking && thread != 0)
             {
@@ -232,9 +236,22 @@ namespace XLibrary
             }
 
 
-            if (!FlowTracking)
-                return;
+            if (FlowTracking)
+                TrackFunctionCall(nodeID, node, thread);
 
+            /* class to class tracking
+            hash = srcNode.ParentID * FunctionCount + node.ParentID;
+
+            if (!ClassCallMap.TryGetValue(hash, out call))
+            {
+                call = new FunctionCall() { Source = source, Destination = method };
+                ClassCallMap.Add(hash, call);
+
+            }*/
+        }
+
+        private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread)
+        {
             // check that thread is in map
             ThreadFlow flow;
             if (!FlowMap.TryGetValue(thread, out flow))
@@ -249,7 +266,7 @@ namespace XLibrary
             if (flow.Pos == -1)
             {
                 flow.Pos = 0;
-                flow.Stack[0] = new StackItem() { Method = method, Ticks = Watch.ElapsedTicks };
+                flow.Stack[0] = new StackItem() { NodeID = nodeID, Ticks = Watch.ElapsedTicks };
                 node.EntryPoint++;
                 return;
             }
@@ -259,18 +276,18 @@ namespace XLibrary
                 return;
 
             // set the source, and put the dest in stack
-            int source = flow.Stack[flow.Pos].Method;
+            int source = flow.Stack[flow.Pos].NodeID;
 
             // the ids are small and auto-inc based on the # of funcs
             // just hashing together is not unique enough, and many conflicts because the numbers 
             // are small and close together. so expand the number to a larger domain.
             // also ensure s->d != d->s
-            int hash = source * EdgeHashOffset + method;
+            int hash = source * FunctionCount + nodeID;
 
             FunctionCall call;
             if (!CallMap.TryGetValue(hash, out call))
             {
-                call = new FunctionCall() { Source = source, Destination = method };
+                call = new FunctionCall() { Source = source, Destination = nodeID };
                 CallMap.Add(hash, call);
 
                 // add link to node that its been called
@@ -281,40 +298,80 @@ namespace XLibrary
                     if (!node.CalledIn.Contains(source))
                         node.CalledIn.Add(source, call);
 
-                    if (Nodes[source] == null)
-                        return;
                     var srcNode = Nodes[source];
+                    if (srcNode == null)
+                        return;
 
                     if (srcNode.CallsOut == null)
                         srcNode.CallsOut = new SharedDictionary<FunctionCall>(1);
-                    if (!srcNode.CallsOut.Contains(method))
-                        srcNode.CallsOut.Add(method, call);
+                    if (!srcNode.CallsOut.Contains(nodeID))
+                        srcNode.CallsOut.Add(nodeID, call);
                 }
 
                 CallChange = true;
             }
 
-            if (source != call.Source || method != call.Destination)
+            if (source != call.Source || nodeID != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n",
-                    source, method, call.Source, call.Destination);
+                    source, nodeID, call.Source, call.Destination);
 
             flow.Pos++;
-            flow.Stack[flow.Pos] = new StackItem() { Method = method, Call = call, Ticks = Watch.ElapsedTicks };
+            flow.Stack[flow.Pos] = new StackItem() { NodeID = nodeID, Call = call, Ticks = Watch.ElapsedTicks };
 
             call.Hit = ShowTicks;
             call.TotalHits++;
             call.StillInside++;
+
+            TrackClassCall(nodeID, node, source);
         }
 
-        public static void MethodExit(int method)
+        public static void TrackClassCall(int nodeID, XNodeIn node, int source)
         {
-            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[method] == null)
+            var srcNode = Nodes[source];
+            if (srcNode == null)
+                return; 
+
+            var classNode = node.Parent as XNodeIn;
+            var sourceClass = srcNode.Parent as XNodeIn;
+
+            if (classNode.ObjType != XObjType.Class || sourceClass.ObjType != XObjType.Class)
+            {
+                LogError("parent not class type, {0} and {1}", classNode.ObjType, sourceClass.ObjType);
+                return;
+            }
+
+            int hash = sourceClass.ID * FunctionCount + classNode.ID;
+
+            FunctionCall call;
+            if (!CallMap.TryGetValue(hash, out call))
+            {
+                call = new FunctionCall() { Source = sourceClass.ID, Destination = classNode.ID };
+                ClassCallMap.Add(hash, call);
+
+                if (classNode.CalledIn == null)
+                    classNode.CalledIn = new SharedDictionary<FunctionCall>(1);
+                if (!classNode.CalledIn.Contains(sourceClass.ID))
+                    classNode.CalledIn.Add(sourceClass.ID, call);
+
+                if (sourceClass.CallsOut == null)
+                    sourceClass.CallsOut = new SharedDictionary<FunctionCall>(1);
+                if (!sourceClass.CallsOut.Contains(classNode.ID))
+                    sourceClass.CallsOut.Add(classNode.ID, call);
+            }
+
+            call.Hit = ShowTicks;
+            call.TotalHits++;
+        }
+
+        public static void MethodExit(int nodeID)
+        {
+            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
                 return;
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                LogError("Thread {0}, Func {1}, Exit\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Exit\r\n", thread, nodeID);
 
 
             // only should be called if flow tracking is enabled
@@ -327,7 +384,7 @@ namespace XLibrary
             if (FlowMap.TryGetValue(thread, out flow))
                 // work backwards from position on stack to position of the exit
                 for (int i = flow.Pos; i >= 0; i--)
-                    if (flow.Stack[i].Method == method)
+                    if (flow.Stack[i].NodeID == nodeID)
                     {
                         int exit = flow.Pos;
                         flow.Pos = i - 1; // set current position asap
@@ -337,7 +394,7 @@ namespace XLibrary
                         {
                             StackItem exited = flow.Stack[x];
 
-                            Nodes[exited.Method].StillInside--;
+                            Nodes[exited.NodeID].StillInside--;
 
                             if (exited.Call == null)
                                 continue;
@@ -350,7 +407,7 @@ namespace XLibrary
                         }
 
                         if (i == 0)
-                            Nodes[method].EntryPoint--;
+                            Nodes[nodeID].EntryPoint--;
 
                         break;
                     }
@@ -359,15 +416,15 @@ namespace XLibrary
             // solves the problem of constant output debug, can surf structure live and manip variables
         }
 
-        public static void MethodCatch(int method)
+        public static void MethodCatch(int nodeID)
         {
-            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[method] == null)
+            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
                 return;
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
-                LogError("Thread {0}, Func {1}, Catch\r\n", thread, method);
+                LogError("Thread {0}, Func {1}, Catch\r\n", thread, nodeID);
 
             long ticks = Watch.ElapsedTicks;
 
@@ -375,7 +432,7 @@ namespace XLibrary
             if (FlowMap.TryGetValue(thread, out flow))
                 // work backwards from position on stack to position of the catch
                 for (int i = flow.Pos; i >= 0; i--)
-                    if (flow.Stack[i].Method == method)
+                    if (flow.Stack[i].NodeID == nodeID)
                     {
                         int exit = flow.Pos;
                         flow.Pos = i;
@@ -385,10 +442,10 @@ namespace XLibrary
                         {
                             StackItem exited = flow.Stack[x];
 
-                            Nodes[exited.Method].StillInside--;
+                            Nodes[exited.NodeID].StillInside--;
                             exited.Call.TotalCallTime += ticks - exited.Ticks;
 
-                            Nodes[exited.Method].ExceptionHit = ShowTicks;
+                            Nodes[exited.NodeID].ExceptionHit = ShowTicks;
 
                             if (exited.Call != null)
                                 exited.Call.StillInside--;
@@ -434,7 +491,7 @@ namespace XLibrary
 
     class StackItem
     {
-        internal int Method;
+        internal int NodeID;
         internal FunctionCall Call;
         internal long Ticks;
     }

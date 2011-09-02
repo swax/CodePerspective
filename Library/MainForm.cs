@@ -58,21 +58,26 @@ namespace XLibrary
             if (XRay.FlowTracking)
             {
                 // time out function calls
-                foreach (FunctionCall call in XRay.CallMap)
-                {
-                    if (call != null && call.Hit > 0)
-                    {
-                        call.Hit--;
-
-                        call.DashOffset -= FunctionCall.DashSize;
-                        if (call.DashOffset < 0)
-                            call.DashOffset = FunctionCall.DashSpace;
-                    }
-
-                }
+                TimeoutFunctinCalls(XRay.CallMap);
+                TimeoutFunctinCalls(XRay.ClassCallMap);
             }
 
             TreeView.Redraw();
+        }
+
+        void TimeoutFunctinCalls(SharedDictionary<FunctionCall> callMap)
+        {
+            foreach (FunctionCall call in callMap)
+            {
+                if (call == null || call.Hit <= 0)
+                    continue;
+                
+                call.Hit--;
+
+                call.DashOffset -= FunctionCall.DashSize;
+                if (call.DashOffset < 0)
+                    call.DashOffset = FunctionCall.DashSpace;
+            }
         }
 
         public void UpdateStatus()
@@ -184,14 +189,30 @@ namespace XLibrary
 
         private void LayoutMenu_DropDownOpening(object sender, EventArgs e)
         {
+            TreeMapMenuItem.Checked = TreeView.ViewLayout == LayoutType.TreeMap;
+            CallGraphMenuItem.Checked = TreeView.ViewLayout == LayoutType.CallGraph;
+        }
+
+        private void SizesMenu_DropDownOpening(object sender, EventArgs e)
+        {
             ConstantMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Constant;
             MethodSizeMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.MethodSize;
             TimeInMethodMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimeInMethod;
             SizeHitsMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.Hits;
             TimePerHitMenuItem.Checked = TreeView.SizeLayout == SizeLayouts.TimePerHit;
+        }
 
-            TreeMapMenuItem.Checked = TreeView.ViewLayout == LayoutType.TreeMap;
-            CallGraphMenuItem.Checked = TreeView.ViewLayout == LayoutType.CallGraph;
+        private void ZoomMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            ZoomMenuItem.DropDownItems.Clear();
+
+            var root = TreeView.CurrentRoot;
+
+            foreach (XNode parent in root.GetParents())
+            {
+                var copy = parent as XNodeIn;
+                ZoomMenuItem.DropDownItems.Add(new ToolStripMenuItem(copy.Name, null, (s, a) => TreeView.SetRoot(copy)));
+            }
         }
     }
 }

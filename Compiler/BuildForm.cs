@@ -57,7 +57,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
             }
 
             foreach(string path in open.FileNames)
-                FileList.Items.Add(new FileItem(path));
+                FileList.Items.Add(new XRayedFile(path));
 
             UpdateOutputPath();
 
@@ -66,7 +66,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
         private void RemoveLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            foreach (FileItem item in FileList.SelectedItems.Cast<FileItem>().ToArray())
+            foreach (XRayedFile item in FileList.SelectedItems.Cast<XRayedFile>().ToArray())
                 FileList.Items.Remove(item);
 
             UpdateOutputPath();
@@ -80,7 +80,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
         private void ReCompile(bool test)
         {
-            FileItem[] files = FileList.Items.Cast<FileItem>().ToArray();
+            XRayedFile[] files = FileList.Items.Cast<XRayedFile>().ToArray();
 
             if (files.Length == 0)
                 return;
@@ -115,11 +115,6 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     status("Preparing", "");
                     XDecompile.PrepareOutputDir(SourceDir, OutputDir);
 
-                    List<string> assemblies = new List<string>();
-
-                    foreach (FileItem item in files)
-                        assemblies.Add(Path.GetFileNameWithoutExtension(item.FilePath));
-
                     string errorLog = "";
 
                     XNodeOut.NextID = 0;
@@ -127,19 +122,19 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     XNodeOut extRoot = root.AddNode("Not XRayed", XObjType.External);
                     XNodeOut intRoot = root.AddNode("XRayed", XObjType.Internal);
 
-                    foreach (FileItem item in files)
-                    {
-                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir);
+                    // init root file nodes so links can be made for processed fields before they are directly xrayed
+                    foreach (XRayedFile item in files)
+                        item.FileNode = intRoot.AddNode(Path.GetFileName(item.FilePath), XObjType.File);
 
-                        decompile.TrackFlow = trackFlow;
-                        decompile.TrackExternal = trackExternal;
-                        decompile.TrackAnon = trackAnon;
+                    foreach (XRayedFile item in files)
+                    {
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, files, trackFlow, trackExternal, trackAnon);
 
                         try
                         {
                             if (compileWithMS)
                             {
-                                status("Decompiling", item.Name);
+                                status("Decompiling", item.FileName);
                                 decompile.MsDecompile();
 
                                 // used for debugging tricky ilasm errors
@@ -148,17 +143,17 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                                 decompile.AllowedAdds = int.MaxValue; // i;
                                 decompile.AddsDone = 0;
 
-                                status("Scanning", item.Name);
-                                decompile.ScanLines(assemblies, test);
+                                status("Scanning", item.FileName);
+                                decompile.ScanLines(test);
 
-                                status("Recompiling", item.Name);
+                                status("Recompiling", item.FileName);
                                 item.RecompiledPath = decompile.Compile();
                                 // }
                             }
                             else
                             {
-                                status("Recompiling", item.Name);
-                                decompile.MonoRecompile(assemblies);
+                                status("Recompiling", item.FileName);
+                                decompile.MonoRecompile();
                             }
 
                             if (decompileAgain)
@@ -176,14 +171,14 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                         }
                         catch (CompileError ex)
                         {
-                            errorLog += item.Name + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
+                            errorLog += item.FileName + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
                         }
                         catch (Exception ex)
                         {
                             RunInGui(() =>
                             {
                                 MessageBox.Show("Error recompiling: " + ex.Message + "\r\n" + ex.StackTrace);
-                                StatusLabel.Text = "Error on " + item.Name;
+                                StatusLabel.Text = "Error on " + item.FileName;
                                 OptionsPanel.Enabled = true;
                             });
 
@@ -201,16 +196,16 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                     // verify last and aggregate errors'
                     if (doVerify)
-                        foreach (FileItem item in files)
+                        foreach (XRayedFile item in files)
                         {
                             try
                             {
-                                status("Verifying", item.Name);
+                                status("Verifying", item.FileName);
                                 XDecompile.Verify(item.RecompiledPath);
                             }
                             catch (CompileError ex)
                             {
-                                errorLog += item.Name + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
+                                errorLog += item.FileName + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
                             }
                         }
 
@@ -262,7 +257,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         private void LaunchButton_Click(object sender, EventArgs e)
         {
             // execute selected assembly
-            FileItem item = GetSelectedItem();
+            XRayedFile item = GetSelectedItem();
 
             if (item.RecompiledPath == null)
             {
@@ -284,7 +279,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
             try
             {
-                FileItem item = GetSelectedItem();
+                XRayedFile item = GetSelectedItem();
 
                 string path = Path.Combine(OutputDir, "XRay.dat");
 
@@ -296,11 +291,11 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
             }
         }
 
-        FileItem GetSelectedItem()
+        XRayedFile GetSelectedItem()
         {
-            FileItem item = FileList.SelectedItem as FileItem;
+            XRayedFile item = FileList.SelectedItem as XRayedFile;
 
-            return FileList.Items.Cast<FileItem>().FirstOrDefault(i => i.Name.EndsWith(".exe"));
+            return FileList.Items.Cast<XRayedFile>().FirstOrDefault(i => i.FileName.EndsWith(".exe"));
         }
 
         private void ResetLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -353,16 +348,19 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         }
     }
 
-    public class FileItem
+    public class XRayedFile
     {
-        public string Name;
+        public string AssemblyName;
+        public string FileName;
         public string FilePath;
         public string RecompiledPath;
+        public XNodeOut FileNode;
 
-        public FileItem(string path)
+        public XRayedFile(string path)
         {
             FilePath = path;
-            Name = Path.GetFileName(path);
+            FileName = Path.GetFileName(path);
+            AssemblyName = Path.GetFileNameWithoutExtension(path);
         }
 
         public override string ToString()

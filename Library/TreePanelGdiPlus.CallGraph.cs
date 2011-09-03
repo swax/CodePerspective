@@ -44,16 +44,16 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
-                XObjType objType = XObjType.Method;
+                bool classMode = false;
 
                 // iternate nodes at this zoom level
-                AddCalledNodes(CurrentRoot, true, objType);
+                AddCalledNodes(CurrentRoot, true, classMode);
 
                 if (ShowOutside)
-                    AddCalledNodes(InternalRoot, false, objType);
+                    AddCalledNodes(InternalRoot, false, classMode);
 
                 if (ShowExternal)
-                    AddCalledNodes(ExternalRoot, false, objType);
+                    AddCalledNodes(ExternalRoot, false, classMode);
 
                 // todo need way to identify ext/outside nodes graphically
 
@@ -603,13 +603,13 @@ namespace XLibrary
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(XNodeIn root, bool center, XObjType objType)
+        private void AddCalledNodes(XNodeIn root, bool center, bool classMode)
         {
             if (!root.Show)
                 return;
 
-            if (root.ObjType == objType &&
-                ((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0)))
+            if (((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0)) &&
+                ((!classMode && root.ObjType != XObjType.Class) || (classMode && root.ObjType == XObjType.Class)))
             {
                 if (center)
                 {
@@ -627,7 +627,7 @@ namespace XLibrary
 
             foreach (XNodeIn sub in root.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
-                    AddCalledNodes(sub, center, objType);
+                    AddCalledNodes(sub, center, classMode);
         }
 
         private void DrawGraphEdge(Graphics buffer, Pen pen, FunctionCall call, XNodeIn source, XNodeIn destination)

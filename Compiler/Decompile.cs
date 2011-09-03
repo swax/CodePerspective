@@ -24,12 +24,11 @@ namespace XBuilder
         string ILPathOriginal;
         string AsmDir;
         string OutputDir;
-        FileItem Item;
+        XRayedFile XFile;
 
         bool SideBySide; // if true change the file name and refs to xray.etc..
 
         XNodeOut ExtRoot;
-        XNodeOut FileNode;
         XNodeOut CurrentNode;
 
         public static Random RndGen = new Random();
@@ -40,6 +39,7 @@ namespace XBuilder
         public bool TrackInstances = false;
         public bool TrackExternal = true;
         public bool TrackAnon = false;
+        public bool TrackFields = true;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -47,22 +47,30 @@ namespace XBuilder
         MethodReference CatchMethodRef;
         MethodReference ClassConstructedRef;
         MethodReference ClassDeconstructedRef;
+        MethodReference LoadFieldRef;
+        MethodReference SetFieldRef;
 
         public long LinesAdded = 0;
 
+        public XRayedFile[] XRayedFiles;
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, FileItem item, string outDir)
+
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, XRayedFile[] files, bool trackFlow, bool trackExternal, bool trackAnon)
         {
             ExtRoot = extRoot;
-            FileNode = intRoot.AddNode(Path.GetFileName(item.FilePath), XObjType.File);
             OriginalPath = item.FilePath;
             OutputDir = outDir;
             SideBySide = Path.GetDirectoryName(item.FilePath) == outDir;
             item.RecompiledPath = null; // reset
-            Item = item;
+            XFile = item;
+
+            XRayedFiles = files;
+            TrackFlow = trackFlow;
+            TrackExternal = trackExternal;
+            TrackAnon = trackAnon;
         }
 
-        internal void MonoRecompile(List<string> assemblies)
+        internal void MonoRecompile()
         {
             // copy target file to build dir so we can re-compile a running app
             string filename = Path.GetFileName(OriginalPath);
@@ -84,40 +92,24 @@ namespace XBuilder
 
             asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
 
-            if (assemblies.Contains(asmDef.Name))
-            {
-                asmDef.HasPublicKey = false;
-
-                if(SideBySide)
-                    asmDef.Name = "XRay." + asmDef.Name;
-            }
-
-            // string public key and re-name assemblies if needed
-            foreach (var asmRef in asm.MainModule.AssemblyReferences)
-                if (assemblies.Contains(asmRef.Name))
-                {
-                    asmRef.HasPublicKey = false;
-
-                    if (SideBySide)
-                        asmRef.Name = "XRay." + asmRef.Name;
-                }
-
             XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(bool), typeof(bool) }));
 			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
             ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
             CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) })); 
             ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int) }));
             ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int)}));
+            LoadFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
+            SetFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("SetField", new Type[] { typeof(int) }));
             
             
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
             {
-                CurrentNode = FileNode;
+                CurrentNode = XFile.FileNode;
 
                 string[] namespaces = classDef.Namespace.Split('.');
 
-                for (int i = 0; i < namespaces.Length - 1; i++)
+                for (int i = 0; i < namespaces.Length; i++)
                     CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
 
                 RecompileClass(classDef, CurrentNode);
@@ -133,21 +125,44 @@ namespace XBuilder
                 AddInstruction(asm.EntryPoint, 2, processor.Create(OpCodes.Call, XRayInitRef));
             }
 
+            ComputeFieldValues(XFile.FileNode);
+
+            ProcessClassNames(XFile.FileNode);
+
+            // change module names after class/method processing so we dont interfere with dependency lookup
+            if (XRayedFiles.Any(f => f.AssemblyName == asmDef.Name))
+            {
+                asmDef.HasPublicKey = false;
+
+                if (SideBySide)
+                    asmDef.Name = "XRay." + asmDef.Name;
+            }
+
+            // string public key and re-name assemblies if needed
+            foreach (var asmRef in asm.MainModule.AssemblyReferences)
+                if (XRayedFiles.Any(f => f.AssemblyName == asmRef.Name))
+                {
+                    asmRef.HasPublicKey = false;
+
+                    if (SideBySide)
+                        asmRef.Name = "XRay." + asmRef.Name;
+                }
+
             // compile
             string newName = Path.GetFileName(OriginalPath);
             if (SideBySide)
                 newName = "XRay." + newName;
 
-            Item.RecompiledPath = Path.Combine(OutputDir, newName);
+            XFile.RecompiledPath = Path.Combine(OutputDir, newName);
 
-            File.Delete(Item.RecompiledPath); // delete prev compiled file
+            File.Delete(XFile.RecompiledPath); // delete prev compiled file
 
-            asm.Write(Item.RecompiledPath);
+            asm.Write(XFile.RecompiledPath);
         }
 
         private XNodeOut RecompileClass(TypeDefinition classDef, XNodeOut parentNode)
         {
-            if (classDef.Name.StartsWith("<>") && !TrackAnon)
+            if ( !TrackAnon && classDef.Name.StartsWith("<>") )
                 return null;
 
             var classNode = parentNode.AddNode(classDef.Name, XObjType.Class);
@@ -201,9 +216,13 @@ namespace XBuilder
             return classNode;
         }
 
-
         private void RecompileMethods(TypeDefinition classDef, XNodeOut classNode)
         {
+            // add fields
+            if (TrackFields && classDef.HasFields)
+                foreach (var fieldDef in classDef.Fields)
+                    classNode.AddField(fieldDef);
+
             // iterate method nodes
             foreach (var method in classDef.Methods)
             {
@@ -264,7 +283,7 @@ namespace XBuilder
                         i += 3;
                     }
 
-                    // change calls to xray'd assemblies
+                    // if we're tracking calls to non-xrayed assemblies
                     else if (TrackExternal && 
                              (instruction.OpCode == OpCodes.Call ||
                               instruction.OpCode == OpCodes.Calli ||
@@ -277,16 +296,13 @@ namespace XBuilder
                         if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
                         {
                             // is this scope type internal or external, should it be tracked externally?
-                            int adf = 0;
-                            adf++;
+                            Debug.Assert(false);
+                            continue;
                         }
 
-                        // if internal method call
-                        if (scope.MetadataScopeType != MetadataScopeType.AssemblyNameReference)
-                            continue;
-
-                        // if call to xrayed module
-                        if (scope.Name.StartsWith("XRay."))
+                        // if internal method call or call to xrayed module
+                        if (scope.MetadataScopeType != MetadataScopeType.AssemblyNameReference ||
+                            XRayedFiles.Any(f => f.AssemblyName == scope.Name)) // when not in sxs mode, 
                             continue;
 
                         string moduleName = scope.Name;
@@ -316,6 +332,8 @@ namespace XBuilder
 
                         var oldPos = method.Body.Instructions[i];
 
+                        // wrap the call with enter and exit, because enter to an external method may cause
+                        // an xrayed method to be called, we want to track the flow of that process
                         int pos = i;
                         AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, node.ID));
                         AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
@@ -331,14 +349,71 @@ namespace XBuilder
 
                         i = pos; // loop end will add 1 putting us right after last added function
                     }
-                }
+
+                    
+                    else if (TrackFields && 
+                             (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Ldfld || instruction.OpCode == OpCodes.Ldflda))
+                    {
+                        var fieldDef = instruction.Operand as FieldReference;
+                        
+                        var scope = fieldDef.DeclaringType.Scope;
+
+                        if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
+                        {
+                            // is this scope type internal or external, should it be tracked externally?
+                            Debug.Assert(false);
+                            continue;
+                        }
+
+                        string namespaces = fieldDef.DeclaringType.Namespace;
+                        string className = fieldDef.DeclaringType.Name;
+                        string fieldName = fieldDef.Name;
+                        string fieldType = fieldDef.FieldType.FullName;
+
+                        XNodeOut node = null;
+
+                        // if xrayed internal
+                        if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
+                            node = XFile.FileNode;
+
+                        // xrayed, but in diff module
+                        else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
+                            node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
+
+                        // if not xrayed - map to external root
+                        else
+                            node = ExtRoot.AddNode(scope.Name, XObjType.File);
+
+                        // traverse or add namespace to root
+                        foreach (var name in namespaces.Split('.'))
+                            node = node.AddNode(name, XObjType.Namespace);
+
+                        node = node.AddNode(className, XObjType.Class);
+
+                        node = node.AddField(fieldDef);
+
+                        // add tracking
+                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, node.ID));
+                        
+                        if(instruction.OpCode == OpCodes.Stfld)
+                            AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
+                        else
+                            AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
+                        
+                        i = i + 2; // skip instuction added, and field itself, end of loop will iterate this again
+
+                        // Debug.WriteLine("{0} in Module: {1}, Namespace: {2}, Class: {3}, Name: {4}, Type: {5}", instruction.OpCode, fieldDef.DeclaringType.Scope.Name, namespaces, className, fieldName, fieldType);
+                    }
+
+                } // end iterating through instructions
+
 
                 // record function was entered
                 AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
                 AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
 
                 if (TrackInstances)
-                    if (method.Name == ".ctor")
+                    if (method.Name == ".ctor" || method.Name == ".cctor")
                     {
                         AddInstruction(method, 2, processor.Create(OpCodes.Ldc_I4, methodNode.Parent.ID));
                         AddInstruction(method, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
@@ -389,6 +464,118 @@ namespace XBuilder
                 if (check.HandlerEnd == oldPos) check.HandlerEnd = newPos;
             }
         }
+
+        internal double ComputeFieldValues(XNodeOut node)
+        {
+            // give fields a value that makes them take up a total of %15 of the value of the class
+
+            double total = node.Lines;
+            double fieldCount = 0;
+
+            // compute sum of all dependents
+            foreach (XNodeOut subnode in node.Nodes)
+                if(subnode.ObjType == XObjType.Field)
+                    fieldCount++;
+                else
+                    total += ComputeFieldValues(subnode);
+
+            if(fieldCount > 0)
+            {
+                // inflate total 15% and fit fields in there
+                double subTotal = total;
+                total = total * 100.0 / 85.0;
+
+                double fieldTotal = total - subTotal;
+
+                int fieldValue = (int) (fieldTotal / fieldCount);
+                if (fieldValue < 1)
+                    fieldValue = 1;
+
+                foreach (XNodeOut field in node.Nodes.Where(n => n.ObjType == XObjType.Field))
+                    field.Lines = fieldValue;
+            }
+
+            return total;
+        }
+
+        internal double ProcessClassNames(XNodeOut node)
+        {
+            // if class and starts with <>
+
+                // mark as anon
+
+                // if parent is not anon
+                    // iterate anon methods to find association
+                    // iterate parent class methods to find match
+                    // move node under that method
+
+                // rename class parentNodeName.classX
+
+            // if method and starts with <
+                // if parent node is not anon
+                    // find matching method
+                    // move into that method
+                // if parent is anon
+                    // get parent method to get functionname
+                    // if name contains <functionName>, change to className.funcX
+
+            // if method is ctor/cctor rename
+
+            // iterate sub elements
+
+            
+        
+
+
+
+            return 0;
+            /* rename constructors
+
+
+            foreach (XNodeOut subnode in node.Nodes)
+                ProcessClassNames(subnode);
+
+            // rename constructors
+
+            if (nestedNode != null && nestedDef.Name.StartsWith("<>"))
+            {
+                // iterate methods until method name found
+                var anonMethod = nestedNode.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
+                if (anonMethod == null)
+                    continue;
+
+                string anonMethodName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
+
+                // find corresponding method name
+                var newParent = classNode.Nodes.FirstOrDefault(n => n.Name == anonMethodName) as XNodeOut;
+                if (newParent == null)
+                    continue;
+
+                // move this under that function
+                classNode.Nodes.Remove(nestedNode);
+                newParent.Nodes.Add(nestedNode);
+                nestedNode.Parent = newParent;
+
+                // rename
+                nestedNode.Name = newParent.Name + ".class" + newParent.AnonClasses.ToString();
+                newParent.AnonClasses++;
+
+                foreach (var method in nestedNode.Nodes.Where(n => n.ObjType == XObjType.Method))
+                {
+                    if (method.Name == ".ctor")
+                        method.Name = nestedNode.Name + ".init";
+                    else if (method.Name == ".cctor")
+                        method.Name = nestedNode.Name + ".static_init";
+                    else
+                    {
+                        method.Name = nestedNode.Name + ".func" + nestedNode.AnonFuncs.ToString();
+                        nestedNode.AnonFuncs++;
+                    }
+                }
+            }*/
+        }
+
+        // ----- MS RECOMPILER ---------------------------------------------------------------------------------------------------
 
         internal void MsDecompile()
         {
@@ -448,10 +635,10 @@ namespace XBuilder
                 }
         }
 
-        internal void ScanLines(List<string> assemblies, bool test)
+        internal void ScanLines(bool test)
         {
             XIL.Length = 0;
-            CurrentNode = FileNode;
+            CurrentNode = XFile.FileNode;
   
             if(!test)
                 InjectLibrary("XLibrary", "1:0:0:0");
@@ -475,7 +662,7 @@ namespace XBuilder
 
 
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
-                        if (assemblies.Contains(assembly))
+                        if (XRayedFiles.Any(f => f.AssemblyName == assembly))
                         {
                             if (SideBySide)
                             {
@@ -539,7 +726,7 @@ namespace XBuilder
 
                         if (!line.Contains("nested"))
                         {
-                            CurrentNode = FileNode;
+                            CurrentNode = XFile.FileNode;
 
                             for (int i = 0; i < namespaces.Length - 1; i++)
                                 CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
@@ -746,7 +933,7 @@ namespace XBuilder
                                 namespaces = namespaces.Substring(0, pos);
 
                             // if already tracked, skip
-                            if (assemblies.Contains(external))
+                            if (XRayedFiles.Any(f => f.AssemblyName == external))
                                 continue;
 
                             // add external file to root
@@ -839,7 +1026,7 @@ namespace XBuilder
 
             // change method call refs from old assembly to new
             if(SideBySide)
-                foreach (string assembly in assemblies)
+                foreach (string assembly in XRayedFiles.Select(f => f.AssemblyName))
                     XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
         }
 
@@ -921,8 +1108,6 @@ namespace XBuilder
             AddsDone++;
             LinesAdded += 2;
         }
-
-        Dictionary<string, bool> errorMap = new Dictionary<string, bool>();
 
         private void InjectMethodCatch(XNodeOut node)
         {

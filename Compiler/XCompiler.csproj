@@ -93,6 +93,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XNodeOut.cs" />
     <EmbeddedResource Include="BuildForm.resx">
       <DependentUpon>BuildForm.cs</DependentUpon>
       <SubType>Designer</SubType>

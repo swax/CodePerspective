@@ -45,7 +45,7 @@ namespace XLibrary
         Color NamespaceColor = Color.DarkBlue;
         Color ClassColor = Color.DarkGreen;
         Color MethodColor = Color.DarkRed;
-        Color FieldColor = Color.Brown;
+        Color FieldColor = Color.Goldenrod;
 
         SolidBrush[] ObjBrushes;
         SolidBrush[] ObjBrushesDithered;
@@ -80,6 +80,9 @@ namespace XLibrary
         Color ExceptionColor = Color.Red;
         Color MultiExceptionColor = Color.DarkRed;
 
+        Color FieldSetColor = Color.Blue;
+        Color FieldGetColor = Color.LimeGreen;
+
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
         SolidBrush LabelBgBrush = new SolidBrush(Color.FromArgb(128, Color.White));
@@ -100,6 +103,9 @@ namespace XLibrary
 
         SolidBrush[] HitBrush;
         SolidBrush[] MultiHitBrush;
+
+        SolidBrush[] FieldSetBrush;
+        SolidBrush[] FieldGetBrush;
 
         SolidBrush[] ExceptionBrush;
         // no multi exception brush cause we dont know if multiple function calls resulted in an exception or just the 1
@@ -139,6 +145,8 @@ namespace XLibrary
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
             ExceptionBrush = new SolidBrush[XRay.HitFrames];
+            FieldSetBrush = new SolidBrush[XRay.HitFrames];
+            FieldGetBrush = new SolidBrush[XRay.HitFrames];
 
             CallPen = new Pen[XRay.HitFrames];
 
@@ -149,6 +157,8 @@ namespace XLibrary
                 HitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, HitColor));
                 MultiHitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, MultiHitColor));
                 ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor));
+                FieldSetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, FieldSetColor));
+                FieldGetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, FieldGetColor));
 
                 CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
                 CallPen[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
@@ -498,7 +508,7 @@ namespace XLibrary
             root.Value = 0;
 
             // only leaves have usable value
-            if (root.ObjType == XObjType.Method)
+            if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
             {
                 switch (SizeLayout)
                 {
@@ -673,6 +683,13 @@ namespace XLibrary
 
                 if (XRay.ThreadTracking && node.ConflictHit > 0)
                     buffer.FillRectangle(MultiHitBrush[node.FunctionHit], node.AreaF);
+                else if (node.ObjType == XObjType.Field)
+                {
+                    if (node.LastFieldOp == FieldOp.Set)
+                        buffer.FillRectangle(FieldSetBrush[node.FunctionHit], node.AreaF);
+                    else
+                        buffer.FillRectangle(FieldGetBrush[node.FunctionHit], node.AreaF);
+                }
                 else
                     buffer.FillRectangle(HitBrush[node.FunctionHit], node.AreaF);
             }

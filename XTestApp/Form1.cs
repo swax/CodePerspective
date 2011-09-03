@@ -7,10 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using XTestLib;
+
 namespace XTestApp
 {
     public partial class Form1 : Form
     {
+        string testVar = null;
+
         public Form1()
         {
             InitializeComponent();
@@ -22,6 +26,10 @@ namespace XTestApp
             {
                 var a = new NestedClass();
 
+                string yy = null;
+                yy = testVar;
+                //testVar = "hello";
+
                 a.DoStuff();
 
                 var x = new int[] {1,2,3,4};
@@ -32,10 +40,17 @@ namespace XTestApp
             {
 
             }
+
+
+            var t = new LibClass();
+            t.TestMe = 5;
+            t.DoMoreStuff();
         }
 
         public class NestedClass
         {
+            int testVar2 = 33;
+
             public void DoStuff()
             {
                 int i = 0;
@@ -43,6 +58,10 @@ namespace XTestApp
 
                 int j = 5;
                 i += j;
+
+                i = testVar2;
+
+                j = i;
 
                 DivideByZero();
             }

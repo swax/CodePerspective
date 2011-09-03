@@ -1,23 +1,35 @@
 ﻿
-commit
+EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-show fields - access to get/set - colors in treemap
+post process class ctor/cctor/anonymous method renaming
+
+breadcrumbs showing current zoom level, each level drops down subs
+
+toolbar has show/hide left panel
+
+keep track anon/external option or just have it able to turn off on client side?
+
+show what the compiler settinsg were of the app when opened with xray
 
 i want to see the value of the variables in realtime
 	weak reference map all objects, mapped by type
 	click on variable, look at all instances of that object and do toString on values
 		possibly reflection of type next, build a psuedo debugger view
 		any way to modify the variables during runtime?
+		
+turn on/off diff tracking types xray side
+
+a left hand panel for turning on/off all options quickly
 
 pan/zoom call graph and tree map with reset view option in menu
 
-track fields set/access
-
 could use static int field on classes to track instances, and communication between instances
 
-can hook up to dll without exe
+can hook up to dll without exe?
 
 get code for method
+
+registery to remem last used configuration
 
 spring graph
 
@@ -28,6 +40,28 @@ spring graph 3d
 make it look so good people will want to full screen it and use as a screen saver
 
 profile performance
+
+need some sort of benchmark to see what xray slowdown is
+	maybe use riseop sim mode
+	I think it had a second to sim second benchmark..
+
+thread colors
+	option to turn on/off
+	pick 6 colors, take thread.getHash() % 6 to get index of color
+	color nodes/lines between nodes according to hash
+	save red for nodes/calls hit by multiple colors
+
+search
+	as user types
+	sep thread takes latest value in search box
+	traverses node tree
+		highlights nodes that match
+	view mode can be set to only show nodes that match search
+
+website
+	email sign-up to get latest news on xray
+	paypal to buy xray and have a license generated/sent to you
+	forum to discuss
 
 show field grid
 	flash red when field set, blue when loaded, purple both

@@ -10,6 +10,7 @@ ilspy.exe
 
 DragonFly
 	errors unable to resolve assembly
+	change the xml config to allow devs/no password
 
 mcforge.exe
 	working

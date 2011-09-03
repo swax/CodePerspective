@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-
 namespace XLibrary
 {
     public enum XObjType 
@@ -116,133 +115,7 @@ namespace XLibrary
         }*/
     }
 
-    public class XNodeOut : XNode
-    {
-        public static int NextID = 1;
-
-        public bool Exclude;
-        public int Lines;
-        public int Indent;
-        public string IndentString = "    "; // 2 for class, 2 for method
-        public int AnonFuncs = 1;
-        public int AnonClasses = 1;
-
-        public XNodeOut(XNodeOut parent, string name, XObjType objType)
-        {
-            Parent = parent;
-            Name = name;
-            ObjType = objType;
-
-            if (objType == XObjType.External)
-                External = true;
-
-            else if(parent != null) // else important cause external objs parent is not tagged as external
-                External = parent.External;
-
-            ID = NextID++;
-            
-            //Debug.WriteLine(string.Format("Added {0}: {1}", objType, FullName()));
-        }
-
-        public XNodeOut AddNode(string name, XObjType objType)
-        {
-            // used for namespaces
-            XNodeOut existing = Nodes.Where(n => n.Name == name && n.ObjType == objType).FirstOrDefault() as XNodeOut;
-
-            if (existing != null)
-                return existing;
-
-            XNodeOut node = new XNodeOut(this, name, objType);
-
-            Nodes.Add(node);
-
-            return node;
-        }
-
-        public int ComputeSums()
-        {
-            int sum = Lines;
-
-            foreach (XNodeOut node in Nodes.Cast<XNodeOut>().Where(n => !n.Exclude))
-                sum += node.ComputeSums();
-
-            Value = sum;
-
-            return sum;
-        }
-
-        public long SaveTree(string dir)
-        {
-            long trackedObjects = 0;
-
-            ComputeSums();
-
-            string path = Path.Combine(dir, "XRay.dat");
-
-            byte[] temp = new byte[1024];
-
-            using (FileStream stream = new FileStream(path, FileMode.Create))
-                trackedObjects += Write(stream, temp);
-
-            return trackedObjects;
-        }
-
-        public long Write(FileStream stream, byte[] temp)
-        {
-            if (Exclude)
-                return 0;
-
-            // total size 4
-            // name size 4
-            // name x
-            // type 4
-            // value 4
-            // external 1
-            // id 8
-            // optional parent id 8
-
-            int pos = 0;
-
-            byte[] name = UTF8Encoding.UTF8.GetBytes(Name);
-
-            BitConverter.GetBytes(name.Length).CopyTo(temp, pos);
-            pos += 4;
-
-            name.CopyTo(temp, pos);
-            pos += name.Length;
-
-            BitConverter.GetBytes((int)ObjType).CopyTo(temp, pos);
-            pos += 4;
-
-            BitConverter.GetBytes(Lines).CopyTo(temp, pos);
-            pos += 4;
-
-            BitConverter.GetBytes(External).CopyTo(temp, pos);
-            pos += 1;
-
-            BitConverter.GetBytes(ID).CopyTo(temp, pos);
-            pos += 4;
-
-            if (Parent != null)
-            {
-                BitConverter.GetBytes(Parent.ID).CopyTo(temp, pos);
-                pos += 4;
-            }
-
-            // write total size of packet
-            stream.Write(BitConverter.GetBytes(4 + pos));
-
-            //write packet
-            stream.Write(temp, 0, pos);
-
-            long trackedObjects = 1;
-
-            foreach (XNodeOut child in Nodes.Cast<XNodeOut>())
-                trackedObjects += child.Write(stream, temp);
-
-            return trackedObjects;
-        }
-    }
+    public enum FieldOp { Get, Set };
 
     public class XNodeIn : XNode
     {
@@ -269,6 +142,7 @@ namespace XLibrary
 
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
+        internal FieldOp LastFieldOp;
 
         // call graph view
         internal int? Rank;

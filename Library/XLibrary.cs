@@ -38,6 +38,7 @@ namespace XLibrary
         internal static bool ThreadTracking = false; // can be turned off library side
         
         internal static bool FlowTracking = false; // must be compiled in, can be ignored later
+        internal static bool ClassTracking = false;
         internal const int MaxStack = 512;
         internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
         internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
@@ -173,6 +174,11 @@ namespace XLibrary
 
         public static void MethodEnter(int nodeID)
         {
+            NodeHit(nodeID);
+        }
+
+        private static XNodeIn NodeHit(int nodeID)
+        {
             /*if (!InitComplete)
             {
 
@@ -185,21 +191,20 @@ namespace XLibrary
                 }
             }*/
 
-
             if (Nodes == null) // static classes init'ing in the entry points class can cause this
-                return;
+                return null;
 
             if (nodeID >= Nodes.Length)
             {
                 LogError("Method not in node array Func {0}, Array Size {1}\r\n", nodeID, Nodes.Length);
-                return;
+                return null;
             }
 
             XNodeIn node = Nodes[nodeID];
 
             // prevent having to check multiple times in mark hit and flow tracking
             if (node == null)
-                return;
+                return null;
 
             int thread = 0;
             if (ThreadTracking)
@@ -235,19 +240,10 @@ namespace XLibrary
                 node.LastCallingThread = thread;
             }
 
-
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);
 
-            /* class to class tracking
-            hash = srcNode.ParentID * FunctionCount + node.ParentID;
-
-            if (!ClassCallMap.TryGetValue(hash, out call))
-            {
-                call = new FunctionCall() { Source = source, Destination = method };
-                ClassCallMap.Add(hash, call);
-
-            }*/
+            return node;
         }
 
         private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread)
@@ -260,7 +256,8 @@ namespace XLibrary
                 FlowMap.Add(thread, flow);
             }
 
-            node.StillInside++;
+            if(node.ObjType == XObjType.Method)
+                node.StillInside++;
 
             // if the first entry, return here
             if (flow.Pos == -1)
@@ -312,17 +309,21 @@ namespace XLibrary
             }
 
             if (source != call.Source || nodeID != call.Destination)
-                LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n",
-                    source, nodeID, call.Source, call.Destination);
-
-            flow.Pos++;
-            flow.Stack[flow.Pos] = new StackItem() { NodeID = nodeID, Call = call, Ticks = Watch.ElapsedTicks };
+                LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
 
             call.Hit = ShowTicks;
             call.TotalHits++;
-            call.StillInside++;
 
-            TrackClassCall(nodeID, node, source);
+            if (node.ObjType == XObjType.Method)
+            {
+                call.StillInside++;
+
+                flow.Pos++;
+                flow.Stack[flow.Pos] = new StackItem() { NodeID = nodeID, Call = call, Ticks = Watch.ElapsedTicks };
+            }
+
+            if(ClassTracking)
+                TrackClassCall(nodeID, node, source);
         }
 
         public static void TrackClassCall(int nodeID, XNodeIn node, int source)
@@ -473,6 +474,20 @@ namespace XLibrary
                 InstanceCount[index] = 0;
                 Debug.Assert(false);
             }
+        }
+
+        public static void LoadField(int nodeID)
+        {
+            var node = NodeHit(nodeID);
+            if (node != null)
+                node.LastFieldOp = FieldOp.Get;
+        }
+
+        public static void SetField(int nodeID)
+        {
+            var node = NodeHit(nodeID);
+            if (node != null)
+                node.LastFieldOp = FieldOp.Set;
         }
 
         static internal void LogError(string text, params object[] args)

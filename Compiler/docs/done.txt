@@ -16,4 +16,6 @@ show instructions added, show data objects tracked
 
 put anon classes in functions
 
+post process class ctor/cctor/anonymous method renaming
 
+rudamentry instance tracking

@@ -112,10 +112,7 @@ namespace XLibrary
 
         private void ResetMenuItem_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < XRay.CoveredFunctions.Count; i++)
-                if (XRay.Nodes[i].StillInside == 0)
-                    XRay.CoveredFunctions[i] = false;
-
+            XRay.CoveredFunctions.SetAll(false);
             TreeView.RecalcValues();
         }
 
@@ -139,13 +136,13 @@ namespace XLibrary
         private void ViewOutsideMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.ShowOutside = ViewOutsideMenuItem.Checked;
-            TreeView.RecalcValues();
+            TreeView.RecalcSizes();
         }
 
         private void ViewExternalMenuItem_Click(object sender, EventArgs e)
         {
             TreeView.ShowExternal = ViewExternalMenuItem.Checked;
-            TreeView.RecalcValues();
+            TreeView.RecalcSizes();
         }
 
         private void ConstantMenuItem_Click(object sender, EventArgs e)
@@ -216,6 +213,11 @@ namespace XLibrary
                 var copy = parent as XNodeIn;
                 ZoomMenuItem.DropDownItems.Add(new ToolStripMenuItem(copy.Name, null, (s, a) => TreeView.SetRoot(copy)));
             }
+        }
+
+        private void callsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

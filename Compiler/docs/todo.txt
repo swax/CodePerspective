@@ -1,11 +1,48 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-post process class ctor/cctor/anonymous method renaming
+why isnt main function showing up when resetting hit nodes?
+why are some functions the root of a call graph, but not the thread start?
+
+ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
+
+instances bottom panel tab
+	when instance init'd
+	this pointer passed to xray
+	instance logged af active with 'this' pointer weakly bound
+	option in xray to just show active instances
+	instance details dialog
+		tree/grid, object members on y, instance values along x, max 100, let user page prev/next
+
+	list old to new
+	instance object records # of objects created, # destroyed, # alive right now
+
+	flash the class green when constructed, red when destroyed
+
+	could be debugger like with a bottom panel
+
+console bottom panel tab
+
+
+show sequence in time call tree is traversed
+	option to align nodes in rank columns by time last called
+		nodes called last at bottom, 'coldest' functions at top
+	should be able to look at call graph and determine the sequence of events that happened when a call went through
+	dont make it time based, but sequence based
+	when a function called, just increase its sequence #
+	order the ranks by sequence #
+	do 2 passes, first pass collect sequences of all nodes
+		use to determine the y coord for all nodes
+	next pass actually set the y to (height / y) * (step size * function pos)
+
+
+rename field with types to anon classes to new name
 
 breadcrumbs showing current zoom level, each level drops down subs
 
 toolbar has show/hide left panel
+
+option to re-organize classes methods 'processClassNames'
 
 keep track anon/external option or just have it able to turn off on client side?
 
@@ -40,6 +77,9 @@ spring graph 3d
 make it look so good people will want to full screen it and use as a screen saver
 
 profile performance
+
+test sample app compiled with mono
+	are anonymous functions still re-organized correctly?
 
 need some sort of benchmark to see what xray slowdown is
 	maybe use riseop sim mode

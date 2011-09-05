@@ -9,6 +9,16 @@ namespace XTestLib
     {
         public int TestMe;
 
+
+        delegate void TestDelegate(int x);
+
+        TestDelegate RunDelegate;
+
+        public LibClass()
+        {
+            RunDelegate += DelegateTarget;
+        }
+
         public void DoMoreStuff()
         {
             int i = 0;
@@ -18,6 +28,8 @@ namespace XTestLib
             j++;
 
             DoAnonStuff();
+
+            RunDelegate(5);
         }
 
         public void DoAnonStuff()
@@ -47,6 +59,81 @@ namespace XTestLib
             var cakes = makeCake(5, 3);
 
             cakes++;
+
+
+            var bakeAnotherCake = new Func<int>(() => 5);
+
+            cakes += bakeAnotherCake();
+        }
+
+        public void DelegateTarget(int x)
+        {
+            x++;
         }
     }
+
+    public class LibConstructClass
+    {
+        LibConstructClass()
+        {
+            var x = 0;
+            x++;
+        }
+
+        void TestX(int x)
+        {
+            x = 0;
+            x++;
+        }
+
+        void TestY()
+        {
+            TestX(3);
+        }
+    }
+
+    public class LibDeconstructClass
+    {
+        ~LibDeconstructClass()
+        {
+            var x = 0;
+            x++;
+        }
+    }
+
+    public class CopyConstructor
+    {
+        CopyConstructor()
+        {
+
+            TestMethod(0, this);
+        }
+
+        CopyConstructor(int x)
+        {
+            x = 0;
+            x++;
+        }
+
+        void TestMethod(int index, Object y)
+        {
+            index++;
+        }
+    }
+
+    public static class StaticMan
+    {
+        static StaticMan()
+        {
+            int x = 0;
+            x++;
+        }
+
+        public static void HolyCow()
+        {
+            int x = 0;
+            x++;
+        }
+    }
+
 }

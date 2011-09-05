@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Media.Media3D;
+//using System.Windows.Media.Media3D;
 
 namespace XLibrary
 {
@@ -64,10 +64,10 @@ namespace XLibrary
             }
         }
 
-        public static Point3D Move(this Point3D start, double x, double y, double z)
+        /*public static Point3D Move(this Point3D start, double x, double y, double z)
         {
             return new Point3D(start.X + x, start.Y + y, start.Z + z);
-        }
+        }*/
 
         public static PointF UpperLeftCorner(this RectangleF rect)
         {

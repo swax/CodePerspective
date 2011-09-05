@@ -41,12 +41,14 @@
             this.OutputLink = new System.Windows.Forms.LinkLabel();
             this.TrackExternalCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.TrackFieldsCheckBox = new System.Windows.Forms.CheckBox();
             this.StatusLabel = new System.Windows.Forms.Label();
             this.MsToolsCheckbox = new System.Windows.Forms.CheckBox();
             this.RunVerifyCheckbox = new System.Windows.Forms.CheckBox();
             this.DecompileAgainCheckbox = new System.Windows.Forms.CheckBox();
             this.TestCompile = new System.Windows.Forms.Button();
             this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
+            this.TrackInstancesCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -60,7 +62,7 @@
             this.FileList.Location = new System.Drawing.Point(12, 36);
             this.FileList.Name = "FileList";
             this.FileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.FileList.Size = new System.Drawing.Size(361, 83);
+            this.FileList.Size = new System.Drawing.Size(361, 84);
             this.FileList.TabIndex = 2;
             // 
             // label1
@@ -137,9 +139,9 @@
             this.TrackFlowCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.TrackFlowCheckBox.Location = new System.Drawing.Point(13, 3);
             this.TrackFlowCheckBox.Name = "TrackFlowCheckBox";
-            this.TrackFlowCheckBox.Size = new System.Drawing.Size(117, 17);
+            this.TrackFlowCheckBox.Size = new System.Drawing.Size(124, 17);
             this.TrackFlowCheckBox.TabIndex = 10;
-            this.TrackFlowCheckBox.Text = "Track function flow";
+            this.TrackFlowCheckBox.Text = "Track function stack";
             this.TrackFlowCheckBox.UseVisualStyleBackColor = true;
             // 
             // SidebySideCheckBox
@@ -147,7 +149,7 @@
             this.SidebySideCheckBox.AutoSize = true;
             this.SidebySideCheckBox.Checked = true;
             this.SidebySideCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.SidebySideCheckBox.Location = new System.Drawing.Point(13, 26);
+            this.SidebySideCheckBox.Location = new System.Drawing.Point(13, 116);
             this.SidebySideCheckBox.Name = "SidebySideCheckBox";
             this.SidebySideCheckBox.Size = new System.Drawing.Size(160, 17);
             this.SidebySideCheckBox.TabIndex = 11;
@@ -173,7 +175,7 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.OutputLink.AutoEllipsis = true;
             this.OutputLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.OutputLink.Location = new System.Drawing.Point(10, 164);
+            this.OutputLink.Location = new System.Drawing.Point(10, 208);
             this.OutputLink.Name = "OutputLink";
             this.OutputLink.Size = new System.Drawing.Size(342, 13);
             this.OutputLink.TabIndex = 13;
@@ -185,6 +187,8 @@
             // TrackExternalCheckBox
             // 
             this.TrackExternalCheckBox.AutoSize = true;
+            this.TrackExternalCheckBox.Checked = true;
+            this.TrackExternalCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.TrackExternalCheckBox.Location = new System.Drawing.Point(13, 49);
             this.TrackExternalCheckBox.Name = "TrackExternalCheckBox";
             this.TrackExternalCheckBox.Size = new System.Drawing.Size(166, 17);
@@ -196,6 +200,8 @@
             // 
             this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Controls.Add(this.TrackInstancesCheckBox);
+            this.OptionsPanel.Controls.Add(this.TrackFieldsCheckBox);
             this.OptionsPanel.Controls.Add(this.StatusLabel);
             this.OptionsPanel.Controls.Add(this.MsToolsCheckbox);
             this.OptionsPanel.Controls.Add(this.RunVerifyCheckbox);
@@ -209,10 +215,22 @@
             this.OptionsPanel.Controls.Add(this.LaunchButton);
             this.OptionsPanel.Controls.Add(this.ShowMapButton);
             this.OptionsPanel.Controls.Add(this.TrackFlowCheckBox);
-            this.OptionsPanel.Location = new System.Drawing.Point(12, 125);
+            this.OptionsPanel.Location = new System.Drawing.Point(12, 126);
             this.OptionsPanel.Name = "OptionsPanel";
-            this.OptionsPanel.Size = new System.Drawing.Size(361, 214);
+            this.OptionsPanel.Size = new System.Drawing.Size(361, 255);
             this.OptionsPanel.TabIndex = 15;
+            // 
+            // TrackFieldsCheckBox
+            // 
+            this.TrackFieldsCheckBox.AutoSize = true;
+            this.TrackFieldsCheckBox.Checked = true;
+            this.TrackFieldsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.TrackFieldsCheckBox.Location = new System.Drawing.Point(13, 26);
+            this.TrackFieldsCheckBox.Name = "TrackFieldsCheckBox";
+            this.TrackFieldsCheckBox.Size = new System.Drawing.Size(126, 17);
+            this.TrackFieldsCheckBox.TabIndex = 22;
+            this.TrackFieldsCheckBox.Text = "Track class variables";
+            this.TrackFieldsCheckBox.UseVisualStyleBackColor = true;
             // 
             // StatusLabel
             // 
@@ -220,7 +238,7 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StatusLabel.ForeColor = System.Drawing.Color.Green;
-            this.StatusLabel.Location = new System.Drawing.Point(0, 191);
+            this.StatusLabel.Location = new System.Drawing.Point(0, 223);
             this.StatusLabel.Name = "StatusLabel";
             this.StatusLabel.Size = new System.Drawing.Size(361, 23);
             this.StatusLabel.TabIndex = 21;
@@ -230,7 +248,7 @@
             // MsToolsCheckbox
             // 
             this.MsToolsCheckbox.AutoSize = true;
-            this.MsToolsCheckbox.Location = new System.Drawing.Point(13, 141);
+            this.MsToolsCheckbox.Location = new System.Drawing.Point(13, 185);
             this.MsToolsCheckbox.Name = "MsToolsCheckbox";
             this.MsToolsCheckbox.Size = new System.Drawing.Size(189, 17);
             this.MsToolsCheckbox.TabIndex = 20;
@@ -240,7 +258,7 @@
             // RunVerifyCheckbox
             // 
             this.RunVerifyCheckbox.AutoSize = true;
-            this.RunVerifyCheckbox.Location = new System.Drawing.Point(13, 95);
+            this.RunVerifyCheckbox.Location = new System.Drawing.Point(13, 139);
             this.RunVerifyCheckbox.Name = "RunVerifyCheckbox";
             this.RunVerifyCheckbox.Size = new System.Drawing.Size(197, 17);
             this.RunVerifyCheckbox.TabIndex = 19;
@@ -250,7 +268,7 @@
             // DecompileAgainCheckbox
             // 
             this.DecompileAgainCheckbox.AutoSize = true;
-            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(13, 118);
+            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(13, 162);
             this.DecompileAgainCheckbox.Name = "DecompileAgainCheckbox";
             this.DecompileAgainCheckbox.Size = new System.Drawing.Size(238, 17);
             this.DecompileAgainCheckbox.TabIndex = 18;
@@ -271,6 +289,8 @@
             // TrackAnonCheckBox
             // 
             this.TrackAnonCheckBox.AutoSize = true;
+            this.TrackAnonCheckBox.Checked = true;
+            this.TrackAnonCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.TrackAnonCheckBox.Location = new System.Drawing.Point(13, 72);
             this.TrackAnonCheckBox.Name = "TrackAnonCheckBox";
             this.TrackAnonCheckBox.Size = new System.Drawing.Size(139, 17);
@@ -278,12 +298,24 @@
             this.TrackAnonCheckBox.Text = "Track anonymous types";
             this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
             // 
+            // TrackInstancesCheckBox
+            // 
+            this.TrackInstancesCheckBox.AutoSize = true;
+            this.TrackInstancesCheckBox.Checked = true;
+            this.TrackInstancesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(13, 95);
+            this.TrackInstancesCheckBox.Name = "TrackInstancesCheckBox";
+            this.TrackInstancesCheckBox.Size = new System.Drawing.Size(102, 17);
+            this.TrackInstancesCheckBox.TabIndex = 23;
+            this.TrackInstancesCheckBox.Text = "Track instances";
+            this.TrackInstancesCheckBox.UseVisualStyleBackColor = true;
+            // 
             // BuildForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(385, 351);
+            this.ClientSize = new System.Drawing.Size(385, 393);
             this.Controls.Add(this.OptionsPanel);
             this.Controls.Add(this.ResetLink);
             this.Controls.Add(this.RemoveLink);
@@ -320,6 +352,8 @@
         private System.Windows.Forms.CheckBox DecompileAgainCheckbox;
         private System.Windows.Forms.CheckBox MsToolsCheckbox;
         private System.Windows.Forms.Label StatusLabel;
+        private System.Windows.Forms.CheckBox TrackFieldsCheckBox;
+        private System.Windows.Forms.CheckBox TrackInstancesCheckBox;
 
     }
 }

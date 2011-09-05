@@ -32,8 +32,6 @@ namespace XLibrary
         internal const int ShowTicks = HitFrames - 1; // first index
 
         internal static bool InstanceTracking = false; // must be compiled in, can be ignored later
-        internal static byte[] InstanceCount;
-
        
         internal static bool ThreadTracking = false; // can be turned off library side
         
@@ -96,9 +94,6 @@ namespace XLibrary
 
                 // init tracking structures
                 CoveredFunctions = new BitArray(FunctionCount);
-
-                if (InstanceTracking)
-                    InstanceCount = new byte[FunctionCount];
 
                 InitComplete = true;
 
@@ -459,20 +454,51 @@ namespace XLibrary
                     }
         }
 
-        public static void Constructed(int index)
+        internal static SharedDictionary<InstanceRecord> Instances = new SharedDictionary<InstanceRecord>(100);
+
+        public static void Constructed(int index, Object obj)
         {
-            InstanceCount[index]++;
+            lock (Instances)
+            {
+                InstanceRecord record;
+                if (!Instances.TryGetValue(index, out record))
+                {
+                    record = new InstanceRecord();
+                    Instances.Add(index, record);
+                }
+
+                if (obj != null)
+                {
+                    record.Created++;
+                    record.Active.Add(new WeakReference(obj, false));
+                }
+                else
+                    record.StaticCreated++;
+            }
         }
 
-        public static void Deconstructed(int index)
+        public static void Deconstructed(int index, Object obj)
         {
-            InstanceCount[index]--;
-
-            // below happens if app calls finalize multiple times (should not happen)
-            if (InstanceCount[index] < 0)
+            lock (Instances)
             {
-                InstanceCount[index] = 0;
-                Debug.Assert(false);
+                InstanceRecord record;
+                if (!Instances.TryGetValue(index, out record))
+                {
+                    LogError("Deconstructed instance not found of type " + obj.GetType().ToString());
+                    return;
+                }
+
+                record.Deleted++;
+
+                // iterate through objects and delete null target
+                // cant use hash code to ident object, because some classes override it and do crazy things like construct themselves again causing deadlock
+
+                var removeRef = record.Active.FirstOrDefault(a => a.Target == null);
+
+                if (removeRef != null)
+                    record.Active.Remove(removeRef);
+                else
+                    LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString());
             }
         }
 
@@ -494,6 +520,14 @@ namespace XLibrary
         {
             ErrorMap[string.Format(text, args)] = true;
         }
+    }
+
+    internal class InstanceRecord
+    {
+        public long Created;
+        public long StaticCreated;
+        public long Deleted;
+        public List<WeakReference> Active = new List<WeakReference>();
     }
 
     class ThreadFlow

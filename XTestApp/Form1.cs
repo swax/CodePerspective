@@ -22,8 +22,11 @@ namespace XTestApp
 
         public void TryStuff()
         {
+
             try
             {
+                StaticMan.HolyCow();
+
                 var a = new NestedClass();
 
                 string yy = null;
@@ -32,7 +35,7 @@ namespace XTestApp
 
                 a.DoStuff();
 
-                var x = new int[] {1,2,3,4};
+                var x = new int[] { 1, 2, 3, 4 };
 
                 var y = x.Where(i => i > 2).ToArray();
             }
@@ -81,6 +84,11 @@ namespace XTestApp
         private void throwButton_Click(object sender, EventArgs e)
         {
             TryStuff();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            GC.Collect();
         }
     }
 }

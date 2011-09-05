@@ -90,6 +90,8 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
             bool trackFlow = TrackFlowCheckBox.Checked;
             bool trackExternal = TrackExternalCheckBox.Checked;
             bool trackAnon = TrackAnonCheckBox.Checked;
+            bool trackFields = TrackFieldsCheckBox.Checked;
+            bool trackInstances = TrackInstancesCheckBox.Checked;
             bool sidebySide = SidebySideCheckBox.Checked;
             bool doVerify = RunVerifyCheckbox.Checked;
             bool compileWithMS = MsToolsCheckbox.Checked;
@@ -128,7 +130,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                     foreach (XRayedFile item in files)
                     {
-                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, files, trackFlow, trackExternal, trackAnon);
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, files, trackFlow, trackExternal, trackAnon, trackFields, trackInstances);
 
                         try
                         {

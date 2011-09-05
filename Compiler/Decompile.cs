@@ -35,11 +35,11 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
-        public bool TrackFlow = true; // if this is true, then track thread needs to be true
-        public bool TrackInstances = false;
-        public bool TrackExternal = true;
-        public bool TrackAnon = false;
-        public bool TrackFields = true;
+        public bool TrackFlow;
+        public bool TrackInstances;
+        public bool TrackExternal;
+        public bool TrackAnon;
+        public bool TrackFields;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -49,13 +49,15 @@ namespace XBuilder
         MethodReference ClassDeconstructedRef;
         MethodReference LoadFieldRef;
         MethodReference SetFieldRef;
+        MethodReference ObjectFinalizeRef;
+        TypeReference VoidRef;
 
         public long LinesAdded = 0;
 
         public XRayedFile[] XRayedFiles;
 
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, XRayedFile[] files, bool trackFlow, bool trackExternal, bool trackAnon)
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, XRayedFile[] files, bool trackFlow, bool trackExternal, bool trackAnon, bool trackFields, bool trackInstances)
         {
             ExtRoot = extRoot;
             OriginalPath = item.FilePath;
@@ -68,6 +70,8 @@ namespace XBuilder
             TrackFlow = trackFlow;
             TrackExternal = trackExternal;
             TrackAnon = trackAnon;
+            TrackFields = trackFields;
+            TrackInstances = trackInstances;
         }
 
         internal void MonoRecompile()
@@ -91,17 +95,19 @@ namespace XBuilder
             var originalAsmName = asmDef.Name;
 
             asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
-
+            
             XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(bool), typeof(bool) }));
 			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
             ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
-            CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) })); 
-            ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int) }));
-            ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int)}));
+            CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
+            ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int), typeof(Object) }));
+            ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int), typeof(Object) }));
             LoadFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
             SetFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("SetField", new Type[] { typeof(int) }));
-            
-            
+            VoidRef = asm.MainModule.Import(typeof(void));
+            ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.Import(typeof(Object)));
+            ObjectFinalizeRef.HasThis = true;  // call on the current instance
+
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
             {
@@ -170,91 +176,86 @@ namespace XBuilder
             RecompileMethods(classDef, classNode);
 
             foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class))
-            {
-                var nestedNode = RecompileClass(nestedDef, classNode);
-
-                // put anonymous classes in the functions that they were generated from
-                // ex -. Nested Class: <>c__DisplayClass15, has method: <FilterTextBox_TextChanged>b__11
-                if (nestedNode != null && nestedDef.Name.StartsWith("<>"))
-                {
-                    // iterate methods until method name found
-                    var anonMethod = nestedNode.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
-                    if (anonMethod == null)
-                        continue;
-
-                    string anonMethodName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
-
-                    // find corresponding method name
-                    var newParent = classNode.Nodes.FirstOrDefault(n => n.Name == anonMethodName) as XNodeOut;
-                    if (newParent == null)
-                        continue;
-
-                    // move this under that function
-                    classNode.Nodes.Remove(nestedNode);
-                    newParent.Nodes.Add(nestedNode);
-                    nestedNode.Parent = newParent;
-
-                    // rename
-                    nestedNode.Name = newParent.Name + ".class" + newParent.AnonClasses.ToString();
-                    newParent.AnonClasses++;
-
-                    foreach (var method in nestedNode.Nodes.Where(n => n.ObjType == XObjType.Method))
-                    {
-                        if (method.Name == ".ctor")
-                            method.Name = nestedNode.Name + ".init";
-                        else if (method.Name == ".cctor")
-                            method.Name = nestedNode.Name + ".static_init";
-                        else
-                        {
-                            method.Name = nestedNode.Name + ".func" + nestedNode.AnonFuncs.ToString();
-                            nestedNode.AnonFuncs++;
-                        }
-                    }
-                }
-            }
+                RecompileClass(nestedDef, classNode);
 
             return classNode;
         }
 
         private void RecompileMethods(TypeDefinition classDef, XNodeOut classNode)
         {
+            ILProcessor processor = null;
+
             // add fields
             if (TrackFields && classDef.HasFields)
                 foreach (var fieldDef in classDef.Fields)
                     classNode.AddField(fieldDef);
 
+            if (TrackInstances)
+            {
+                bool hasCtor = false;
+
+                // add tracking to constructor
+                foreach(var ctorMethod in classDef.Methods.Where(m =>  (m.Name == ".ctor" || m.Name == ".cctor") && m.Body != null))
+                {
+                    ctorMethod.Body.SimplifyMacros();
+
+                    processor = ctorMethod.Body.GetILProcessor();
+
+                    // to prevent warnings in verify, our code should be put after the base constructor call
+
+                    AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
+
+                    if(ctorMethod.Name == ".ctor")
+                    {
+                        hasCtor = true;
+                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldarg, 0));
+                    }
+                    // else static constructor
+                    else
+                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldnull));
+                    
+                    AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
+
+                    ctorMethod.Body.OptimizeMacros();
+                }
+
+                // add tracking to desconstructor (only add if ctor tracking added)
+                if (hasCtor)
+                {
+                     var finMethod = classDef.Methods.FirstOrDefault(m => m.Name == "Finalize");
+                     bool callObjectFinalize = false;
+
+                     if (finMethod == null)
+                     {
+                         finMethod = new MethodDefinition("Finalize", Mono.Cecil.MethodAttributes.Family | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.Virtual, VoidRef);
+                         callObjectFinalize = true;
+                         classDef.Methods.Add(finMethod);
+                     }
+
+                     finMethod.Body.SimplifyMacros();
+
+                     processor = finMethod.Body.GetILProcessor();
+
+                     AddInstruction(finMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
+                     AddInstruction(finMethod, 1, processor.Create(OpCodes.Ldarg, 0));
+                     AddInstruction(finMethod, 2, processor.Create(OpCodes.Call, ClassDeconstructedRef));
+
+                     if (callObjectFinalize)
+                     {
+                         AddInstruction(finMethod, 3, processor.Create(OpCodes.Ldarg, 0));
+                         AddInstruction(finMethod, 4, processor.Create(OpCodes.Call, ObjectFinalizeRef));
+
+                         AddInstruction(finMethod, 5, processor.Create(OpCodes.Ret));
+                     }
+
+                     finMethod.Body.OptimizeMacros();
+                }
+            }
+
             // iterate method nodes
             foreach (var method in classDef.Methods)
             {
-                XNodeOut methodNode = null;
-
-                // if anon method add inside parent method
-                if (method.Name.StartsWith("<"))
-                {
-                    if (!TrackAnon)
-                        continue;
-
-                    string parentMethod = method.Name.Substring(1, method.Name.IndexOf(">") - 1);
-
-                    var parentNode = classNode.Nodes.FirstOrDefault(n => n.Name == parentMethod) as XNodeOut;
-                    if (parentNode != null && !parentNode.Name.StartsWith("<>")) // dont rename anon classes, this is done elsewhere
-                    {
-                        string anonName = parentNode.Name + ".func" + parentNode.AnonFuncs.ToString();
-                        parentNode.AnonFuncs++;
-                        methodNode = parentNode.AddNode(anonName, XObjType.Method);
-                    }
-                }
-
-                if (methodNode == null)
-                {
-                    string methodName = method.Name;
-                    if (methodName == ".ctor")
-                        methodName = classDef.Name + ".init";
-                    else if (methodName == ".cctor")
-                        methodName = classDef.Name + ".static_init";
-
-                    methodNode = classNode.AddNode(methodName, XObjType.Method);
-                }
+                XNodeOut methodNode = classNode.AddNode(method.Name, XObjType.Method);
 
                 if (method.Body == null)
                     continue;
@@ -266,7 +267,7 @@ namespace XBuilder
 
                 methodNode.Lines = method.Body.Instructions.Count;
 
-                var processor = method.Body.GetILProcessor();
+                processor = method.Body.GetILProcessor();
 
                 for (int i = 0; i < method.Body.Instructions.Count; i++)
                 {
@@ -287,7 +288,9 @@ namespace XBuilder
                     else if (TrackExternal && 
                              (instruction.OpCode == OpCodes.Call ||
                               instruction.OpCode == OpCodes.Calli ||
-                              instruction.OpCode == OpCodes.Callvirt))
+                              instruction.OpCode == OpCodes.Callvirt) &&
+                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
+                             (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace)
                     {
                         var call = instruction.Operand as MethodReference;
 
@@ -392,7 +395,14 @@ namespace XBuilder
 
                         node = node.AddField(fieldDef);
 
-                        // add tracking
+                        // some times volitile prefixes set/get field
+                        int offset = 0;
+                        if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Volatile)
+                        {
+                            i--;
+                            offset = 1;
+                        }
+
                         AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, node.ID));
                         
                         if(instruction.OpCode == OpCodes.Stfld)
@@ -400,7 +410,7 @@ namespace XBuilder
                         else
                             AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
                         
-                        i = i + 2; // skip instuction added, and field itself, end of loop will iterate this again
+                        i = i + 2 + offset; // skip instuction added, and field itself, end of loop will iterate this again
 
                         // Debug.WriteLine("{0} in Module: {1}, Namespace: {2}, Class: {3}, Name: {4}, Type: {5}", instruction.OpCode, fieldDef.DeclaringType.Scope.Name, namespaces, className, fieldName, fieldType);
                     }
@@ -411,18 +421,6 @@ namespace XBuilder
                 // record function was entered
                 AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
                 AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
-
-                if (TrackInstances)
-                    if (method.Name == ".ctor" || method.Name == ".cctor")
-                    {
-                        AddInstruction(method, 2, processor.Create(OpCodes.Ldc_I4, methodNode.Parent.ID));
-                        AddInstruction(method, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
-                    }
-                    else if (method.Name == "Finalize")
-                    {
-                        AddInstruction(method, 2, processor.Create(OpCodes.Ldc_I4, methodNode.Parent.ID));
-                        AddInstruction(method, 3, processor.Create(OpCodes.Call, ClassDeconstructedRef));
-                    }
 
                 // record catches
                 if (TrackFlow)
@@ -498,81 +496,109 @@ namespace XBuilder
             return total;
         }
 
-        internal double ProcessClassNames(XNodeOut node)
+        internal void ProcessClassNames(XNodeOut node)
         {
-            // if class and starts with <>
-
-                // mark as anon
-
-                // if parent is not anon
-                    // iterate anon methods to find association
-                    // iterate parent class methods to find match
-                    // move node under that method
-
-                // rename class parentNodeName.classX
-
-            // if method and starts with <
-                // if parent node is not anon
-                    // find matching method
-                    // move into that method
-                // if parent is anon
-                    // get parent method to get functionname
-                    // if name contains <functionName>, change to className.funcX
-
-            // if method is ctor/cctor rename
-
-            // iterate sub elements
-
-            
-        
-
-
-
-            return 0;
-            /* rename constructors
-
-
-            foreach (XNodeOut subnode in node.Nodes)
-                ProcessClassNames(subnode);
-
-            // rename constructors
-
-            if (nestedNode != null && nestedDef.Name.StartsWith("<>"))
+            // if class move anonymous objects into their non-anon counterparts
+            if(node.ObjType == XObjType.Class)
             {
-                // iterate methods until method name found
-                var anonMethod = nestedNode.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
-                if (anonMethod == null)
-                    continue;
+                // put anonymous classes in the functions that they were generated from
+                // ex -. Nested Class: <>c__DisplayClass15, has method: <FilterTextBox_TextChanged>b__11
+                var anonClasses = node.Nodes.Where(n => n.ObjType == XObjType.Class && n.Name.StartsWith("<>c")).ToArray();
 
-                string anonMethodName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
-
-                // find corresponding method name
-                var newParent = classNode.Nodes.FirstOrDefault(n => n.Name == anonMethodName) as XNodeOut;
-                if (newParent == null)
-                    continue;
-
-                // move this under that function
-                classNode.Nodes.Remove(nestedNode);
-                newParent.Nodes.Add(nestedNode);
-                nestedNode.Parent = newParent;
-
-                // rename
-                nestedNode.Name = newParent.Name + ".class" + newParent.AnonClasses.ToString();
-                newParent.AnonClasses++;
-
-                foreach (var method in nestedNode.Nodes.Where(n => n.ObjType == XObjType.Method))
+                foreach(XNodeOut anonClass in anonClasses)
                 {
-                    if (method.Name == ".ctor")
-                        method.Name = nestedNode.Name + ".init";
-                    else if (method.Name == ".cctor")
-                        method.Name = nestedNode.Name + ".static_init";
-                    else
+                    // mark as anon
+                    MarkNodeAsAnon(anonClass);
+
+                    // if parent is not anon
+                    if( !(anonClass.Parent as XNodeOut).IsAnon )
                     {
-                        method.Name = nestedNode.Name + ".func" + nestedNode.AnonFuncs.ToString();
-                        nestedNode.AnonFuncs++;
+                        // iterate anon methods to find association
+                        var anonMethod = anonClass.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
+                        if (anonMethod == null)
+                            continue;
+
+                        string anonMethodName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
+
+                        // iterate parent class methods to find match
+                        var parentMethod = node.Nodes.FirstOrDefault(n => n.Name == anonMethodName) as XNodeOut;
+                        if (parentMethod == null)
+                            continue;
+
+                        // move node under that method
+                        node.Nodes.Remove(anonClass);
+                        parentMethod.Nodes.Add(anonClass);
+                        anonClass.Parent = parentMethod;
+
+                        // will be renamed when class is iterated below
                     }
                 }
-            }*/
+
+                // iterate anon methods, move into parent methods
+                var anonMethods = node.Nodes.Where(n => n.ObjType == XObjType.Method && n.Name.StartsWith("<")).ToArray();
+
+                foreach(XNodeOut anonMethod in anonMethods)
+                {
+                    MarkNodeAsAnon(anonMethod);
+
+                    string parentName = anonMethod.Name.Substring(1, anonMethod.Name.IndexOf(">") - 1);
+
+                    var parentMethod = node.Nodes.FirstOrDefault(n => n.Name == parentName) as XNodeOut;
+                    if (parentMethod == null)
+                        continue;
+
+                    // move node under that method
+                    node.Nodes.Remove(anonMethod);
+                    parentMethod.Nodes.Add(anonMethod);
+                    anonMethod.Parent = parentMethod;                    
+                }
+
+                // if current class is anon, rename class parentNodeName.classX
+                if (node.IsAnon)
+                {
+                    XNodeOut parent = node.GetNotAnonParent();
+                    node.Name = parent.Name + ".class" + parent.AnonClasses.ToString();
+                    parent.AnonClasses++;
+                }
+            }
+
+            // if method
+            if(node.ObjType == XObjType.Method)
+            {
+                XNodeOut parent = node.GetNotAnonParent();
+
+                // if method is ctor/cctor rename
+                if (node.Name == ".ctor" || node.Name == ".cctor")
+                {
+                    node.Name = parent.Name + ((node.Name == ".ctor") ? ".init" : ".static_init");
+                    if (parent.InitCount > 1)
+                        node.Name += parent.InitCount.ToString();
+
+                    parent.InitCount++;
+                }
+
+                else if (node.IsAnon || // simple anon method
+                         (node.Parent as XNodeOut).IsAnon) // method of an anon class
+                {
+                    if (node.Name.StartsWith("<"))
+                    {
+                        node.Name = parent.Name + ".func" + parent.AnonFuncs.ToString();
+                        parent.AnonFuncs++;
+                    }
+                }
+            }
+
+            // iterate sub elements
+            foreach (XNodeOut subnode in node.Nodes)
+                ProcessClassNames(subnode);
+        }
+
+        void MarkNodeAsAnon(XNodeOut node)
+        {
+            node.IsAnon = true;
+
+            foreach (XNodeOut subnode in node.Nodes)
+                MarkNodeAsAnon(subnode);
         }
 
         // ----- MS RECOMPILER ---------------------------------------------------------------------------------------------------

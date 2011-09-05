@@ -867,7 +867,7 @@ namespace XLibrary
             if (node == null)
                 return;
 
-            new DetailsForm(node).Show();
+            new TimingForm(node).Show();
         }
 
         void ToggleNode(Dictionary<int, XNodeIn> map, XNodeIn node)
@@ -900,33 +900,26 @@ namespace XLibrary
             {
                 ContextMenu menu = new ContextMenu();
 
-                string indent = "";
-                //foreach (XNodeIn node in GuiHovered)
-                //{
+
                 XNodeIn node = GuiHovered.LastOrDefault();
                 if (node != null)
                 {
+                    menu.MenuItems.Add(node.ObjType.ToString() + " " + node.Name);
+                    menu.MenuItems.Add("-");
+
                     bool selected = SelectedNodes.ContainsKey(node.ID);
                     bool ignored = IgnoredNodes.ContainsKey(node.ID);
 
-                    menu.MenuItems.Add(new MenuItem(indent + node.ObjType.ToString() + " " + node.Name, new MenuItem[] 
-                    {
-                        new MenuItem("Details", (s, a) =>
-                            new DetailsForm(node).Show()),
+                    menu.MenuItems.Add( new MenuItem("Timing", (s, a) => new TimingForm(node).Show()) );
 
-                        new MenuItem("Zoom", (s, a) =>
-                            SetRoot(node)),
+                    if(node.ObjType == XObjType.Class)
+                        menu.MenuItems.Add(new MenuItem("Instances", (s, a) => new InstancesForm(node).Show()));
+
+                    menu.MenuItems.Add( new MenuItem("Zoom", (s, a) => SetRoot(node)) );
                             
-                        new MenuItem("-"),
+                    menu.MenuItems.Add( new MenuItem("Filter", (s, a) => ToggleNode(SelectedNodes, node)) { Checked = selected } );
 
-                        new MenuItem("Filter", (s, a) =>
-                            ToggleNode(SelectedNodes, node)) { Checked = selected },
-
-                        new MenuItem("Ignore", (s, a) =>
-                            ToggleNode(IgnoredNodes, node)) { Checked = ignored }
-                    }));
-
-                    indent += "  ";
+                    menu.MenuItems.Add( new MenuItem("Ignore", (s, a) => ToggleNode(IgnoredNodes, node)) { Checked = ignored } );
                 }
 
                 if (SelectedNodes.Count > 0 || IgnoredNodes.Count > 0)

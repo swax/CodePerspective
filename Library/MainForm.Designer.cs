@@ -56,6 +56,7 @@
             this.ShowAllCallsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DebugMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
+            this.ShowInstancesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BottomStrip.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -208,31 +209,32 @@
             this.ShowAllHitsMenuItem,
             this.ShowHitMenuItem,
             this.ShowUnhitMenuItem,
-            this.ResetMenuItem});
+            this.ResetMenuItem,
+            this.ShowInstancesMenuItem});
             this.HitsMenuItem.Name = "HitsMenuItem";
-            this.HitsMenuItem.Size = new System.Drawing.Size(40, 20);
-            this.HitsMenuItem.Text = "Hits";
+            this.HitsMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.HitsMenuItem.Text = "Show";
             this.HitsMenuItem.DropDownOpening += new System.EventHandler(this.HitsMenuItem_DropDownOpening);
             // 
             // ShowAllHitsMenuItem
             // 
             this.ShowAllHitsMenuItem.Name = "ShowAllHitsMenuItem";
             this.ShowAllHitsMenuItem.Size = new System.Drawing.Size(185, 22);
-            this.ShowAllHitsMenuItem.Text = "Show all";
+            this.ShowAllHitsMenuItem.Text = "All";
             this.ShowAllHitsMenuItem.Click += new System.EventHandler(this.ShowAllHitsMenuItem_Click);
             // 
             // ShowHitMenuItem
             // 
             this.ShowHitMenuItem.Name = "ShowHitMenuItem";
             this.ShowHitMenuItem.Size = new System.Drawing.Size(185, 22);
-            this.ShowHitMenuItem.Text = "Show only hit";
+            this.ShowHitMenuItem.Text = "Hit";
             this.ShowHitMenuItem.Click += new System.EventHandler(this.ShowHitMenuItem_Click);
             // 
             // ShowUnhitMenuItem
             // 
             this.ShowUnhitMenuItem.Name = "ShowUnhitMenuItem";
             this.ShowUnhitMenuItem.Size = new System.Drawing.Size(185, 22);
-            this.ShowUnhitMenuItem.Text = "Show only unhit";
+            this.ShowUnhitMenuItem.Text = "Not Hit";
             this.ShowUnhitMenuItem.Click += new System.EventHandler(this.ShowUnhitMenuItem_Click);
             // 
             // ResetMenuItem
@@ -284,6 +286,13 @@
             this.ViewHostPanel.Size = new System.Drawing.Size(423, 260);
             this.ViewHostPanel.TabIndex = 3;
             // 
+            // ShowInstancesMenuItem
+            // 
+            this.ShowInstancesMenuItem.Name = "ShowInstancesMenuItem";
+            this.ShowInstancesMenuItem.Size = new System.Drawing.Size(185, 22);
+            this.ShowInstancesMenuItem.Text = "Instances";
+            this.ShowInstancesMenuItem.Click += new System.EventHandler(this.ShowInstancesMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -333,5 +342,6 @@
         private System.Windows.Forms.ToolStripMenuItem SizeHitsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem TimePerHitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ZoomMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowInstancesMenuItem;
     }
 }

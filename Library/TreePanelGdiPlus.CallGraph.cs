@@ -33,9 +33,15 @@ namespace XLibrary
 
         const int MinCallNodeSize = 5;
 
+        bool SequenceOrder = false;
+        bool ClassMode = false;
+
         private void DrawCallGraph(Graphics buffer)
         {
-            if (DoRevalue || XRay.CallChange || XRay.CoverChange)
+            if (DoRevalue || 
+                XRay.CallChange || 
+                (ShowLayout != ShowNodes.All && XRay.CoverChange) ||  
+                (ShowLayout == ShowNodes.Instances && XRay.InstanceChange) )
             {
                 RecalcCover(InternalRoot);
                 RecalcCover(ExternalRoot);
@@ -44,16 +50,14 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
-                bool classMode = false;
-
                 // iternate nodes at this zoom level
-                AddCalledNodes(CurrentRoot, true, classMode);
+                AddCalledNodes(CurrentRoot, true);
 
                 if (ShowOutside)
-                    AddCalledNodes(InternalRoot, false, classMode);
+                    AddCalledNodes(InternalRoot, false);
 
                 if (ShowExternal)
-                    AddCalledNodes(ExternalRoot, false, classMode);
+                    AddCalledNodes(ExternalRoot, false);
 
                 // todo need way to identify ext/outside nodes graphically
 
@@ -232,6 +236,9 @@ namespace XLibrary
                 {
                     float maxSize = rank.Column.Max(n => n.ScaledSize);
 
+                    // a good first guess at how nodes should be ordered to min crossing
+                    rank.Column = rank.Column.OrderBy(n => n.HitSequence).ToList();
+
                     PositionRank(graph, rank, xOffset + maxSize / 2);
 
                     xOffset += maxSize + spaceX;
@@ -239,18 +246,25 @@ namespace XLibrary
 
                 groupOffset += graph.ScaledHeight;
 
+                if (SequenceOrder)
+                {
+                    for (int x = 0; x < 6; x++)
+                        MinDistance(graph);
+                }
+                else
+                {
+                    for (int x = 0; x < 3; x++)
+                        Uncross(graph);
 
-                for (int x = 0; x < 3; x++)
-                    Uncross(graph);
+                    for (int x = 0; x < 3; x++)
+                        MinDistance(graph);
 
-                for (int x = 0; x < 3; x++)
-                    MinDistance(graph);
+                    for (int x = 0; x < 3; x++)
+                        Uncross(graph);
 
-                for (int x = 0; x < 3; x++)
-                    Uncross(graph);
-
-                for (int x = 0; x < 3; x++)
-                    MinDistance(graph);
+                    for (int x = 0; x < 3; x++)
+                        MinDistance(graph);
+                }
             }
         }
 
@@ -406,6 +420,8 @@ namespace XLibrary
 
         private void Uncross(Graph graph)
         {
+            // moves nodes closer to attached nodes in adjacent ranks
+
             foreach (Rank rank in graph.Ranks)
             {
                 // foreach node average y pos form all connected edges
@@ -468,8 +484,7 @@ namespace XLibrary
 
         private void MinDistance(Graph graph)
         {
-
-            // foreach rank list
+            // moves nodes with-in rank closer to their adjacent nodes without changing order in rank
             try
             {
                 foreach (Rank rank in graph.Ranks)
@@ -518,6 +533,8 @@ namespace XLibrary
 
         private void PositionRank(Graph graph, Rank rank, float xOffset)
         {
+            // spreads nodes in rank across y-axis at even intervals
+
             var nodes = rank.Column;
 
             float totalHeight = nodes.Sum(n => n.ScaledSize);
@@ -603,13 +620,13 @@ namespace XLibrary
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(XNodeIn root, bool center, bool classMode)
+        private void AddCalledNodes(XNodeIn root, bool center)
         {
             if (!root.Show)
                 return;
 
             if (((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0)) &&
-                ((!classMode && root.ObjType != XObjType.Class) || (classMode && root.ObjType == XObjType.Class)))
+                ((!ClassMode && root.ObjType != XObjType.Class) || (ClassMode && root.ObjType == XObjType.Class)))
             {
                 if (center)
                 {
@@ -627,7 +644,7 @@ namespace XLibrary
 
             foreach (XNodeIn sub in root.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
-                    AddCalledNodes(sub, center, classMode);
+                    AddCalledNodes(sub, center);
         }
 
         private void DrawGraphEdge(Graphics buffer, Pen pen, FunctionCall call, XNodeIn source, XNodeIn destination)

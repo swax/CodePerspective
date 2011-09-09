@@ -50,6 +50,7 @@ namespace XBuilder
         MethodReference LoadFieldRef;
         MethodReference SetFieldRef;
         MethodReference ObjectFinalizeRef;
+        MethodReference GetTypeFromHandleRef;
         TypeReference VoidRef;
 
         public long LinesAdded = 0;
@@ -107,6 +108,7 @@ namespace XBuilder
             VoidRef = asm.MainModule.Import(typeof(void));
             ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.Import(typeof(Object)));
             ObjectFinalizeRef.HasThis = true;  // call on the current instance
+            GetTypeFromHandleRef = asm.MainModule.Import(typeof(Type).GetMethod("GetTypeFromHandle"));
 
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
@@ -205,17 +207,22 @@ namespace XBuilder
 
                     AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
 
-                    if(ctorMethod.Name == ".ctor")
+                    if (ctorMethod.Name == ".ctor")
                     {
                         hasCtor = true;
                         AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldarg, 0));
+                        AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
                     }
                     // else static constructor
                     else
-                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldnull));
-                    
-                    AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
+                    {
+                        // ldtoken    XTestLib.SmallStatic
+                        // call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
 
+                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, classDef));
+                        AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, GetTypeFromHandleRef));
+                        AddInstruction(ctorMethod, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
+                    }
                     ctorMethod.Body.OptimizeMacros();
                 }
 
@@ -293,6 +300,9 @@ namespace XBuilder
                              (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace)
                     {
                         var call = instruction.Operand as MethodReference;
+
+                        if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
+                            continue; // call added to cctor by xray
 
                         var scope = call.DeclaringType.Scope;
 

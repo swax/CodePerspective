@@ -87,26 +87,27 @@ namespace XLibrary
 
         private void HitsMenuItem_DropDownOpening(object sender, EventArgs e)
         {
-            ShowAllHitsMenuItem.Checked = TreeView.HitLayout == HitLayouts.All;
-            ShowHitMenuItem.Checked = TreeView.HitLayout == HitLayouts.Hit;
-            ShowUnhitMenuItem.Checked = TreeView.HitLayout == HitLayouts.Unhit;
+            ShowAllHitsMenuItem.Checked = TreeView.ShowLayout == ShowNodes.All;
+            ShowHitMenuItem.Checked = TreeView.ShowLayout == ShowNodes.Hit;
+            ShowUnhitMenuItem.Checked = TreeView.ShowLayout == ShowNodes.Unhit;
+            ShowInstancesMenuItem.Checked = TreeView.ShowLayout == ShowNodes.Instances;
         }
 
         private void ShowAllHitsMenuItem_Click(object sender, EventArgs e)
         {
-            TreeView.HitLayout = HitLayouts.All;
+            TreeView.ShowLayout = ShowNodes.All;
             TreeView.RecalcValues();
         }
 
         private void ShowHitMenuItem_Click(object sender, EventArgs e)
         {
-            TreeView.HitLayout = HitLayouts.Hit;
+            TreeView.ShowLayout = ShowNodes.Hit;
             TreeView.RecalcValues();
         }
 
         private void ShowUnhitMenuItem_Click(object sender, EventArgs e)
         {
-            TreeView.HitLayout = HitLayouts.Unhit;
+            TreeView.ShowLayout = ShowNodes.Unhit;
             TreeView.RecalcValues();
         }
 
@@ -116,6 +117,12 @@ namespace XLibrary
                 if (XRay.Nodes[i].StillInside == 0)
                     XRay.CoveredFunctions[i] = false;
 
+            TreeView.RecalcValues();
+        }
+
+        private void ShowInstancesMenuItem_Click(object sender, EventArgs e)
+        {
+            TreeView.ShowLayout = ShowNodes.Instances;
             TreeView.RecalcValues();
         }
 

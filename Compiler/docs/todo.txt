@@ -6,7 +6,40 @@ why are some functions the root of a call graph, but not the thread start?
 
 ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
+show sequence in time call tree is traversed
+	option to align nodes in rank columns by time last called
+		nodes called last at bottom, 'coldest' functions at top
+	should be able to look at call graph and determine the sequence of events that happened when a call went through
+	dont make it time based, but sequence based
+	when a function called, just increase its sequence #
+	order the ranks by sequence #
+	do 2 passes, first pass collect sequences of all nodes
+		use to determine the y coord for all nodes
+	next pass actually set the y to (height / y) * (step size * function pos)
+
+class view
+	see call/graph tree as just class nodes talking
+	double click on class node to zoom in and see inner-methdods as a call graph
+	the first and last rank are for nodes calling in/out (the same node could be in the 1st and last rank)
+
+revised UI
+	bottom panel with option tabs
+	tabs aligned at bottom not top, like visual studio
+	thin bar (like visual studio) 
+		button to undock panel, minimize panel, pop panel out, and duplicate panel (to monitor multiple classes etc..)
+	tabs
+		visualization options
+		interactive console
+		selected timing info
+		select instance informatino
+
+	double clicking now zooms
+
 instances bottom panel tab
+	option to show just methods and/or fields
+	mouse over field should get value for first 10 instances
+		useful when you see something talking to a field and you want to see what its set to
+
 	when instance init'd
 	this pointer passed to xray
 	instance logged af active with 'this' pointer weakly bound
@@ -21,26 +54,23 @@ instances bottom panel tab
 
 	could be debugger like with a bottom panel
 
-console bottom panel tab
+new toolbar
+	show/hide bottom panel
+	current zoom breadcrumbs
+	zoom totally out
+	push button to filter hit
+	button to reset hit
 
+color themes
+	standard, matrix
 
-show sequence in time call tree is traversed
-	option to align nodes in rank columns by time last called
-		nodes called last at bottom, 'coldest' functions at top
-	should be able to look at call graph and determine the sequence of events that happened when a call went through
-	dont make it time based, but sequence based
-	when a function called, just increase its sequence #
-	order the ranks by sequence #
-	do 2 passes, first pass collect sequences of all nodes
-		use to determine the y coord for all nodes
-	next pass actually set the y to (height / y) * (step size * function pos)
+hook calls to edge of node in graph view?
 
+get working with just a dll
 
 rename field with types to anon classes to new name
 
 breadcrumbs showing current zoom level, each level drops down subs
-
-toolbar has show/hide left panel
 
 option to re-organize classes methods 'processClassNames'
 
@@ -78,12 +108,11 @@ make it look so good people will want to full screen it and use as a screen save
 
 profile performance
 
-test sample app compiled with mono
-	are anonymous functions still re-organized correctly?
-
 need some sort of benchmark to see what xray slowdown is
 	maybe use riseop sim mode
 	I think it had a second to sim second benchmark..
+	try turning off diff tracking options while running and watching sim speedup
+		have a benchmark native speed
 
 thread colors
 	option to turn on/off

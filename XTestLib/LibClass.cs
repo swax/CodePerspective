@@ -10,6 +10,10 @@ namespace XTestLib
         public int TestMe;
 
 
+        public int PublicVar = 2;
+        private int PrivateVar = 3;
+        static int StaticVar = 4;
+
         delegate void TestDelegate(int x);
 
         TestDelegate RunDelegate;
@@ -123,6 +127,8 @@ namespace XTestLib
 
     public static class StaticMan
     {
+        static int test = 4;
+
         static StaticMan()
         {
             int x = 0;
@@ -132,6 +138,26 @@ namespace XTestLib
         public static void HolyCow()
         {
             int x = 0;
+            x++;
+        }
+    }
+
+    public static class SmallStatic
+    {
+        static int x = 5;
+
+        static SmallStatic()
+        {
+            
+        }
+
+        static void MockConstuctor()
+        {
+            TestMethod(5, typeof(SmallStatic));
+        }
+
+        static void TestMethod(int index, object y)
+        {
             x++;
         }
     }

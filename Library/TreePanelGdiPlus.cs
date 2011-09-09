@@ -15,7 +15,7 @@ namespace XLibrary
 {
     public enum LayoutType { TreeMap, CallGraph }
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
-    public enum HitLayouts { All, Hit, Unhit }
+    public enum ShowNodes { All, Hit, Unhit, Instances }
 
     public partial class TreePanelGdiPlus : UserControl
     {
@@ -33,7 +33,7 @@ namespace XLibrary
 
         internal LayoutType ViewLayout = LayoutType.TreeMap;
         internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
-        internal HitLayouts HitLayout = HitLayouts.All;
+        internal ShowNodes ShowLayout = ShowNodes.All;
         
         internal bool ShowLabels = true;
         float LabelPadding = 2;
@@ -433,7 +433,9 @@ namespace XLibrary
 
         private void DrawTreeMap(Graphics buffer)
         {
-            if (DoRevalue || XRay.CoverChange)
+            if (DoRevalue ||
+                (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
+                (ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
                 RecalcCover(InternalRoot);
                 RecalcCover(ExternalRoot);
@@ -552,9 +554,10 @@ namespace XLibrary
             foreach (XNodeIn node in root.Nodes)
             {
                 node.Show = //node.ObjType != XObjType.Method ||
-                    HitLayout == HitLayouts.All ||
-                    (HitLayout == HitLayouts.Hit && XRay.CoveredFunctions[node.ID]) ||
-                    (HitLayout == HitLayouts.Unhit && !XRay.CoveredFunctions[node.ID]);
+                    ShowLayout == ShowNodes.All ||
+                    (ShowLayout == ShowNodes.Hit && XRay.CoveredFunctions[node.ID]) ||
+                    (ShowLayout == ShowNodes.Unhit && !XRay.CoveredFunctions[node.ID]) ||
+                    (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.Record != null && node.Record.Active.Count > 0)));
 
                 if (node.Show)
                     root.Value += RecalcCover(node);

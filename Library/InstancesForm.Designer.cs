@@ -32,6 +32,7 @@
             this.DeletedLabel = new System.Windows.Forms.Label();
             this.ActiveLabel = new System.Windows.Forms.Label();
             this.StaticLabel = new System.Windows.Forms.Label();
+            this.InfoLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // CreatedLabel
@@ -70,11 +71,23 @@
             this.StaticLabel.TabIndex = 3;
             this.StaticLabel.Text = "Static Created";
             // 
+            // InfoLabel
+            // 
+            this.InfoLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.InfoLabel.Location = new System.Drawing.Point(21, 144);
+            this.InfoLabel.Name = "InfoLabel";
+            this.InfoLabel.Size = new System.Drawing.Size(322, 119);
+            this.InfoLabel.TabIndex = 4;
+            this.InfoLabel.Text = "Info";
+            // 
             // InstancesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(355, 272);
+            this.Controls.Add(this.InfoLabel);
             this.Controls.Add(this.StaticLabel);
             this.Controls.Add(this.ActiveLabel);
             this.Controls.Add(this.DeletedLabel);
@@ -92,6 +105,7 @@
         private System.Windows.Forms.Label DeletedLabel;
         private System.Windows.Forms.Label ActiveLabel;
         private System.Windows.Forms.Label StaticLabel;
+        private System.Windows.Forms.Label InfoLabel;
 
     }
 }

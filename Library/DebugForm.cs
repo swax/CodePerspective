@@ -55,10 +55,14 @@ namespace XLibrary
 
             // function calls
             Output.AppendLine("");
-            Output.AppendLine("CallMap:");
-
+            Output.AppendLine("Method Call Map:");
             foreach(FunctionCall call in XRay.CallMap)
                 Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside );
+
+            Output.AppendLine("");
+            Output.AppendLine("Class Call Map:");
+            foreach (FunctionCall call in XRay.ClassCallMap)
+                Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
 
             // function calls
             Output.AppendLine("");

@@ -23,10 +23,11 @@ namespace XLibrary
         static int FunctionCount;
 
         internal static bool CoverChange;
-        internal static BitArray CoveredFunctions;
-
-        internal static bool ShowAllCalls;
         internal static bool CallChange;
+        internal static bool InstanceChange;
+
+        internal static BitArray CoveredFunctions;
+        internal static bool ShowAllCalls;
 
         internal const int HitFrames = 15;
         internal const int ShowTicks = HitFrames - 1; // first index
@@ -51,6 +52,8 @@ namespace XLibrary
         static bool InitComplete;
 
         static Stopwatch Watch = new Stopwatch();
+
+        static uint CurrentSequence;
 
 
         public static void TestInit(string path)
@@ -211,6 +214,8 @@ namespace XLibrary
             // mark covered, should probably check if show covered is checked
             if (!CoveredFunctions[nodeID])
             {
+                node.HitSequence = CurrentSequence++;
+
                 CoverChange = true;
 
                 XNode check = node;
@@ -285,19 +290,13 @@ namespace XLibrary
                 // add link to node that its been called
                 if (TrackCallGraph)
                 {
-                    if (node.CalledIn == null)
-                        node.CalledIn = new SharedDictionary<FunctionCall>(1);
-                    if (!node.CalledIn.Contains(source))
-                        node.CalledIn.Add(source, call);
+                    node.AddCallIn(source, call);
 
                     var srcNode = Nodes[source];
                     if (srcNode == null)
                         return;
 
-                    if (srcNode.CallsOut == null)
-                        srcNode.CallsOut = new SharedDictionary<FunctionCall>(1);
-                    if (!srcNode.CallsOut.Contains(nodeID))
-                        srcNode.CallsOut.Add(nodeID, call);
+                    srcNode.AddCallOut(nodeID, call);
                 }
 
                 CallChange = true;
@@ -325,34 +324,33 @@ namespace XLibrary
         {
             var srcNode = Nodes[source];
             if (srcNode == null)
-                return; 
+                return;
 
-            var classNode = node.Parent as XNodeIn;
             var sourceClass = srcNode.Parent as XNodeIn;
+            var destClass = node.Parent as XNodeIn;
 
-            if (classNode.ObjType != XObjType.Class || sourceClass.ObjType != XObjType.Class)
+            if (sourceClass == destClass)
+                return;
+
+            if (destClass.ObjType != XObjType.Class || sourceClass.ObjType != XObjType.Class)
             {
-                LogError("parent not class type, {0} and {1}", classNode.ObjType, sourceClass.ObjType);
+                LogError("parent not class type, {0} and {1}", destClass.ObjType, sourceClass.ObjType);
                 return;
             }
 
-            int hash = sourceClass.ID * FunctionCount + classNode.ID;
+            int hash = sourceClass.ID * FunctionCount + destClass.ID;
 
             FunctionCall call;
-            if (!CallMap.TryGetValue(hash, out call))
+            if (!ClassCallMap.TryGetValue(hash, out call))
             {
-                call = new FunctionCall() { Source = sourceClass.ID, Destination = classNode.ID };
+                LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
+
+                call = new FunctionCall() { Source = sourceClass.ID, Destination = destClass.ID };
                 ClassCallMap.Add(hash, call);
 
-                if (classNode.CalledIn == null)
-                    classNode.CalledIn = new SharedDictionary<FunctionCall>(1);
-                if (!classNode.CalledIn.Contains(sourceClass.ID))
-                    classNode.CalledIn.Add(sourceClass.ID, call);
+                destClass.AddCallIn(sourceClass.ID, call);
 
-                if (sourceClass.CallsOut == null)
-                    sourceClass.CallsOut = new SharedDictionary<FunctionCall>(1);
-                if (!sourceClass.CallsOut.Contains(classNode.ID))
-                    sourceClass.CallsOut.Add(classNode.ID, call);
+                sourceClass.AddCallOut(destClass.ID, call);
             }
 
             call.Hit = ShowTicks;
@@ -454,52 +452,67 @@ namespace XLibrary
                     }
         }
 
-        internal static SharedDictionary<InstanceRecord> Instances = new SharedDictionary<InstanceRecord>(100);
-
         public static void Constructed(int index, Object obj)
         {
-            lock (Instances)
-            {
-                InstanceRecord record;
-                if (!Instances.TryGetValue(index, out record))
-                {
-                    record = new InstanceRecord();
-                    Instances.Add(index, record);
-                }
+            XNodeIn node = Nodes[index];
 
-                if (obj != null)
-                {
-                    record.Created++;
-                    record.Active.Add(new WeakReference(obj, false));
-                }
-                else
-                    record.StaticCreated++;
+            // prevent having to check multiple times in mark hit and flow tracking
+            if (node == null)
+                return;
+
+            var record = node.Record;
+            if (record == null)
+            {
+                record = new InstanceRecord();
+                node.Record = record;
+                record.InstanceType = (obj is System.Type) ? obj as System.Type : obj.GetType();
+            }
+
+            if (obj is System.Type)
+            {
+                record.StaticCreated++;
+                InstanceChange = true;
+            }
+            else
+            {
+                record.Created++;
+
+                if (record.Active.Count == 0)
+                    InstanceChange = true;
+
+                record.Active.Add(new WeakReference(obj, false));
             }
         }
 
         public static void Deconstructed(int index, Object obj)
         {
-            lock (Instances)
+            XNodeIn node = Nodes[index];
+
+            // prevent having to check multiple times in mark hit and flow tracking
+            if (node == null || node.Record == null)
             {
-                InstanceRecord record;
-                if (!Instances.TryGetValue(index, out record))
-                {
-                    LogError("Deconstructed instance not found of type " + obj.GetType().ToString());
-                    return;
-                }
-
-                record.Deleted++;
-
-                // iterate through objects and delete null target
-                // cant use hash code to ident object, because some classes override it and do crazy things like construct themselves again causing deadlock
-
-                var removeRef = record.Active.FirstOrDefault(a => a.Target == null);
-
-                if (removeRef != null)
-                    record.Active.Remove(removeRef);
-                else
-                    LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString());
+                LogError("Deconstructed instance not found of type " + obj.GetType().ToString());
+                return;
             }
+
+            var record = node.Record;
+
+            record.Deleted++;
+
+            // iterate through objects and delete null target
+            // cant use hash code to ident object, because some classes override it and do crazy things like construct themselves again causing deadlock
+
+            var removeRef = record.Active.FirstOrDefault(a => a.Target == null);
+
+            if (removeRef != null)
+            {
+                record.Active.Remove(removeRef);
+
+                if (record.Active.Count == 0)
+                    InstanceChange = true;
+            }
+            else
+                LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString()); 
         }
 
         public static void LoadField(int nodeID)
@@ -524,6 +537,7 @@ namespace XLibrary
 
     internal class InstanceRecord
     {
+        public Type InstanceType;
         public long Created;
         public long StaticCreated;
         public long Deleted;

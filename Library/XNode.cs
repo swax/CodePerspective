@@ -133,6 +133,7 @@ namespace XLibrary
         internal int LastCallingThread;
         internal int ConflictHit;
         internal int ExceptionHit;
+        internal uint HitSequence;
 
         internal int EntryPoint;
         internal int StillInside;
@@ -149,6 +150,8 @@ namespace XLibrary
         internal List<XNodeIn> Adjacents;
         internal PointF ScaledLocation;
         internal float ScaledSize; // width and height
+
+        internal InstanceRecord Record;
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -188,6 +191,25 @@ namespace XLibrary
             AreaF = area.ToRectangleF();
             CenterF = new PointF((float)(area.X + area.Width / 2),
                                      (float)(area.Y + area.Height / 2));
+        }
+
+        internal void AddCallIn(int sourceID, FunctionCall call)
+        {
+            if (CalledIn == null)
+                CalledIn = new SharedDictionary<FunctionCall>(1);
+
+            if (!CalledIn.Contains(sourceID))
+                CalledIn.Add(sourceID, call);
+
+        }
+
+        internal void AddCallOut(int destId, FunctionCall call)
+        {
+            if (CallsOut == null)
+                CallsOut = new SharedDictionary<FunctionCall>(1);
+
+            if (!CallsOut.Contains(destId))
+                CallsOut.Add(destId, call);
         }
     }
 }

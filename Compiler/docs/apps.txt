@@ -1,4 +1,13 @@
 ﻿
+banshee
+	Need to start xray in admin mode
+	Need to run nereid in admin mode
+	only nereid.exe seems to run, other apps have this problem
+		A call to PInvoke function 'XRay.Banshee.Core!Banshee.I18n.Catalog::gettext' has unbalanced the stack. 
+		This is likely because the managed PInvoke signature does not match the unmanaged target signature. 
+		Check that the calling convention and parameters of the PInvoke signature match the target unmanaged signature.
+	
+
 DragonFly
 	errors unable to resolve assembly
 	change the xml config to allow devs/no password

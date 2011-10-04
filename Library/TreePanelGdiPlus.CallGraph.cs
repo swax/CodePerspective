@@ -70,6 +70,9 @@ namespace XLibrary
                 }
 
                 XRay.CallChange = false;
+                XRay.CoverChange = false;
+                XRay.InstanceChange = false;
+
                 DoRevalue = false;
                 DoResize = true;
             }

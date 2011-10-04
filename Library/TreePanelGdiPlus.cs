@@ -441,6 +441,8 @@ namespace XLibrary
                 RecalcCover(ExternalRoot);
 
                 XRay.CoverChange = false;
+                XRay.InstanceChange = false;
+
                 DoRevalue = false;
                 DoResize = true;
             }
@@ -864,15 +866,6 @@ namespace XLibrary
             Invalidate();
         }
 
-        private void TreePanel_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            XNodeIn node = GuiHovered.LastOrDefault();
-            if (node == null)
-                return;
-
-            new TimingForm(node).Show();
-        }
-
         void ToggleNode(Dictionary<int, XNodeIn> map, XNodeIn node)
         {
             // make sure a node cant be selected and ignored simultaneously
@@ -898,6 +891,11 @@ namespace XLibrary
                 FocusedNode = GuiHovered.LastOrDefault();
 
                 Redraw();
+
+                if (FocusedNode.ObjType == XObjType.Class)
+                    MainForm.InstanceTab.NavigateTo(FocusedNode);
+
+                MainForm.TimingPanel.NavigateTo(FocusedNode);
             }
             else if (e.Button == MouseButtons.Right)
             {
@@ -912,11 +910,6 @@ namespace XLibrary
 
                     bool selected = SelectedNodes.ContainsKey(node.ID);
                     bool ignored = IgnoredNodes.ContainsKey(node.ID);
-
-                    menu.MenuItems.Add( new MenuItem("Timing", (s, a) => new TimingForm(node).Show()) );
-
-                    if(node.ObjType == XObjType.Class)
-                        menu.MenuItems.Add(new MenuItem("Instances", (s, a) => new InstancesForm(node).Show()));
 
                     menu.MenuItems.Add( new MenuItem("Zoom", (s, a) => SetRoot(node)) );
                             

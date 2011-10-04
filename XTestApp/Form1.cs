@@ -15,9 +15,16 @@ namespace XTestApp
     {
         string testVar = null;
 
+        Object ButtonAsObject;
+        Control ButtonAsControl;
+
         public Form1()
         {
             InitializeComponent();
+
+            ButtonAsObject = button1;
+            ButtonAsControl = button1;
+
         }
 
         public void TryStuff()

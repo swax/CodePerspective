@@ -23,3 +23,10 @@ mcforge
 
 monoDevelop
 	need to run xbuilder.exe with admin privlidges so that new files can be copied into program files dir
+
+TreeNodeAdv sample
+	Use to introspect tree view ite
+
+
+windows 8
+	hack it, uncover things, make youtube videos

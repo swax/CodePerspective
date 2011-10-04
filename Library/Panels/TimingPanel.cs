@@ -1,30 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class TimingForm : Form
+    public partial class TimingPanel : UserControl
     {
         LinkedListNode<XNode> Current;
         LinkedList<XNode> History = new LinkedList<XNode>();
 
         bool ShowPerCall = false;
 
-
-        public TimingForm(XNodeIn node)
+        public TimingPanel()
         {
             InitializeComponent();
-
-            NavigateTo(node);
         }
 
-        private void NavigateTo(XNode node)
+        public void NavigateTo(XNode node)
         {
             // remove anything after current node, add this node to top
             while (Current != null && Current.Next != null)
@@ -37,15 +34,16 @@ namespace XLibrary
         private void Reload()
         {
             XNode node = Current.Value;
-            string name = node.AppendClassName();
 
-            Text = "Details for (" + node.ObjType.ToString() + ") " + name;
+            SelectedNameLabel.Text = node.AppendClassName();
 
-            ParentsLink.Enabled = node.Parent != null;
+            Text = "Details for (" + node.ObjType.ToString() + ") " + node.Name;
+
+            /*ParentsLink.Enabled = node.Parent != null;
             ChildrenLink.Enabled = node.Nodes.Count > 0;
 
             BackLink.Enabled = Current.Previous != null;
-            ForwardLink.Enabled = Current.Next != null;
+            ForwardLink.Enabled = Current.Next != null;*/
 
             CallersList.Items.Clear();
             CalledList.Items.Clear();
@@ -63,7 +61,7 @@ namespace XLibrary
                     CallersList.Items.Add( new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
-                CallersLabel.Text = count.ToString() + " methods called " + name;
+                CallersLabel.Text = count.ToString() + " methods called " + node.Name;
 
                 count = 0;
                 foreach (FunctionCall call in XRay.CallMap.Where(v => v.Source == id))
@@ -72,11 +70,11 @@ namespace XLibrary
                     CalledList.Items.Add(new CallItem(call, called, ShowPerCall));
                     count++;
                 }
-                CalledLabel.Text = name + " called " + count.ToString() + " methods";
+                CalledLabel.Text = node.Name + " called " + count.ToString() + " methods";
             }
             else
             {
-                CallersLabel.Text = name + " has " + node.Nodes.Count.ToString() + " children";
+                CallersLabel.Text = node.Name + " has " + node.Nodes.Count.ToString() + " children";
 
                 FunctionPanel.Panel2Collapsed = true;
                 // when namespace selected, show children and total time inside / hits, summed for all children
@@ -89,6 +87,9 @@ namespace XLibrary
                     CallersList.Items.Add(new CallItem(null, child, ShowPerCall));
                 }
             }
+
+            CallersList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            CalledList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
 
         private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -227,3 +228,4 @@ namespace XLibrary
 
     }
 }
+

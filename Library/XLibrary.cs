@@ -468,20 +468,8 @@ namespace XLibrary
                 record.InstanceType = (obj is System.Type) ? obj as System.Type : obj.GetType();
             }
 
-            if (obj is System.Type)
-            {
-                record.StaticCreated++;
+            if(node.Record.Add(obj))
                 InstanceChange = true;
-            }
-            else
-            {
-                record.Created++;
-
-                if (record.Active.Count == 0)
-                    InstanceChange = true;
-
-                record.Active.Add(new WeakReference(obj, false));
-            }
         }
 
         public static void Deconstructed(int index, Object obj)
@@ -495,24 +483,8 @@ namespace XLibrary
                 return;
             }
 
-            var record = node.Record;
-
-            record.Deleted++;
-
-            // iterate through objects and delete null target
-            // cant use hash code to ident object, because some classes override it and do crazy things like construct themselves again causing deadlock
-
-            var removeRef = record.Active.FirstOrDefault(a => a.Target == null);
-
-            if (removeRef != null)
-            {
-                record.Active.Remove(removeRef);
-
-                if (record.Active.Count == 0)
-                    InstanceChange = true;
-            }
-            else
-                LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString()); 
+            if (node.Record.Remove(obj))
+                InstanceChange = true;
         }
 
         public static void LoadField(int nodeID)
@@ -535,13 +507,68 @@ namespace XLibrary
         }
     }
 
-    internal class InstanceRecord
+    public class InstanceRecord
     {
         public Type InstanceType;
         public long Created;
-        public long StaticCreated;
+        public bool StaticClass;
         public long Deleted;
-        public List<WeakReference> Active = new List<WeakReference>();
+        public List<TimedWeakRef> Active = new List<TimedWeakRef>();
+        
+        /// <summary>
+        /// Returns true if new instance created
+        /// </summary>
+        public bool Add(object obj)
+        {
+            if (obj is System.Type)
+            {
+                StaticClass = true;
+                return true;
+            }
+
+            Created++;
+
+            lock (Active)
+            {
+                Active.Add(new TimedWeakRef(obj, false));
+
+                return (Active.Count == 1);
+            }
+        }
+
+        /// <summary>
+        /// Return true if active count went for something to nothing
+        /// </summary>
+        public bool Remove(object obj)
+        {
+            Deleted++;
+
+            // iterate through objects and delete null target
+            // cant use hash code to ident object, because some classes override it and do crazy things like construct themselves again causing deadlock
+
+            lock (Active)
+            {
+                var removeRef = Active.FirstOrDefault(a => a.Target == null);
+                if (removeRef == null)
+                {
+                   XRay.LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString());
+                    return false;
+                }
+
+                Active.Remove(removeRef);
+
+                return (Active.Count == 0);
+            }
+        }
+    }
+
+    public class TimedWeakRef : WeakReference
+    {
+        public DateTime Created = DateTime.Now;
+
+        public TimedWeakRef(object target, bool trackResurrection)
+            : base(target, trackResurrection)
+        { }
     }
 
     class ThreadFlow

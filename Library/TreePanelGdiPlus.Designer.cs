@@ -39,7 +39,6 @@
             this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.TreePanel_Paint);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseMove);
-            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseDoubleClick);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseClick);
             this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseWheel);
             this.Resize += new System.EventHandler(this.TreePanel_Resize);

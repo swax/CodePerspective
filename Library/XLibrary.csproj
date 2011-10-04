@@ -67,6 +67,7 @@
     </Reference>
     <Reference Include="System.Core">
     </Reference>
+    <Reference Include="System.Design" />
     <Reference Include="System.Drawing">
     </Reference>
     <Reference Include="System.Windows.Forms">
@@ -96,26 +97,36 @@
     <Compile Include="DebugForm.Designer.cs">
       <DependentUpon>DebugForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="InstancesForm.cs">
-      <SubType>Form</SubType>
+    <Compile Include="Panels\InstancePanel.cs">
+      <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="InstancesForm.Designer.cs">
-      <DependentUpon>InstancesForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="TimingForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TimingForm.Designer.cs">
-      <DependentUpon>TimingForm.cs</DependentUpon>
+    <Compile Include="Panels\InstancePanel.Designer.cs">
+      <DependentUpon>InstancePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="ITreePanel.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Panels\TimingPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\TimingPanel.Designer.cs">
+      <DependentUpon>TimingPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panels\ViewPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\ViewPanel.Designer.cs">
+      <DependentUpon>ViewPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeGrid\TreeGridCell.cs" />
+    <Compile Include="TreeGrid\TreeGridEvents.cs" />
+    <Compile Include="TreeGrid\TreeGridNode.cs" />
+    <Compile Include="TreeGrid\TreeGridNodeCollection.cs" />
+    <Compile Include="TreeGrid\TreeGridView.cs" />
     <Compile Include="TreeMap.cs" />
     <Compile Include="TreePanelGdiPlus.CallGraph.cs">
       <SubType>UserControl</SubType>
@@ -135,15 +146,18 @@
     <EmbeddedResource Include="DebugForm.resx">
       <DependentUpon>DebugForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="InstancesForm.resx">
-      <DependentUpon>InstancesForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TimingForm.resx">
-      <DependentUpon>TimingForm.cs</DependentUpon>
+    <EmbeddedResource Include="Panels\InstancePanel.resx">
+      <DependentUpon>InstancePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\TimingPanel.resx">
+      <DependentUpon>TimingPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\ViewPanel.resx">
+      <DependentUpon>ViewPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TreePanelGdiPlus.resx">
       <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
@@ -167,6 +181,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

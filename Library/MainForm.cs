@@ -28,10 +28,10 @@ namespace XLibrary
             Text = "c0re XRay"; 
             UpdateStatus();
 
-            ShowAllCallsMenuItem.Checked = XRay.ShowAllCalls;
-            ShowRTCallsMenuItem.Checked = TreeView.ShowCalls;
-            ViewOutsideMenuItem.Checked = TreeView.ShowOutside;
-            ViewExternalMenuItem.Checked = TreeView.ShowExternal;
+            DisplayTab.CallsAllButton.Checked = XRay.ShowAllCalls;
+            DisplayTab.CallsRealTimeButton.Checked = TreeView.ShowCalls; ;
+            //DisplayTab.IncludeOutsideZoomButton = TreeView.ShowOutside;
+            //DisplayTab.IncludeNotXRayedButton = TreeView.ShowExternal;
         }
 
         private void ResetTimer_Tick(object sender, EventArgs e)

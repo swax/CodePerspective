@@ -1,6 +1,22 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
+method call graph
+class call graph
+
+class dependency graph
+
+	another layout view, dependency graph
+	use to refactor de-ops into core/ui/sim components
+	easier to see dependencies and reactor the easy stuff piece wise
+	click on class should show exactly what member variables/parameters/local functions are dependent
+
+	an interactive system would be able to drag drop components between modules as long as there were no internal dependencies
+	dependencies between modules should be easy to see/graph as well - subgraphs for each module
+		maybe test with dragonly dll hell
+
+explore windows 8 with xray - how does await/async get traced?
+
 console
    run funtions on existing instances manually
    change field values

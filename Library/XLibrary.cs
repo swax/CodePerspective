@@ -87,6 +87,7 @@ namespace XLibrary
                 {
                     FlowTracking = true;
                     ThreadTracking = true;
+                    ClassTracking = true;
                 }
                 InstanceTracking = trackInstances;
 

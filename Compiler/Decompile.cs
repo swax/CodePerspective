@@ -175,6 +175,9 @@ namespace XBuilder
 
             var classNode = parentNode.AddNode(classDef.Name, XObjType.Class);
 
+            if(classDef.BaseType != null)
+                SetClassDependency(classNode, classDef.BaseType);
+
             RecompileMethods(classDef, classNode);
 
             foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class))
@@ -190,7 +193,11 @@ namespace XBuilder
             // add fields
             if (TrackFields && classDef.HasFields)
                 foreach (var fieldDef in classDef.Fields)
+                {
                     classNode.AddField(fieldDef);
+
+                    SetClassDependency(classNode, fieldDef.DeclaringType);
+                }
 
             if (TrackInstances)
             {
@@ -264,6 +271,13 @@ namespace XBuilder
             {
                 XNodeOut methodNode = classNode.AddNode(method.Name, XObjType.Method);
 
+                // return
+                SetClassDependency(classNode, method.ReturnType);
+
+                // params
+                foreach (var p in method.Parameters)
+                    SetClassDependency(classNode, p.ParameterType);
+
                 if (method.Body == null)
                     continue;
 
@@ -292,75 +306,57 @@ namespace XBuilder
                     }
 
                     // if we're tracking calls to non-xrayed assemblies
-                    else if (TrackExternal && 
-                             (instruction.OpCode == OpCodes.Call ||
+                    else if ( instruction.OpCode == OpCodes.Call ||
                               instruction.OpCode == OpCodes.Calli ||
-                              instruction.OpCode == OpCodes.Callvirt) &&
-                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
-                             (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace)
+                              instruction.OpCode == OpCodes.Callvirt)
                     {
                         var call = instruction.Operand as MethodReference;
 
-                        if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
-                            continue; // call added to cctor by xray
+                        SetClassDependency(classNode, call.ReturnType);
+                        SetClassDependency(classNode, call.DeclaringType);
+                        foreach(var p in call.Parameters)
+                            SetClassDependency(classNode, p.ParameterType);
 
-                        var scope = call.DeclaringType.Scope;
+                        var classRef = GetClassRef(call.DeclaringType);
 
-                        if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
+                        if( TrackExternal &&
+                            !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
+                            (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )
                         {
-                            // is this scope type internal or external, should it be tracked externally?
-                            Debug.Assert(false);
-                            continue;
-                        }
+                            if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
+                                continue; // call added to cctor by xray
+                            
+                            var methodRef = classRef.AddNode(call.Name, XObjType.Method);
 
-                        // if internal method call or call to xrayed module
-                        if (scope.MetadataScopeType != MetadataScopeType.AssemblyNameReference ||
-                            XRayedFiles.Any(f => f.AssemblyName == scope.Name)) // when not in sxs mode, 
-                            continue;
+                            methodRef.Lines = 1;
 
-                        string moduleName = scope.Name;
-                        string namespaces = (call.DeclaringType.DeclaringType != null) ? call.DeclaringType.DeclaringType.Namespace : call.DeclaringType.Namespace;
-                        string className  = call.DeclaringType.Name;
-                        string methodName = call.Name;
+                            // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
+                            int offset = 0;
+                            if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Constrained)
+                            {
+                                i -= 1;
+                                offset = 1;
+                            }
 
-                        // add external file to root
-                        XNodeOut node = ExtRoot.AddNode(moduleName, XObjType.File);
+                            var oldPos = method.Body.Instructions[i];
 
-                        // traverse or add namespace to root
-                        foreach(var name in namespaces.Split('.'))
-                            node = node.AddNode(name, XObjType.Namespace);
-
-                        node = node.AddNode(className, XObjType.Class);
-                        node = node.AddNode(methodName, XObjType.Method);
-
-                        node.Lines = 1;
-
-                        // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
-                        int offset = 0;
-                        if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Constrained)
-                        {
-                            i -= 1;
-                            offset = 1;
-                        }
-
-                        var oldPos = method.Body.Instructions[i];
-
-                        // wrap the call with enter and exit, because enter to an external method may cause
-                        // an xrayed method to be called, we want to track the flow of that process
-                        int pos = i;
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, node.ID));
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
+                            // wrap the call with enter and exit, because enter to an external method may cause
+                            // an xrayed method to be called, we want to track the flow of that process
+                            int pos = i;
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodRef.ID));
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
                         
-                        // method
-                        pos += 1 + offset;
+                            // method
+                            pos += 1 + offset;
 
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, node.ID));
-                        AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodRef.ID));
+                            AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
 
-                        var newPos = method.Body.Instructions[i];
-                        UpdateExceptionHandlerPositions(method, oldPos, newPos);
+                            var newPos = method.Body.Instructions[i];
+                            UpdateExceptionHandlerPositions(method, oldPos, newPos);
 
-                        i = pos; // loop end will add 1 putting us right after last added function
+                            i = pos; // loop end will add 1 putting us right after last added function
+                        }
                     }
 
                     
@@ -368,42 +364,9 @@ namespace XBuilder
                              (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Ldfld || instruction.OpCode == OpCodes.Ldflda))
                     {
                         var fieldDef = instruction.Operand as FieldReference;
-                        
-                        var scope = fieldDef.DeclaringType.Scope;
 
-                        if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
-                        {
-                            // is this scope type internal or external, should it be tracked externally?
-                            Debug.Assert(false);
-                            continue;
-                        }
-
-                        string namespaces = fieldDef.DeclaringType.Namespace;
-                        string className = fieldDef.DeclaringType.Name;
-                        string fieldName = fieldDef.Name;
-                        string fieldType = fieldDef.FieldType.FullName;
-
-                        XNodeOut node = null;
-
-                        // if xrayed internal
-                        if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
-                            node = XFile.FileNode;
-
-                        // xrayed, but in diff module
-                        else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
-                            node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
-
-                        // if not xrayed - map to external root
-                        else
-                            node = ExtRoot.AddNode(scope.Name, XObjType.File);
-
-                        // traverse or add namespace to root
-                        foreach (var name in namespaces.Split('.'))
-                            node = node.AddNode(name, XObjType.Namespace);
-
-                        node = node.AddNode(className, XObjType.Class);
-
-                        node = node.AddField(fieldDef);
+                        var classRef = GetClassRef(fieldDef.DeclaringType);
+                        var fieldRef = classRef.AddField(fieldDef);
 
                         // some times volitile prefixes set/get field
                         int offset = 0;
@@ -413,7 +376,7 @@ namespace XBuilder
                             offset = 1;
                         }
 
-                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, node.ID));
+                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, fieldRef.ID));
                         
                         if(instruction.OpCode == OpCodes.Stfld)
                             AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
@@ -452,6 +415,56 @@ namespace XBuilder
 
                 method.Body.OptimizeMacros();
             }
+        }
+
+        void SetClassDependency(XNodeOut classNode, TypeReference declaringType)
+        {
+            if (declaringType == null)
+                return;
+
+            var classRef = GetClassRef(declaringType);
+
+            if (classNode.ClassDependencies == null)
+                classNode.ClassDependencies = new HashSet<int>();
+
+            classNode.ClassDependencies.Add(classRef.ID);
+        }
+
+        XNodeOut GetClassRef(TypeReference declaringType)
+        {
+            var scope = declaringType.Scope;
+
+            if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
+            {
+                // is this scope type internal or external, should it be tracked externally?
+                Debug.Assert(false);
+                return null;
+            }
+
+            string moduleName = scope.Name;
+            string namespaces = (declaringType.DeclaringType != null) ? declaringType.DeclaringType.Namespace : declaringType.Namespace;
+            string className = declaringType.Name;
+
+
+            XNodeOut node = null;
+
+            // if xrayed internal
+            if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
+                node = XFile.FileNode;
+
+            // xrayed, but in diff module
+            else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
+                node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
+
+            // if not xrayed - map to external root
+            else
+                node = ExtRoot.AddNode(moduleName, XObjType.File);
+
+            // traverse or add namespace to root
+            foreach (var name in namespaces.Split('.'))
+                node = node.AddNode(name, XObjType.Namespace);
+
+            return node.AddNode(className, XObjType.Class);
         }
 
         internal void AddInstruction(MethodDefinition method, int pos, Instruction instruction)

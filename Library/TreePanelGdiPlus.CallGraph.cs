@@ -27,14 +27,16 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 namespace XLibrary
 {
+    public enum CallGraphMode { Method, Class }
+
     partial class TreePanelGdiPlus
     {
         List<Graph> Graphs = new List<Graph>();
 
         const int MinCallNodeSize = 5;
 
-        bool SequenceOrder = false;
-        bool ClassMode = false;
+        public bool SequenceOrder = false;
+        public CallGraphMode GraphMode = CallGraphMode.Method;
 
         private void DrawCallGraph(Graphics buffer)
         {
@@ -628,22 +630,22 @@ namespace XLibrary
             if (!root.Show)
                 return;
 
-            if (((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0)) &&
-                ((!ClassMode && root.ObjType != XObjType.Class) || (ClassMode && root.ObjType == XObjType.Class)))
-            {
-                if (center)
+            if ((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0))
+                if((GraphMode == CallGraphMode.Method && root.ObjType != XObjType.Class) || (GraphMode == CallGraphMode.Class && root.ObjType == XObjType.Class))
                 {
-                    PositionMap[root.ID] = root;
-                    CenterMap[root.ID] = root;
-                }
+                    if (center)
+                    {
+                        PositionMap[root.ID] = root;
+                        CenterMap[root.ID] = root;
+                    }
 
-                // if not center then only add if connected to center
-                else if ((root.CalledIn != null && root.CalledIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
-                         (root.CallsOut != null && root.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
-                {
-                    PositionMap[root.ID] = root;
+                    // if not center then only add if connected to center
+                    else if ((root.CalledIn != null && root.CalledIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
+                             (root.CallsOut != null && root.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
+                    {
+                        PositionMap[root.ID] = root;
+                    }
                 }
-            }
 
             foreach (XNodeIn sub in root.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root

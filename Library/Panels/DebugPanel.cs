@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace XLibrary
+namespace XLibrary.Panels
 {
-    public partial class DebugForm : Form
+    public partial class DebugPanel : UserControl
     {
         StringBuilder Output = new StringBuilder(4096);
 
-        public DebugForm()
+        public DebugPanel()
         {
             InitializeComponent();
 
@@ -48,7 +48,7 @@ namespace XLibrary
                 for (int x = 0; x <= flow.Pos; x++)
                 {
                     XNodeIn node = XRay.Nodes[flow.Stack[x].NodeID];
-                    if(node != null)
+                    if (node != null)
                         Output.AppendFormat("    {0}: Hit: {1}, Inside: {2}\r\n", x, node.ID, node.StillInside);//, (XRay.NodeMap[flow.Stack[x]].StillInside > 0));
                 }
             }
@@ -56,8 +56,8 @@ namespace XLibrary
             // function calls
             Output.AppendLine("");
             Output.AppendLine("Method Call Map:");
-            foreach(FunctionCall call in XRay.CallMap)
-                Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside );
+            foreach (FunctionCall call in XRay.CallMap)
+                Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
 
             Output.AppendLine("");
             Output.AppendLine("Class Call Map:");
@@ -67,7 +67,7 @@ namespace XLibrary
             // function calls
             Output.AppendLine("");
             Output.AppendLine("Log:");
-            foreach(string error in XRay.ErrorMap.Keys)
+            foreach (string error in XRay.ErrorMap.Keys)
                 Output.AppendLine(error);
 
             DebugOutput.Text = Output.ToString();
@@ -78,7 +78,7 @@ namespace XLibrary
             int id;
             if (int.TryParse(ResolveBox.Text, out id) &&
                 XRay.Nodes[id] != null)
-                    ResolveLabel.Text = XRay.Nodes[id].FullName();
+                ResolveLabel.Text = XRay.Nodes[id].FullName();
         }
 
         private void CallLogCheckBox_CheckedChanged(object sender, EventArgs e)

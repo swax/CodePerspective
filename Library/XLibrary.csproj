@@ -91,11 +91,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DebugForm.cs">
-      <SubType>Form</SubType>
+    <Compile Include="Panels\DebugPanel.cs">
+      <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="DebugForm.Designer.cs">
-      <DependentUpon>DebugForm.cs</DependentUpon>
+    <Compile Include="Panels\DebugPanel.Designer.cs">
+      <DependentUpon>DebugPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Panels\InstancePanel.cs">
       <SubType>UserControl</SubType>
@@ -143,8 +143,8 @@
     <Compile Include="XNode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="DebugForm.resx">
-      <DependentUpon>DebugForm.cs</DependentUpon>
+    <EmbeddedResource Include="Panels\DebugPanel.resx">
+      <DependentUpon>DebugPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\InstancePanel.resx">
       <DependentUpon>InstancePanel.cs</DependentUpon>

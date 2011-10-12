@@ -153,6 +153,8 @@ namespace XLibrary
 
         internal InstanceRecord Record;
 
+        internal int[] Dependencies = null;
+
 
         internal static XNodeIn Read(FileStream stream)
         {
@@ -162,7 +164,11 @@ namespace XLibrary
             // type 4
             // lines 4
             // id 8
-            // optional parent id 8
+            // parent exist? 1
+            //      parent id 4
+            // dependencies? 1
+            //      dependency count 4
+            //      dependent ids 4x
 
             XNodeIn node = new XNodeIn();
 
@@ -177,8 +183,19 @@ namespace XLibrary
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
 
-            if(stream.Position < startPos + totalSize)
+            bool hasParent = BitConverter.ToBoolean(stream.Read(1), 0);
+            if(hasParent)
                 node.ParentID = BitConverter.ToInt32(stream.Read(4), 0);
+
+            bool hasDependencies = BitConverter.ToBoolean(stream.Read(1), 0);
+            if (hasDependencies)
+            {
+                int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
+                node.Dependencies = new int[dependencyCount];
+
+                for (int i = 0; i < dependencyCount; i++)
+                    node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
+            }
 
             stream.Position = startPos + totalSize;
 

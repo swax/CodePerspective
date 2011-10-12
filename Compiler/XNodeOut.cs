@@ -6,6 +6,7 @@ using System.Text;
 
 using Mono.Cecil;
 using XLibrary;
+using System.Runtime.Serialization;
 
 
 namespace XBuilder
@@ -22,6 +23,9 @@ namespace XBuilder
         public bool IsAnon;
         public int AnonFuncs = 1;
         public int AnonClasses = 1;
+
+        public HashSet<int> ClassDependencies;
+
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -75,7 +79,7 @@ namespace XBuilder
 
             string path = Path.Combine(dir, "XRay.dat");
 
-            byte[] temp = new byte[1024];
+            byte[] temp = new byte[4096];
 
             using (FileStream stream = new FileStream(path, FileMode.Create))
                 trackedObjects += Write(stream, temp);
@@ -95,7 +99,11 @@ namespace XBuilder
             // value 4
             // external 1
             // id 8
-            // optional parent id 8
+            // parent exist? 1
+            //      parent id 4
+            // dependencies? 1
+            //      dependency count 4
+            //      dependent ids 4x
 
             int pos = 0;
 
@@ -119,10 +127,32 @@ namespace XBuilder
             BitConverter.GetBytes(ID).CopyTo(temp, pos);
             pos += 4;
 
+            // parent 
+            BitConverter.GetBytes(Parent != null).CopyTo(temp, pos);
+            pos += 1;
+
             if (Parent != null)
             {
                 BitConverter.GetBytes(Parent.ID).CopyTo(temp, pos);
                 pos += 4;
+            }
+
+            // dependencies
+            bool hasDependencies = (ClassDependencies != null && ClassDependencies.Count > 0);
+
+            BitConverter.GetBytes(hasDependencies).CopyTo(temp, pos);
+            pos += 1;
+
+            if (hasDependencies)
+            {
+                BitConverter.GetBytes(ClassDependencies.Count).CopyTo(temp, pos);
+                pos += 4;
+
+                foreach (int dependentId in ClassDependencies)
+                {
+                    BitConverter.GetBytes(dependentId).CopyTo(temp, pos);
+                    pos += 4;
+                }
             }
 
             // write total size of packet

@@ -1,10 +1,25 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-method call graph
-class call graph
+
 
 class dependency graph
+
+	inspect 
+		done - base class, class fields
+
+		method return,
+		 parameters, 
+		 variables, 
+		 calls
+
+		works with structs?
+
+	add dependency information to class node
+		list of class nodes that node depends on
+
+	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction
+
 
 	another layout view, dependency graph
 	use to refactor de-ops into core/ui/sim components
@@ -14,6 +29,10 @@ class dependency graph
 	an interactive system would be able to drag drop components between modules as long as there were no internal dependencies
 	dependencies between modules should be easy to see/graph as well - subgraphs for each module
 		maybe test with dragonly dll hell
+
+crumb bar
+
+reset timing button
 
 explore windows 8 with xray - how does await/async get traced?
 

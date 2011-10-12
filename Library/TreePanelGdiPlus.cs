@@ -987,8 +987,6 @@ namespace XLibrary
             // setting internal root will auto show properly sized external root area if showing it is enabled
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;
 
-            MainForm.UpdateStatus();
-
             DoResize = true;
             Refresh();
         }

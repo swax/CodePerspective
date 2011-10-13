@@ -52,7 +52,7 @@
             // 
             this.ResolveLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.ResolveLabel.AutoSize = true;
-            this.ResolveLabel.Location = new System.Drawing.Point(275, 56);
+            this.ResolveLabel.Location = new System.Drawing.Point(126, 131);
             this.ResolveLabel.Name = "ResolveLabel";
             this.ResolveLabel.Size = new System.Drawing.Size(0, 13);
             this.ResolveLabel.TabIndex = 12;

@@ -1,4 +1,9 @@
 ﻿
+NEXT
+	xray an app and all reffed MS dlls?
+	explore windows 8
+	explore windows 8 with xray - how does await/async get traced?
+
 banshee
 	Need to start xray in admin mode
 	Need to run nereid in admin mode

@@ -28,6 +28,52 @@ namespace XLibrary
             Text = "c0re XRay"; 
 
             DisplayTab.Init(TreeView);
+
+            UpdateBreadCrumbs();
+        }
+
+        public void UpdateBreadCrumbs()
+        {
+            MainToolStrip.Items.Clear();
+
+            var label = new ToolStripLabel("Viewing: ");
+            label.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            MainToolStrip.Items.Add(label);
+
+            List<XNodeIn> crumbs = new List<XNodeIn>();
+
+            // iterate up tree
+            var node = TreeView.CurrentRoot;
+
+            while (node != null && node.ObjType != XObjType.Root)
+            {
+                crumbs.Insert(0, node);
+
+                node = node.Parent as XNodeIn;
+            }
+
+            // add crumbs
+            foreach (var crumb in crumbs)
+            {
+                var crumbCopy = crumb;
+
+                var button = new ToolStripSplitButton(crumb.Name);
+                button.ButtonClick += (s, e) => TreeView.SetRoot(crumbCopy);
+                button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                button.ForeColor = TreePanelGdiPlus.ObjColors[(int)crumb.ObjType];
+                MainToolStrip.Items.Add(button);
+
+                foreach (var sub in crumb.Nodes.OrderBy(n => n, new CompareNodes()))
+                {
+                    var subCopy = sub as XNodeIn;
+                    
+                    var item = new ToolStripMenuItem(sub.Name, null,  (s, e) => TreeView.SetRoot(subCopy));
+                    item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                    item.ForeColor = TreePanelGdiPlus.ObjColors[(int)sub.ObjType];
+
+                    button.DropDownItems.Add(item);
+                }
+            }
         }
 
         private void ResetTimer_Tick(object sender, EventArgs e)
@@ -75,18 +121,16 @@ namespace XLibrary
                     call.DashOffset = FunctionCall.DashSpace;
             }
         }
+    }
 
-        /*private void ZoomMenuItem_DropDownOpening(object sender, EventArgs e)
+    public class CompareNodes : IComparer<XNode>
+    {
+        public int Compare(XNode s1, XNode s2)
         {
-            ZoomMenuItem.DropDownItems.Clear();
-
-            var root = TreeView.CurrentRoot;
-
-            foreach (XNode parent in root.GetParents())
-            {
-                var copy = parent as XNodeIn;
-                ZoomMenuItem.DropDownItems.Add(new ToolStripMenuItem(copy.Name, null, (s, a) => TreeView.SetRoot(copy)));
-            }
-        }*/
+            if (s1.ObjType != s2.ObjType)
+                return ((int)s1.ObjType).CompareTo((int)s2.ObjType);
+            
+            return string.Compare(s1.Name, s2.Name, true);
+        }
     }
 }

@@ -67,7 +67,7 @@ namespace XLibrary.Panels
             // function calls
             Output.AppendLine("");
             Output.AppendLine("Log:");
-            foreach (string error in XRay.ErrorMap.Keys)
+            foreach (string error in XRay.ErrorLog)
                 Output.AppendLine(error);
 
             DebugOutput.Text = Output.ToString();

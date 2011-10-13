@@ -1,41 +1,25 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-
-click node should highlight connected nodes/edges force labels ON
-
-can generic types with `1 be resolved?
-
 show outside zoom in call graph like tree map, 25% of each side split off for outside nodes
 	double click outside zoom brings element into zoom area? or just right click option
 
-field view updates live
+can generic types with `1 be resolved?
 
-breadcrumb bar
+field view updates live
 
 can use for riseOp componentization yet?
 
 field details, mouse over values?
 
-2d spring graph
 
-3d hackers selling point -
-	each instance is a building
-	windows lighting up are running functions
-	zooming in on building shows fields/values
-	zooming in on function shows code
 
 class dependency graph
-
-	inspect 
-		done - base class, class fields, method(return, params), calls
-
-		todo - local vars 
-
-		works with structs?
+	TODO - local vars 
+	done - base class, class fields, method(return, params), calls
+	works with structs?
 
 	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction
-
 
 	use to refactor de-ops into core/ui/sim components
 	easier to see dependencies and reactor the easy stuff piece wise
@@ -45,21 +29,9 @@ class dependency graph
 	dependencies between modules should be easy to see/graph as well - subgraphs for each module
 		maybe test with dragonly dll hell
 
-reset timing button
-
-explore windows 8 with xray - how does await/async get traced?
-
-console
-   run funtions on existing instances manually
-   change field values
-
-decompiler
-	add to dat file
-	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
-
-xray an app and all reffed MS dlls?
-
-decompile in generation, include in 
+profile tab
+	reset timing button
+	draw out new visualization
 
 details tab
   clicking on namespace - gives child classes with instance count for each
@@ -69,30 +41,45 @@ details tab
   each has links to parents so can surf just through details
   selection box follows
 
-why isnt main function showing up when resetting hit nodes?
-why are some functions the root of a call graph, but not the thread start?
+console tab
+   run funtions on existing instances manually
+   change field values
 
-ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
+bugs
+	why isnt main function showing up when resetting hit nodes?
+	why are some functions the root of a call graph, but not the thread start?
 
-load max columns
-	show max instance load count option on instance panel
+code panel
+	add to dat file
+	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
+	ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
-click on instance, just show that specific one
+instance panel
+	button to show next/prev page of instances
 
-replace mousewheel zoom with pan/zoom, let user use search/filter to cut down tree size
+search box
+	upper right
+	filters based on input
+
+pan/zoom
 	stop drawing/iterating parts of tree that are totally off screen
-
-new toolbar
-	show/hide bottom panel
-	current zoom breadcrumbs
-	zoom totally out
-	push button to filter hit
-	button to reset hit
+	wheel does the zoom part
+	zooming all the way out brings view back to normal
 
 legend tab
 	show current colors
 	let user set diff colors, load/save configs
 	standard, matrix
+
+
+
+2d spring graph
+
+3d hackers selling point -
+	each instance is a building
+	windows lighting up are running functions
+	zooming in on building shows fields/values
+	zooming in on function shows code
 
 openGL renderer, test update fps with/wihout
 

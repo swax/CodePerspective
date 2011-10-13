@@ -19,8 +19,8 @@ namespace XLibrary
         File, 
         Namespace, 
         Class, 
-        Method, 
-        Field
+        Field,
+        Method 
     }
 
     public class InputValue

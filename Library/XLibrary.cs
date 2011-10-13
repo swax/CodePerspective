@@ -47,7 +47,8 @@ namespace XLibrary
 
         internal static string DatPath;
         internal static bool CallLogging;
-        internal static Dictionary<string, bool> ErrorMap = new Dictionary<string, bool>();
+        internal static HashSet<int> ErrorDupes = new HashSet<int>();
+        internal static List<string> ErrorLog = new List<string>();
 
         static bool InitComplete;
 
@@ -521,7 +522,21 @@ namespace XLibrary
 
         static internal void LogError(string text, params object[] args)
         {
-            ErrorMap[string.Format(text, args)] = true;
+            LogError2(text, true, args);
+
+        }
+
+        static internal void LogError2(string text, bool filterDupes, params object[] args)
+        {
+            if (filterDupes)
+            {
+                if (ErrorDupes.Contains(text.GetHashCode()))
+                    return;
+
+                ErrorDupes.Add(text.GetHashCode());
+            }
+
+            ErrorLog.Add(string.Format(text, args));
         }
     }
 

@@ -53,7 +53,7 @@ namespace XLibrary
         Pen[] ObjPens;
         Pen[] ObjFocusedPens;
 
-        internal static Dictionary<int, Color> ObjColors = new Dictionary<int, Color>();
+        public static Dictionary<int, Color> ObjColors = new Dictionary<int, Color>();
 
 
         SolidBrush NothingBrush = new SolidBrush(Color.White);
@@ -938,6 +938,13 @@ namespace XLibrary
             Redraw();
         }
 
+        private void TreePanelGdiPlus_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            XNodeIn node = GuiHovered.LastOrDefault();
+            if (node != null)
+                SetRoot(node);
+        }
+
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -1006,7 +1013,7 @@ namespace XLibrary
 
         void TreePanel_MouseWheel(object sender, MouseEventArgs e)
         {
-            Zoom(e.Delta > 0);
+            //Zoom(e.Delta > 0);
         }
 
         void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
@@ -1048,6 +1055,8 @@ namespace XLibrary
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;
+
+            MainForm.UpdateBreadCrumbs();
 
             DoResize = true;
             Refresh();

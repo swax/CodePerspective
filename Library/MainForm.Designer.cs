@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -41,10 +42,12 @@
             this.TimingPanel = new XLibrary.TimingPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.debugPanel1 = new XLibrary.Panels.DebugPanel();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.MainToolStrip.SuspendLayout();
             this.TabPanel.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -66,6 +69,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.MainToolStrip);
             this.splitContainer1.Panel1.Controls.Add(this.ViewHostPanel);
             // 
             // splitContainer1.Panel2
@@ -76,12 +80,25 @@
             this.splitContainer1.SplitterDistance = 387;
             this.splitContainer1.TabIndex = 4;
             // 
+            // MainToolStrip
+            // 
+            this.MainToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripLabel1});
+            this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.MainToolStrip.Name = "MainToolStrip";
+            this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
+            this.MainToolStrip.TabIndex = 4;
+            this.MainToolStrip.Text = "toolStrip1";
+            // 
             // ViewHostPanel
             // 
-            this.ViewHostPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ViewHostPanel.Location = new System.Drawing.Point(0, 0);
+            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
             this.ViewHostPanel.Name = "ViewHostPanel";
-            this.ViewHostPanel.Size = new System.Drawing.Size(550, 387);
+            this.ViewHostPanel.Size = new System.Drawing.Size(550, 359);
             this.ViewHostPanel.TabIndex = 3;
             // 
             // TabPanel
@@ -172,6 +189,13 @@
             this.debugPanel1.Size = new System.Drawing.Size(536, 161);
             this.debugPanel1.TabIndex = 0;
             // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(58, 22);
+            this.toolStripLabel1.Text = "Viewing: ";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -181,9 +205,12 @@
             this.Name = "MainForm";
             this.Text = "MainForm";
             this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.MainToolStrip.ResumeLayout(false);
+            this.MainToolStrip.PerformLayout();
             this.TabPanel.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -207,5 +234,7 @@
         private Panels.ViewPanel DisplayTab;
         private System.Windows.Forms.TabPage tabPage4;
         private Panels.DebugPanel debugPanel1;
+        private System.Windows.Forms.ToolStrip MainToolStrip;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
     }
 }

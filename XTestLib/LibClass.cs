@@ -135,10 +135,29 @@ namespace XTestLib
             x++;
         }
 
-        public static void HolyCow()
+        public static void HolyCow(bool recurse = true)
         {
             int x = 0;
             x++;
+
+            if(recurse)
+                Recurse1();
+        }
+
+        public static void Recurse1()
+        {
+            int x = 0;
+            x++;
+
+            Recurse2();
+        }
+
+        public static void Recurse2()
+        {
+            int x = 0;
+            x++;
+
+            HolyCow(false);
         }
     }
 

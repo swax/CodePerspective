@@ -417,17 +417,20 @@ namespace XBuilder
             }
         }
 
-        void SetClassDependency(XNodeOut classNode, TypeReference declaringType)
+        void SetClassDependency(XNodeOut dependentClass, TypeReference declaringType)
         {
             if (declaringType == null)
                 return;
 
-            var classRef = GetClassRef(declaringType);
+            var target = GetClassRef(declaringType);
 
-            if (classNode.ClassDependencies == null)
-                classNode.ClassDependencies = new HashSet<int>();
+            target = target.GetParentClass();
+            dependentClass = dependentClass.GetParentClass();
 
-            classNode.ClassDependencies.Add(classRef.ID);
+            if (dependentClass.ClassDependencies == null)
+                dependentClass.ClassDependencies = new HashSet<int>();
+
+            dependentClass.ClassDependencies.Add(target.ID);
         }
 
         XNodeOut GetClassRef(TypeReference declaringType)

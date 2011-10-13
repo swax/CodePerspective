@@ -50,6 +50,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.LayoutDependencyButton = new System.Windows.Forms.RadioButton();
             this.LayoutInOrder = new System.Windows.Forms.CheckBox();
             this.LayoutClassCallsButton = new System.Windows.Forms.RadioButton();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -61,7 +62,7 @@
             this.TrackingMethodCalls = new System.Windows.Forms.CheckBox();
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.LayoutDependencyButton = new System.Windows.Forms.RadioButton();
+            this.IncludeFields = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -318,6 +319,18 @@
             this.panel1.Size = new System.Drawing.Size(94, 137);
             this.panel1.TabIndex = 21;
             // 
+            // LayoutDependencyButton
+            // 
+            this.LayoutDependencyButton.AutoSize = true;
+            this.LayoutDependencyButton.Location = new System.Drawing.Point(3, 94);
+            this.LayoutDependencyButton.Name = "LayoutDependencyButton";
+            this.LayoutDependencyButton.Size = new System.Drawing.Size(94, 17);
+            this.LayoutDependencyButton.TabIndex = 22;
+            this.LayoutDependencyButton.TabStop = true;
+            this.LayoutDependencyButton.Text = "Dependencies";
+            this.LayoutDependencyButton.UseVisualStyleBackColor = true;
+            this.LayoutDependencyButton.CheckedChanged += new System.EventHandler(this.LayoutDependencyButton_CheckedChanged);
+            // 
             // LayoutInOrder
             // 
             this.LayoutInOrder.AutoSize = true;
@@ -364,6 +377,7 @@
             // 
             // panel4
             // 
+            this.panel4.Controls.Add(this.IncludeFields);
             this.panel4.Controls.Add(this.IncludeOutsideZoomButton);
             this.panel4.Controls.Add(this.IncludeNotXRayedButton);
             this.panel4.Location = new System.Drawing.Point(284, 17);
@@ -436,17 +450,16 @@
             this.label6.TabIndex = 26;
             this.label6.Text = "Tracking";
             // 
-            // LayoutDependencyButton
+            // IncludeFields
             // 
-            this.LayoutDependencyButton.AutoSize = true;
-            this.LayoutDependencyButton.Location = new System.Drawing.Point(3, 94);
-            this.LayoutDependencyButton.Name = "LayoutDependencyButton";
-            this.LayoutDependencyButton.Size = new System.Drawing.Size(94, 17);
-            this.LayoutDependencyButton.TabIndex = 22;
-            this.LayoutDependencyButton.TabStop = true;
-            this.LayoutDependencyButton.Text = "Dependencies";
-            this.LayoutDependencyButton.UseVisualStyleBackColor = true;
-            this.LayoutDependencyButton.CheckedChanged += new System.EventHandler(this.LayoutDependencyButton_CheckedChanged);
+            this.IncludeFields.AutoSize = true;
+            this.IncludeFields.Location = new System.Drawing.Point(3, 48);
+            this.IncludeFields.Name = "IncludeFields";
+            this.IncludeFields.Size = new System.Drawing.Size(53, 17);
+            this.IncludeFields.TabIndex = 12;
+            this.IncludeFields.Text = "Fields";
+            this.IncludeFields.UseVisualStyleBackColor = true;
+            this.IncludeFields.CheckedChanged += new System.EventHandler(this.IncludeFields_CheckedChanged);
             // 
             // ViewPanel
             // 
@@ -519,5 +532,6 @@
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.CheckBox LayoutInOrder;
         public System.Windows.Forms.RadioButton LayoutDependencyButton;
+        public System.Windows.Forms.CheckBox IncludeFields;
     }
 }

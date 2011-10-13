@@ -34,6 +34,7 @@ namespace XLibrary
         internal LayoutType ViewLayout = LayoutType.TreeMap;
         internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         internal ShowNodes ShowLayout = ShowNodes.All;
+        internal bool ShowFields = true;
         
         internal bool ShowLabels = true;
         float LabelPadding = 2;
@@ -48,9 +49,9 @@ namespace XLibrary
         Color FieldColor = Color.Goldenrod;
 
         SolidBrush[] ObjBrushes;
-        SolidBrush[] ObjBrushesDithered;
+        SolidBrush[] ObjDitheredBrushes;
         Pen[] ObjPens;
-        Pen[] ObjFocused;
+        Pen[] ObjFocusedPens;
 
         internal static Dictionary<int, Color> ObjColors = new Dictionary<int, Color>();
 
@@ -69,8 +70,10 @@ namespace XLibrary
 
         Color CallColor = Color.Blue;
         Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black));// { EndCap = LineCap.ArrowAnchor };
-        Pen ShowCallOutPen = new Pen(Color.FromArgb(48, Color.Red));
-        Pen ShowCallInPen = new Pen(Color.FromArgb(48, Color.Blue));
+        Pen CallOutPen = new Pen(Color.FromArgb(48, Color.Red));
+        Pen CallInPen = new Pen(Color.FromArgb(48, Color.Blue));
+        Pen CallOutPenFocused = new Pen(Color.FromArgb(70, Color.Red), 2);
+        Pen CallInPenFocused = new Pen(Color.FromArgb(70, Color.Blue), 2);
         Pen HoldingCallPen = new Pen(Color.FromArgb(48, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
         
 
@@ -111,6 +114,7 @@ namespace XLibrary
         // no multi exception brush cause we dont know if multiple function calls resulted in an exception or just the 1
 
         Pen[] CallPen;
+        Pen[] CallPenFocused;
 
         int HoverHash;
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
@@ -118,9 +122,9 @@ namespace XLibrary
 
         XNodeIn FocusedNode;
 
-        Pen SelectedPen = new Pen(Color.LimeGreen, 3);
-        SolidBrush SelectedBrush = new SolidBrush(Color.LimeGreen);
-        Dictionary<int, XNodeIn> SelectedNodes = new Dictionary<int, XNodeIn>();
+        Pen FilteredPen = new Pen(Color.LimeGreen, 3);
+        SolidBrush FilteredBrush = new SolidBrush(Color.LimeGreen);
+        Dictionary<int, XNodeIn> FilteredNodes = new Dictionary<int, XNodeIn>();
 
         Pen IgnoredPen = new Pen(Color.Red, 3);
         SolidBrush IgnoredBrush = new SolidBrush(Color.Red);
@@ -149,6 +153,7 @@ namespace XLibrary
             FieldGetBrush = new SolidBrush[XRay.HitFrames];
 
             CallPen = new Pen[XRay.HitFrames];
+            CallPenFocused = new Pen[XRay.HitFrames];
 
             for (int i = 0; i < XRay.HitFrames; i++)
             {
@@ -163,6 +168,10 @@ namespace XLibrary
                 CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
                 CallPen[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
                 CallPen[i].EndCap = LineCap.ArrowAnchor;
+
+                CallPenFocused[i] = new Pen(Color.FromArgb(255 - (brightness / 2), CallColor), 2);
+                CallPenFocused[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
+                CallPenFocused[i].EndCap = LineCap.ArrowAnchor;
             }
 
             for (int i = 0; i < OverBrushes.Length; i++)
@@ -185,16 +194,16 @@ namespace XLibrary
             var objTypes = Enum.GetValues(typeof(XObjType));
            
             ObjBrushes = new SolidBrush[objTypes.Length];
-            ObjBrushesDithered = new SolidBrush[objTypes.Length];
+            ObjDitheredBrushes = new SolidBrush[objTypes.Length];
             ObjPens = new Pen[objTypes.Length];
-            ObjFocused = new Pen[objTypes.Length];
+            ObjFocusedPens = new Pen[objTypes.Length];
 
             for (int i = 0; i < objTypes.Length; i++ )
             {
                 ObjBrushes[i] = new SolidBrush(ObjColors[i]);
-                ObjBrushesDithered[i] = new SolidBrush(Color.FromArgb(128, ObjColors[i]));
+                ObjDitheredBrushes[i] = new SolidBrush(Color.FromArgb(128, ObjColors[i]));
                 ObjPens[i] = new Pen(ObjColors[i]);
-                ObjFocused[i] = new Pen(ObjColors[i], 3);
+                ObjFocusedPens[i] = new Pen(ObjColors[i], 3);
             }
         }
 
@@ -235,67 +244,106 @@ namespace XLibrary
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperRightCorner(), ignored.AreaF.LowerLeftCorner());
                 }
 
-            // draw calls
-            if (XRay.FlowTracking)
+            // draw dependency graph
+            if (ViewLayout == LayoutType.CallGraph && GraphMode == CallGraphMode.Dependencies)
             {
-                var showCalls = PositionMap.Values
-                                           .Where(n => n.CallsOut != null)
-                                           .SelectMany(n => n.CallsOut)
-                                           .Where(c => (XRay.ShowAllCalls || c.Hit > 0 || c.StillInside > 0) &&
-                                                       // when zoomed only shows into and out of the center
-                                                       (CenterMap.ContainsKey(c.Source) || CenterMap.ContainsKey(c.Destination)) &&
-                                                       PositionMap.ContainsKey(c.Destination));
-
-                foreach (FunctionCall call in showCalls)
+                foreach (var source in PositionMap.Values)
                 {
-                    XNodeIn source = PositionMap[call.Source];
-                    XNodeIn destination = PositionMap[call.Destination];
-
-                    // if there are items we're filtering on then only show calls to those nodes
-                    if (SelectedNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
+                    if (source.DependenciesTo == null)
                         continue;
 
-                    // do after select filter so we can have ignored nodes inside selected, but not the otherway around
-                    if (IgnoredNodes.Count > 0 && IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
+                    foreach (var to in source.DependenciesTo)
+                    {
+                        if (!CenterMap.ContainsKey(source.ID) && !CenterMap.ContainsKey(to))
+                            continue;
+
+                        if (!PositionMap.ContainsKey(to))
+                            continue;
+
+                        XNodeIn destination = PositionMap[to];
+
+                        bool focused = (source.Focused || destination.Focused);
+
+                        if (source.AreaD.X < destination.AreaD.X)
+                            DrawGraphEdge(buffer, focused ? CallOutPenFocused : CallOutPen, source, destination);
+                        else
+                            DrawGraphEdge(buffer, focused ? CallInPenFocused : CallInPen, source, destination);
+                    }
+                }
+            }
+
+            // draw call graph
+            if (XRay.FlowTracking && GraphMode != CallGraphMode.Dependencies)
+            {
+                foreach (var source in PositionMap.Values)
+                {
+                    if (source.CallsOut == null)
                         continue;
 
-                    if (call.StillInside > 0 && ShowCalls)
-                    {
-                        if (ViewLayout == LayoutType.TreeMap)
-                            buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF);
-                        else if (ViewLayout == LayoutType.CallGraph)
-                            DrawGraphEdge(buffer, HoldingCallPen, call, source, destination);
-                    }
+                    // dont show class call graph in tree map mode
+                    if (ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class)
+                        continue;
 
-                    else if (XRay.ShowAllCalls)
+                    foreach (var call in source.CallsOut)
                     {
-                        if (ViewLayout == LayoutType.TreeMap)
+                        if (!CenterMap.ContainsKey(call.Source) && !CenterMap.ContainsKey(call.Destination))
+                            continue;
+
+                        if (!PositionMap.ContainsKey(call.Destination))
+                            continue;
+
+                        XNodeIn destination = PositionMap[call.Destination];
+
+                        // if there are items we're filtering on then only show calls to those nodes
+                        if (FilteredNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
+                            continue;
+
+                        // do after select filter so we can have ignored nodes inside selected, but not the otherway around
+                        if (IgnoredNodes.Count > 0 && IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
+                            continue;
+
+                        bool focused = (source.Focused || destination.Focused);
+                        var callOutPen = focused ? CallOutPenFocused : CallOutPen;
+                        var callInPen = focused ? CallInPenFocused : CallInPen;
+
+                        if (call.StillInside > 0 && ShowCalls)
                         {
-                            PointF start = PositionMap[call.Source].CenterF;
-                            PointF end = PositionMap[call.Destination].CenterF;
-                            PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
-
-                            buffer.DrawLine(ShowCallOutPen, start, mid);
-                            buffer.DrawLine(ShowCallInPen, mid, end);
+                            if (ViewLayout == LayoutType.TreeMap)
+                                buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF);
+                            else if (ViewLayout == LayoutType.CallGraph)
+                                DrawGraphEdge(buffer, HoldingCallPen, source, destination);
                         }
-                        else if (ViewLayout == LayoutType.CallGraph)
+
+                        else if (XRay.ShowAllCalls)
                         {
-                            if(source.AreaD.X < destination.AreaD.X)
-                                DrawGraphEdge(buffer, ShowCallOutPen, call, source, destination);
-                            else
-                                DrawGraphEdge(buffer, ShowCallInPen, call, source, destination);
+                            if (ViewLayout == LayoutType.TreeMap)
+                            {
+                                PointF start = PositionMap[call.Source].CenterF;
+                                PointF end = PositionMap[call.Destination].CenterF;
+                                PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
+
+                                buffer.DrawLine(callOutPen, start, mid);
+                                buffer.DrawLine(callInPen, mid, end);
+                            }
+                            else if (ViewLayout == LayoutType.CallGraph)
+                            {
+                                if (source.AreaD.X < destination.AreaD.X)
+                                    DrawGraphEdge(buffer, callOutPen, source, destination);
+                                else
+                                    DrawGraphEdge(buffer, callInPen, source, destination);
+                            }
                         }
-                    }
 
-                    if (call.Hit > 0 && ShowCalls)
-                    {
-                        Pen pen = CallPen[call.Hit];
-                        pen.DashOffset = call.DashOffset;
+                        if (call.Hit > 0 && ShowCalls)
+                        {
+                            Pen pen = focused ? CallPenFocused[call.Hit] : CallPen[call.Hit];
+                            pen.DashOffset = call.DashOffset;
 
-                        if (ViewLayout == LayoutType.TreeMap)
-                            buffer.DrawLine(pen, source.CenterF, destination.CenterF);
-                        else if (ViewLayout == LayoutType.CallGraph)
-                            DrawGraphEdge(buffer, pen, call, source, destination);
+                            if (ViewLayout == LayoutType.TreeMap)
+                                buffer.DrawLine(pen, source.CenterF, destination.CenterF);
+                            else if (ViewLayout == LayoutType.CallGraph)
+                                DrawGraphEdge(buffer, pen, source, destination);
+                        }
                     }
                 }
             }
@@ -418,7 +466,7 @@ namespace XLibrary
                     if(GuiHovered.Contains(node))
                         buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], pos.X, pos.Y);
                     else
-                        buffer.DrawString(node.Name, TextFont, ObjBrushesDithered[(int)node.ObjType], pos.X, pos.Y);
+                        buffer.DrawString(node.Name, TextFont, ObjDitheredBrushes[(int)node.ObjType], pos.X, pos.Y);
 
                     pos.Y += lineHeight;
                     pos.X += indent;
@@ -498,7 +546,7 @@ namespace XLibrary
 
         private bool IsNodeFiltered(bool select, XNodeIn node)
         {
-            Dictionary<int, XNodeIn> map = select ? SelectedNodes : IgnoredNodes;
+            Dictionary<int, XNodeIn> map = select ? FilteredNodes : IgnoredNodes;
 
             foreach (XNodeIn parent in node.GetParents())
                 if (map.ContainsKey(parent.ID))
@@ -555,6 +603,12 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
+                if (node.ObjType == XObjType.Field && !ShowFields)
+                {
+                    node.Show = false;
+                    continue;
+                }
+
                 node.Show = //node.ObjType != XObjType.Method ||
                     ShowLayout == ShowNodes.All ||
                     (ShowLayout == ShowNodes.Hit && XRay.CoveredFunctions[node.ID]) ||
@@ -702,8 +756,8 @@ namespace XLibrary
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
-                if (SelectedNodes.ContainsKey(node.ID))
-                    buffer.FillRectangle(SelectedBrush, node.AreaF);
+                if (FilteredNodes.ContainsKey(node.ID))
+                    buffer.FillRectangle(FilteredBrush, node.AreaF);
                 else if (IgnoredNodes.ContainsKey(node.ID))
                     buffer.FillRectangle(IgnoredBrush, node.AreaF);
 
@@ -714,13 +768,13 @@ namespace XLibrary
             {
                 Pen pen = null;
 
-                if (SelectedNodes.ContainsKey(node.ID))
-                    pen = SelectedPen;
+                if (FilteredNodes.ContainsKey(node.ID))
+                    pen = FilteredPen;
                 else if (IgnoredNodes.ContainsKey(node.ID))
                     pen = IgnoredPen;
 
                 else if (FocusedNode == node)
-                    pen = ObjFocused[(int)node.ObjType];
+                    pen = ObjFocusedPens[(int)node.ObjType];
                 else
                     pen = ObjPens[(int)node.ObjType];
 
@@ -872,8 +926,8 @@ namespace XLibrary
             if (map != IgnoredNodes && IgnoredNodes.ContainsKey(node.ID))
                 IgnoredNodes.Remove(node.ID);
 
-            if (map != SelectedNodes && SelectedNodes.ContainsKey(node.ID))
-                SelectedNodes.Remove(node.ID);
+            if (map != FilteredNodes && FilteredNodes.ContainsKey(node.ID))
+                FilteredNodes.Remove(node.ID);
 
             // toggle the setting of the node in the map
             if (map.ContainsKey(node.ID))
@@ -888,7 +942,15 @@ namespace XLibrary
         {
             if (e.Button == MouseButtons.Left)
             {
+                if (FocusedNode != null)
+                    FocusedNode.Focused = false;
+
                 FocusedNode = GuiHovered.LastOrDefault();
+
+                if (FocusedNode == null)
+                    return;
+                else
+                    FocusedNode.Focused = true;
 
                 Redraw();
 
@@ -908,23 +970,23 @@ namespace XLibrary
                     menu.MenuItems.Add(node.ObjType.ToString() + " " + node.Name);
                     menu.MenuItems.Add("-");
 
-                    bool selected = SelectedNodes.ContainsKey(node.ID);
+                    bool selected = FilteredNodes.ContainsKey(node.ID);
                     bool ignored = IgnoredNodes.ContainsKey(node.ID);
 
                     menu.MenuItems.Add( new MenuItem("Zoom", (s, a) => SetRoot(node)) );
                             
-                    menu.MenuItems.Add( new MenuItem("Filter", (s, a) => ToggleNode(SelectedNodes, node)) { Checked = selected } );
+                    menu.MenuItems.Add( new MenuItem("Filter", (s, a) => ToggleNode(FilteredNodes, node)) { Checked = selected } );
 
                     menu.MenuItems.Add( new MenuItem("Ignore", (s, a) => ToggleNode(IgnoredNodes, node)) { Checked = ignored } );
                 }
 
-                if (SelectedNodes.Count > 0 || IgnoredNodes.Count > 0)
+                if (FilteredNodes.Count > 0 || IgnoredNodes.Count > 0)
                 {
                     menu.MenuItems.Add("-");
 
                     menu.MenuItems.Add(new MenuItem("Clear Filtering", (s, a) =>
                     {
-                        SelectedNodes.Clear();
+                        FilteredNodes.Clear();
                         IgnoredNodes.Clear();
                         Redraw();
                     }));

@@ -27,6 +27,7 @@ namespace XLibrary.Panels
 
             IncludeOutsideZoomButton.Checked = MainView.ShowOutside;
             IncludeNotXRayedButton.Checked = MainView.ShowExternal;
+            IncludeFields.Checked = MainView.ShowFields;
 
             // layout
             LayoutTreeMapButton.Checked = MainView.ViewLayout == LayoutType.TreeMap;
@@ -77,6 +78,13 @@ namespace XLibrary.Panels
         {
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Class;
+            MainView.RecalcValues();
+        }
+
+        private void LayoutDependencyButton_CheckedChanged(object sender, EventArgs e)
+        {
+            MainView.ViewLayout = LayoutType.CallGraph;
+            MainView.GraphMode = CallGraphMode.Dependencies;
             MainView.RecalcValues();
         }
         
@@ -136,7 +144,13 @@ namespace XLibrary.Panels
             MainView.ShowExternal = IncludeNotXRayedButton.Checked;
             MainView.RecalcValues();
         }
-        
+
+        private void IncludeFields_CheckedChanged(object sender, EventArgs e)
+        {
+            MainView.ShowFields = IncludeFields.Checked;
+            MainView.RecalcValues();
+        }
+
         private void SizeConstantButton_CheckedChanged(object sender, EventArgs e)
         {
             MainView.SizeLayout = SizeLayouts.Constant;
@@ -180,11 +194,6 @@ namespace XLibrary.Panels
         private void TrackingInstances_CheckedChanged(object sender, EventArgs e)
         {
             XRay.InstanceTracking = TrackingInstances.Checked;
-        }
-
-        private void LayoutDependencyButton_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

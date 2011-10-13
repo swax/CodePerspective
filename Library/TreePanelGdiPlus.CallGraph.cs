@@ -27,7 +27,7 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 namespace XLibrary
 {
-    public enum CallGraphMode { Method, Class }
+    public enum CallGraphMode { Method, Class, Dependencies }
 
     partial class TreePanelGdiPlus
     {
@@ -297,13 +297,13 @@ namespace XLibrary
 
                     // only way node could be in group is if child added it, so there is a minrank
                     // min rank is 1 back from the lowest ranked child of the node
-                    int? minRank = unrankedNode.CallsOut.Min(e =>
+                    int? minRank = unrankedNode.EdgesOut.Min(dest =>
                     {
-                        if (PositionMap.ContainsKey(e.Destination))
+                        if (PositionMap.ContainsKey(dest))
                         {
-                            XNodeIn dest = PositionMap[e.Destination];
-                            if (dest.Rank.HasValue)
-                                return dest.Rank.Value;
+                            XNodeIn destNode = PositionMap[dest];
+                            if (destNode.Rank.HasValue)
+                                return destNode.Rank.Value;
                         }
 
                         return int.MaxValue;
@@ -350,29 +350,30 @@ namespace XLibrary
 
                     ranks[source.Rank.Value].Column.Add(source);
 
-                    if (source.CallsOut == null)
+                    if (source.EdgesOut == null)
                         continue;
 
-                    foreach (FunctionCall edge in source.CallsOut)
+                    foreach (var destId in source.EdgesOut)
                     {
-                        if (!graph.ContainsKey(edge.Destination))
+                        if (!graph.ContainsKey(destId))
                             continue;
 
-                        if (edge.Source == edge.Destination)
+                        if (source.ID == destId)
                             continue;
 
-                        XNodeIn destination = graph[edge.Destination];
+                        XNodeIn destination = graph[destId];
 
-                        if (edge.Intermediates != null)
-                            edge.Intermediates.Clear();
-
+                        if (source.Intermediates != null)
+                            source.Intermediates.Remove(destId);
+   
                         // if destination is not 1 forward/1 back then create intermediate nodes
                         if (source.Rank != destination.Rank + 1 &&
                             source.Rank != destination.Rank - 1)
                         {
-                            if (edge.Intermediates == null)
-                                edge.Intermediates = new List<XNodeIn>();
+                            if (source.Intermediates == null)
+                                source.Intermediates = new Dictionary<int, List<XNodeIn>>();
 
+                            source.Intermediates[destId] = new List<XNodeIn>();
 
                             bool increase = destination.Rank > source.Rank;
                             int nextRank = increase ? source.Rank.Value + 1 : source.Rank.Value - 1;
@@ -395,7 +396,7 @@ namespace XLibrary
                                 intermediate.Adjacents.Add(lastNode);
 
                                 // add to temp path, rank map
-                                edge.Intermediates.Add(intermediate);
+                                source.Intermediates[destId].Add(intermediate);
                                 ranks[nextRank].Column.Add(intermediate);
                                 //PositionMap not needed because we dont need any mouse over events? just follow along and draw from list, not id
 
@@ -406,7 +407,7 @@ namespace XLibrary
                             try
                             {
                                 lastNode.Adjacents.Add(destination);
-                                edge.Intermediates.Add(destination);
+                                source.Intermediates[destId].Add(destination);
                             }
                             catch
                             {
@@ -445,26 +446,27 @@ namespace XLibrary
             float sum = 0;
             float count = 0;
 
-            if (node.CallsOut != null)
-                foreach (var call in node.CallsOut)
-                    if (PositionMap.ContainsKey(call.Destination))
+            if (node.EdgesOut != null)
+                foreach (var destId in node.EdgesOut)
+                    if (PositionMap.ContainsKey(destId))
                     {
-                        if(call.Intermediates != null && call.Intermediates.Count > 0)
-                            sum += call.Intermediates[0].ScaledLocation.Y;
+                        if (node.Intermediates != null && node.Intermediates.ContainsKey(destId))
+                            sum += node.Intermediates[destId][0].ScaledLocation.Y;
                         else
-                            sum += PositionMap[call.Destination].ScaledLocation.Y;
+                            sum += PositionMap[destId].ScaledLocation.Y;
 
                         count++;
                     }
 
-            if (node.CalledIn != null)
-                foreach (var call in node.CalledIn)
-                    if (PositionMap.ContainsKey(call.Source))
+            if (node.EdgesIn != null)
+                foreach (var source in node.EdgesIn)
+                    if (PositionMap.ContainsKey(source))
                     {
-                         if(call.Intermediates != null && call.Intermediates.Count > 0)
-                            sum += call.Intermediates.Last().ScaledLocation.Y;
+                        var sourceNode = PositionMap[source];
+                        if(sourceNode.Intermediates != null && sourceNode.Intermediates.ContainsKey(node.ID))
+                             sum += sourceNode.Intermediates[node.ID].Last().ScaledLocation.Y;
                         else
-                            sum += PositionMap[call.Source].ScaledLocation.Y;
+                            sum += PositionMap[source].ScaledLocation.Y;
                        
                         count++;
                     }
@@ -588,10 +590,10 @@ namespace XLibrary
             parents.Add(node.ID);
             graph[node.ID] = node;
 
-            if (node.CallsOut != null)
-                foreach (FunctionCall edge in node.CallsOut)
+            if (node.EdgesOut != null)
+                foreach (var destId in node.EdgesOut)
                 {
-                    if (parents.Contains(edge.Destination))
+                    if (parents.Contains(destId))
                     {
                         // destination rank should be less than source
                         //Debug.Assert(edge.Destination.Rank < edge.Source.Rank);
@@ -608,63 +610,106 @@ namespace XLibrary
                     // pass copy of parents list so that sub can add elemenets without affecting next iteration
                     //debugLog.Add(string.Format("Traversing to child {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
 
-                    if (PositionMap.ContainsKey(edge.Destination))
-                        LayoutGraph(graph, PositionMap[edge.Destination], node.Rank.Value + 1, parents.ToList());//, debugLog);
+                    if (PositionMap.ContainsKey(destId))
+                        LayoutGraph(graph, PositionMap[destId], node.Rank.Value + 1, parents.ToList());//, debugLog);
 
                     //debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
                 }
 
             // record so later group can be traversed for null ranked members (parents) so layout can be run on them
-            if (node.CalledIn != null)
-                foreach (FunctionCall edge in node.CalledIn)
-                    if (PositionMap.ContainsKey(edge.Source))
-                        graph[edge.Source] = PositionMap[edge.Source];
+            if (node.EdgesIn != null)
+                foreach (var source in node.EdgesIn)
+                    if (PositionMap.ContainsKey(source))
+                        graph[source] = PositionMap[source];
 
             // check if same edges down go back up and create intermediates in that case?
 
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(XNodeIn root, bool center)
+        private void AddCalledNodes(XNodeIn node, bool center)
         {
-            if (!root.Show)
+            if (!node.Show)
                 return;
 
-            if ((root.CalledIn != null && root.CalledIn.Length > 0) || (root.CallsOut != null && root.CallsOut.Length > 0))
-                if((GraphMode == CallGraphMode.Method && root.ObjType != XObjType.Class) || (GraphMode == CallGraphMode.Class && root.ObjType == XObjType.Class))
+            if (GraphMode == CallGraphMode.Dependencies)
+            {
+                if ((node.DependenciesFrom != null && node.DependenciesFrom.Length > 0) ||
+                    (node.DependenciesTo != null && node.DependenciesTo.Length > 0))
                 {
                     if (center)
-                    {
-                        PositionMap[root.ID] = root;
-                        CenterMap[root.ID] = root;
-                    }
+                        CenterMap[node.ID] = node;
 
-                    // if not center then only add if connected to center
-                    else if ((root.CalledIn != null && root.CalledIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
-                             (root.CallsOut != null && root.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
+                    // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
+                    if (center ||
+                         (node.DependenciesFrom != null && node.DependenciesFrom.Any(e => CenterMap.ContainsKey(e))) ||
+                         (node.DependenciesTo != null && node.DependenciesTo.Any(e => CenterMap.ContainsKey(e))))
                     {
-                        PositionMap[root.ID] = root;
+                        PositionMap[node.ID] = node;
+
+                        node.EdgesIn = null;
+                        node.EdgesOut = null;
+                        node.Intermediates = null;
+
+                        if (node.DependenciesFrom != null)
+                            node.EdgesIn = node.DependenciesFrom;
+
+                        if (node.DependenciesTo != null)
+                            node.EdgesOut = node.DependenciesTo;
                     }
                 }
+            }
+            else if (GraphMode == CallGraphMode.Method || GraphMode == CallGraphMode.Class)
+            {
+                if ( ((node.CalledIn != null && node.CalledIn.Length > 0) ||
+                      (node.CallsOut != null && node.CallsOut.Length > 0)) 
+                      &&
+                     ((GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
+                      (GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class)))
+                {
+                    if (center)
+                        CenterMap[node.ID] = node;
 
-            foreach (XNodeIn sub in root.Nodes)
+                    // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
+                    if ( center ||
+                         (node.CalledIn != null && node.CalledIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
+                         (node.CallsOut != null && node.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
+                    {
+                        PositionMap[node.ID] = node;
+
+                        node.EdgesIn = null;
+                        node.EdgesOut = null;
+                        node.Intermediates = null;
+
+                        if (node.CalledIn != null)
+                            node.EdgesIn = node.CalledIn.Select(c => c.Source).ToArray();
+
+                        if (node.CallsOut != null)
+                            node.EdgesOut = node.CallsOut.Select(c => c.Destination).ToArray();
+                    }
+                }
+            }
+
+            foreach (XNodeIn sub in node.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
                     AddCalledNodes(sub, center);
         }
 
-        private void DrawGraphEdge(Graphics buffer, Pen pen, FunctionCall call, XNodeIn source, XNodeIn destination)
+        private void DrawGraphEdge(Graphics buffer, Pen pen, XNodeIn source, XNodeIn destination)
         {
-            if (call.Intermediates == null || call.Intermediates.Count == 0)
+            if (source.Intermediates == null || !source.Intermediates.ContainsKey(destination.ID))
                 buffer.DrawLine(pen, source.CenterF, destination.CenterF);
             else
             {
+                var intermediates = source.Intermediates[destination.ID];
+
                 var originalCap = pen.EndCap;
                 pen.EndCap = System.Drawing.Drawing2D.LineCap.NoAnchor;
 
                 var prev = source;
-                var last = call.Intermediates.Last();
+                var last = intermediates.Last();
 
-                foreach (var next in call.Intermediates)
+                foreach (var next in intermediates)
                 {
                     if(next == last)
                         pen.EndCap = originalCap;

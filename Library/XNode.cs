@@ -143,6 +143,11 @@ namespace XLibrary
 
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
+
+        internal int[] EdgesIn;
+        internal int[] EdgesOut;
+        internal Dictionary<int, List<XNodeIn>> Intermediates;
+
         internal FieldOp LastFieldOp;
 
         // call graph view
@@ -153,7 +158,10 @@ namespace XLibrary
 
         internal InstanceRecord Record;
 
-        internal int[] Dependencies = null;
+        internal int[] DependenciesTo;
+        internal int[] DependenciesFrom;
+
+        internal bool Focused;
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -191,10 +199,10 @@ namespace XLibrary
             if (hasDependencies)
             {
                 int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
-                node.Dependencies = new int[dependencyCount];
+                node.DependenciesTo = new int[dependencyCount];
 
                 for (int i = 0; i < dependencyCount; i++)
-                    node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
+                    node.DependenciesTo[i] = BitConverter.ToInt32(stream.Read(4), 0);
             }
 
             stream.Position = startPos + totalSize;

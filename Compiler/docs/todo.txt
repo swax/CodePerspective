@@ -2,26 +2,41 @@
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
 
+click node should highlight connected nodes/edges force labels ON
+
+can generic types with `1 be resolved?
+
+show outside zoom in call graph like tree map, 25% of each side split off for outside nodes
+	double click outside zoom brings element into zoom area? or just right click option
+
+field view updates live
+
+breadcrumb bar
+
+can use for riseOp componentization yet?
+
+field details, mouse over values?
+
+2d spring graph
+
+3d hackers selling point -
+	each instance is a building
+	windows lighting up are running functions
+	zooming in on building shows fields/values
+	zooming in on function shows code
 
 class dependency graph
 
 	inspect 
-		done - base class, class fields
+		done - base class, class fields, method(return, params), calls
 
-		method return,
-		 parameters, 
-		 variables, 
-		 calls
+		todo - local vars 
 
 		works with structs?
-
-	add dependency information to class node
-		list of class nodes that node depends on
 
 	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction
 
 
-	another layout view, dependency graph
 	use to refactor de-ops into core/ui/sim components
 	easier to see dependencies and reactor the easy stuff piece wise
 	click on class should show exactly what member variables/parameters/local functions are dependent
@@ -29,8 +44,6 @@ class dependency graph
 	an interactive system would be able to drag drop components between modules as long as there were no internal dependencies
 	dependencies between modules should be easy to see/graph as well - subgraphs for each module
 		maybe test with dragonly dll hell
-
-crumb bar
 
 reset timing button
 
@@ -41,6 +54,8 @@ console
    change field values
 
 decompiler
+	add to dat file
+	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
 
 xray an app and all reffed MS dlls?
 
@@ -67,54 +82,6 @@ click on instance, just show that specific one
 replace mousewheel zoom with pan/zoom, let user use search/filter to cut down tree size
 	stop drawing/iterating parts of tree that are totally off screen
 
-show sequence in time call tree is traversed
-	option to align nodes in rank columns by time last called
-		nodes called last at bottom, 'coldest' functions at top
-	should be able to look at call graph and determine the sequence of events that happened when a call went through
-	dont make it time based, but sequence based
-	when a function called, just increase its sequence #
-	order the ranks by sequence #
-	do 2 passes, first pass collect sequences of all nodes
-		use to determine the y coord for all nodes
-	next pass actually set the y to (height / y) * (step size * function pos)
-
-class view
-	see call/graph tree as just class nodes talking
-	double click on class node to zoom in and see inner-methdods as a call graph
-	the first and last rank are for nodes calling in/out (the same node could be in the 1st and last rank)
-
-revised UI
-	bottom panel with option tabs
-	tabs aligned at bottom not top, like visual studio
-	thin bar (like visual studio) 
-		button to undock panel, minimize panel, pop panel out, and duplicate panel (to monitor multiple classes etc..)
-	tabs
-		visualization options
-		interactive console
-		selected timing info
-		select instance informatino
-
-	double clicking now zooms
-
-instances bottom panel tabC:\Main\git\XRay\Library\TimingForm.cs
-	option to show just methods and/or fields
-	mouse over field should get value for first 10 instances
-		useful when you see something talking to a field and you want to see what its set to
-
-	when instance init'd
-	this pointer passed to xray
-	instance logged af active with 'this' pointer weakly bound
-	option in xray to just show active instances
-	instance details dialog
-		tree/grid, object members on y, instance values along x, max 100, let user page prev/next
-
-	list old to new
-	instance object records # of objects created, # destroyed, # alive right now
-
-	flash the class green when constructed, red when destroyed
-
-	could be debugger like with a bottom panel
-
 new toolbar
 	show/hide bottom panel
 	current zoom breadcrumbs
@@ -122,7 +89,9 @@ new toolbar
 	push button to filter hit
 	button to reset hit
 
-color themes
+legend tab
+	show current colors
+	let user set diff colors, load/save configs
 	standard, matrix
 
 openGL renderer, test update fps with/wihout
@@ -143,8 +112,6 @@ hook calls to edge of node in graph view?
 get working with just a dll
 
 rename field with types to anon classes to new name
-
-breadcrumbs showing current zoom level, each level drops down subs
 
 option to re-organize classes methods 'processClassNames'
 

@@ -131,8 +131,11 @@ namespace XLibrary
             
             try
             {
+                var dependenciesFrom = new Dictionary<int, List<int>>();
+
                 using (FileStream stream = new FileStream(DatPath, FileMode.Open))
                 {
+                    
                     while (stream.Position < stream.Length)
                     {
                         XNodeIn node = XNodeIn.Read(stream);
@@ -152,6 +155,16 @@ namespace XLibrary
 
                         if (node.ID > FunctionCount)
                             FunctionCount = node.ID;
+
+                        // create converse dependency edges
+                        if(node.DependenciesTo != null)
+                            foreach (var to in node.DependenciesTo)
+                            {
+                                if (!dependenciesFrom.ContainsKey(to))
+                                    dependenciesFrom[to] = new List<int>();
+
+                                dependenciesFrom[to].Add(node.ID);
+                            }
                     }
                 }
 
@@ -160,6 +173,10 @@ namespace XLibrary
                 Nodes = new XNodeIn[FunctionCount];
                 foreach (var node in map.Values)
                     Nodes[node.ID] = node;
+
+                foreach (var from in dependenciesFrom.Keys)
+                    Nodes[from].DependenciesFrom = dependenciesFrom[from].ToArray();
+
 
                 return true;
             }
@@ -603,8 +620,6 @@ namespace XLibrary
         internal int TotalHits;
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
-
-        internal List<XNodeIn> Intermediates; // only draw edge if this is null or empty
 
 
         internal long TotalTimeInsideDest

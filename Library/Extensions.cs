@@ -88,6 +88,26 @@ namespace XLibrary
         {
             return new PointF(rect.X + rect.Width, rect.Y + rect.Height);
         }
+
+        public static string TicksToString(long ticks)
+        {
+            if (ticks == 0)
+                return "0";
+
+            TimeSpan span = new TimeSpan(ticks);
+
+            if (span.TotalMinutes >= 1)
+                return span.TotalMinutes.ToString("0.00 m");
+
+            else if (span.TotalSeconds >= 1)
+                return span.TotalSeconds.ToString("0.00 s");
+
+            else if (span.TotalMilliseconds >= 1)
+                return span.TotalMilliseconds.ToString("0.00 ms");
+
+            else
+                return (span.TotalMilliseconds * 1000).ToString("0.##") + " us";
+        }
     }
 
 

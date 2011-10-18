@@ -58,6 +58,7 @@ namespace XLibrary.Panels
         private void LayoutTreeMapButton_CheckedChanged(object sender, EventArgs e)
         {
             MainView.ViewLayout = LayoutType.TreeMap;
+            MainView.MapMode = TreeMapMode.Normal;
             MainView.RecalcValues();
         }
 
@@ -81,13 +82,27 @@ namespace XLibrary.Panels
             MainView.RecalcValues();
         }
 
-        private void LayoutDependencyButton_CheckedChanged(object sender, EventArgs e)
+        private void MapDirectDependencies_CheckedChanged(object sender, EventArgs e)
+        {
+            MainView.ViewLayout = LayoutType.TreeMap;
+            MainView.MapMode = TreeMapMode.DirectDependencies;
+            MainView.RecalcValues();
+        }
+
+        private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)
+        {
+            MainView.ViewLayout = LayoutType.TreeMap;
+            MainView.MapMode = TreeMapMode.AllDependencies;
+            MainView.RecalcValues();
+        }
+
+        private void GraphAllDependencies_CheckedChanged(object sender, EventArgs e)
         {
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Dependencies;
             MainView.RecalcValues();
         }
-        
+
         private void ShowAllButton_CheckedChanged(object sender, EventArgs e)
         {
             MainView.ShowLayout = ShowNodes.All;
@@ -117,6 +132,25 @@ namespace XLibrary.Panels
             for (int i = 0; i < XRay.CoveredFunctions.Count; i++)
                 if (XRay.Nodes[i].StillInside == 0)
                     XRay.CoveredFunctions[i] = false;
+
+            MainView.RecalcValues();
+        }
+
+        private void ResetProfilingButton_Click(object sender, EventArgs e)
+        {
+            foreach(var call in XRay.CallMap)
+            {
+                call.TotalCallTime = 0;
+                call.TotalHits = 0;
+                call.TotalTimeOutsideDest = 0;
+            }
+
+            foreach (var call in XRay.ClassCallMap)
+            {
+                call.TotalCallTime = 0;
+                call.TotalHits = 0;
+                call.TotalTimeOutsideDest = 0;
+            }
 
             MainView.RecalcValues();
         }

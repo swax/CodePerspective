@@ -123,7 +123,7 @@
             // 
             // columnHeader3
             // 
-            this.columnHeader3.Text = "t in this";
+            this.columnHeader3.Text = "t in func";
             this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader3.Width = 75;
             // 
@@ -149,7 +149,7 @@
             // 
             // columnHeader4
             // 
-            this.columnHeader4.Text = "t outside";
+            this.columnHeader4.Text = "t in THIS";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader4.Width = 75;
             // 

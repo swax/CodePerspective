@@ -438,7 +438,7 @@ namespace XLibrary
 
             if (CallLogging)
                 LogError("Thread {0}, Func {1}, Catch\r\n", thread, nodeID);
-
+           
             long ticks = Watch.ElapsedTicks;
 
             ThreadFlow flow;

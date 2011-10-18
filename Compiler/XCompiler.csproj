@@ -55,6 +55,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Mono.Cecil">
       <HintPath>..\..\mono.cecil\bin\net_4_0_Debug\Mono.Cecil.dll</HintPath>
     </Reference>

@@ -16,13 +16,14 @@ namespace XLibrary
     public enum LayoutType { TreeMap, CallGraph }
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
     public enum ShowNodes { All, Hit, Unhit, Instances }
+    public enum TreeMapMode { Normal, DirectDependencies, AllDependencies }
 
     public partial class TreePanelGdiPlus : UserControl
     {
         public MainForm MainForm;
 
-        bool DoRedraw = true;
-        bool DoResize = true;
+        public bool DoRedraw = true;
+        public bool DoResize = true;
         bool DoRevalue = true;
         Bitmap DisplayBuffer;
 
@@ -32,6 +33,7 @@ namespace XLibrary
         bool ShowingExternal;
 
         internal LayoutType ViewLayout = LayoutType.TreeMap;
+        internal TreeMapMode MapMode = TreeMapMode.Normal;
         internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         internal ShowNodes ShowLayout = ShowNodes.All;
         internal bool ShowFields = true;
@@ -75,7 +77,8 @@ namespace XLibrary
         Pen CallOutPenFocused = new Pen(Color.FromArgb(70, Color.Red), 2);
         Pen CallInPenFocused = new Pen(Color.FromArgb(70, Color.Blue), 2);
         Pen HoldingCallPen = new Pen(Color.FromArgb(48, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
-        
+
+        Pen CallDividerPen = new Pen(Color.FromArgb(0xcc, 0xcc, 0xcc));
 
         Color HitColor = Color.FromArgb(255, 192, 128);
         Color MultiHitColor = Color.Orange;
@@ -89,6 +92,7 @@ namespace XLibrary
         SolidBrush TextBrush = new SolidBrush(Color.Black);
         SolidBrush TextBgBrush = new SolidBrush(Color.FromArgb(192, Color.White));
         SolidBrush LabelBgBrush = new SolidBrush(Color.FromArgb(128, Color.White));
+        SolidBrush FooterBgBrush = new SolidBrush(Color.White);
         Font TextFont = new Font("tahoma", 8, FontStyle.Bold );
 
         Font InstanceFont = new Font("tahoma", 11, FontStyle.Bold);
@@ -96,6 +100,7 @@ namespace XLibrary
 
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
         Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
+        Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
 
         internal XNodeIn CurrentRoot;
         XNodeIn InternalRoot;
@@ -129,6 +134,15 @@ namespace XLibrary
         Pen IgnoredPen = new Pen(Color.Red, 3);
         SolidBrush IgnoredBrush = new SolidBrush(Color.Red);
         Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
+
+        SolidBrush DependencyToBrush = new SolidBrush(Color.Red);
+        SolidBrush DependencyFromBrush = new SolidBrush(Color.Blue);
+
+        bool ShowRightOutsideArea;
+        bool ShowLeftOutsideArea;
+
+        HashSet<int> DependentToClasses = new HashSet<int>();
+        HashSet<int> DependentFromClasses = new HashSet<int>();
 
 
         public TreePanelGdiPlus(MainForm main)
@@ -229,7 +243,14 @@ namespace XLibrary
             ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
             ShowingExternal = ShowExternal && !CurrentRoot.External;
 
+            // clear and pre-process marked depencies
+            DependentToClasses.Clear();
+            DependentFromClasses.Clear();
 
+            if (MapMode == TreeMapMode.AllDependencies || GraphMode == CallGraphMode.Dependencies)
+                RecalcDependencies();
+
+            // draw layout
             if (ViewLayout == LayoutType.TreeMap)
                 DrawTreeMap(buffer);
             else if (ViewLayout == LayoutType.CallGraph)
@@ -243,6 +264,16 @@ namespace XLibrary
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperLeftCorner(), ignored.AreaF.LowerRightCorner() );
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperRightCorner(), ignored.AreaF.LowerLeftCorner());
                 }
+
+            // draw dividers for call graph
+            if (ViewLayout == LayoutType.CallGraph)
+            {
+                /*if (ShowRightOutsideArea)
+                    buffer.DrawLine(CallDividerPen, RightDivider, 0, RightDivider, Height);
+
+                if (ShowLeftOutsideArea)
+                    buffer.DrawLine(CallDividerPen, LeftDivider, 0, LeftDivider, Height);*/
+            }
 
             // draw dependency graph
             if (ViewLayout == LayoutType.CallGraph && GraphMode == CallGraphMode.Dependencies)
@@ -349,129 +380,7 @@ namespace XLibrary
             }
 
             // draw mouse over label
-            PointF pos = PointToClient(Cursor.Position);
-            if (NodesHovered.Length > 0 && 
-                ClientRectangle.Contains((int)pos.X, (int)pos.Y))
-            {
-                // for each node selected, get size, figure out bg size and indents, then pass again and draw
-
-                float bgWidth = 0;
-                float bgHeight = 0;
-                float lineHeight = 0;
-
-                const float indent = 5;
-                float indentAmount = 0;
-
-                // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
-                var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || ViewLayout == LayoutType.CallGraph);
-
-                // find the size of the background box
-                foreach (XNode node in labels)
-                {
-                    SizeF size = buffer.MeasureString(node.Name, TextFont);
-
-                    if (size.Width + indentAmount > bgWidth)
-                        bgWidth = size.Width + indentAmount;
-
-                    bgHeight += size.Height;
-                    lineHeight = size.Height;
-                    indentAmount += indent;
-                }
-
-                // put box lower right corner at cursor
-                pos.X -= bgWidth;
-                pos.Y -= bgHeight;
-               
-                // ensure it doesnt go off screen
-                if (pos.X < 0) pos.X = 0;
-                if (pos.Y < 0) pos.Y = 0;
-
-                // draw background
-                buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
-
-
-                #region call graph debugging
-                /* useful for debugging call graph
-                var debugNode = NodesHovered.Last();
-                string debugString = "";
-
-                float sum = 0;
-                float count = 0;
-
-
-                debugString += string.Format("My Loc {0}\r\n", debugNode.ScaledLocation.Y);
-
-                if (debugNode.CallsOut != null)
-                    foreach (var call in debugNode.CallsOut)
-                        if (PositionMap.ContainsKey(call.Destination))
-                        {
-                            if (call.Intermediates != null && call.Intermediates.Count > 0)
-                            {
-                                sum += call.Intermediates[0].ScaledLocation.Y;
-                                debugString += string.Format("Out intermediate {0}\r\n", call.Intermediates[0].ScaledLocation.Y);
-                            }
-                            else
-                            {
-                                sum += PositionMap[call.Destination].ScaledLocation.Y;
-                                debugString += string.Format("Out node {0}\r\n", PositionMap[call.Destination].ScaledLocation.Y);
-                            }
-
-                            count++;
-                        }
-
-                if (debugNode.CalledIn != null)
-                    foreach (var call in debugNode.CalledIn)
-                        if (PositionMap.ContainsKey(call.Source))
-                        {
-                            if (call.Intermediates != null && call.Intermediates.Count > 0)
-                            {
-                                sum += call.Intermediates.Last().ScaledLocation.Y;
-                                debugString += string.Format("In intermediate {0}\r\n", call.Intermediates.Last().ScaledLocation.Y);
-                            }
-                            else
-                            {
-                                sum += PositionMap[call.Source].ScaledLocation.Y;
-                                debugString += string.Format("In node {0}\r\n", PositionMap[call.Source].ScaledLocation.Y);
-                            }
-                            count++;
-                        }
-
-                // should only be attached to intermediate nodes
-                if (debugNode.Adjacents != null)
-                {
-                    Debug.Assert(debugNode.ID == 0); // adjacents should only be on temp nodes
-
-                    foreach (var adj in debugNode.Adjacents)
-                    {
-                        debugString += string.Format("Adj {0}\r\n", adj.ScaledLocation.Y);
-
-                        sum += adj.ScaledLocation.Y;
-                        count++;
-                    }
-                }
-
-                if (count != 0)
-                {
-                    float result = sum / count;
-                    debugString += string.Format("My Avg {0}\r\n", result);
-                }
-
-                buffer.DrawString(debugString, TextFont, ObjBrushes[(int)debugNode.ObjType], pos.X, pos.Y);*/
-                #endregion
-
-
-                foreach (XNodeIn node in labels)
-                {
-                    // dither label if it is not on screen
-                    if(GuiHovered.Contains(node))
-                        buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], pos.X, pos.Y);
-                    else
-                        buffer.DrawString(node.Name, TextFont, ObjDitheredBrushes[(int)node.ObjType], pos.X, pos.Y);
-
-                    pos.Y += lineHeight;
-                    pos.X += indent;
-                }
-            }
+            DrawFooterLabel(buffer);// DrawToolTip(buffer);
 
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
@@ -703,8 +612,16 @@ namespace XLibrary
 
             bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
 
+            // use a circle for external/outside nodes in the call map
+            bool rect = ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
 
-            buffer.FillRectangle(rectBrush, node.AreaF);
+            Action<Brush, RectangleF> fillFunction = null;
+            if(rect)
+                fillFunction = (b, r) => buffer.FillRectangle(b, r);
+            else
+                fillFunction = (b, r) => buffer.FillEllipse(b, r);
+
+            fillFunction(rectBrush, node.AreaF);
 
             bool needBorder = true;
 
@@ -716,16 +633,16 @@ namespace XLibrary
                 if (node.EntryPoint > 0)
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        buffer.FillRectangle(MultiEntryBrush, node.AreaF);
+                        fillFunction(MultiEntryBrush, node.AreaF);
                     else
-                        buffer.FillRectangle(EntryBrush, node.AreaF);
+                        fillFunction(EntryBrush, node.AreaF);
                 }
                 else
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        buffer.FillRectangle(MultiHoldingBrush, node.AreaF);
+                        fillFunction(MultiHoldingBrush, node.AreaF);
                     else
-                        buffer.FillRectangle(HoldingBrush, node.AreaF);
+                        fillFunction(HoldingBrush, node.AreaF);
                 }
             }
 
@@ -733,7 +650,7 @@ namespace XLibrary
             if (node.ExceptionHit > 0)
             {
                 needBorder = false;
-                buffer.FillRectangle(ExceptionBrush[node.FunctionHit], node.AreaF);
+                fillFunction(ExceptionBrush[node.FunctionHit], node.AreaF);
             }
 
             else if (node.FunctionHit > 0)
@@ -741,28 +658,49 @@ namespace XLibrary
                 needBorder = false;
 
                 if (XRay.ThreadTracking && node.ConflictHit > 0)
-                    buffer.FillRectangle(MultiHitBrush[node.FunctionHit], node.AreaF);
+                    fillFunction(MultiHitBrush[node.FunctionHit], node.AreaF);
                 else if (node.ObjType == XObjType.Field)
                 {
                     if (node.LastFieldOp == FieldOp.Set)
-                        buffer.FillRectangle(FieldSetBrush[node.FunctionHit], node.AreaF);
+                        fillFunction(FieldSetBrush[node.FunctionHit], node.AreaF);
                     else
-                        buffer.FillRectangle(FieldGetBrush[node.FunctionHit], node.AreaF);
+                        fillFunction(FieldGetBrush[node.FunctionHit], node.AreaF);
                 }
                 else
-                    buffer.FillRectangle(HitBrush[node.FunctionHit], node.AreaF);
+                    fillFunction(HitBrush[node.FunctionHit], node.AreaF);
+            }
+
+            if (FocusedNode != null && node.ObjType == XObjType.Class)
+            {
+                if(MapMode == TreeMapMode.DirectDependencies)
+                {
+                    if (FocusedNode.DependenciesTo != null && FocusedNode.DependenciesTo.Contains(node.ID))
+                        fillFunction(DependencyToBrush, node.AreaF);
+
+                    else if (FocusedNode.DependenciesFrom != null && FocusedNode.DependenciesFrom.Contains(node.ID))
+                        fillFunction(DependencyFromBrush, node.AreaF);
+                }
+
+                else if(MapMode == TreeMapMode.AllDependencies || GraphMode == CallGraphMode.Dependencies)
+                {
+                    if (DependentToClasses.Contains(node.ID))
+                        fillFunction(DependencyToBrush, node.AreaF);
+
+                    else if (DependentFromClasses.Contains(node.ID))
+                        fillFunction(DependencyFromBrush, node.AreaF);
+                }
             }
 
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
                 if (FilteredNodes.ContainsKey(node.ID))
-                    buffer.FillRectangle(FilteredBrush, node.AreaF);
+                    fillFunction(FilteredBrush, node.AreaF);
                 else if (IgnoredNodes.ContainsKey(node.ID))
-                    buffer.FillRectangle(IgnoredBrush, node.AreaF);
+                    fillFunction(IgnoredBrush, node.AreaF);
 
                 else if (needBorder) // dont draw the point if already lit up
-                    buffer.FillRectangle(ObjBrushes[(int)node.ObjType], node.AreaF);
+                    fillFunction(ObjBrushes[(int)node.ObjType], node.AreaF);
             }
             else
             {
@@ -780,7 +718,10 @@ namespace XLibrary
 
                 try
                 {
-                    buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                    if(rect)
+                        buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                    else
+                        buffer.DrawEllipse(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
                 }
                 catch (Exception ex)
                 {
@@ -1058,7 +999,7 @@ namespace XLibrary
 
             MainForm.UpdateBreadCrumbs();
 
-            DoResize = true;
+            DoRevalue = true;
             Refresh();
         }
 
@@ -1072,7 +1013,281 @@ namespace XLibrary
         private void ClearHovered()
         {
             GuiHovered.ForEach(n => n.Hovered = false);
-            GuiHovered.Clear();
+            GuiHovered.Clear(); 
+        }
+
+        private void RecalcDependencies()
+        {
+
+            if (FocusedNode == null)
+                return;
+
+            // get all classes to fig dependencies for
+            List<XNodeIn> classes = new List<XNodeIn>();
+
+            if(FocusedNode.ObjType == XObjType.Class)
+                classes.Add(FocusedNode);
+            else
+                RecurseTree<XNodeIn>(
+                    FocusedNode.Nodes.Cast<XNodeIn>(),
+                    evaluate: n =>
+                    {
+                        if (n.ObjType == XObjType.Class)
+                            classes.Add(n);
+                    }, 
+                    recurse: n => 
+                    {
+                        return (n.ObjType == XObjType.Namespace) ? n.Nodes.Cast<XNodeIn>() : null;
+                    }
+                );
+
+            // traverse to dependencies for focused node/namespace
+            bool idFound = false;
+
+            foreach (var dependenciesTo in classes.Where(c => c.DependenciesTo != null)
+                                                  .Select(c => c.DependenciesTo))
+                RecurseTree<int>(
+                    dependenciesTo,
+                    evaluate: id =>
+                    {
+                        idFound = DependentToClasses.Contains(id);
+                        DependentToClasses.Add(id);
+                    },
+                    recurse: id =>
+                    {
+                        return !idFound ? XRay.Nodes[id].DependenciesTo : null;
+                    }
+                );
+
+            // traverse from dependencies, if not already in 'to'
+            bool dependentOn = false;
+
+            foreach (var dependenciesFrom in classes.Where(c => c.DependenciesFrom != null)
+                                                    .Select(c => c.DependenciesFrom))
+                RecurseTree<int>(
+                    dependenciesFrom,
+                    evaluate: id =>
+                    {
+                        dependentOn = DependentToClasses.Contains(id);
+                        if (dependentOn)
+                            return;
+
+                        idFound = DependentFromClasses.Contains(id);
+                        DependentFromClasses.Add(id);
+                    },
+                    recurse: id =>
+                    {
+                        return !idFound && !dependentOn ? XRay.Nodes[id].DependenciesFrom : null;
+                    }
+                );
+        }
+
+        private void RecurseTree<T>(IEnumerable<T> tree, Action<T> evaluate, Func<T, IEnumerable<T>> recurse)
+        {
+            foreach (var i in tree)
+            {
+                evaluate(i);
+
+                IEnumerable<T> subTree = recurse(i);
+                if (subTree != null)
+                    RecurseTree(subTree, evaluate, recurse);
+            }
+        }
+
+        public void DrawFooterLabel(Graphics buffer)
+        {
+            if (NodesHovered.Length == 0)
+                return;
+
+            PointF pos = PointToClient(Cursor.Position);
+            if (!ClientRectangle.Contains((int)pos.X, (int)pos.Y))
+                return;
+
+            float x = 0;
+            var lastNode = NodesHovered.Last();
+
+            foreach (XNodeIn node in NodesHovered)
+            {
+                DrawFooterPart(buffer, node.Name, ObjBrushes[(int)node.ObjType], ref x);
+
+                if(node != lastNode)
+                    DrawFooterPart(buffer, ".", TextBrush, ref x);
+            }
+
+            DrawFooterPart(buffer, " (" + GetMetricForNode(lastNode) + ")", TextBrush, ref x);
+        }
+
+        public void DrawFooterPart(Graphics buffer, string label, SolidBrush brush, ref float x)
+        {
+            SizeF size = buffer.MeasureString(label, TextFont);
+            buffer.FillRectangle(FooterBgBrush, x, Height - size.Height, size.Width, size.Height);
+            buffer.DrawString(label, TextFont, brush, x, Height - size.Height);
+            x += size.Width;
+        }
+
+        public void DrawToolTip(Graphics buffer)
+        {
+            if (NodesHovered.Length == 0)
+                return;
+
+            PointF pos = PointToClient(Cursor.Position);
+            if (!ClientRectangle.Contains((int)pos.X, (int)pos.Y))
+                return;
+
+            // for each node selected, get size, figure out bg size and indents, then pass again and draw
+
+            float bgWidth = 0;
+            float bgHeight = 0;
+            float lineHeight = 0;
+
+            const float indent = 5;
+            float indentAmount = 0;
+
+            // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
+            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || ViewLayout == LayoutType.CallGraph).ToArray();
+
+            if (labels.Length == 0)
+                return;
+
+            var lastNode = labels.Last();
+
+            // find the size of the background box
+            foreach (XNodeIn node in labels)
+            {
+                string label = node.Name;
+                if (node == lastNode)
+                    label += " (" + GetMetricForNode(node) + ")";
+
+                SizeF size = buffer.MeasureString(label, TextFont);
+
+                if (size.Width + indentAmount > bgWidth)
+                    bgWidth = size.Width + indentAmount;
+
+                bgHeight += size.Height;
+                lineHeight = size.Height;
+                indentAmount += indent;
+            }
+
+            // put box lower right corner at cursor
+            pos.X -= bgWidth;
+            pos.Y -= bgHeight;
+
+            // ensure it doesnt go off screen
+            if (pos.X < 0) pos.X = 0;
+            if (pos.Y < 0) pos.Y = 0;
+
+            // draw background
+            buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
+
+            //GraphDebuggingLabel(buffer, pos);
+
+            foreach (XNodeIn node in labels)
+            {
+                // dither label if it is not on screen
+                SolidBrush textColor = GuiHovered.Contains(node) ? ObjBrushes[(int)node.ObjType] : ObjDitheredBrushes[(int)node.ObjType];
+
+                string label = node.Name;
+                if (node == lastNode)
+                    label += " (" + GetMetricForNode(node) + ")";
+
+                buffer.DrawString(label, TextFont, textColor, pos.X, pos.Y);
+
+                pos.Y += lineHeight;
+                pos.X += indent;
+            }
+        }
+
+        private void GraphDebuggingLabel(Graphics buffer, PointF pos)
+        {
+            /* useful for debugging call graph
+            var debugNode = NodesHovered.Last();
+            string debugString = "";
+
+            float sum = 0;
+            float count = 0;
+
+
+            debugString += string.Format("My Loc {0}\r\n", debugNode.ScaledLocation.Y);
+
+            if (debugNode.CallsOut != null)
+                foreach (var call in debugNode.CallsOut)
+                    if (PositionMap.ContainsKey(call.Destination))
+                    {
+                        if (call.Intermediates != null && call.Intermediates.Count > 0)
+                        {
+                            sum += call.Intermediates[0].ScaledLocation.Y;
+                            debugString += string.Format("Out intermediate {0}\r\n", call.Intermediates[0].ScaledLocation.Y);
+                        }
+                        else
+                        {
+                            sum += PositionMap[call.Destination].ScaledLocation.Y;
+                            debugString += string.Format("Out node {0}\r\n", PositionMap[call.Destination].ScaledLocation.Y);
+                        }
+
+                        count++;
+                    }
+
+            if (debugNode.CalledIn != null)
+                foreach (var call in debugNode.CalledIn)
+                    if (PositionMap.ContainsKey(call.Source))
+                    {
+                        if (call.Intermediates != null && call.Intermediates.Count > 0)
+                        {
+                            sum += call.Intermediates.Last().ScaledLocation.Y;
+                            debugString += string.Format("In intermediate {0}\r\n", call.Intermediates.Last().ScaledLocation.Y);
+                        }
+                        else
+                        {
+                            sum += PositionMap[call.Source].ScaledLocation.Y;
+                            debugString += string.Format("In node {0}\r\n", PositionMap[call.Source].ScaledLocation.Y);
+                        }
+                        count++;
+                    }
+
+            // should only be attached to intermediate nodes
+            if (debugNode.Adjacents != null)
+            {
+                Debug.Assert(debugNode.ID == 0); // adjacents should only be on temp nodes
+
+                foreach (var adj in debugNode.Adjacents)
+                {
+                    debugString += string.Format("Adj {0}\r\n", adj.ScaledLocation.Y);
+
+                    sum += adj.ScaledLocation.Y;
+                    count++;
+                }
+            }
+
+            if (count != 0)
+            {
+                float result = sum / count;
+                debugString += string.Format("My Avg {0}\r\n", result);
+            }
+
+            buffer.DrawString(debugString, TextFont, ObjBrushes[(int)debugNode.ObjType], pos.X, pos.Y);*/
+        }
+
+        public string GetMetricForNode(XNodeIn node)
+        {
+            switch (SizeLayout)
+            {
+                case SizeLayouts.Constant:
+                    return node.Value.ToString() + " elements";
+
+                case SizeLayouts.MethodSize:
+                    return node.Value.ToString() + " lines";
+
+                case SizeLayouts.TimeInMethod:
+                    return Xtensions.TicksToString(node.Value);
+
+                case SizeLayouts.Hits:
+                    return node.Value.ToString() + " calls";
+
+                case SizeLayouts.TimePerHit:
+                    return Xtensions.TicksToString(node.Value);
+            }
+
+            return "";
         }
     }
 }

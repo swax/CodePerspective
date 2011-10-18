@@ -91,6 +91,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Panels\ConsolePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\ConsolePanel.Designer.cs">
+      <DependentUpon>ConsolePanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\DebugPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -143,6 +149,9 @@
     <Compile Include="XNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Panels\ConsolePanel.resx">
+      <DependentUpon>ConsolePanel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Panels\DebugPanel.resx">
       <DependentUpon>DebugPanel.cs</DependentUpon>
     </EmbeddedResource>

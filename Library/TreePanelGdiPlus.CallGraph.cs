@@ -38,6 +38,13 @@ namespace XLibrary
         public bool SequenceOrder = false;
         public CallGraphMode GraphMode = CallGraphMode.Method;
 
+        public float RightScaledDivider;
+        public float LeftScaledDivider;
+
+        public float RightDivider;
+        public float LeftDivider;
+
+
         private void DrawCallGraph(Graphics buffer)
         {
             if (DoRevalue || 
@@ -51,6 +58,7 @@ namespace XLibrary
                 Graphs.Clear();
                 PositionMap.Clear();
                 CenterMap.Clear();
+                OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
                 AddCalledNodes(CurrentRoot, true);
@@ -84,6 +92,9 @@ namespace XLibrary
             if (DoResize)
             {
                 float fullSize = (float)Math.Min(Width, Height) / 2;
+
+                RightDivider = RightScaledDivider * Width;
+                LeftDivider = LeftScaledDivider * Width;
 
                 foreach (var graph in Graphs)
                 {
@@ -237,14 +248,22 @@ namespace XLibrary
                 float spaceX = freespace / (graph.Ranks.Length + 1);
                 float xOffset = spaceX;
 
-                foreach (var rank in graph.Ranks)
+                for (int x = 0; x < graph.Ranks.Length; x++)
                 {
+                    var rank = graph.Ranks[x];
+
                     float maxSize = rank.Column.Max(n => n.ScaledSize);
 
                     // a good first guess at how nodes should be ordered to min crossing
                     rank.Column = rank.Column.OrderBy(n => n.HitSequence).ToList();
 
                     PositionRank(graph, rank, xOffset + maxSize / 2);
+
+                    if (graph.FirstRankOutside && x == 0)
+                        RightScaledDivider = xOffset + maxSize + spaceX / 2;
+
+                    if (graph.LastRankOutside && x == graph.Ranks.Length - 2)
+                        LeftScaledDivider = xOffset + maxSize + spaceX / 2;
 
                     xOffset += maxSize + spaceX;
                 }
@@ -317,32 +336,50 @@ namespace XLibrary
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);
                     CenterMap.Remove(remove.ID);
+                    OutsideMap.Remove(remove.ID);
 
                     continue;
                 }
+                
+                // move outside nodes to left if node call's into center, right otherwise
+                bool firstRankOutside = false;
+                bool lastRankOutside = false;
+
+                /*if (OutsideMap.Any())
+                    foreach (var n in graph.Values.OrderBy(v => v.Rank))
+                        if (OutsideMap.ContainsKey(n.ID))
+                            if (n.EdgesOut != null && n.EdgesOut.Any(e => CenterMap.ContainsKey(e)))
+                            {
+                                n.Rank = -10;
+                                firstRankOutside = true;
+                            }
+                            else
+                            {
+                                n.Rank = int.MaxValue;
+                                lastRankOutside = true;
+                            }*/
 
                 // normalize ranks so sequential without any missing between
-                int i = -1;
+                int nextSequentialRank = -1;
                 int currentRank = int.MinValue;
                 foreach (var n in graph.Values.OrderBy(v => v.Rank))
                 {
                     if (n.Rank != currentRank)
                     {
                         currentRank = n.Rank.Value;
-                        i++;
+                        nextSequentialRank++;
                     }
 
-                    n.Rank = i;
+                    n.Rank = nextSequentialRank;
                 }
 
-
                 // put all nodes into a rank based multi-map
-                Rank[] ranks = new Rank[i + 1];
-                for (i = 0; i < ranks.Length; i++)
+                Rank[] ranks = new Rank[nextSequentialRank + 1];
+                for (int i = 0; i < ranks.Length; i++)
                     ranks[i] = new Rank();
 
                 long graphWeight = 0;
-
+                
                 foreach (var source in graph.Values)
                 {
                     graphWeight += source.Value;
@@ -358,14 +395,15 @@ namespace XLibrary
                         if (!graph.ContainsKey(destId))
                             continue;
 
-                        if (source.ID == destId)
-                            continue;
-
                         XNodeIn destination = graph[destId];
+
+                        // ranks are equal if nodes are outside zoom
+                        if (source.ID == destination.ID || destination.Rank == source.Rank)
+                            continue;
 
                         if (source.Intermediates != null)
                             source.Intermediates.Remove(destId);
-   
+
                         // if destination is not 1 forward/1 back then create intermediate nodes
                         if (source.Rank != destination.Rank + 1 &&
                             source.Rank != destination.Rank - 1)
@@ -404,6 +442,7 @@ namespace XLibrary
                                 nextRank = increase ? nextRank + 1 : nextRank - 1;
                             }
 
+                    
                             try
                             {
                                 lastNode.Adjacents.Add(destination);
@@ -419,9 +458,10 @@ namespace XLibrary
                     }
                 }
 
-                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight });
+                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight, FirstRankOutside = firstRankOutside, LastRankOutside = lastRankOutside });
 
             } while (PositionMap.Values.Any(n => n.Rank == null));
+
         }
 
         private void Uncross(Graph graph)
@@ -647,6 +687,9 @@ namespace XLibrary
                     {
                         PositionMap[node.ID] = node;
 
+                        if (!CenterMap.ContainsKey(node.ID))
+                            OutsideMap[node.ID] = node;
+
                         node.EdgesIn = null;
                         node.EdgesOut = null;
                         node.Intermediates = null;
@@ -676,6 +719,9 @@ namespace XLibrary
                          (node.CallsOut != null && node.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
                     {
                         PositionMap[node.ID] = node;
+
+                        if (!CenterMap.ContainsKey(node.ID))
+                            OutsideMap[node.ID] = node;
 
                         node.EdgesIn = null;
                         node.EdgesOut = null;
@@ -728,6 +774,9 @@ namespace XLibrary
 
             internal float ScaledHeight;
             internal float ScaledOffset;
+
+            public bool FirstRankOutside;
+            public bool LastRankOutside;
 
             internal IEnumerable<XNodeIn> Nodes()
             {

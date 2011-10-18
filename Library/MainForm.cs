@@ -12,7 +12,7 @@ namespace XLibrary
 {
     public partial class MainForm : Form
     {
-        TreePanelGdiPlus TreeView;
+        public TreePanelGdiPlus TreeView;
 
 
         public MainForm()
@@ -25,9 +25,13 @@ namespace XLibrary
             ResetTimer.Interval = 1000 / XRay.HitFrames;
             ResetTimer.Enabled = true;
 
-            Text = "c0re XRay"; 
+            RevalueTimer.Interval = 1000;
+            RevalueTimer.Enabled = true;
+
+            Text = "c0re XRay";
 
             DisplayTab.Init(TreeView);
+            ConsoleTab.Init(this);
 
             UpdateBreadCrumbs();
         }
@@ -119,6 +123,16 @@ namespace XLibrary
                 call.DashOffset -= FunctionCall.DashSize;
                 if (call.DashOffset < 0)
                     call.DashOffset = FunctionCall.DashSpace;
+            }
+        }
+
+        private void RevalueTimer_Tick(object sender, EventArgs e)
+        {
+            if (TreeView.SizeLayout == SizeLayouts.TimeInMethod ||
+                TreeView.SizeLayout == SizeLayouts.Hits ||
+                TreeView.SizeLayout == SizeLayouts.TimePerHit)
+            {
+                TreeView.RecalcValues();
             }
         }
     }

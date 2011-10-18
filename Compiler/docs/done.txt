@@ -60,3 +60,9 @@ instances bottom panel tabC:\Main\git\XRay\Library\TimingForm.cs
 	could be debugger like with a bottom panel
 
 click node should highlight connected nodes/edges force labels ON
+
+---
+
+recalc values every second if view is in calls/function timing
+
+option to show dependencies direct/all

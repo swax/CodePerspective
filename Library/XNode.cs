@@ -156,7 +156,7 @@ namespace XLibrary
         internal PointF ScaledLocation;
         internal float ScaledSize; // width and height
 
-        internal InstanceRecord Record;
+        public InstanceRecord Record;
 
         internal int[] DependenciesTo;
         internal int[] DependenciesFrom;

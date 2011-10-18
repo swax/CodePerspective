@@ -32,17 +32,20 @@
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.TimingPanel = new XLibrary.TimingPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.DisplayTab = new XLibrary.Panels.ViewPanel();
+            this.InstanceTab = new XLibrary.InstancePanel();
+            this.TimingPanel = new XLibrary.TimingPanel();
             this.debugPanel1 = new XLibrary.Panels.DebugPanel();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -53,6 +56,7 @@
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
             // ResetTimer
@@ -91,6 +95,13 @@
             this.MainToolStrip.TabIndex = 4;
             this.MainToolStrip.Text = "toolStrip1";
             // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(58, 22);
+            this.toolStripLabel1.Text = "Viewing: ";
+            // 
             // ViewHostPanel
             // 
             this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -107,6 +118,7 @@
             this.TabPanel.Controls.Add(this.tabPage2);
             this.TabPanel.Controls.Add(this.tabPage3);
             this.TabPanel.Controls.Add(this.tabPage4);
+            this.TabPanel.Controls.Add(this.tabPage5);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
             this.TabPanel.Name = "TabPanel";
@@ -125,14 +137,6 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // DisplayTab
-            // 
-            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
-            this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 161);
-            this.DisplayTab.TabIndex = 0;
-            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.InstanceTab);
@@ -144,14 +148,6 @@
             this.tabPage2.Text = "Instance";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // InstanceTab
-            // 
-            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
-            this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(536, 161);
-            this.InstanceTab.TabIndex = 0;
-            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.TimingPanel);
@@ -161,14 +157,6 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Profile";
             this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // TimingPanel
-            // 
-            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
-            this.TimingPanel.Name = "TimingPanel";
-            this.TimingPanel.Size = new System.Drawing.Size(542, 167);
-            this.TimingPanel.TabIndex = 0;
             // 
             // tabPage4
             // 
@@ -181,6 +169,41 @@
             this.tabPage4.Text = "Debug";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.ConsoleTab);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(542, 167);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Console";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // DisplayTab
+            // 
+            this.DisplayTab.AutoScroll = true;
+            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
+            this.DisplayTab.Name = "DisplayTab";
+            this.DisplayTab.Size = new System.Drawing.Size(536, 161);
+            this.DisplayTab.TabIndex = 0;
+            // 
+            // InstanceTab
+            // 
+            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
+            this.InstanceTab.Name = "InstanceTab";
+            this.InstanceTab.Size = new System.Drawing.Size(536, 161);
+            this.InstanceTab.TabIndex = 0;
+            // 
+            // TimingPanel
+            // 
+            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
+            this.TimingPanel.Name = "TimingPanel";
+            this.TimingPanel.Size = new System.Drawing.Size(542, 167);
+            this.TimingPanel.TabIndex = 0;
+            // 
             // debugPanel1
             // 
             this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -189,12 +212,18 @@
             this.debugPanel1.Size = new System.Drawing.Size(536, 161);
             this.debugPanel1.TabIndex = 0;
             // 
-            // toolStripLabel1
+            // ConsoleTab
             // 
-            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(58, 22);
-            this.toolStripLabel1.Text = "Viewing: ";
+            this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ConsoleTab.Location = new System.Drawing.Point(0, 0);
+            this.ConsoleTab.Name = "ConsoleTab";
+            this.ConsoleTab.Size = new System.Drawing.Size(542, 167);
+            this.ConsoleTab.TabIndex = 0;
+            // 
+            // RevalueTimer
+            // 
+            this.RevalueTimer.Interval = 1000;
+            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
             // 
             // MainForm
             // 
@@ -216,6 +245,7 @@
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -236,5 +266,8 @@
         private Panels.DebugPanel debugPanel1;
         private System.Windows.Forms.ToolStrip MainToolStrip;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
+        private System.Windows.Forms.TabPage tabPage5;
+        private Panels.ConsolePanel ConsoleTab;
+        private System.Windows.Forms.Timer RevalueTimer;
     }
 }

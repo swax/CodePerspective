@@ -1,17 +1,18 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-show outside zoom in call graph like tree map, 25% of each side split off for outside nodes
-	double click outside zoom brings element into zoom area? or just right click option
+commit
+
+put in some tool tips for vis options
 
 can generic types with `1 be resolved?
 
 field view updates live
 
-can use for riseOp componentization yet?
-
 field details, mouse over values?
 
+
+useful for de-ops yet? inspect dependencies more.
 
 
 class dependency graph
@@ -48,6 +49,7 @@ console tab
 bugs
 	why isnt main function showing up when resetting hit nodes?
 	why are some functions the root of a call graph, but not the thread start?
+	constant size not working in call graph mode
 
 code panel
 	add to dat file
@@ -70,6 +72,7 @@ legend tab
 	show current colors
 	let user set diff colors, load/save configs
 	standard, matrix
+	call graph - red calls/dependent on, blue - converse
 
 
 

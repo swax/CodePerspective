@@ -66,3 +66,7 @@ click node should highlight connected nodes/edges force labels ON
 recalc values every second if view is in calls/function timing
 
 option to show dependencies direct/all
+
+---
+
+history

@@ -1,7 +1,9 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-commit
+let direct dependencies work for namespaces
+
+graph dependencies based on zoomed node
 
 put in some tool tips for vis options
 
@@ -16,8 +18,6 @@ useful for de-ops yet? inspect dependencies more.
 
 
 class dependency graph
-	TODO - local vars 
-	done - base class, class fields, method(return, params), calls
 	works with structs?
 
 	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction

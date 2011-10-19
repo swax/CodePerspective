@@ -29,23 +29,26 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.BackButton = new System.Windows.Forms.ToolStripButton();
+            this.ForwardButton = new System.Windows.Forms.ToolStripButton();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.InstanceTab = new XLibrary.InstancePanel();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.TimingPanel = new XLibrary.TimingPanel();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
             this.debugPanel1 = new XLibrary.Panels.DebugPanel();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -88,19 +91,32 @@
             // 
             this.MainToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripLabel1});
+            this.BackButton,
+            this.ForwardButton,
+            this.toolStripSeparator1});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
             this.MainToolStrip.TabIndex = 4;
             this.MainToolStrip.Text = "toolStrip1";
             // 
-            // toolStripLabel1
+            // BackButton
             // 
-            this.toolStripLabel1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(58, 22);
-            this.toolStripLabel1.Text = "Viewing: ";
+            this.BackButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.BackButton.Image = ((System.Drawing.Image)(resources.GetObject("BackButton.Image")));
+            this.BackButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.BackButton.Name = "BackButton";
+            this.BackButton.Size = new System.Drawing.Size(23, 22);
+            this.BackButton.Click += new System.EventHandler(this.BackButton_Click);
+            // 
+            // ForwardButton
+            // 
+            this.ForwardButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ForwardButton.Image = ((System.Drawing.Image)(resources.GetObject("ForwardButton.Image")));
+            this.ForwardButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ForwardButton.Name = "ForwardButton";
+            this.ForwardButton.Size = new System.Drawing.Size(23, 22);
+            this.ForwardButton.Click += new System.EventHandler(this.ForwardButton_Click);
             // 
             // ViewHostPanel
             // 
@@ -137,6 +153,15 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // DisplayTab
+            // 
+            this.DisplayTab.AutoScroll = true;
+            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
+            this.DisplayTab.Name = "DisplayTab";
+            this.DisplayTab.Size = new System.Drawing.Size(536, 161);
+            this.DisplayTab.TabIndex = 0;
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.InstanceTab);
@@ -148,6 +173,14 @@
             this.tabPage2.Text = "Instance";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // InstanceTab
+            // 
+            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
+            this.InstanceTab.Name = "InstanceTab";
+            this.InstanceTab.Size = new System.Drawing.Size(536, 161);
+            this.InstanceTab.TabIndex = 0;
+            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.TimingPanel);
@@ -157,6 +190,14 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Profile";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // TimingPanel
+            // 
+            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
+            this.TimingPanel.Name = "TimingPanel";
+            this.TimingPanel.Size = new System.Drawing.Size(542, 167);
+            this.TimingPanel.TabIndex = 0;
             // 
             // tabPage4
             // 
@@ -169,6 +210,14 @@
             this.tabPage4.Text = "Debug";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // debugPanel1
+            // 
+            this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.debugPanel1.Location = new System.Drawing.Point(3, 3);
+            this.debugPanel1.Name = "debugPanel1";
+            this.debugPanel1.Size = new System.Drawing.Size(536, 161);
+            this.debugPanel1.TabIndex = 0;
+            // 
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.ConsoleTab);
@@ -178,39 +227,6 @@
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "Console";
             this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // DisplayTab
-            // 
-            this.DisplayTab.AutoScroll = true;
-            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
-            this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 161);
-            this.DisplayTab.TabIndex = 0;
-            // 
-            // InstanceTab
-            // 
-            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
-            this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(536, 161);
-            this.InstanceTab.TabIndex = 0;
-            // 
-            // TimingPanel
-            // 
-            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
-            this.TimingPanel.Name = "TimingPanel";
-            this.TimingPanel.Size = new System.Drawing.Size(542, 167);
-            this.TimingPanel.TabIndex = 0;
-            // 
-            // debugPanel1
-            // 
-            this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.debugPanel1.Location = new System.Drawing.Point(3, 3);
-            this.debugPanel1.Name = "debugPanel1";
-            this.debugPanel1.Size = new System.Drawing.Size(536, 161);
-            this.debugPanel1.TabIndex = 0;
             // 
             // ConsoleTab
             // 
@@ -224,6 +240,11 @@
             // 
             this.RevalueTimer.Interval = 1000;
             this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // MainForm
             // 
@@ -265,9 +286,11 @@
         private System.Windows.Forms.TabPage tabPage4;
         private Panels.DebugPanel debugPanel1;
         private System.Windows.Forms.ToolStrip MainToolStrip;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.TabPage tabPage5;
         private Panels.ConsolePanel ConsoleTab;
         private System.Windows.Forms.Timer RevalueTimer;
+        private System.Windows.Forms.ToolStripButton BackButton;
+        private System.Windows.Forms.ToolStripButton ForwardButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     }
 }

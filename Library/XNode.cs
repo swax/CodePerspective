@@ -92,6 +92,23 @@ namespace XLibrary
             return result;
         }
 
+        public XNode GetParentClass()
+        {
+            var parentClass = this;
+
+            var up = Parent;
+
+            while (up != null)
+            {
+                if (up.ObjType == XObjType.Class)
+                    parentClass = up;
+
+                up = up.Parent;
+            }
+
+            return parentClass;
+        }
+
         /*public string MultiLineFullName()
         {
             int levels;

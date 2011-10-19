@@ -992,15 +992,59 @@ namespace XLibrary
                 Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
         }
 
-        public void SetRoot(XNodeIn node)
+        public LinkedList<XNodeIn> HistoryList = new LinkedList<XNodeIn>();
+        public LinkedListNode<XNodeIn> CurrentHistory; 
+
+        public void SetRoot(XNodeIn node, bool logHistory=true)
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;
+           
+            if (logHistory)
+            {
+                // re-write forward log with new node
+                while(CurrentHistory != HistoryList.Last)
+                    HistoryList.RemoveLast();
+
+                // dont set node if last node is already this
+                var last = HistoryList.LastOrDefault();
+                if (CurrentRoot != last)
+                {
+                    HistoryList.AddLast(CurrentRoot);
+                    CurrentHistory = HistoryList.Last;
+                }
+            }
 
             MainForm.UpdateBreadCrumbs();
 
             DoRevalue = true;
             Refresh();
+        }
+
+        public void NavBack()
+        {
+            if (CurrentHistory != null && CurrentHistory.Previous != null)
+            {
+                // update current history before calling so breadcrumbs are updated properly
+                var prev = CurrentHistory.Previous;
+
+                CurrentHistory = CurrentHistory.Previous;
+
+                SetRoot(prev.Value, false);
+            }
+        }
+
+        public void NavForward()
+        {
+            if (CurrentHistory != null && CurrentHistory.Next != null)
+            {
+                // update current history before calling so breadcrumbs are updated properly
+                var next = CurrentHistory.Next;
+
+                CurrentHistory = CurrentHistory.Next;
+
+                SetRoot(next.Value, false);
+            }
         }
 
         private void TreePanel_MouseLeave(object sender, EventArgs e)
@@ -1025,8 +1069,12 @@ namespace XLibrary
             // get all classes to fig dependencies for
             List<XNodeIn> classes = new List<XNodeIn>();
 
-            if(FocusedNode.ObjType == XObjType.Class)
-                classes.Add(FocusedNode);
+            if (FocusedNode.ObjType == XObjType.Class ||
+                FocusedNode.ObjType == XObjType.Method ||
+                FocusedNode.ObjType == XObjType.Field)
+            {
+                classes.Add(FocusedNode.GetParentClass() as XNodeIn);
+            }
             else
                 RecurseTree<XNodeIn>(
                     FocusedNode.Nodes.Cast<XNodeIn>(),
@@ -1034,10 +1082,10 @@ namespace XLibrary
                     {
                         if (n.ObjType == XObjType.Class)
                             classes.Add(n);
-                    }, 
-                    recurse: n => 
+                    },
+                    recurse: n =>
                     {
-                        return (n.ObjType == XObjType.Namespace) ? n.Nodes.Cast<XNodeIn>() : null;
+                        return (n.ObjType != XObjType.Class) ? n.Nodes.Cast<XNodeIn>() : null;
                     }
                 );
 

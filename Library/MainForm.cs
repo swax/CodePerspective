@@ -33,16 +33,17 @@ namespace XLibrary
             DisplayTab.Init(TreeView);
             ConsoleTab.Init(this);
 
-            UpdateBreadCrumbs();
+            TreeView.SetRoot(TreeView.CurrentRoot); // init first node in history
         }
 
         public void UpdateBreadCrumbs()
         {
-            MainToolStrip.Items.Clear();
+            foreach(var item in MainToolStrip.Items.OfType<ToolStripSplitButton>().ToArray())
+                MainToolStrip.Items.Remove(item);
 
-            var label = new ToolStripLabel("Viewing: ");
+            /*var label = new ToolStripLabel("Viewing: ");
             label.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            MainToolStrip.Items.Add(label);
+            MainToolStrip.Items.Add(label);*/
 
             List<XNodeIn> crumbs = new List<XNodeIn>();
 
@@ -78,6 +79,9 @@ namespace XLibrary
                     button.DropDownItems.Add(item);
                 }
             }
+
+            BackButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Previous != null);
+            ForwardButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Next != null);
         }
 
         private void ResetTimer_Tick(object sender, EventArgs e)
@@ -134,6 +138,18 @@ namespace XLibrary
             {
                 TreeView.RecalcValues();
             }
+        }
+
+
+
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            TreeView.NavBack();
+        }
+
+        private void ForwardButton_Click(object sender, EventArgs e)
+        {
+            TreeView.NavForward();
         }
     }
 

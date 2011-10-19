@@ -281,6 +281,10 @@ namespace XBuilder
                 if (method.Body == null)
                     continue;
 
+                // local vars
+                foreach (var local in method.Body.Variables)
+                    SetClassDependency(classNode, local.VariableType);
+
                 // expands branches/jumps to support adddresses > 255
                 // possibly needed if injecting code into large functions
                 // OptimizeMacros at end of the function re-optimizes
@@ -424,8 +428,8 @@ namespace XBuilder
 
             var target = GetClassRef(declaringType);
 
-            target = target.GetParentClass();
-            dependentClass = dependentClass.GetParentClass();
+            target = target.GetParentClass() as XNodeOut;
+            dependentClass = dependentClass.GetParentClass() as XNodeOut; 
 
             if (dependentClass.ClassDependencies == null)
                 dependentClass.ClassDependencies = new HashSet<int>();

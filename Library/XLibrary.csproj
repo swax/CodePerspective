@@ -128,6 +128,11 @@
     <Compile Include="Panels\ViewPanel.Designer.cs">
       <DependentUpon>ViewPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="TreeGrid\TreeGridCell.cs" />
     <Compile Include="TreeGrid\TreeGridEvents.cs" />
     <Compile Include="TreeGrid\TreeGridNode.cs" />
@@ -167,6 +172,10 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\ViewPanel.resx">
       <DependentUpon>ViewPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="TreePanelGdiPlus.resx">
       <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>

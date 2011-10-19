@@ -25,6 +25,9 @@ namespace XTestLib
 
         public void DoMoreStuff()
         {
+            LibClass x = new LibClass();
+            x.DelegateTarget(3);
+
             int i = 0;
             i++;
 

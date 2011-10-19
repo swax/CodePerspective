@@ -195,22 +195,5 @@ namespace XBuilder
 
             return next;
         }
-
-        internal XNodeOut GetParentClass()
-        {
-            var parentClass = this;
-
-            var up = Parent as XNodeOut;
-
-            while (up != null)
-            {
-                if (up.ObjType == XObjType.Class)
-                    parentClass = up;
-
-                up = up.Parent as XNodeOut;
-            }
-
-            return parentClass;
-        }
     }
 }

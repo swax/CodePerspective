@@ -27,8 +27,6 @@ In dot, higher edge weights have the effect of causing edges to be shorter and s
 
 namespace XLibrary
 {
-    public enum CallGraphMode { Method, Class, Dependencies }
-
     partial class TreePanelGdiPlus
     {
         List<Graph> Graphs = new List<Graph>();
@@ -43,6 +41,8 @@ namespace XLibrary
 
         public float RightDivider;
         public float LeftDivider;
+
+        public Dictionary<int, XNodeIn> IntermediateClasses = new Dictionary<int, XNodeIn>();
 
 
         private void DrawCallGraph(Graphics buffer)
@@ -61,13 +61,42 @@ namespace XLibrary
                 OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
-                AddCalledNodes(CurrentRoot, true);
+                if (DependenciesMode == ShowDependenciesMode.Intermediates)
+                {
+                    foreach (var n in XRay.Nodes)
+                    {
+                        n.IntermediateDependenciesIn = null;
+                        n.IntermediateDependenciesOut = null;
+                    }
 
-                if (ShowOutside)
-                    AddCalledNodes(InternalRoot, false);
+                    foreach (var n in IntermediateClasses.Values)
+                    {
+                        CenterMap[n.ID] = n;
+                        PositionMap[n.ID] = n;
 
-                if (ShowExternal)
-                    AddCalledNodes(ExternalRoot, false);
+                        FindIntermediatesTo(n);
+                        //FindIntermediatesFrom(n);
+                    }
+
+                    foreach (var n in XRay.Nodes)
+                    {
+                        if (n.IntermediateDependenciesIn != null)
+                            n.EdgesIn = n.IntermediateDependenciesIn.Keys.ToArray();
+
+                        if (n.IntermediateDependenciesOut != null)
+                            n.EdgesOut = n.IntermediateDependenciesOut.Keys.ToArray();
+                    }
+                }
+                else
+                {
+                    AddCalledNodes(CurrentRoot, true);
+
+                    if (ShowOutside || CenterMap.Count == 1) // prevent blank screen
+                        AddCalledNodes(InternalRoot, false);
+
+                    if (ShowExternal)
+                        AddCalledNodes(ExternalRoot, false);
+                }
 
                 // todo need way to identify ext/outside nodes graphically
 
@@ -675,15 +704,13 @@ namespace XLibrary
             if (GraphMode == CallGraphMode.Dependencies)
             {
                 if ((node.DependenciesFrom != null && node.DependenciesFrom.Length > 0) ||
-                    (node.DependenciesTo != null && node.DependenciesTo.Length > 0))
+                          (node.DependenciesTo != null && node.DependenciesTo.Length > 0))
                 {
                     if (center)
                         CenterMap[node.ID] = node;
 
                     // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
-                    if (center ||
-                         (node.DependenciesFrom != null && node.DependenciesFrom.Any(e => CenterMap.ContainsKey(e))) ||
-                         (node.DependenciesTo != null && node.DependenciesTo.Any(e => CenterMap.ContainsKey(e))))
+                    if (center || DependentToClasses.Contains(node.ID) || DependentFromClasses.Contains(node.ID))
                     {
                         PositionMap[node.ID] = node;
 
@@ -764,6 +791,86 @@ namespace XLibrary
                     prev = next;
                 }
             }
+        }
+
+        public bool FindIntermediatesTo(XNodeIn n, HashSet<int> traversed = null)
+        {
+            if (traversed == null)
+                traversed = new HashSet<int>();
+
+            if (traversed.Contains(n.ID))
+                return false;
+
+            traversed.Add(n.ID);
+
+            bool pathFound = false;
+
+            if (n.DependenciesTo == null)
+                return false;
+
+            foreach (var d in n.DependenciesTo)
+            {
+                var sub = XRay.Nodes[d];
+                bool addLink = false;
+
+                if (IntermediateClasses.ContainsKey(d))
+                    addLink = true;
+
+                if (FindIntermediatesTo(sub, traversed))
+                    addLink = true;
+
+                if (addLink)
+                {
+                    PositionMap[sub.ID] = sub;
+                    if (!IntermediateClasses.ContainsKey(d))
+                        OutsideMap[sub.ID] = sub;
+
+                    n.AddIntermediateDependency(sub);
+                    pathFound = true;
+                }
+            }
+
+            return pathFound;
+        }
+
+        public bool FindIntermediatesFrom(XNodeIn n, HashSet<int> traversed = null)
+        {
+            if (traversed == null)
+                traversed = new HashSet<int>();
+
+            if (traversed.Contains(n.ID))
+                return false;
+
+            traversed.Add(n.ID);
+
+            bool pathFound = false;
+
+            if (n.DependenciesFrom == null)
+                return false;
+
+            foreach (var d in n.DependenciesFrom)
+            {
+                var parent = XRay.Nodes[d];
+                bool addLink = false;
+
+                if (IntermediateClasses.ContainsKey(d))
+                    addLink = true;
+
+                if (FindIntermediatesFrom(parent, traversed))
+                    addLink = true;
+
+                if (addLink)
+                {
+                    PositionMap[parent.ID] = parent;
+                    if (!IntermediateClasses.ContainsKey(d))
+                        OutsideMap[parent.ID] = parent;
+
+                    parent.AddIntermediateDependency(n);
+                    pathFound = true;
+                }
+            }
+
+            return pathFound;
         }
 
 

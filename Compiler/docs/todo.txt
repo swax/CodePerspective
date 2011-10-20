@@ -1,9 +1,8 @@
 ﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
-let direct dependencies work for namespaces
-
-graph dependencies based on zoomed node
+Why using 100% cpu while idling on dependency full screen view
+	run xray on building / test.dat view
 
 put in some tool tips for vis options
 
@@ -74,6 +73,10 @@ legend tab
 	standard, matrix
 	call graph - red calls/dependent on, blue - converse
 
+Thread differentiation
+	sep call graphs per thread, or list of ids, select to show graph for just that
+
+Put sub-classses inside parent classes so functions/methods are adacent?
 
 
 2d spring graph

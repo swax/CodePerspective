@@ -178,6 +178,9 @@ namespace XLibrary
         internal int[] DependenciesTo;
         internal int[] DependenciesFrom;
 
+        public Dictionary<int, XNodeIn> IntermediateDependenciesOut;
+        public Dictionary<int, XNodeIn> IntermediateDependenciesIn;
+
         internal bool Focused;
 
 
@@ -252,6 +255,17 @@ namespace XLibrary
 
             if (!CallsOut.Contains(destId))
                 CallsOut.Add(destId, call);
+        }
+
+        internal void AddIntermediateDependency(XNodeIn sub)
+        {
+            if (IntermediateDependenciesOut == null)
+                IntermediateDependenciesOut = new Dictionary<int, XNodeIn>();
+            IntermediateDependenciesOut[sub.ID] = sub;
+
+            if (sub.IntermediateDependenciesIn == null)
+                sub.IntermediateDependenciesIn = new Dictionary<int, XNodeIn>();
+            sub.IntermediateDependenciesIn[ID] = this;
         }
     }
 }

@@ -57,49 +57,99 @@ namespace XLibrary.Panels
 
         private void LayoutTreeMapButton_CheckedChanged(object sender, EventArgs e)
         {
+            if (!LayoutTreeMapButton.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.TreeMap;
             MainView.MapMode = TreeMapMode.Normal;
+            MainView.DependenciesMode = ShowDependenciesMode.None;
             MainView.RecalcValues();
         }
 
         private void LayoutCallGraphButton_CheckedChanged(object sender, EventArgs e)
-        {         
+        {
+            if (!LayoutCallGraphButton.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Method;
+            MainView.DependenciesMode = ShowDependenciesMode.None;
             MainView.RecalcValues();
         }
 
         private void LayoutInOrder_CheckedChanged(object sender, EventArgs e)
         {
+            if (!LayoutInOrder.Checked)
+                return;
+
             MainView.SequenceOrder = LayoutInOrder.Checked;
             MainView.RecalcValues();
         }
 
         private void LayoutClassCallsButton_CheckedChanged(object sender, EventArgs e)
         {
+            if (!LayoutClassCallsButton.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Class;
+            MainView.DependenciesMode = ShowDependenciesMode.None;
             MainView.RecalcValues();
         }
 
         private void MapDirectDependencies_CheckedChanged(object sender, EventArgs e)
         {
+            if (!MapDirectDependencies.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.TreeMap;
-            MainView.MapMode = TreeMapMode.DirectDependencies;
+            MainView.MapMode = TreeMapMode.Dependencies;
+            MainView.DependenciesMode = ShowDependenciesMode.Direct;
             MainView.RecalcValues();
         }
 
         private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)
         {
+            if (!MapAllDependencies.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.TreeMap;
-            MainView.MapMode = TreeMapMode.AllDependencies;
+            MainView.MapMode = TreeMapMode.Dependencies;
+            MainView.DependenciesMode = ShowDependenciesMode.All;
             MainView.RecalcValues();
         }
 
         private void GraphAllDependencies_CheckedChanged(object sender, EventArgs e)
         {
+            if (!GraphAllDependencies.Checked)
+                return;
+
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Dependencies;
+            MainView.DependenciesMode = ShowDependenciesMode.All;
+            MainView.RecalcValues();
+        }
+
+        private void GraphDirectDependencies_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!GraphDirectDependencies.Checked)
+                return;
+
+            MainView.ViewLayout = LayoutType.CallGraph;
+            MainView.GraphMode = CallGraphMode.Dependencies;
+            MainView.DependenciesMode = ShowDependenciesMode.Direct;
+            MainView.RecalcValues();
+        }
+
+        private void GraphIntermediateDependencies_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!GraphIntermediateDependencies.Checked)
+                return;
+
+            MainView.ViewLayout = LayoutType.CallGraph;
+            MainView.GraphMode = CallGraphMode.Dependencies;
+            MainView.DependenciesMode = ShowDependenciesMode.Intermediates;
+            MainView.IntermediateClasses = MainView.GetClassesFromFocusedNodes();
             MainView.RecalcValues();
         }
 
@@ -127,7 +177,7 @@ namespace XLibrary.Panels
             MainView.RecalcValues();
         }
 
-        private void ResetHitButton_Click(object sender, EventArgs e)
+        private void ResetHitLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             for (int i = 0; i < XRay.CoveredFunctions.Count; i++)
                 if (XRay.Nodes[i].StillInside == 0)
@@ -136,9 +186,9 @@ namespace XLibrary.Panels
             MainView.RecalcValues();
         }
 
-        private void ResetProfilingButton_Click(object sender, EventArgs e)
+        private void ResetProfilingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            foreach(var call in XRay.CallMap)
+            foreach (var call in XRay.CallMap)
             {
                 call.TotalCallTime = 0;
                 call.TotalHits = 0;

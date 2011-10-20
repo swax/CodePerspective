@@ -35,6 +35,7 @@
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.BackButton = new System.Windows.Forms.ToolStripButton();
             this.ForwardButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -48,7 +49,6 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
-            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -70,6 +70,7 @@
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -84,7 +85,7 @@
             this.splitContainer1.Panel2.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.splitContainer1.Panel2.Controls.Add(this.TabPanel);
             this.splitContainer1.Size = new System.Drawing.Size(550, 584);
-            this.splitContainer1.SplitterDistance = 387;
+            this.splitContainer1.SplitterDistance = 360;
             this.splitContainer1.TabIndex = 4;
             // 
             // MainToolStrip
@@ -118,6 +119,11 @@
             this.ForwardButton.Size = new System.Drawing.Size(23, 22);
             this.ForwardButton.Click += new System.EventHandler(this.ForwardButton_Click);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
             // ViewHostPanel
             // 
             this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
@@ -125,7 +131,7 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
             this.ViewHostPanel.Name = "ViewHostPanel";
-            this.ViewHostPanel.Size = new System.Drawing.Size(550, 359);
+            this.ViewHostPanel.Size = new System.Drawing.Size(550, 332);
             this.ViewHostPanel.TabIndex = 3;
             // 
             // TabPanel
@@ -139,7 +145,7 @@
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
             this.TabPanel.Name = "TabPanel";
             this.TabPanel.SelectedIndex = 0;
-            this.TabPanel.Size = new System.Drawing.Size(550, 193);
+            this.TabPanel.Size = new System.Drawing.Size(550, 220);
             this.TabPanel.TabIndex = 0;
             // 
             // tabPage1
@@ -148,7 +154,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(542, 167);
+            this.tabPage1.Size = new System.Drawing.Size(542, 194);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -159,7 +165,7 @@
             this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DisplayTab.Location = new System.Drawing.Point(3, 3);
             this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 161);
+            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
             this.DisplayTab.TabIndex = 0;
             // 
             // tabPage2
@@ -240,11 +246,6 @@
             // 
             this.RevalueTimer.Interval = 1000;
             this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
-            // 
-            // toolStripSeparator1
-            // 
-            this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // MainForm
             // 

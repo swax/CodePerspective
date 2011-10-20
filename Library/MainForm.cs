@@ -50,7 +50,7 @@ namespace XLibrary
             // iterate up tree
             var node = TreeView.CurrentRoot;
 
-            while (node != null && node.ObjType != XObjType.Root)
+            while (node != null)
             {
                 crumbs.Insert(0, node);
 
@@ -61,8 +61,9 @@ namespace XLibrary
             foreach (var crumb in crumbs)
             {
                 var crumbCopy = crumb;
+                var crumbName = (crumb.ObjType == XObjType.Root) ? "View" : crumb.Name;
 
-                var button = new ToolStripSplitButton(crumb.Name);
+                var button = new ToolStripSplitButton(crumbName);
                 button.ButtonClick += (s, e) => TreeView.SetRoot(crumbCopy);
                 button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                 button.ForeColor = TreePanelGdiPlus.ObjColors[(int)crumb.ObjType];

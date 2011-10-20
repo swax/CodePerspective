@@ -13,10 +13,14 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public enum LayoutType { TreeMap, CallGraph }
+    
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
     public enum ShowNodes { All, Hit, Unhit, Instances }
-    public enum TreeMapMode { Normal, DirectDependencies, AllDependencies }
+
+    public enum LayoutType { TreeMap, CallGraph }
+    public enum TreeMapMode { Normal, Dependencies }
+    public enum CallGraphMode { Method, Class, Dependencies }
+    public enum ShowDependenciesMode { None, All, Direct, Intermediates }
 
     public partial class TreePanelGdiPlus : UserControl
     {
@@ -125,7 +129,7 @@ namespace XLibrary
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
         XNodeIn[] NodesHovered = new XNodeIn[] { };
 
-        XNodeIn FocusedNode;
+        public List<XNodeIn> FocusedNodes = new List<XNodeIn>();
 
         Pen FilteredPen = new Pen(Color.LimeGreen, 3);
         SolidBrush FilteredBrush = new SolidBrush(Color.LimeGreen);
@@ -135,11 +139,12 @@ namespace XLibrary
         SolidBrush IgnoredBrush = new SolidBrush(Color.Red);
         Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
 
+        // dependencies
         SolidBrush DependencyToBrush = new SolidBrush(Color.Red);
         SolidBrush DependencyFromBrush = new SolidBrush(Color.Blue);
+        SolidBrush DependencyBothBrush = new SolidBrush(Color.Purple);
 
-        bool ShowRightOutsideArea;
-        bool ShowLeftOutsideArea;
+        public ShowDependenciesMode DependenciesMode = ShowDependenciesMode.Direct;
 
         HashSet<int> DependentToClasses = new HashSet<int>();
         HashSet<int> DependentFromClasses = new HashSet<int>();
@@ -247,7 +252,7 @@ namespace XLibrary
             DependentToClasses.Clear();
             DependentFromClasses.Clear();
 
-            if (MapMode == TreeMapMode.AllDependencies || GraphMode == CallGraphMode.Dependencies)
+            if(DependenciesMode != ShowDependenciesMode.None)
                 RecalcDependencies();
 
             // draw layout
@@ -280,14 +285,11 @@ namespace XLibrary
             {
                 foreach (var source in PositionMap.Values)
                 {
-                    if (source.DependenciesTo == null)
+                    if (source.EdgesOut == null)
                         continue;
 
-                    foreach (var to in source.DependenciesTo)
+                    foreach (var to in source.EdgesOut)
                     {
-                        if (!CenterMap.ContainsKey(source.ID) && !CenterMap.ContainsKey(to))
-                            continue;
-
                         if (!PositionMap.ContainsKey(to))
                             continue;
 
@@ -303,6 +305,7 @@ namespace XLibrary
                 }
             }
 
+
             // draw call graph
             if (XRay.FlowTracking && GraphMode != CallGraphMode.Dependencies)
             {
@@ -311,15 +314,8 @@ namespace XLibrary
                     if (source.CallsOut == null)
                         continue;
 
-                    // dont show class call graph in tree map mode
-                    if (ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class)
-                        continue;
-
                     foreach (var call in source.CallsOut)
                     {
-                        if (!CenterMap.ContainsKey(call.Source) && !CenterMap.ContainsKey(call.Destination))
-                            continue;
-
                         if (!PositionMap.ContainsKey(call.Destination))
                             continue;
 
@@ -670,25 +666,19 @@ namespace XLibrary
                     fillFunction(HitBrush[node.FunctionHit], node.AreaF);
             }
 
-            if (FocusedNode != null && node.ObjType == XObjType.Class)
+            if (FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
             {
-                if(MapMode == TreeMapMode.DirectDependencies)
-                {
-                    if (FocusedNode.DependenciesTo != null && FocusedNode.DependenciesTo.Contains(node.ID))
-                        fillFunction(DependencyToBrush, node.AreaF);
+                bool dependentTo = DependentToClasses.Contains(node.ID);
+                bool dependentFrom = DependentFromClasses.Contains(node.ID);
 
-                    else if (FocusedNode.DependenciesFrom != null && FocusedNode.DependenciesFrom.Contains(node.ID))
-                        fillFunction(DependencyFromBrush, node.AreaF);
-                }
+                if (dependentTo && dependentFrom)
+                    fillFunction(DependencyBothBrush, node.AreaF);
 
-                else if(MapMode == TreeMapMode.AllDependencies || GraphMode == CallGraphMode.Dependencies)
-                {
-                    if (DependentToClasses.Contains(node.ID))
-                        fillFunction(DependencyToBrush, node.AreaF);
+                else if (dependentTo)
+                    fillFunction(DependencyToBrush, node.AreaF);
 
-                    else if (DependentFromClasses.Contains(node.ID))
-                        fillFunction(DependencyFromBrush, node.AreaF);
-                }
+                else if (dependentFrom)
+                    fillFunction(DependencyFromBrush, node.AreaF);
             }
 
             // if just a point, drawing a border messes up pixels
@@ -711,7 +701,7 @@ namespace XLibrary
                 else if (IgnoredNodes.ContainsKey(node.ID))
                     pen = IgnoredPen;
 
-                else if (FocusedNode == node)
+                else if (FocusedNodes.Contains(node))
                     pen = ObjFocusedPens[(int)node.ObjType];
                 else
                     pen = ObjPens[(int)node.ObjType];
@@ -886,26 +876,53 @@ namespace XLibrary
                 SetRoot(node);
         }
 
+        bool CtrlDown;
+
+        void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.ControlKey)
+                CtrlDown = true;
+
+            /*if (e.KeyCode == Keys.Right)
+                Zoom(true);
+            else if (e.KeyCode == Keys.Right)
+                Zoom(false);
+            else if (e.KeyCode == Keys.Space)
+                SetRoot(XRay.RootNode);*/
+        }
+
+        private void TreePanel_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.ControlKey)
+                CtrlDown = false;
+        }
+
+
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                if (FocusedNode != null)
-                    FocusedNode.Focused = false;
+                if (!CtrlDown)
+                {
+                    FocusedNodes.ForEach(n => n.Focused = false);
+                    FocusedNodes.Clear();
+                }
 
-                FocusedNode = GuiHovered.LastOrDefault();
+                var node = GuiHovered.LastOrDefault();
 
-                if (FocusedNode == null)
+                if (node == null)
                     return;
                 else
-                    FocusedNode.Focused = true;
+                    node.Focused = true;
+
+                FocusedNodes.Add(node);
 
                 Redraw();
 
-                if (FocusedNode.ObjType == XObjType.Class)
-                    MainForm.InstanceTab.NavigateTo(FocusedNode);
+                if (node.ObjType == XObjType.Class)
+                    MainForm.InstanceTab.NavigateTo(node);
 
-                MainForm.TimingPanel.NavigateTo(FocusedNode);
+                MainForm.TimingPanel.NavigateTo(node);
             }
             else if (e.Button == MouseButtons.Right)
             {
@@ -950,21 +967,6 @@ namespace XLibrary
             // forward button zoom in
             else if (e.Button == MouseButtons.XButton2)
                 Zoom(true);
-        }
-
-        void TreePanel_MouseWheel(object sender, MouseEventArgs e)
-        {
-            //Zoom(e.Delta > 0);
-        }
-
-        void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Right)
-                Zoom(true);
-            else if (e.KeyCode == Keys.Right)
-                Zoom(false);
-            else if (e.KeyCode == Keys.Space)
-                SetRoot(XRay.RootNode);
         }
 
         private void Zoom(bool inward)
@@ -1063,37 +1065,18 @@ namespace XLibrary
         private void RecalcDependencies()
         {
 
-            if (FocusedNode == null)
+            if (FocusedNodes.Count == 0)
                 return;
 
-            // get all classes to fig dependencies for
-            List<XNodeIn> classes = new List<XNodeIn>();
+            // find dependencies for selected classes
+            Dictionary<int, XNodeIn> classes = GetClassesFromFocusedNodes();
 
-            if (FocusedNode.ObjType == XObjType.Class ||
-                FocusedNode.ObjType == XObjType.Method ||
-                FocusedNode.ObjType == XObjType.Field)
-            {
-                classes.Add(FocusedNode.GetParentClass() as XNodeIn);
-            }
-            else
-                RecurseTree<XNodeIn>(
-                    FocusedNode.Nodes.Cast<XNodeIn>(),
-                    evaluate: n =>
-                    {
-                        if (n.ObjType == XObjType.Class)
-                            classes.Add(n);
-                    },
-                    recurse: n =>
-                    {
-                        return (n.ObjType != XObjType.Class) ? n.Nodes.Cast<XNodeIn>() : null;
-                    }
-                );
-
-            // traverse to dependencies for focused node/namespace
+            bool doRecurse = (DependenciesMode == ShowDependenciesMode.All);
             bool idFound = false;
 
-            foreach (var dependenciesTo in classes.Where(c => c.DependenciesTo != null)
-                                                  .Select(c => c.DependenciesTo))
+            foreach (var dependenciesTo in classes.Values.Where(c => c.DependenciesTo != null)
+                                      .Select(c => c.DependenciesTo))
+            {
                 RecurseTree<int>(
                     dependenciesTo,
                     evaluate: id =>
@@ -1103,31 +1086,58 @@ namespace XLibrary
                     },
                     recurse: id =>
                     {
-                        return !idFound ? XRay.Nodes[id].DependenciesTo : null;
+                        return (doRecurse && !idFound) ? XRay.Nodes[id].DependenciesTo : null;
                     }
                 );
+            }
 
-            // traverse from dependencies, if not already in 'to'
-            bool dependentOn = false;
-
-            foreach (var dependenciesFrom in classes.Where(c => c.DependenciesFrom != null)
-                                                    .Select(c => c.DependenciesFrom))
+            // find all dependencies from
+            foreach (var dependenciesFrom in classes.Values.Where(c => c.DependenciesFrom != null)
+                                        .Select(c => c.DependenciesFrom))
+            {
                 RecurseTree<int>(
                     dependenciesFrom,
                     evaluate: id =>
                     {
-                        dependentOn = DependentToClasses.Contains(id);
-                        if (dependentOn)
-                            return;
-
                         idFound = DependentFromClasses.Contains(id);
                         DependentFromClasses.Add(id);
                     },
                     recurse: id =>
                     {
-                        return !idFound && !dependentOn ? XRay.Nodes[id].DependenciesFrom : null;
+                        return (doRecurse && !idFound) ? XRay.Nodes[id].DependenciesFrom : null;
                     }
                 );
+            }
+        }
+
+        public Dictionary<int, XNodeIn> GetClassesFromFocusedNodes()
+        {
+            Dictionary<int, XNodeIn> classes = new Dictionary<int, XNodeIn>();
+
+            foreach (var node in FocusedNodes)
+            {
+                if (node.ObjType == XObjType.Class ||
+                    node.ObjType == XObjType.Method ||
+                    node.ObjType == XObjType.Field)
+                {
+                    classes[node.ID] =node.GetParentClass() as XNodeIn;
+                }
+                else
+                    RecurseTree<XNodeIn>(
+                        node.Nodes.Cast<XNodeIn>(),
+                        evaluate: n =>
+                        {
+                            if (n.ObjType == XObjType.Class)
+                                classes[n.ID] = n;
+                        },
+                        recurse: n =>
+                        {
+                            return (n.ObjType != XObjType.Class) ? n.Nodes.Cast<XNodeIn>() : null;
+                        }
+                    );
+            }
+
+            return classes;
         }
 
         private void RecurseTree<T>(IEnumerable<T> tree, Action<T> evaluate, Func<T, IEnumerable<T>> recurse)

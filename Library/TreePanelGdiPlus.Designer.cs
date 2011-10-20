@@ -37,11 +37,11 @@
             this.Name = "TreePanelGdiPlus";
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.TreePanel_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseClick);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDoubleClick);
             this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseMove);
-            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseWheel);
             this.Resize += new System.EventHandler(this.TreePanel_Resize);
             this.ResumeLayout(false);
 

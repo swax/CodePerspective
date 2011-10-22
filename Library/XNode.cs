@@ -178,8 +178,8 @@ namespace XLibrary
         internal int[] DependenciesTo;
         internal int[] DependenciesFrom;
 
-        public Dictionary<int, XNodeIn> IntermediateDependenciesOut;
-        public Dictionary<int, XNodeIn> IntermediateDependenciesIn;
+        public Dictionary<int, XNodeIn> DependencyChainOut;
+        public Dictionary<int, XNodeIn> DependencyChainIn;
 
         internal bool Focused;
 
@@ -259,13 +259,13 @@ namespace XLibrary
 
         internal void AddIntermediateDependency(XNodeIn sub)
         {
-            if (IntermediateDependenciesOut == null)
-                IntermediateDependenciesOut = new Dictionary<int, XNodeIn>();
-            IntermediateDependenciesOut[sub.ID] = sub;
+            if (DependencyChainOut == null)
+                DependencyChainOut = new Dictionary<int, XNodeIn>();
+            DependencyChainOut[sub.ID] = sub;
 
-            if (sub.IntermediateDependenciesIn == null)
-                sub.IntermediateDependenciesIn = new Dictionary<int, XNodeIn>();
-            sub.IntermediateDependenciesIn[ID] = this;
+            if (sub.DependencyChainIn == null)
+                sub.DependencyChainIn = new Dictionary<int, XNodeIn>();
+            sub.DependencyChainIn[ID] = this;
         }
     }
 }

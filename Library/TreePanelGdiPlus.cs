@@ -252,12 +252,13 @@ namespace XLibrary
             DependentToClasses.Clear();
             DependentFromClasses.Clear();
 
-            if(DependenciesMode != ShowDependenciesMode.None)
+            if (DependenciesMode != ShowDependenciesMode.None && DependenciesMode != ShowDependenciesMode.Intermediates)
                 RecalcDependencies();
 
             // draw layout
             if (ViewLayout == LayoutType.TreeMap)
                 DrawTreeMap(buffer);
+
             else if (ViewLayout == LayoutType.CallGraph)
                 DrawCallGraph(buffer);
 
@@ -726,15 +727,19 @@ namespace XLibrary
                 buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
             }
 
+
+            if (MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
+                drawChildren = false;
+
             if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)
                     DrawNode(buffer, sub, depth + 1, drawChildren);
 
 
             // after drawing children, draw instance tracking on top of it all
-            if (XRay.InstanceTracking && node.ObjType == XObjType.Class)
+            /*if (XRay.InstanceTracking && node.ObjType == XObjType.Class)
             {
-                /*if (XRay.InstanceCount[node.ID] > 0)
+               if (XRay.InstanceCount[node.ID] > 0)
                 {
                     string count = XRay.InstanceCount[node.ID].ToString();
                     Rectangle x = new Rectangle(node.Area.Location, buffer.MeasureString(count, InstanceFont).ToSize());
@@ -744,8 +749,8 @@ namespace XLibrary
                         buffer.FillRectangle(NothingBrush, x);
                         buffer.DrawString(count, InstanceFont, InstanceBrush, node.Area.Location.X + 2, node.Area.Location.Y + 2);
                     }
-                }*/
-            }
+                }
+            }*/
         }
 
         private void TreePanel_Resize(object sender, EventArgs e)
@@ -912,17 +917,27 @@ namespace XLibrary
 
                 if (node == null)
                     return;
+
+                else if (node.Focused && CtrlDown)
+                {
+                    node.Focused = false;
+
+                    FocusedNodes.Remove(node);
+                }
+
                 else
+                {
                     node.Focused = true;
 
-                FocusedNodes.Add(node);
+                    FocusedNodes.Add(node);
+
+                    if (node.ObjType == XObjType.Class)
+                        MainForm.InstanceTab.NavigateTo(node);
+
+                    MainForm.TimingPanel.NavigateTo(node);
+                }
 
                 Redraw();
-
-                if (node.ObjType == XObjType.Class)
-                    MainForm.InstanceTab.NavigateTo(node);
-
-                MainForm.TimingPanel.NavigateTo(node);
             }
             else if (e.Button == MouseButtons.Right)
             {

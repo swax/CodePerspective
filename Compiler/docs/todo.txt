@@ -4,7 +4,10 @@ EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 Why using 100% cpu while idling on dependency full screen view
 	run xray on building / test.dat view
 
+dont show methods/fields in dependency views
+
 put in some tool tips for vis options
+	on selected radio mention ctrl click
 
 can generic types with `1 be resolved?
 
@@ -67,11 +70,16 @@ pan/zoom
 	wheel does the zoom part
 	zooming all the way out brings view back to normal
 
-legend tab
-	show current colors
-	let user set diff colors, load/save configs
-	standard, matrix
-	call graph - red calls/dependent on, blue - converse
+help tab
+	scrolls down
+	legend
+		show current colors
+		let user set diff colors, load/save configs
+		standard, matrix
+		call graph - red calls/dependent on, blue - converse
+	ctrl click to select multiple
+
+
 
 Thread differentiation
 	sep call graphs per thread, or list of ids, select to show graph for just that

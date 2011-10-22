@@ -37,3 +37,9 @@ a time line at the bottom of the app
 	shows blocks for running code, whitespace for nothing
 	diff rows for diff threads
 	always moving
+
+showing dependency lineage between 2 specific classes
+	good for modularizing a large project
+	can take any two classes and see the chain of nodes that links them
+	advantage - can visually, and quickly evaluate dependencies
+		where to break dependency chain - after evaluating all itermediates

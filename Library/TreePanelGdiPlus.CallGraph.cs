@@ -36,13 +36,7 @@ namespace XLibrary
         public bool SequenceOrder = false;
         public CallGraphMode GraphMode = CallGraphMode.Method;
 
-        public float RightScaledDivider;
-        public float LeftScaledDivider;
-
-        public float RightDivider;
-        public float LeftDivider;
-
-        public Dictionary<int, XNodeIn> IntermediateClasses = new Dictionary<int, XNodeIn>();
+        public Dictionary<int, XNodeIn> InterDependencies = new Dictionary<int, XNodeIn>();
 
 
         private void DrawCallGraph(Graphics buffer)
@@ -65,26 +59,29 @@ namespace XLibrary
                 {
                     foreach (var n in XRay.Nodes)
                     {
-                        n.IntermediateDependenciesIn = null;
-                        n.IntermediateDependenciesOut = null;
+                        n.DependencyChainIn = null;
+                        n.DependencyChainOut = null;
                     }
 
-                    foreach (var n in IntermediateClasses.Values)
+                    foreach (var n in InterDependencies.Values)
                     {
                         CenterMap[n.ID] = n;
                         PositionMap[n.ID] = n;
 
-                        FindIntermediatesTo(n);
+                        var find = InterDependencies.Keys.ToList();
+                        find.Remove(n.ID);
+
+                        FindChainTo(n, find);
                         //FindIntermediatesFrom(n);
                     }
 
                     foreach (var n in XRay.Nodes)
                     {
-                        if (n.IntermediateDependenciesIn != null)
-                            n.EdgesIn = n.IntermediateDependenciesIn.Keys.ToArray();
+                        if (n.DependencyChainIn != null)
+                            n.EdgesIn = n.DependencyChainIn.Keys.ToArray();
 
-                        if (n.IntermediateDependenciesOut != null)
-                            n.EdgesOut = n.IntermediateDependenciesOut.Keys.ToArray();
+                        if (n.DependencyChainOut != null)
+                            n.EdgesOut = n.DependencyChainOut.Keys.ToArray();
                     }
                 }
                 else
@@ -121,9 +118,6 @@ namespace XLibrary
             if (DoResize)
             {
                 float fullSize = (float)Math.Min(Width, Height) / 2;
-
-                RightDivider = RightScaledDivider * Width;
-                LeftDivider = LeftScaledDivider * Width;
 
                 foreach (var graph in Graphs)
                 {
@@ -288,12 +282,6 @@ namespace XLibrary
 
                     PositionRank(graph, rank, xOffset + maxSize / 2);
 
-                    if (graph.FirstRankOutside && x == 0)
-                        RightScaledDivider = xOffset + maxSize + spaceX / 2;
-
-                    if (graph.LastRankOutside && x == graph.Ranks.Length - 2)
-                        LeftScaledDivider = xOffset + maxSize + spaceX / 2;
-
                     xOffset += maxSize + spaceX;
                 }
 
@@ -370,24 +358,6 @@ namespace XLibrary
                     continue;
                 }
                 
-                // move outside nodes to left if node call's into center, right otherwise
-                bool firstRankOutside = false;
-                bool lastRankOutside = false;
-
-                /*if (OutsideMap.Any())
-                    foreach (var n in graph.Values.OrderBy(v => v.Rank))
-                        if (OutsideMap.ContainsKey(n.ID))
-                            if (n.EdgesOut != null && n.EdgesOut.Any(e => CenterMap.ContainsKey(e)))
-                            {
-                                n.Rank = -10;
-                                firstRankOutside = true;
-                            }
-                            else
-                            {
-                                n.Rank = int.MaxValue;
-                                lastRankOutside = true;
-                            }*/
-
                 // normalize ranks so sequential without any missing between
                 int nextSequentialRank = -1;
                 int currentRank = int.MinValue;
@@ -487,7 +457,7 @@ namespace XLibrary
                     }
                 }
 
-                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight, FirstRankOutside = firstRankOutside, LastRankOutside = lastRankOutside });
+                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight });
 
             } while (PositionMap.Values.Any(n => n.Rank == null));
 
@@ -793,7 +763,7 @@ namespace XLibrary
             }
         }
 
-        public bool FindIntermediatesTo(XNodeIn n, HashSet<int> traversed = null)
+        public bool FindChainTo(XNodeIn n, List<int> find, HashSet<int> traversed = null)
         {
             if (traversed == null)
                 traversed = new HashSet<int>();
@@ -813,16 +783,19 @@ namespace XLibrary
                 var sub = XRay.Nodes[d];
                 bool addLink = false;
 
-                if (IntermediateClasses.ContainsKey(d))
+                if (find.Contains(d))
+                {
                     addLink = true;
+                    find.Remove(d);
+                }
 
-                if (FindIntermediatesTo(sub, traversed))
+                if (find.Count > 0 && FindChainTo(sub, find, traversed))
                     addLink = true;
 
                 if (addLink)
                 {
                     PositionMap[sub.ID] = sub;
-                    if (!IntermediateClasses.ContainsKey(d))
+                    if (!InterDependencies.ContainsKey(d))
                         OutsideMap[sub.ID] = sub;
 
                     n.AddIntermediateDependency(sub);
@@ -833,7 +806,7 @@ namespace XLibrary
             return pathFound;
         }
 
-        public bool FindIntermediatesFrom(XNodeIn n, HashSet<int> traversed = null)
+        public bool FindChainFrom(XNodeIn n, List<int> find, HashSet<int> traversed = null)
         {
             if (traversed == null)
                 traversed = new HashSet<int>();
@@ -853,16 +826,19 @@ namespace XLibrary
                 var parent = XRay.Nodes[d];
                 bool addLink = false;
 
-                if (IntermediateClasses.ContainsKey(d))
+                if (find.Contains(d))
+                {
                     addLink = true;
+                    find.Remove(d);
+                }
 
-                if (FindIntermediatesFrom(parent, traversed))
+                if (find.Count > 0 && FindChainFrom(parent, find, traversed))
                     addLink = true;
 
                 if (addLink)
                 {
                     PositionMap[parent.ID] = parent;
-                    if (!IntermediateClasses.ContainsKey(d))
+                    if (!InterDependencies.ContainsKey(d))
                         OutsideMap[parent.ID] = parent;
 
                     parent.AddIntermediateDependency(n);
@@ -881,9 +857,6 @@ namespace XLibrary
 
             internal float ScaledHeight;
             internal float ScaledOffset;
-
-            public bool FirstRankOutside;
-            public bool LastRankOutside;
 
             internal IEnumerable<XNodeIn> Nodes()
             {

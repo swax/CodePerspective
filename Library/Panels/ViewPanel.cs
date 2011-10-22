@@ -149,7 +149,7 @@ namespace XLibrary.Panels
             MainView.ViewLayout = LayoutType.CallGraph;
             MainView.GraphMode = CallGraphMode.Dependencies;
             MainView.DependenciesMode = ShowDependenciesMode.Intermediates;
-            MainView.IntermediateClasses = MainView.GetClassesFromFocusedNodes();
+            MainView.InterDependencies = MainView.GetClassesFromFocusedNodes();
             MainView.RecalcValues();
         }
 

@@ -4,7 +4,8 @@ EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 Why using 100% cpu while idling on dependency full screen view
 	run xray on building / test.dat view
 
-dont show methods/fields in dependency views
+spring 2d graph
+spend a day and just give 3d a shot, make it a module that can be included
 
 put in some tool tips for vis options
 	on selected radio mention ctrl click
@@ -90,7 +91,12 @@ Put sub-classses inside parent classes so functions/methods are adacent?
 2d spring graph
 
 3d hackers selling point -
-	each instance is a building
+	each class is a building
+	align in graph projection
+	make the connecting lines roads, with cars as green moving dots
+	each layer of the building is method
+	layers light up when called
+
 	windows lighting up are running functions
 	zooming in on building shows fields/values
 	zooming in on function shows code

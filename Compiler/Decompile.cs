@@ -363,7 +363,6 @@ namespace XBuilder
                         }
                     }
 
-                    
                     else if (TrackFields && 
                              (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Ldfld || instruction.OpCode == OpCodes.Ldflda))
                     {
@@ -390,6 +389,12 @@ namespace XBuilder
                         i = i + 2 + offset; // skip instuction added, and field itself, end of loop will iterate this again
 
                         // Debug.WriteLine("{0} in Module: {1}, Namespace: {2}, Class: {3}, Name: {4}, Type: {5}", instruction.OpCode, fieldDef.DeclaringType.Scope.Name, namespaces, className, fieldName, fieldType);
+                    }
+
+                    else if (instruction.OpCode == OpCodes.Newobj)
+                    {
+                        var newObj = instruction.Operand as MethodReference;
+                        SetClassDependency(classNode, newObj.DeclaringType);
                     }
 
                 } // end iterating through instructions

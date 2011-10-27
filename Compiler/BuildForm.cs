@@ -21,8 +21,6 @@ namespace XBuilder
         string SourceDir;
         string OutputDir;
 
-        public string xxx = "john";
-
         public BuildForm()
         {
             InitializeComponent();

@@ -41,6 +41,7 @@
             this.OutputLink = new System.Windows.Forms.LinkLabel();
             this.TrackExternalCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.TrackInstancesCheckBox = new System.Windows.Forms.CheckBox();
             this.TrackFieldsCheckBox = new System.Windows.Forms.CheckBox();
             this.StatusLabel = new System.Windows.Forms.Label();
             this.MsToolsCheckbox = new System.Windows.Forms.CheckBox();
@@ -48,7 +49,6 @@
             this.DecompileAgainCheckbox = new System.Windows.Forms.CheckBox();
             this.TestCompile = new System.Windows.Forms.Button();
             this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
-            this.TrackInstancesCheckBox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -89,7 +89,7 @@
             // LaunchButton
             // 
             this.LaunchButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.LaunchButton.Location = new System.Drawing.Point(262, 32);
+            this.LaunchButton.Location = new System.Drawing.Point(262, 61);
             this.LaunchButton.Name = "LaunchButton";
             this.LaunchButton.Size = new System.Drawing.Size(99, 23);
             this.LaunchButton.TabIndex = 5;
@@ -124,11 +124,11 @@
             // ShowMapButton
             // 
             this.ShowMapButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ShowMapButton.Location = new System.Drawing.Point(262, 90);
+            this.ShowMapButton.Location = new System.Drawing.Point(262, 32);
             this.ShowMapButton.Name = "ShowMapButton";
             this.ShowMapButton.Size = new System.Drawing.Size(99, 23);
             this.ShowMapButton.TabIndex = 9;
-            this.ShowMapButton.Text = "Test XRay.dat";
+            this.ShowMapButton.Text = "Analyze";
             this.ShowMapButton.UseVisualStyleBackColor = true;
             this.ShowMapButton.Click += new System.EventHandler(this.ShowMapButton_Click);
             // 
@@ -220,6 +220,18 @@
             this.OptionsPanel.Size = new System.Drawing.Size(361, 255);
             this.OptionsPanel.TabIndex = 15;
             // 
+            // TrackInstancesCheckBox
+            // 
+            this.TrackInstancesCheckBox.AutoSize = true;
+            this.TrackInstancesCheckBox.Checked = true;
+            this.TrackInstancesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(13, 95);
+            this.TrackInstancesCheckBox.Name = "TrackInstancesCheckBox";
+            this.TrackInstancesCheckBox.Size = new System.Drawing.Size(102, 17);
+            this.TrackInstancesCheckBox.TabIndex = 23;
+            this.TrackInstancesCheckBox.Text = "Track instances";
+            this.TrackInstancesCheckBox.UseVisualStyleBackColor = true;
+            // 
             // TrackFieldsCheckBox
             // 
             this.TrackFieldsCheckBox.AutoSize = true;
@@ -278,7 +290,7 @@
             // TestCompile
             // 
             this.TestCompile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.TestCompile.Location = new System.Drawing.Point(262, 61);
+            this.TestCompile.Location = new System.Drawing.Point(262, 90);
             this.TestCompile.Name = "TestCompile";
             this.TestCompile.Size = new System.Drawing.Size(99, 23);
             this.TestCompile.TabIndex = 16;
@@ -297,18 +309,6 @@
             this.TrackAnonCheckBox.TabIndex = 15;
             this.TrackAnonCheckBox.Text = "Track anonymous types";
             this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
-            // 
-            // TrackInstancesCheckBox
-            // 
-            this.TrackInstancesCheckBox.AutoSize = true;
-            this.TrackInstancesCheckBox.Checked = true;
-            this.TrackInstancesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(13, 95);
-            this.TrackInstancesCheckBox.Name = "TrackInstancesCheckBox";
-            this.TrackInstancesCheckBox.Size = new System.Drawing.Size(102, 17);
-            this.TrackInstancesCheckBox.TabIndex = 23;
-            this.TrackInstancesCheckBox.Text = "Track instances";
-            this.TrackInstancesCheckBox.UseVisualStyleBackColor = true;
             // 
             // BuildForm
             // 

@@ -1,4 +1,4 @@
-﻿test
+﻿
 EVERYDAY I SHOULD UNDERSTAND AN XRAYED APP MORE
 
 Why using 100% cpu while idling on dependency full screen view
@@ -6,6 +6,8 @@ Why using 100% cpu while idling on dependency full screen view
 
 spring 2d graph
 spend a day and just give 3d a shot, make it a module that can be included
+can 2d be rendered faster with 3d code?
+	find fps of current 2d stuff, maybe a 'time to render' stat
 
 put in some tool tips for vis options
 	on selected radio mention ctrl click
@@ -15,23 +17,6 @@ can generic types with `1 be resolved?
 field view updates live
 
 field details, mouse over values?
-
-
-useful for de-ops yet? inspect dependencies more.
-
-
-class dependency graph
-	works with structs?
-
-	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction
-
-	use to refactor de-ops into core/ui/sim components
-	easier to see dependencies and reactor the easy stuff piece wise
-	click on class should show exactly what member variables/parameters/local functions are dependent
-
-	an interactive system would be able to drag drop components between modules as long as there were no internal dependencies
-	dependencies between modules should be easy to see/graph as well - subgraphs for each module
-		maybe test with dragonly dll hell
 
 profile tab
 	reset timing button

@@ -70,3 +70,17 @@ option to show dependencies direct/all
 ---
 
 history
+
+
+class dependency graph
+	works with structs?
+
+	test - load 2 compilcated modules (ilspy) and verify dependencies all go 1 direction
+
+	use to refactor de-ops into core/ui/sim components
+	easier to see dependencies and reactor the easy stuff piece wise
+	click on class should show exactly what member variables/parameters/local functions are dependent
+
+	an interactive system would be able to drag drop components between modules as long as there were no internal dependencies
+	dependencies between modules should be easy to see/graph as well - subgraphs for each module
+		maybe test with dragonly dll hell

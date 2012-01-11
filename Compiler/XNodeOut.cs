@@ -42,6 +42,50 @@ namespace XBuilder
             ID = NextID++;
 
             //Debug.WriteLine(string.Format("Added {0}: {1}", objType, FullName()));
+
+            // make template name more readable
+            int pos = name.LastIndexOf('`');
+
+            if (pos != -1)
+            {
+                int endPos = name.IndexOf(' ', pos);
+                bool more = true;
+                bool anonFunc = name.StartsWith("Func`");
+
+                if (endPos == -1)
+                {
+                    endPos = name.Length;
+                    more = false;
+                }
+
+                int start = pos + 1;
+                int numT = int.Parse(name.Substring(start, endPos - start));
+
+                string nameT = name.Substring(0, pos);
+
+                if (numT == 1 && anonFunc)
+                    nameT += "<TResult>";
+                
+                else if(numT == 1 && !anonFunc)
+                        nameT += "<T>";
+       
+                else
+                {
+                    // <T1,T2,T3>
+                    var tArray = Enumerable.Range(1, numT).Select(i => "T" + i.ToString()).ToArray();
+
+                    if (anonFunc)
+                        tArray[numT - 1] = "TResult";
+
+                    nameT += "<" + string.Join(",", tArray) + ">";
+                }
+                
+
+                if (more)
+                    nameT += " " + name.Substring(endPos);
+
+                Name = nameT;
+            }
         }
 
         public XNodeOut AddNode(string name, XObjType objType)

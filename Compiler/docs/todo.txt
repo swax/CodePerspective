@@ -13,6 +13,7 @@ put in some tool tips for vis options
 	on selected radio mention ctrl click
 
 can generic types with `1 be resolved?
+	find where class name is set and replace `
 
 field view updates live
 

@@ -181,6 +181,19 @@ namespace XTestLib
         static void TestMethod(int index, object y)
         {
             x++;
+
+            var z = new TemplateClass<string, string>();
+        }
+    }
+
+    public class TemplateClass<T1, T2>
+    {
+        int FillerFunction()
+        {
+            int x = 1;
+            int y = 2;
+            int z = 3;
+            return x + y + z;
         }
     }
 

@@ -28,6 +28,7 @@ namespace XLibrary.Panels
             IncludeOutsideZoomButton.Checked = MainView.ShowOutside;
             IncludeNotXRayedButton.Checked = MainView.ShowExternal;
             IncludeFields.Checked = MainView.ShowFields;
+            IncludeMethods.Checked = MainView.ShowMethods;
 
             // layout
             LayoutTreeMapButton.Checked = MainView.ViewLayout == LayoutType.TreeMap;
@@ -278,6 +279,12 @@ namespace XLibrary.Panels
         private void TrackingInstances_CheckedChanged(object sender, EventArgs e)
         {
             XRay.InstanceTracking = TrackingInstances.Checked;
+        }
+
+        private void IncludeMethods_CheckedChanged(object sender, EventArgs e)
+        {
+            MainView.ShowMethods = IncludeMethods.Checked;
+            MainView.RecalcValues();
         }
     }
 }

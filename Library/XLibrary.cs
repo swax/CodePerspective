@@ -22,6 +22,8 @@ namespace XLibrary
 
         static int FunctionCount;
 
+        public static bool XRayEnabled = true;
+
         internal static bool CoverChange;
         internal static bool CallChange;
         internal static bool InstanceChange;
@@ -158,8 +160,8 @@ namespace XLibrary
                             FunctionCount = node.ID;
 
                         // create converse dependency edges
-                        if(node.DependenciesTo != null)
-                            foreach (var to in node.DependenciesTo)
+                        if(node.Dependencies != null)
+                            foreach (var to in node.Dependencies)
                             {
                                 if (!dependenciesFrom.ContainsKey(to))
                                     dependenciesFrom[to] = new List<int>();
@@ -176,7 +178,7 @@ namespace XLibrary
                     Nodes[node.ID] = node;
 
                 foreach (var from in dependenciesFrom.Keys)
-                    Nodes[from].DependenciesFrom = dependenciesFrom[from].ToArray();
+                    Nodes[from].Independencies = dependenciesFrom[from].ToArray();
 
 
                 return true;
@@ -191,7 +193,8 @@ namespace XLibrary
 
         public static void MethodEnter(int nodeID)
         {
-            NodeHit(nodeID);
+            if(XRayEnabled)
+                NodeHit(nodeID);
         }
 
         private static XNodeIn NodeHit(int nodeID)
@@ -378,6 +381,8 @@ namespace XLibrary
 
         public static void MethodExit(int nodeID)
         {
+            // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state
+
             if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
                 return;
 
@@ -473,6 +478,9 @@ namespace XLibrary
 
         public static void Constructed(int index, Object obj)
         {
+            if (!XRayEnabled)
+                return;
+
             XNodeIn node = Nodes[index];
 
             // prevent having to check multiple times in mark hit and flow tracking
@@ -493,6 +501,8 @@ namespace XLibrary
 
         public static void Deconstructed(int index, Object obj)
         {
+            // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state
+
             XNodeIn node = Nodes[index];
 
             // prevent having to check multiple times in mark hit and flow tracking
@@ -508,6 +518,9 @@ namespace XLibrary
 
         public static void LoadField(int nodeID)
         {
+            if (!XRayEnabled)
+                return;
+
             var node = NodeHit(nodeID);
             if (node != null)
                 node.LastFieldOp = FieldOp.Get;
@@ -515,6 +528,9 @@ namespace XLibrary
 
         public static void SetField(int nodeID)
         {
+            if (!XRayEnabled)
+                return;
+
             var node = NodeHit(nodeID);
             if (node != null)
                 node.LastFieldOp = FieldOp.Set;

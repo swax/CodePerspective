@@ -69,16 +69,23 @@ namespace XLibrary
                 button.ForeColor = TreePanelGdiPlus.ObjColors[(int)crumb.ObjType];
                 MainToolStrip.Items.Add(button);
 
-                foreach (var sub in crumb.Nodes.OrderBy(n => n, new CompareNodes()))
-                {
-                    var subCopy = sub as XNodeIn;
-                    
-                    var item = new ToolStripMenuItem(sub.Name, null,  (s, e) => TreeView.SetRoot(subCopy));
-                    item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-                    item.ForeColor = TreePanelGdiPlus.ObjColors[(int)sub.ObjType];
+                button.DropDownOpening += (s1, e1) =>
+                    {
+                        foreach (var sub in crumbCopy.Nodes.OrderBy(n => n, new CompareNodes()))
+                        {
+                            var subCopy = sub as XNodeIn;
 
-                    button.DropDownItems.Add(item);
-                }
+                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => TreeView.SetRoot(subCopy));
+                            item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+                            item.ForeColor = TreePanelGdiPlus.ObjColors[(int)sub.ObjType];
+
+                            // freezing with more than 100 items..
+                            //if (button.DropDownItems.Count > 100)
+                            //    break;
+
+                            button.DropDownItems.Add(item);
+                        }
+                    };
             }
 
             BackButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Previous != null);
@@ -151,6 +158,40 @@ namespace XLibrary
         private void ForwardButton_Click(object sender, EventArgs e)
         {
             TreeView.NavForward();
+        }
+
+        private void OnOffButton_Click(object sender, EventArgs e)
+        {
+            if (XRay.XRayEnabled)
+            {
+                XRay.XRayEnabled = false;
+                OnOffButton.Text = "off";
+                OnOffButton.ForeColor = Color.DarkRed;
+            }
+            else
+            {
+                XRay.XRayEnabled = true;
+                OnOffButton.Text = "on";
+                OnOffButton.ForeColor = Color.Green;
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, EventArgs e)
+        {
+            TreeView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
+            TreeView.SearchStrobe = false; // so matches are shown immediately
+            TreeView.Redraw();
+        }
+
+        private void SearchTimer_Tick(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(TreeView.SearchString))
+                TreeView.SearchStrobe = !TreeView.SearchStrobe;
+        }
+
+        private void DisplayTab_Load(object sender, EventArgs e)
+        {
+
         }
     }
 

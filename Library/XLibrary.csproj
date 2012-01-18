@@ -148,6 +148,7 @@
     <Compile Include="TreePanelGdiPlus.Designer.cs">
       <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
     </Compile>
+    <Compile Include="Utilities.cs" />
     <Compile Include="Win32.cs" />
     <Compile Include="XLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

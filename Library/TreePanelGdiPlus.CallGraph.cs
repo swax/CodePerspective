@@ -95,8 +95,6 @@ namespace XLibrary
                         AddCalledNodes(ExternalRoot, false);
                 }
 
-                // todo need way to identify ext/outside nodes graphically
-
                 if (PositionMap.Count > 0)
                 {
                     BuildGraphs();
@@ -673,14 +671,14 @@ namespace XLibrary
 
             if (GraphMode == CallGraphMode.Dependencies)
             {
-                if ((node.DependenciesFrom != null && node.DependenciesFrom.Length > 0) ||
-                          (node.DependenciesTo != null && node.DependenciesTo.Length > 0))
+                if ((node.Independencies != null && node.Independencies.Length > 0) ||
+                          (node.Dependencies != null && node.Dependencies.Length > 0))
                 {
                     if (center)
                         CenterMap[node.ID] = node;
 
                     // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
-                    if (center || DependentToClasses.Contains(node.ID) || DependentFromClasses.Contains(node.ID))
+                    if (center || DependentClasses.Contains(node.ID) || IndependentClasses.Contains(node.ID))
                     {
                         PositionMap[node.ID] = node;
 
@@ -691,11 +689,11 @@ namespace XLibrary
                         node.EdgesOut = null;
                         node.Intermediates = null;
 
-                        if (node.DependenciesFrom != null)
-                            node.EdgesIn = node.DependenciesFrom;
+                        if (node.Independencies != null)
+                            node.EdgesIn = node.Independencies;
 
-                        if (node.DependenciesTo != null)
-                            node.EdgesOut = node.DependenciesTo;
+                        if (node.Dependencies != null)
+                            node.EdgesOut = node.Dependencies;
                     }
                 }
             }
@@ -775,10 +773,10 @@ namespace XLibrary
 
             bool pathFound = false;
 
-            if (n.DependenciesTo == null)
+            if (n.Dependencies == null)
                 return false;
 
-            foreach (var d in n.DependenciesTo)
+            foreach (var d in n.Dependencies)
             {
                 var sub = XRay.Nodes[d];
                 bool addLink = false;
@@ -818,10 +816,10 @@ namespace XLibrary
 
             bool pathFound = false;
 
-            if (n.DependenciesFrom == null)
+            if (n.Independencies == null)
                 return false;
 
-            foreach (var d in n.DependenciesFrom)
+            foreach (var d in n.Independencies)
             {
                 var parent = XRay.Nodes[d];
                 bool addLink = false;

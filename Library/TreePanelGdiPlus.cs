@@ -41,7 +41,8 @@ namespace XLibrary
         internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         internal ShowNodes ShowLayout = ShowNodes.All;
         internal bool ShowFields = true;
-        
+        internal bool ShowMethods = true;
+
         internal bool ShowLabels = true;
         float LabelPadding = 2;
            
@@ -69,7 +70,9 @@ namespace XLibrary
 
         SolidBrush HoldingBrush = new SolidBrush(Color.FromArgb(255, 255, 192));
         SolidBrush MultiHoldingBrush = new SolidBrush(Color.Yellow);
-        
+
+        SolidBrush SearchMatchBrush = new SolidBrush(Color.Red);
+
         // border between outside/external panels
         int BorderWidth = 4;
         SolidBrush BorderBrush = new SolidBrush(Color.Silver);
@@ -140,14 +143,18 @@ namespace XLibrary
         Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
 
         // dependencies
-        SolidBrush DependencyToBrush = new SolidBrush(Color.Red);
-        SolidBrush DependencyFromBrush = new SolidBrush(Color.Blue);
-        SolidBrush DependencyBothBrush = new SolidBrush(Color.Purple);
+        SolidBrush DependentBrush = new SolidBrush(Color.Red);
+        SolidBrush IndependentBrush = new SolidBrush(Color.Blue);
+        SolidBrush InterdependentBrush = new SolidBrush(Color.Purple);
 
         public ShowDependenciesMode DependenciesMode = ShowDependenciesMode.Direct;
 
-        HashSet<int> DependentToClasses = new HashSet<int>();
-        HashSet<int> DependentFromClasses = new HashSet<int>();
+        HashSet<int> DependentClasses = new HashSet<int>();
+        HashSet<int> IndependentClasses = new HashSet<int>();
+
+        public string SearchString;
+        public string LastSearch;
+        public bool SearchStrobe;
 
 
         public TreePanelGdiPlus(MainForm main)
@@ -249,11 +256,30 @@ namespace XLibrary
             ShowingExternal = ShowExternal && !CurrentRoot.External;
 
             // clear and pre-process marked depencies
-            DependentToClasses.Clear();
-            DependentFromClasses.Clear();
+            DependentClasses.Clear();
+            IndependentClasses.Clear();
 
             if (DependenciesMode != ShowDependenciesMode.None && DependenciesMode != ShowDependenciesMode.Intermediates)
                 RecalcDependencies();
+
+            // figure out if we need to do a search
+            if (SearchString != LastSearch)
+            {
+                LastSearch = SearchString;
+                bool empty = string.IsNullOrEmpty(SearchString);
+
+                Utilities.RecurseTree<XNodeIn>(
+                        tree: XRay.RootNode.Nodes.Cast<XNodeIn>(),
+                        evaluate: n =>
+                        {
+                            n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
+                        },
+                        recurse: n =>
+                        {
+                            return n.Nodes.Cast<XNodeIn>();
+                        }
+                    );
+            }
 
             // draw layout
             if (ViewLayout == LayoutType.TreeMap)
@@ -261,7 +287,6 @@ namespace XLibrary
 
             else if (ViewLayout == LayoutType.CallGraph)
                 DrawCallGraph(buffer);
-
 
             // draw ignored over nodes ignored may contain
             foreach (XNodeIn ignored in IgnoredNodes.Values)
@@ -377,7 +402,8 @@ namespace XLibrary
             }
 
             // draw mouse over label
-            DrawFooterLabel(buffer);// DrawToolTip(buffer);
+            DrawFooterLabel(buffer);
+            DrawToolTip(buffer);
 
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
@@ -509,7 +535,8 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
-                if (node.ObjType == XObjType.Field && !ShowFields)
+                if ( (node.ObjType == XObjType.Field && !ShowFields) ||
+                     (node.ObjType == XObjType.Method && !ShowMethods) )
                 {
                     node.Show = false;
                     continue;
@@ -597,101 +624,101 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            // blue selection area
-            SolidBrush rectBrush = NothingBrush;
-            if (node.Hovered)
-            {
-                if (depth > OverBrushes.Length - 1)
-                    depth = OverBrushes.Length - 1;
-
-                rectBrush = OverBrushes[depth];
-            }
-
             bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
 
             // use a circle for external/outside nodes in the call map
             bool rect = ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
 
-            Action<Brush, RectangleF> fillFunction = null;
-            if(rect)
-                fillFunction = (b, r) => buffer.FillRectangle(b, r);
-            else
-                fillFunction = (b, r) => buffer.FillEllipse(b, r);
-
-            fillFunction(rectBrush, node.AreaF);
-
             bool needBorder = true;
 
-            // red hit check if function is hit
+            Action<Brush> fillFunction = (b) =>
+                {
+                    if(rect)
+                        buffer.FillRectangle(b, node.AreaF);
+                    else
+                        buffer.FillEllipse(b, node.AreaF);
+
+                    needBorder = false;
+                };
+
+            // blue selection area
+            if (node.Hovered)
+            {
+                if (depth > OverBrushes.Length - 1)
+                    depth = OverBrushes.Length - 1;
+
+                fillFunction(OverBrushes[depth]);
+            }
+            else
+                buffer.FillRectangle(NothingBrush, node.AreaF);
+
+            // check if function is an entry point or holding
             if (XRay.FlowTracking && node.StillInside > 0)
             {
-                needBorder = false;
-
                 if (node.EntryPoint > 0)
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        fillFunction(MultiEntryBrush, node.AreaF);
+                        fillFunction(MultiEntryBrush);
                     else
-                        fillFunction(EntryBrush, node.AreaF);
+                        fillFunction(EntryBrush);
                 }
                 else
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        fillFunction(MultiHoldingBrush, node.AreaF);
+                        fillFunction(MultiHoldingBrush);
                     else
-                        fillFunction(HoldingBrush, node.AreaF);
+                        fillFunction(HoldingBrush);
                 }
             }
 
             // not an else if, draw over holding or entry
             if (node.ExceptionHit > 0)
-            {
-                needBorder = false;
-                fillFunction(ExceptionBrush[node.FunctionHit], node.AreaF);
-            }
+                fillFunction(ExceptionBrush[node.FunctionHit]);
 
             else if (node.FunctionHit > 0)
             {
-                needBorder = false;
-
                 if (XRay.ThreadTracking && node.ConflictHit > 0)
-                    fillFunction(MultiHitBrush[node.FunctionHit], node.AreaF);
+                    fillFunction(MultiHitBrush[node.FunctionHit]);
+
                 else if (node.ObjType == XObjType.Field)
                 {
                     if (node.LastFieldOp == FieldOp.Set)
-                        fillFunction(FieldSetBrush[node.FunctionHit], node.AreaF);
+                        fillFunction(FieldSetBrush[node.FunctionHit]);
                     else
-                        fillFunction(FieldGetBrush[node.FunctionHit], node.AreaF);
+                        fillFunction(FieldGetBrush[node.FunctionHit]);
                 }
                 else
-                    fillFunction(HitBrush[node.FunctionHit], node.AreaF);
+                    fillFunction(HitBrush[node.FunctionHit]);
             }
 
             if (FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
             {
-                bool dependentTo = DependentToClasses.Contains(node.ID);
-                bool dependentFrom = DependentFromClasses.Contains(node.ID);
+                bool dependent = DependentClasses.Contains(node.ID);
+                bool independent = IndependentClasses.Contains(node.ID);
 
-                if (dependentTo && dependentFrom)
-                    fillFunction(DependencyBothBrush, node.AreaF);
+                if (dependent && independent)
+                    fillFunction(InterdependentBrush);
 
-                else if (dependentTo)
-                    fillFunction(DependencyToBrush, node.AreaF);
+                else if (dependent)
+                    fillFunction(DependentBrush);
 
-                else if (dependentFrom)
-                    fillFunction(DependencyFromBrush, node.AreaF);
+                else if (independent)
+                    fillFunction(IndependentBrush);
             }
+
+            if (node.SearchMatch && !SearchStrobe)
+                fillFunction(SearchMatchBrush); 
 
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
                 if (FilteredNodes.ContainsKey(node.ID))
-                    fillFunction(FilteredBrush, node.AreaF);
+                    fillFunction(FilteredBrush);
                 else if (IgnoredNodes.ContainsKey(node.ID))
-                    fillFunction(IgnoredBrush, node.AreaF);
+                    fillFunction(IgnoredBrush);
 
                 else if (needBorder) // dont draw the point if already lit up
-                    fillFunction(ObjBrushes[(int)node.ObjType], node.AreaF);
+                    fillFunction(ObjBrushes[(int)node.ObjType]);
             }
             else
             {
@@ -1089,37 +1116,37 @@ namespace XLibrary
             bool doRecurse = (DependenciesMode == ShowDependenciesMode.All);
             bool idFound = false;
 
-            foreach (var dependenciesTo in classes.Values.Where(c => c.DependenciesTo != null)
-                                      .Select(c => c.DependenciesTo))
+            foreach (var dependenciesTo in classes.Values.Where(c => c.Dependencies != null)
+                                      .Select(c => c.Dependencies))
             {
-                RecurseTree<int>(
+                Utilities.RecurseTree<int>(
                     dependenciesTo,
                     evaluate: id =>
                     {
-                        idFound = DependentToClasses.Contains(id);
-                        DependentToClasses.Add(id);
+                        idFound = DependentClasses.Contains(id);
+                        DependentClasses.Add(id);
                     },
                     recurse: id =>
                     {
-                        return (doRecurse && !idFound) ? XRay.Nodes[id].DependenciesTo : null;
+                        return (doRecurse && !idFound) ? XRay.Nodes[id].Dependencies : null;
                     }
                 );
             }
 
             // find all dependencies from
-            foreach (var dependenciesFrom in classes.Values.Where(c => c.DependenciesFrom != null)
-                                        .Select(c => c.DependenciesFrom))
+            foreach (var dependenciesFrom in classes.Values.Where(c => c.Independencies != null)
+                                        .Select(c => c.Independencies))
             {
-                RecurseTree<int>(
+                Utilities.RecurseTree<int>(
                     dependenciesFrom,
                     evaluate: id =>
                     {
-                        idFound = DependentFromClasses.Contains(id);
-                        DependentFromClasses.Add(id);
+                        idFound = IndependentClasses.Contains(id);
+                        IndependentClasses.Add(id);
                     },
                     recurse: id =>
                     {
-                        return (doRecurse && !idFound) ? XRay.Nodes[id].DependenciesFrom : null;
+                        return (doRecurse && !idFound) ? XRay.Nodes[id].Independencies : null;
                     }
                 );
             }
@@ -1138,7 +1165,7 @@ namespace XLibrary
                     classes[node.ID] =node.GetParentClass() as XNodeIn;
                 }
                 else
-                    RecurseTree<XNodeIn>(
+                    Utilities.RecurseTree<XNodeIn>(
                         node.Nodes.Cast<XNodeIn>(),
                         evaluate: n =>
                         {
@@ -1153,18 +1180,6 @@ namespace XLibrary
             }
 
             return classes;
-        }
-
-        private void RecurseTree<T>(IEnumerable<T> tree, Action<T> evaluate, Func<T, IEnumerable<T>> recurse)
-        {
-            foreach (var i in tree)
-            {
-                evaluate(i);
-
-                IEnumerable<T> subTree = recurse(i);
-                if (subTree != null)
-                    RecurseTree(subTree, evaluate, recurse);
-            }
         }
 
         public void DrawFooterLabel(Graphics buffer)
@@ -1198,6 +1213,9 @@ namespace XLibrary
             x += size.Width;
         }
 
+        PointF LastHoverPoint = new PointF();
+        DateTime LastHoverTime = DateTime.Now;
+
         public void DrawToolTip(Graphics buffer)
         {
             if (NodesHovered.Length == 0)
@@ -1206,6 +1224,17 @@ namespace XLibrary
             PointF pos = PointToClient(Cursor.Position);
             if (!ClientRectangle.Contains((int)pos.X, (int)pos.Y))
                 return;
+
+            if (!LastHoverPoint.Equals(pos))
+            {
+                LastHoverPoint = pos;
+                LastHoverTime = DateTime.Now;
+                return;
+            }
+            else if (DateTime.Now.Subtract(LastHoverTime).TotalSeconds < .5)
+            {
+                return;
+            }
 
             // for each node selected, get size, figure out bg size and indents, then pass again and draw
 
@@ -1217,7 +1246,7 @@ namespace XLibrary
             float indentAmount = 0;
 
             // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
-            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || ViewLayout == LayoutType.CallGraph).ToArray();
+            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel).ToArray();
 
             if (labels.Length == 0)
                 return;
@@ -1225,11 +1254,12 @@ namespace XLibrary
             var lastNode = labels.Last();
 
             // find the size of the background box
-            foreach (XNodeIn node in labels)
-            {
+            //foreach (XNodeIn node in labels)
+            XNodeIn node = labels.Last();
+            //{
                 string label = node.Name;
-                if (node == lastNode)
-                    label += " (" + GetMetricForNode(node) + ")";
+                //if (node == lastNode)
+                //     label += " (" + GetMetricForNode(node) + ")";
 
                 SizeF size = buffer.MeasureString(label, TextFont);
 
@@ -1239,10 +1269,10 @@ namespace XLibrary
                 bgHeight += size.Height;
                 lineHeight = size.Height;
                 indentAmount += indent;
-            }
+            //}
 
             // put box lower right corner at cursor
-            pos.X -= bgWidth;
+            //pos.X -= bgWidth;
             pos.Y -= bgHeight;
 
             // ensure it doesnt go off screen
@@ -1254,20 +1284,21 @@ namespace XLibrary
 
             //GraphDebuggingLabel(buffer, pos);
 
-            foreach (XNodeIn node in labels)
-            {
+            //foreach (XNodeIn node in labels)
+            node = labels.Last();
+            //{
                 // dither label if it is not on screen
                 SolidBrush textColor = GuiHovered.Contains(node) ? ObjBrushes[(int)node.ObjType] : ObjDitheredBrushes[(int)node.ObjType];
 
-                string label = node.Name;
-                if (node == lastNode)
-                    label += " (" + GetMetricForNode(node) + ")";
+                label = node.Name;
+                //if (node == lastNode)
+                //    label += " (" + GetMetricForNode(node) + ")";
 
                 buffer.DrawString(label, TextFont, textColor, pos.X, pos.Y);
 
                 pos.Y += lineHeight;
                 pos.X += indent;
-            }
+            //}
         }
 
         private void GraphDebuggingLabel(Graphics buffer, PointF pos)

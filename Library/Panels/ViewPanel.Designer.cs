@@ -49,6 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
             this.GraphDirectDependencies = new System.Windows.Forms.RadioButton();
             this.GraphAllDependencies = new System.Windows.Forms.RadioButton();
             this.MapDirectDependencies = new System.Windows.Forms.RadioButton();
@@ -68,7 +69,7 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
-            this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
+            this.IncludeMethods = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -318,6 +319,18 @@
             this.panel1.Size = new System.Drawing.Size(189, 125);
             this.panel1.TabIndex = 21;
             // 
+            // GraphIntermediateDependencies
+            // 
+            this.GraphIntermediateDependencies.AutoSize = true;
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(104, 95);
+            this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
+            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(67, 17);
+            this.GraphIntermediateDependencies.TabIndex = 30;
+            this.GraphIntermediateDependencies.TabStop = true;
+            this.GraphIntermediateDependencies.Text = "Selected";
+            this.GraphIntermediateDependencies.UseVisualStyleBackColor = true;
+            this.GraphIntermediateDependencies.CheckedChanged += new System.EventHandler(this.GraphIntermediateDependencies_CheckedChanged);
+            // 
             // GraphDirectDependencies
             // 
             this.GraphDirectDependencies.AutoSize = true;
@@ -424,12 +437,13 @@
             // 
             // panel4
             // 
+            this.panel4.Controls.Add(this.IncludeMethods);
             this.panel4.Controls.Add(this.IncludeFields);
             this.panel4.Controls.Add(this.IncludeOutsideZoomButton);
             this.panel4.Controls.Add(this.IncludeNotXRayedButton);
             this.panel4.Location = new System.Drawing.Point(392, 17);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(101, 72);
+            this.panel4.Size = new System.Drawing.Size(101, 104);
             this.panel4.TabIndex = 24;
             // 
             // IncludeFields
@@ -530,17 +544,16 @@
             this.label7.TabIndex = 28;
             this.label7.Text = "Depends";
             // 
-            // GraphIntermediateDependencies
+            // IncludeMethods
             // 
-            this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(104, 95);
-            this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
-            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(67, 17);
-            this.GraphIntermediateDependencies.TabIndex = 30;
-            this.GraphIntermediateDependencies.TabStop = true;
-            this.GraphIntermediateDependencies.Text = "Selected";
-            this.GraphIntermediateDependencies.UseVisualStyleBackColor = true;
-            this.GraphIntermediateDependencies.CheckedChanged += new System.EventHandler(this.GraphIntermediateDependencies_CheckedChanged);
+            this.IncludeMethods.AutoSize = true;
+            this.IncludeMethods.Location = new System.Drawing.Point(3, 71);
+            this.IncludeMethods.Name = "IncludeMethods";
+            this.IncludeMethods.Size = new System.Drawing.Size(67, 17);
+            this.IncludeMethods.TabIndex = 13;
+            this.IncludeMethods.Text = "Methods";
+            this.IncludeMethods.UseVisualStyleBackColor = true;
+            this.IncludeMethods.CheckedChanged += new System.EventHandler(this.IncludeMethods_CheckedChanged);
             // 
             // ViewPanel
             // 
@@ -622,5 +635,6 @@
         private System.Windows.Forms.LinkLabel ResetHitLink;
         private System.Windows.Forms.LinkLabel ResetProfilingLink;
         public System.Windows.Forms.RadioButton GraphIntermediateDependencies;
+        public System.Windows.Forms.CheckBox IncludeMethods;
     }
 }

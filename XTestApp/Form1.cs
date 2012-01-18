@@ -30,6 +30,19 @@ namespace XTestApp
         public void TryStuff()
         {
 
+            var xx = new Dictionary<int, string>();
+            xx[3] = "hello";
+
+            var yyy = xx.ToString();
+
+            var attrx = Attribute.GetCustomAttributes(xx.GetType());
+            var attr = Attribute.GetCustomAttributes(xx.GetType()).First(a => a.GetType() == typeof(System.Diagnostics.DebuggerDisplayAttribute)) as System.Diagnostics.DebuggerDisplayAttribute;
+
+            var valuezz = string.Format(attr.Value, xx);
+
+            int ii = 0;
+            ii++;
+
             try
             {
                 StaticMan.HolyCow();

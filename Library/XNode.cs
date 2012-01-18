@@ -134,6 +134,7 @@ namespace XLibrary
 
     public enum FieldOp { Get, Set };
 
+    [DebuggerDisplay("{Name}")]
     public class XNodeIn : XNode
     {
         internal int ParentID;
@@ -175,13 +176,15 @@ namespace XLibrary
 
         public InstanceRecord Record;
 
-        internal int[] DependenciesTo;
-        internal int[] DependenciesFrom;
+        internal int[] Dependencies;
+        internal int[] Independencies;
 
         public Dictionary<int, XNodeIn> DependencyChainOut;
         public Dictionary<int, XNodeIn> DependencyChainIn;
 
         internal bool Focused;
+
+        internal bool SearchMatch;
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -219,10 +222,10 @@ namespace XLibrary
             if (hasDependencies)
             {
                 int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
-                node.DependenciesTo = new int[dependencyCount];
+                node.Dependencies = new int[dependencyCount];
 
                 for (int i = 0; i < dependencyCount; i++)
-                    node.DependenciesTo[i] = BitConverter.ToInt32(stream.Read(4), 0);
+                    node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
             }
 
             stream.Position = startPos + totalSize;

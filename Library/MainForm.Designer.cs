@@ -33,22 +33,27 @@
             this.ResetTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
+            this.OnOffButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.BackButton = new System.Windows.Forms.ToolStripButton();
             this.ForwardButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.SearchTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.TimingPanel = new XLibrary.TimingPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.debugPanel1 = new XLibrary.Panels.DebugPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
+            this.SearchTimer = new System.Windows.Forms.Timer(this.components);
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.DisplayTab = new XLibrary.Panels.ViewPanel();
+            this.InstanceTab = new XLibrary.InstancePanel();
+            this.TimingPanel = new XLibrary.TimingPanel();
+            this.debugPanel1 = new XLibrary.Panels.DebugPanel();
+            this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -92,14 +97,35 @@
             // 
             this.MainToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.OnOffButton,
+            this.toolStripSeparator2,
             this.BackButton,
             this.ForwardButton,
-            this.toolStripSeparator1});
+            this.toolStripSeparator1,
+            this.SearchTextBox,
+            this.toolStripLabel1});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
             this.MainToolStrip.TabIndex = 4;
             this.MainToolStrip.Text = "toolStrip1";
+            // 
+            // OnOffButton
+            // 
+            this.OnOffButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.OnOffButton.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.OnOffButton.ForeColor = System.Drawing.Color.Green;
+            this.OnOffButton.Image = ((System.Drawing.Image)(resources.GetObject("OnOffButton.Image")));
+            this.OnOffButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.OnOffButton.Name = "OnOffButton";
+            this.OnOffButton.Size = new System.Drawing.Size(25, 22);
+            this.OnOffButton.Text = "on";
+            this.OnOffButton.Click += new System.EventHandler(this.OnOffButton_Click);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
             // BackButton
             // 
@@ -123,6 +149,13 @@
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // SearchTextBox
+            // 
+            this.SearchTextBox.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.SearchTextBox.Name = "SearchTextBox";
+            this.SearchTextBox.Size = new System.Drawing.Size(100, 25);
+            this.SearchTextBox.TextChanged += new System.EventHandler(this.SearchTextBox_TextChanged);
             // 
             // ViewHostPanel
             // 
@@ -159,6 +192,69 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.InstanceTab);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(542, 194);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Instance";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.TimingPanel);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Size = new System.Drawing.Size(542, 194);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Profile";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.debugPanel1);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(542, 194);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "Debug";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.ConsoleTab);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(542, 194);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Console";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // RevalueTimer
+            // 
+            this.RevalueTimer.Interval = 1000;
+            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
+            // 
+            // SearchTimer
+            // 
+            this.SearchTimer.Enabled = true;
+            this.SearchTimer.Interval = 300;
+            this.SearchTimer.Tick += new System.EventHandler(this.SearchTimer_Tick);
+            // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.toolStripLabel1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.toolStripLabel1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripLabel1.Image")));
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Padding = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            this.toolStripLabel1.Size = new System.Drawing.Size(22, 22);
+            this.toolStripLabel1.Text = "toolStripLabel1";
+            // 
             // DisplayTab
             // 
             this.DisplayTab.AutoScroll = true;
@@ -168,84 +264,37 @@
             this.DisplayTab.Size = new System.Drawing.Size(536, 188);
             this.DisplayTab.TabIndex = 0;
             // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.InstanceTab);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(542, 167);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Instance";
-            this.tabPage2.UseVisualStyleBackColor = true;
-            // 
             // InstanceTab
             // 
             this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
             this.InstanceTab.Location = new System.Drawing.Point(3, 3);
             this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(536, 161);
+            this.InstanceTab.Size = new System.Drawing.Size(536, 188);
             this.InstanceTab.TabIndex = 0;
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.TimingPanel);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(542, 167);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Profile";
-            this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // TimingPanel
             // 
             this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TimingPanel.Location = new System.Drawing.Point(0, 0);
             this.TimingPanel.Name = "TimingPanel";
-            this.TimingPanel.Size = new System.Drawing.Size(542, 167);
+            this.TimingPanel.Size = new System.Drawing.Size(542, 194);
             this.TimingPanel.TabIndex = 0;
-            // 
-            // tabPage4
-            // 
-            this.tabPage4.Controls.Add(this.debugPanel1);
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(542, 167);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Debug";
-            this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // debugPanel1
             // 
             this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.debugPanel1.Location = new System.Drawing.Point(3, 3);
             this.debugPanel1.Name = "debugPanel1";
-            this.debugPanel1.Size = new System.Drawing.Size(536, 161);
+            this.debugPanel1.Size = new System.Drawing.Size(536, 188);
             this.debugPanel1.TabIndex = 0;
-            // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.ConsoleTab);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(542, 167);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Console";
-            this.tabPage5.UseVisualStyleBackColor = true;
             // 
             // ConsoleTab
             // 
             this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ConsoleTab.Location = new System.Drawing.Point(0, 0);
             this.ConsoleTab.Name = "ConsoleTab";
-            this.ConsoleTab.Size = new System.Drawing.Size(542, 167);
+            this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
-            // 
-            // RevalueTimer
-            // 
-            this.RevalueTimer.Interval = 1000;
-            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
             // 
             // MainForm
             // 
@@ -293,5 +342,10 @@
         private System.Windows.Forms.ToolStripButton BackButton;
         private System.Windows.Forms.ToolStripButton ForwardButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton OnOffButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripTextBox SearchTextBox;
+        private System.Windows.Forms.Timer SearchTimer;
+        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
     }
 }

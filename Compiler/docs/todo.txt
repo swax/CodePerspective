@@ -1,14 +1,30 @@
 ﻿
+dhtnetwork calls coming from nowhere
 
-state only view, hide methods, light up fields only, when mouse over field then show values
-	hide non-constructed classes
+int32 values show as deleted
+	field refresh button, traverse rows, evaluate fields per cell
+	auto refresh
+	color modified fields - use same color as ui, shaded background
+
+flash class green/red when constructd/deconstructed
+
+
+
+commit
+
+state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
+
+asp.net support 
+
+detect cyclic references in instance browser
+
+when mouse over field then show values
 
 Graph Direct -> Method map, does not re-add call dashed lines
 
 Get properties for threaded list throws
 
-better view of ienumerable objects and maps, get rise op state crystal clear
-	**light up changing fields, in list based field view as well
+**light up changing fields, in list based field view as well
 
 Why using 100% cpu while idling on dependency full screen view
 	run xray on building / test.dat view

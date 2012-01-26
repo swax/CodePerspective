@@ -291,7 +291,7 @@ namespace AdvancedDataGridView
                 }
                 return childrenNodes;
             }
-            set { ;}
+            set { childrenNodes = value; }
         }
 
 		// Create a new Cell property because by default a row is not in the grid and won't

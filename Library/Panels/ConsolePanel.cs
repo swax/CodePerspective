@@ -126,6 +126,11 @@ namespace XLibrary.Panels
             Tree = Main.TreeView;
         }
 
+        /*public object GetTestBps()
+        {
+            return XRay.GetSimBps();
+        }*/
+
         public string Help = "Available Commands: Nodes, Main, Tree";
     }
 

@@ -5,7 +5,15 @@ using System.Text;
 
 namespace XTestLib
 {
-    public class LibClass
+    public class TestBase
+    {
+        public int BaseA = 4;
+        public int BaseB = 3;
+        public static int StaticBaseC = 5;
+        public static int[] StaticArray = new int[] { 1, 2, 3, 4, 5 };
+    }
+
+    public class LibClass : TestBase
     {
         public int TestMe;
 
@@ -13,6 +21,8 @@ namespace XTestLib
         public int PublicVar = 2;
         private int PrivateVar = 3;
         static int StaticVar = 4;
+
+        public int[] TestArray = new int[] { 6, 7, 8, 9, 10 };
 
         delegate void TestDelegate(int x);
 
@@ -149,8 +159,11 @@ namespace XTestLib
 
         public static void Recurse1()
         {
-            int x = 0;
+            int x = StaticTemplateClass<int>.d;
             x++;
+
+            string z = StaticTemplateClass<string>.d;
+            z += "dfa"; 
 
             Recurse2();
         }
@@ -183,6 +196,19 @@ namespace XTestLib
             x++;
 
             var z = new TemplateClass<string, string>();
+        }
+    }
+
+    public static class StaticTemplateClass<T>
+    {
+        public static int a = 1;
+        public static int b = 2;
+        public static int c = 3;
+        public static T d;
+
+        static StaticTemplateClass()
+        {
+            var x = typeof(StaticTemplateClass<T>);
         }
     }
 

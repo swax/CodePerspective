@@ -46,8 +46,6 @@ namespace XBuilder
 
         public XNodeOut AddNode(string name, XObjType objType)
         {
-            name = Utilities.FormatTemplateName(name);
-
             // used for namespaces
             XNodeOut existing = Nodes.Where(n => n.Name == name && n.ObjType == objType).FirstOrDefault() as XNodeOut;
 

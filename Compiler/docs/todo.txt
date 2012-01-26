@@ -1,17 +1,35 @@
 ﻿
-dhtnetwork calls coming from nowhere
+ivcryptostream not showing anything still
+
+hyperlink in instance view to check out base types, etc..
 
 int32 values show as deleted
-	field refresh button, traverse rows, evaluate fields per cell
-	auto refresh
 	color modified fields - use same color as ui, shaded background
+	search on instance page
+	ability to modify values
+
+ability to turn refresh off and lock values, for example so test apps test class isnt disposed
+
+dhtnetwork calls coming from nowhere, show them?
+	when zoomed in, external lines still coming in from other non-zoomed in parts
+	maybe class graph edges are still being drawn??
+	does 'reset hit' reset class hit status>
+
+
+
 
 flash class green/red when constructd/deconstructed
 
-
+shortcut key, hook in app's global name space or maybe even windows itself to activate xray and turn it off when closed
+	would be nice to hide xray UIs
+	build settings
+		start with xray enabled/disabled
+		start with UI shown/hidden
+	bind to windows key + x to show all xray UIs?
 
 commit
 
+show count next to search box for found #, clicking on # filters display to those nodes
 state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
 
 asp.net support 

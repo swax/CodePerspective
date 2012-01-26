@@ -224,9 +224,21 @@ namespace XBuilder
                     else
                     {
                         // ldtoken    XTestLib.SmallStatic
+                        // ldtoken    XTestLib.StaticTemplateClass`1<!T> (for generic static classes)
                         // call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
 
-                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, classDef));
+                        if (classDef.HasGenericParameters)
+                        {
+                            // for some reason the GenericInstanceType does not carry over the parameters
+                            var genericDef = new GenericInstanceType(classDef);
+                            foreach (var p in classDef.GenericParameters)
+                                genericDef.GenericArguments.Add(p);
+                            
+                            AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, genericDef));
+                        }
+                        else
+                            AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, classDef));
+
                         AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, GetTypeFromHandleRef));
                         AddInstruction(ctorMethod, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
                     }

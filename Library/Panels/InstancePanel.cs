@@ -16,6 +16,8 @@ namespace XLibrary
 {
     public partial class InstancePanel : UserControl
     {
+        public XNodeIn SelectedNode;
+
         public InstancePanel()
         {
             InitializeComponent();
@@ -27,63 +29,117 @@ namespace XLibrary
         {
             if (node.Record != null)
             {
+                SelectedNode = node;
                 var record = node.Record;
 
-                string isStatic = record.StaticClass ? "static " : "";
+                string isStatic = "";// record.StaticClass ? "static " : "";
 
                 SummaryLabel.Text = isStatic + String.Format("{0} - Created: {1}, Deleted: {2}, Active: {3}", node.Name, record.Created, record.Deleted, record.Active.Count);
 
-                // traverse up the record's base types until we match the type for the class node selected in the UI
-                // (cant show a debug matrix for types with different properties)
-                string nodeTypeName = node.FullName();
-
-                var findType = record.InstanceType;
-
-                while (findType != null)
-                {
-                    string findName = findType.ToString();
-
-                    if (nodeTypeName.EndsWith(findName))
-                        break;
-
-                    findType = findType.BaseType;
-                }
-
-                Refresh(record, findType);
+                RefreshTree();
             }
             else
             {
+                SelectedNode = null;
+
                 SummaryLabel.Text = "No record of instance of " + node.Name + " type being created";
 
-                Refresh(null, null);
+                RefreshTree();
             }
         }
 
-        void Refresh(InstanceRecord record, Type selectedType)
+        void RefreshTree()
         {
             FieldGrid.Nodes.Clear();
             FieldGrid.Columns.Clear();
 
-            if (record == null)
+            if (SelectedNode == null)
                 return;
 
-            lock (record.Active)
+            var nodeTypeName = SelectedNode.UnformattedName;
+            var record = SelectedNode.Record;
+            var GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
+
+            if (record != null && record.Active.Count > 0)
             {
-                if (record.Active.Count == 0)
-                    return;
+                lock (record.Active)
+                {
+                    // traverse up the record's base types until we match the type for the class node selected in the UI
+                    // (cant show a debug matrix for types with different properties)
+                    // for example we click on the TreeView class, but the record type is of BuddyTreeView
+                    for (int i = 0; i < record.Active.Count; i++)
+                    {
+                        var instance = record.Active[i];
 
-                // type col
-                FieldGrid.Columns.Add(new TreeGridColumn() { HeaderText = "Type" });
-                FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Name" });
+                        if (!instance.IsStatic && instance.Ref.Target == null)
+                            continue;
 
-                // add columns for each intance
-                for (int i = 0; i < record.Active.Count; i++)
-                    FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Instance " + i.ToString() });
+                        var recordType = instance.InstanceType;
+                        var recordTypeName = "";
 
-                if (record.StaticClass && record.Active.Count == 0)
-                    FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Instance" });
+                        while (recordType != null)
+                        {
+                            recordTypeName = recordType.ToString();
 
-                AddFieldRows(FieldGrid.Nodes, selectedType, record.Active, true);
+                            if (recordTypeName.Contains(nodeTypeName))
+                                break;
+
+                            recordType = recordType.BaseType;
+                        }
+
+                        if (recordType == null)
+                            throw new Exception(string.Format("record type not found for node type {0} and instance type {1}", nodeTypeName, recordType.ToString()));
+
+                        recordTypeName = recordType.ToString();
+                        var genericName = "";
+
+                        if (recordTypeName.Contains('`'))
+                            genericName = recordTypeName.Substring(recordTypeName.IndexOf('`'));
+
+                        if (!GenericMap.ContainsKey(genericName))
+                            GenericMap[genericName] = new Tuple<Type, List<ActiveRecord>>(recordType, new List<ActiveRecord>());
+
+                        GenericMap[genericName].Item2.Add(instance);
+                    }
+                }
+            }
+
+            if (GenericMap.Values.Count == 0)
+                return;
+
+            // type col
+            FieldGrid.Columns.Add(new TreeGridColumn() { HeaderText = "Type" });
+            FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Name" });
+
+            // add columns for each intance
+            int mostInstances = GenericMap.Values.Max(v => v.Item2.Count);
+
+            for (int i = 0; i < mostInstances; i++)
+                FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Instance " + i.ToString() });
+
+            if (GenericMap.Count == 1)
+            {
+                var recordInstance = GenericMap.First().Value;
+
+                var row = new FieldRow(null, RowTypes.Root);
+                row.Nodes = FieldGrid.Nodes;
+                row.FieldType = recordInstance.Item1; // instance type that matches selected node
+                row.Instances = recordInstance.Item2; // list of instances
+                row.ExpandField();
+            }
+            else
+            {
+                foreach (var recordInstance in GenericMap)
+                {
+                    var row = new FieldRow(null, RowTypes.Root);
+                    row.GenericName = recordInstance.Key;
+                    row.FieldType = recordInstance.Value.Item1; // instance type that matches selected node
+                    row.Instances = recordInstance.Value.Item2; // list of instances
+
+                    FieldGrid.Nodes.Add(row);
+                    row.Init();
+                    row.ExpandField();
+                }
             }
 
             AutoSizeColumns();
@@ -97,140 +153,11 @@ namespace XLibrary
 
             foreach(DataGridViewColumn col in FieldGrid.Columns)
             {
-                var width = col.Width;
+                var width = col.Width + 10;
 
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
 
                 col.Width = Math.Min(width, 200);
-            }
-        }
-
-        private void AddFieldRows(TreeGridNodeCollection parentNode, Type objType, List<TimedWeakRef> instances, bool hasAge)
-        {
-            FieldRow row = null;
-
-            // underlying type
-            row = new FieldRow();
-            parentNode.Add(row);
-
-            row.Cells[0].Value = "<type>";
-            row.Cells[1].Value = "";
-            for (int i = 0; i < instances.Count; i++)
-            {
-                var weakRef = instances[i];
-
-                if (weakRef.Target == null)
-                {
-                    row.Cells[2 + i].Value = "<deleted>";
-                    continue;
-                }
-
-                row.Cells[2 + i].Value = weakRef.Target.GetType().ToString();
-            }
-
-            // base type
-            if (objType.BaseType != null)
-            {
-                row = new FieldRow(objType.BaseType);
-                parentNode.Add(row);
-
-                row.ObjList = instances.ToList(); // copy cause locked and may change
-
-                row.Cells[0].Value = "<base type>"; // name
-                row.Cells[1].Value = objType.BaseType.ToString(); // type
-                
-                row.Nodes.Add("loading...");
-            }
-
-            // first row age of objects, just say static if static
-            if (hasAge)
-            {
-                row = new FieldRow();
-                parentNode.Add(row);
-
-                row.Cells[0].Value = "<age>";
-                row.Cells[1].Value = "";
-                for (int i = 0; i < instances.Count; i++)
-                {
-                    var weakRef = instances[i];
-
-                    if (weakRef.Target == null)
-                    {
-                        row.Cells[2 + i].Value = "<deleted>";
-                        continue;
-                    }
-
-                    row.Cells[2 + i].Value = ((int)(DateTime.Now - weakRef.Created).TotalSeconds).ToString();
-                }
-
-                if (instances.Count == 0)
-                    row.Cells[2].Value = "(static)";
-            }
-
-            if (objType.GetInterface("ICollection") != null)
-            {
-                row = new FieldRow();
-                row.Enumerate = true;
-                parentNode.Add(row);
-
-                row.Cells[0].Value = "<enumerate>"; // type
-                row.Cells[1].Value = " "; // name
-
-                row.Nodes.Add("loading...");
-
-                for (int i = 0; i < instances.Count; i++)
-                {
-                    var weakRef = instances[i];
-
-                    if (weakRef.Target == null)
-                    {
-                        row.Cells[2 + i].Value = "<deleted>";
-                        row.ObjList.Add(new TimedWeakRef(null, false));
-                        continue;
-                    }
-
-                    var objList = weakRef.Target as ICollection;
-
-                    row.Cells[2 + i].Value = "Count: " + objList.Count.ToString();
-
-                    row.ObjList.Add(new TimedWeakRef(objList, false));
-                }
-            }
-
-            foreach (var field in objType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
-            {
-                row = new FieldRow(field.FieldType);
-                parentNode.Add(row);
-
-                string isStatic = field.IsStatic ? "static " : "";
-                row.Cells[0].Value = isStatic + Utilities.FormatTemplateName(field.FieldType.Name); // type
-
-                row.Cells[1].Value = field.Name; // name
-
-                for (int i = 0; i < instances.Count; i++)
-                {
-                    var weakRef = instances[i];
-
-                    if (weakRef.Target == null)
-                    {
-                        row.Cells[2 + i].Value = "<deleted>";
-                        row.ObjList.Add(new TimedWeakRef(null, false));
-                        continue;
-                    }
-                  
-                    var fieldValue = field.GetValue(weakRef.Target);
-                    row.Cells[2 + i].Value = GetObjectLabel(fieldValue);
-
-                    row.ObjList.Add(new TimedWeakRef(fieldValue, false));
-                }
-
-                if (instances.Count == 0 && field.IsStatic)
-                {
-                    var fieldValue = field.GetValue(null);
-                    row.Cells[2].Value = GetObjectLabel(fieldValue);
-                }
-
-                row.Nodes.Add("loading...");
             }
         }
 
@@ -240,64 +167,322 @@ namespace XLibrary
 
             if (row.Expanded)
                 return;
-            
-            row.Expanded = true;
 
-            row.Nodes.Clear();
-
-            if (row.FieldType != null)
-                AddFieldRows(row.Nodes, row.FieldType, row.ObjList, false);
-            else if (row.Enumerate)
-                EnumerateFieldRows(row.Nodes, row);
+            row.ExpandField();
 
             AutoSizeColumns();
         }
+    }
 
-        private void EnumerateFieldRows(TreeGridNodeCollection parentNode, FieldRow row)
+    public enum RowTypes { Root, Age, Base, Declared, Selected, Enumerate, Element, Field }
+
+    public class FieldRow : TreeGridNode
+    {
+        public FieldRow ParentField;
+        public string GenericName;
+        public bool Expanded;
+
+        RowTypes RowType;
+
+        public Type FieldType;
+        public FieldInfo TypeInfo;
+        public FieldRow[] TypeChain = new FieldRow[] { };
+        public int ElementIndex;
+
+        public List<ActiveRecord> Instances = new List<ActiveRecord>();
+
+        const int MAX_INSTANCES = 60;
+
+
+        public FieldRow(FieldRow parent, RowTypes type)
         {
-            var arrayRows = new List<FieldRow>();
+            RowType = type;
 
-            for (int i = 0; i < row.ObjList.Count; i++)
+            if (parent == null)
+                return;
+
+            ParentField = parent;
+            Instances = parent.Instances;
+        }
+
+        public FieldRow(FieldRow parent, RowTypes rowType, Type type)
+            : this(parent, rowType)
+        {
+            FieldType = type;
+        }
+
+        public FieldRow(FieldRow parent, RowTypes rowType, Type type, int elementIndex)
+            : this(parent, rowType, type)
+        {
+            ElementIndex = elementIndex;
+        }
+        
+        public FieldRow(FieldRow parent, RowTypes rowType, FieldInfo info)
+            : this(parent, rowType, info.FieldType)
+        {
+            TypeInfo = info;
+        }
+
+        public void Init()
+        {
+            if (RowType == RowTypes.Root)
+                InitCells(GenericName, "");
+
+            if (RowType == RowTypes.Declared)
+                InitCells("<declared>", "");
+
+            if (RowType == RowTypes.Selected)
+                InitCells("<selected>", "");
+
+            if (RowType == RowTypes.Base)
+                InitCells("<base type>", "");
+
+            else if (RowType == RowTypes.Age)
+                InitCells("<age>", "");
+
+            else if (RowType == RowTypes.Field)
             {
-                var weakRef = row.ObjList[i];
+                string isStatic = TypeInfo.IsStatic ? "static " : "";
+                InitCells(
+                    isStatic + Utilities.FormatTemplateName(FieldType.Name),
+                    TypeInfo.Name
+                );
+            }
 
-                if (weakRef.Target == null)
-                    continue;
+            else if (RowType == RowTypes.Enumerate)
+                InitCells("<enumerate>", "");
 
-                var objArray = weakRef.Target as ICollection;
+            else if(RowType == RowTypes.Element)
+                InitCells(
+                    Utilities.FormatTemplateName(FieldType.Name),
+                    "[" + ElementIndex + "]"
+                );
+        
+            // set the type chain
+            var chain = new List<FieldRow>();
+            var next = this;
 
-                int x = 0;
-                var e = objArray.GetEnumerator();
+            while (next != null)
+            {
+                chain.Add(next);
+                next = next.ParentField;
+            }
 
-                while (e.MoveNext())
+            TypeChain = chain.Reverse<FieldRow>().ToArray();
+        }
+
+        void InitCells(string type, string value)
+        {
+            Cells[0].Value = type;
+            Cells[1].Value = value;
+        }
+
+        internal void ExpandField()
+        {
+            if (Expanded)
+                return;
+
+            Expanded = true;
+            
+            Nodes.Clear();
+
+            if (FieldType != null)
+            {
+                if (RowType == RowTypes.Root)
                 {
-                    var indexValue = e.Current;
+                    AddRow(new FieldRow(this, RowTypes.Declared));
+                    AddRow(new FieldRow(this, RowTypes.Selected, FieldType));
+                    AddRow(new FieldRow(this, RowTypes.Age));
+                }
 
-                    if (arrayRows.Count <= x)
-                    {
-                        row = new FieldRow(indexValue.GetType());
-                        parentNode.Add(row);
+                AddFieldMembers();
+            }
 
-                        row.Cells[0].Value = Utilities.FormatTemplateName(row.FieldType.Name); // type
-                        row.Cells[1].Value = "[" + x + "]"; // name
+            RefreshField();
+        }
 
-                        arrayRows.Add(row);
-                        row.Nodes.Add("loading...");
-                    }
+        internal void RefreshField()
+        {
+            for (int i = 0; i < Instances.Count && i < MAX_INSTANCES; i++)
+                RefreshCell(2 + i, Instances[i]);
+
+            if (RowType == RowTypes.Enumerate && Expanded)
+                RefreshFieldEnumerations();
+
+            if (RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
+                if(!Expanded)
+                    Nodes.Add("loading...");
+
+            foreach (var n in Nodes.OfType<FieldRow>())
+                n.RefreshField();
+        }
+
+        private void RefreshCell(int i, ActiveRecord instance)
+        {
+            if(RowType == RowTypes.Root)
+                return;
+
+            if (RowType == RowTypes.Declared)
+                Cells[i].Value = instance.InstanceType.ToString();
+
+            // match instance with selected node type (instance may be a sub-class of the selected node)
+            else if (RowType == RowTypes.Selected)
+                Cells[i].Value = (FieldType != null) ? FieldType.ToString() : "<null>";
+
+            else if (RowType == RowTypes.Base)
+                Cells[i].Value = FieldType.ToString();
+
+            else if (RowType == RowTypes.Age)
+            {
+                var staticTag = instance.IsStatic ? " (static)" : "";
+                Cells[i].Value = ((int)(DateTime.Now - instance.Created).TotalSeconds).ToString() + staticTag;
+            }
+
+            else
+            {
+                if (!instance.IsStatic && instance.Ref.Target == null)
+                {
+                    Cells[i].Value = "<deleted>";
+                    return;
+                }
+                
+                object target = instance.IsStatic ? null : instance.Ref.Target;
+
+                object value = GetFieldValue(target);
+                if (value == null)
+                {
+                   // XRay.ErrorLog.Add(i.ToString());
+                    Cells[i].Value = "<null>";
+                    return;
+                }
+
+                if (RowType == RowTypes.Field)
+                    Cells[i].Value = GetObjectLabel(value);
+
+                else if (RowType == RowTypes.Enumerate)
+                {
+                    var collection = value as ICollection;
+
+                    if (collection != null)
+                        Cells[i].Value = "Count: " + collection.Count.ToString();
                     else
-                        row = arrayRows[x];
+                        Cells[i].Value = "<not collection?>";
+                }
 
-                    row.Cells[2 + i].Value = GetObjectLabel(indexValue);
+                else if (RowType == RowTypes.Element)
+                    Cells[i].Value = GetObjectLabel(value);
+            }
+        }
 
-                    row.ObjList.Add(new TimedWeakRef(indexValue, false));
+        public object GetFieldValue(object rootInstanceValue)
+        {
+            object current = rootInstanceValue;
+            object found = null;
+            
+            // dont need to traverse type chain for static types
+            FieldRow[] chain = TypeChain;
+            if (TypeInfo != null && TypeInfo.IsStatic)
+                chain = new FieldRow[] { this };
 
-                    if (x > 100)
+            foreach (var link in chain)
+            {
+                // if has index value, get that
+                if (link.RowType == RowTypes.Element)
+                {
+                    int i = 0;
+                    var e = (current as ICollection).GetEnumerator();
+
+                    while (e.MoveNext())
+                    {
+                        if (i == link.ElementIndex)
+                        {
+                            current = e.Current;
+                            break;
+                        }
+
+                        i++;
+                    }
+                }
+                else if (link.RowType == RowTypes.Field)
+                {
+                    if (!link.TypeInfo.IsStatic && current == null)
+                        return "<not static>";
+                    
+                    current = link.TypeInfo.GetValue(current);
+
+                    // current can be null for first lookup (static, but after that needs a value)
+                    if (current == null)
+                    {
+                        found = current;
                         break;
+                    }
+                }
 
-                    x++;
+                // check if at end of chain
+                if (link == this || 
+                    (RowType == RowTypes.Enumerate && ParentField == link)) 
+                {
+                    found = current;
+                    break;
                 }
             }
-            
+
+            //return debugChain;
+            return found;
+        }
+
+        public void AddRow(FieldRow row)
+        {
+            Nodes.Add(row);
+            row.Init();
+        }
+
+        private void AddFieldMembers()
+        {
+            if (FieldType.BaseType != null)
+                AddRow( new FieldRow(this, RowTypes.Base, FieldType.BaseType));
+
+            if (FieldType.GetInterface("ICollection") != null)
+                AddRow(new FieldRow(this, RowTypes.Enumerate));
+
+            foreach (var field in FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
+                AddRow(new FieldRow(this, RowTypes.Field, field));
+        }
+
+        private void RefreshFieldEnumerations()
+        {
+            for (int i = 0; i < Instances.Count && i < MAX_INSTANCES; i++)
+            {
+                var instance = Instances[i];
+
+                object target = null;
+                if (instance.Ref != null && instance.Ref.Target != null)
+                    target = instance.Ref.Target;
+
+                var collection = GetFieldValue(target) as ICollection;
+
+                if(collection != null)
+                IterateCollection(collection, 2 + i);
+            }
+        }
+
+        public void IterateCollection(ICollection collection, int column)
+        {
+            int i = 0;
+            var e = collection.GetEnumerator();
+
+            while (e.MoveNext())
+            {
+                var indexValue = e.Current;
+
+                if (Nodes.Count <= i)
+                    AddRow(new FieldRow(this, RowTypes.Element, indexValue.GetType(), i));
+
+                if (i > 100)
+                    break;
+
+                i++;
+            }
         }
 
         public string GetObjectLabel(object obj)
@@ -337,7 +522,7 @@ namespace XLibrary
             return fullname;
 
             // read until ` or [ or end of line
-            
+
 
             // if substring is a known type then rewrite it
 
@@ -345,26 +530,6 @@ namespace XLibrary
 
             // read params inside [], pass params to same function
 
-        }
-
-    }
-
-
-    public class FieldRow : TreeGridNode
-    {
-        public bool Expanded;
-
-        public Type FieldType;
-        public List<TimedWeakRef> ObjList = new List<TimedWeakRef>();
-        public bool Enumerate;
-
-        public FieldRow()
-        {
-        }
-
-        public FieldRow(Type type)
-        {
-            FieldType = type;
         }
     }
 }

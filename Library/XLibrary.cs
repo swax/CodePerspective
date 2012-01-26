@@ -58,6 +58,9 @@ namespace XLibrary
 
         static uint CurrentSequence;
 
+        public static DateTime StartTime;
+        //public static double BytesSent;
+
 
         public static void TestInit(string path)
         {
@@ -81,6 +84,8 @@ namespace XLibrary
 
         public static void Init2(bool trackFlow, bool trackInstances)
         {
+            StartTime = DateTime.Now;
+
             try
             {
                 Watch.Start();
@@ -191,10 +196,21 @@ namespace XLibrary
             return false;
         }
 
+        /*public static double GetSimBps()
+        {
+            double secs = DateTime.Now.Subtract(StartTime).TotalSeconds;
+
+            return BytesSent / secs;
+        }*/
+
         public static void MethodEnter(int nodeID)
         {
-            if(XRayEnabled)
-                NodeHit(nodeID);
+            if (!XRayEnabled)
+                return;
+            
+            //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
+    
+            NodeHit(nodeID);
         }
 
         private static XNodeIn NodeHit(int nodeID)
@@ -342,14 +358,27 @@ namespace XLibrary
                 TrackClassCall(nodeID, node, source);
         }
 
+        public static XNode GetContainingClass(XNode node)
+        {
+            while (node != null)
+            {
+                if (node.ObjType == XObjType.Class)
+                    return node;
+
+                node = node.Parent;
+            }
+
+            return null;
+        }
+
         public static void TrackClassCall(int nodeID, XNodeIn node, int source)
         {
             var srcNode = Nodes[source];
             if (srcNode == null)
                 return;
 
-            var sourceClass = srcNode.Parent as XNodeIn;
-            var destClass = node.Parent as XNodeIn;
+            var sourceClass = GetContainingClass(srcNode) as XNodeIn;
+            var destClass = GetContainingClass(node) as XNodeIn;
 
             if (sourceClass == destClass)
                 return;
@@ -385,6 +414,8 @@ namespace XLibrary
 
             if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
                 return;
+
+            //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
@@ -439,6 +470,8 @@ namespace XLibrary
             if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
                 return;
 
+            //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
+
             int thread = Thread.CurrentThread.ManagedThreadId;
 
             if (CallLogging)
@@ -482,18 +515,15 @@ namespace XLibrary
                 return;
 
             XNodeIn node = Nodes[index];
-
+            
             // prevent having to check multiple times in mark hit and flow tracking
             if (node == null)
                 return;
 
-            var record = node.Record;
-            if (record == null)
-            {
-                record = new InstanceRecord();
-                node.Record = record;
-                record.InstanceType = (obj is System.Type) ? obj as System.Type : obj.GetType();
-            }
+            // of obj is system.runtimeType thats the flag that this is a static class's constructor running
+
+            if (node.Record == null)
+                node.Record = new InstanceRecord();
 
             if(node.Record.Add(obj))
                 InstanceChange = true;
@@ -558,28 +588,22 @@ namespace XLibrary
 
     public class InstanceRecord
     {
-        public Type InstanceType;
         public long Created;
-        public bool StaticClass;
         public long Deleted;
-        public List<TimedWeakRef> Active = new List<TimedWeakRef>();
+        public List<ActiveRecord> Active = new List<ActiveRecord>();
         
         /// <summary>
         /// Returns true if new instance created
         /// </summary>
         public bool Add(object obj)
         {
-            if (obj is System.Type)
-            {
-                StaticClass = true;
-                return true;
-            }
+
 
             Created++;
 
             lock (Active)
             {
-                Active.Add(new TimedWeakRef(obj, false));
+                Active.Add(new ActiveRecord(obj));
 
                 return (Active.Count == 1);
             }
@@ -597,7 +621,7 @@ namespace XLibrary
 
             lock (Active)
             {
-                var removeRef = Active.FirstOrDefault(a => a.Target == null);
+                var removeRef = Active.FirstOrDefault(a => a.Ref != null && a.Ref.Target == null);
                 if (removeRef == null)
                 {
                    XRay.LogError("Deleted instance wasnt logged of type " + obj.GetType().ToString());
@@ -611,13 +635,26 @@ namespace XLibrary
         }
     }
 
-    public class TimedWeakRef : WeakReference
+    public class ActiveRecord
     {
         public DateTime Created = DateTime.Now;
+        public WeakReference Ref;
+        public Type InstanceType;
+        public bool IsStatic;
 
-        public TimedWeakRef(object target, bool trackResurrection)
-            : base(target, trackResurrection)
-        { }
+        public ActiveRecord(object obj)
+        {
+            if (obj is System.Type)
+            {
+                InstanceType = obj as System.Type;
+                IsStatic = true;
+            }
+            else
+            {
+                InstanceType = obj.GetType();
+                Ref = new WeakReference(obj, false);
+            }
+        }
     }
 
     class ThreadFlow

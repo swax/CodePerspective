@@ -182,9 +182,9 @@ namespace XLibrary
         public Dictionary<int, XNodeIn> DependencyChainOut;
         public Dictionary<int, XNodeIn> DependencyChainIn;
 
-        internal bool Focused;
-
-        internal bool SearchMatch;
+        public bool Focused;
+        public string UnformattedName;
+        public bool SearchMatch;
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -207,7 +207,16 @@ namespace XLibrary
 
             int totalSize = BitConverter.ToInt32(stream.Read(4), 0);
             int nameSize = BitConverter.ToInt32(stream.Read(4), 0);
+
+            //node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
+
             node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
+            //if (node.ObjType == XObjType.Class)
+            //{
+                node.UnformattedName = node.Name;
+                node.Name = Utilities.FormatTemplateName(node.UnformattedName);
+            //}
+
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
             node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
             node.Value = node.Lines; // default

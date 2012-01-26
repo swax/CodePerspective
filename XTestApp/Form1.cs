@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using XTestLib;
+using System.Reflection;
 
 namespace XTestApp
 {
@@ -17,6 +18,9 @@ namespace XTestApp
 
         Object ButtonAsObject;
         Control ButtonAsControl;
+
+        public static int[] StaticArray = new int[] { 11,22,33,44 };
+
 
         public Form1()
         {
@@ -29,20 +33,27 @@ namespace XTestApp
 
         public void TryStuff()
         {
+            // checks whats been added to il for static constructor
 
-            var xx = new Dictionary<int, string>();
-            xx[3] = "hello";
+            // read in static consructor with decompiler and see what load field value is set to
 
-            var yyy = xx.ToString();
+            var aa = typeof(StaticMan);
 
-            var attrx = Attribute.GetCustomAttributes(xx.GetType());
-            var attr = Attribute.GetCustomAttributes(xx.GetType()).First(a => a.GetType() == typeof(System.Diagnostics.DebuggerDisplayAttribute)) as System.Diagnostics.DebuggerDisplayAttribute;
+            var bb = typeof(StaticTemplateClass<int>);
 
-            var valuezz = string.Format(attr.Value, xx);
 
-            int ii = 0;
-            ii++;
+            /*var z = typeof(StaticTemplateClass<int>);
 
+            foreach (var x in z.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
+            {
+                var name = x.Name;
+
+                var value = x.GetValue(null);
+
+                int i = 0;
+                i++;
+            }*/
+            
             try
             {
                 StaticMan.HolyCow();

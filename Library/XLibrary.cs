@@ -603,7 +603,7 @@ namespace XLibrary
 
             lock (Active)
             {
-                Active.Add(new ActiveRecord(obj));
+                Active.Add(new ActiveRecord(Created, obj));
 
                 return (Active.Count == 1);
             }
@@ -637,13 +637,16 @@ namespace XLibrary
 
     public class ActiveRecord
     {
+        public long Number;
         public DateTime Created = DateTime.Now;
         public WeakReference Ref;
         public Type InstanceType;
         public bool IsStatic;
 
-        public ActiveRecord(object obj)
+        public ActiveRecord(long num, object obj)
         {
+            Number = num;
+
             if (obj is System.Type)
             {
                 InstanceType = obj as System.Type;

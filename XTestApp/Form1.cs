@@ -21,6 +21,7 @@ namespace XTestApp
 
         public static int[] StaticArray = new int[] { 11,22,33,44 };
 
+        Dictionary<int, string> TestMap = new Dictionary<int, string>();
 
         public Form1()
         {
@@ -28,7 +29,6 @@ namespace XTestApp
 
             ButtonAsObject = button1;
             ButtonAsControl = button1;
-
         }
 
         public void TryStuff()
@@ -120,6 +120,18 @@ namespace XTestApp
         private void button1_Click(object sender, EventArgs e)
         {
             GC.Collect();
+        }
+
+        public int CountUp;
+
+        private void TestTimer_Tick(object sender, EventArgs e)
+        {
+            CountUp++;
+        }
+
+        private void StartTimerButton_Click(object sender, EventArgs e)
+        {
+            TestTimer.Enabled = !TestTimer.Enabled;
         }
     }
 }

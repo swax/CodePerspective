@@ -28,9 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.SummaryLabel = new System.Windows.Forms.Label();
             this.FieldGrid = new AdvancedDataGridView.TreeGridView();
+            this.AutoRefresh = new System.Windows.Forms.LinkLabel();
+            this.RefreshTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.FieldGrid)).BeginInit();
             this.SuspendLayout();
             // 
@@ -69,10 +72,29 @@
             this.FieldGrid.TabIndex = 12;
             this.FieldGrid.NodeExpanding += new AdvancedDataGridView.ExpandingEventHandler(this.FieldGrid_NodeExpanding);
             // 
+            // AutoRefresh
+            // 
+            this.AutoRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.AutoRefresh.AutoSize = true;
+            this.AutoRefresh.Location = new System.Drawing.Point(324, 0);
+            this.AutoRefresh.Name = "AutoRefresh";
+            this.AutoRefresh.Size = new System.Drawing.Size(103, 13);
+            this.AutoRefresh.TabIndex = 13;
+            this.AutoRefresh.TabStop = true;
+            this.AutoRefresh.Text = "Turn off auto refresh";
+            this.AutoRefresh.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.AutoRefresh_LinkClicked);
+            // 
+            // RefreshTimer
+            // 
+            this.RefreshTimer.Enabled = true;
+            this.RefreshTimer.Interval = 1000;
+            this.RefreshTimer.Tick += new System.EventHandler(this.RefreshTimer_Tick);
+            // 
             // InstancePanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.AutoRefresh);
             this.Controls.Add(this.FieldGrid);
             this.Controls.Add(this.SummaryLabel);
             this.Name = "InstancePanel";
@@ -87,5 +109,7 @@
 
         private System.Windows.Forms.Label SummaryLabel;
         public AdvancedDataGridView.TreeGridView FieldGrid;
+        private System.Windows.Forms.LinkLabel AutoRefresh;
+        private System.Windows.Forms.Timer RefreshTimer;
     }
 }

@@ -18,6 +18,9 @@ namespace XLibrary
     {
         public XNodeIn SelectedNode;
 
+        Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
+
+
         public InstancePanel()
         {
             InitializeComponent();
@@ -27,38 +30,46 @@ namespace XLibrary
 
         public void NavigateTo(XNodeIn node)
         {
-            if (node.Record != null)
-            {
-                SelectedNode = node;
-                var record = node.Record;
+            SelectedNode = node;
 
-                string isStatic = "";// record.StaticClass ? "static " : "";
-
-                SummaryLabel.Text = isStatic + String.Format("{0} - Created: {1}, Deleted: {2}, Active: {3}", node.Name, record.Created, record.Deleted, record.Active.Count);
-
-                RefreshTree();
-            }
-            else
-            {
-                SelectedNode = null;
-
-                SummaryLabel.Text = "No record of instance of " + node.Name + " type being created";
-
-                RefreshTree();
-            }
+            RefreshTree(true);
         }
 
-        void RefreshTree()
+        void RefreshTree(bool clear)
         {
-            FieldGrid.Nodes.Clear();
-            FieldGrid.Columns.Clear();
+            if (clear)
+            {
+                FieldGrid.Nodes.Clear();
+                FieldGrid.Columns.Clear();
+
+                // type col
+                FieldGrid.Columns.Add(new TreeGridColumn() { HeaderText = "Type" });
+                FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Name" });
+
+                GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
+            }
 
             if (SelectedNode == null)
+            {
+                SummaryLabel.Text = "";
                 return;
+            }
 
             var nodeTypeName = SelectedNode.UnformattedName;
             var record = SelectedNode.Record;
-            var GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
+
+            if (record == null)
+            {
+                SummaryLabel.Text = "No record of instance of " + SelectedNode.Name + " type being created";
+                return;
+            }
+
+            string isStatic = "";// record.StaticClass ? "static " : "";
+            SummaryLabel.Text = isStatic + String.Format("{0} - Created: {1}, Deleted: {2}, Active: {3}", SelectedNode.Name, record.Created, record.Deleted, record.Active.Count);
+
+            // rebuild each list cause instances may be added or removed
+            foreach (var recordList in GenericMap.Values)
+                recordList.Item2.Clear();
 
             if (record != null && record.Active.Count > 0)
             {
@@ -91,7 +102,7 @@ namespace XLibrary
                             throw new Exception(string.Format("record type not found for node type {0} and instance type {1}", nodeTypeName, recordType.ToString()));
 
                         recordTypeName = recordType.ToString();
-                        var genericName = "";
+                        var genericName = SelectedNode.Name;
 
                         if (recordTypeName.Contains('`'))
                             genericName = recordTypeName.Substring(recordTypeName.IndexOf('`'));
@@ -99,66 +110,72 @@ namespace XLibrary
                         if (!GenericMap.ContainsKey(genericName))
                             GenericMap[genericName] = new Tuple<Type, List<ActiveRecord>>(recordType, new List<ActiveRecord>());
 
-                        GenericMap[genericName].Item2.Add(instance);
+                        var recordList = GenericMap[genericName].Item2;
+                        if( !recordList.Contains(instance) )
+                            recordList.Add(instance);
                     }
                 }
             }
 
-            if (GenericMap.Values.Count == 0)
-                return;
-
-            // type col
-            FieldGrid.Columns.Add(new TreeGridColumn() { HeaderText = "Type" });
-            FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Name" });
-
             // add columns for each intance
-            int mostInstances = GenericMap.Values.Max(v => v.Item2.Count);
+            int mostInstances = 0;
+            if(GenericMap.Count > 0)
+                mostInstances = GenericMap.Values.Max(v => v.Item2.Count);
+
+            var newColumns = new List<DataGridViewColumn>();
 
             for (int i = 0; i < mostInstances; i++)
-                FieldGrid.Columns.Add(new DataGridViewTextBoxColumn() { HeaderText = "Instance " + i.ToString() });
+                if (FieldGrid.ColumnCount <= 2 + i)
+                {
+                    var col = new DataGridViewTextBoxColumn() { HeaderText = "Instance " + i.ToString() };
+                    newColumns.Add(col);
+                    FieldGrid.Columns.Add(col);
+                }
 
-            if (GenericMap.Count == 1)
+            foreach (var recordInstance in GenericMap)
             {
-                var recordInstance = GenericMap.First().Value;
+                FieldRow row = FieldGrid.Nodes.OfType<FieldRow>().FirstOrDefault(r => r.GenericName == recordInstance.Key);
 
-                var row = new FieldRow(null, RowTypes.Root);
-                row.Nodes = FieldGrid.Nodes;
-                row.FieldType = recordInstance.Item1; // instance type that matches selected node
-                row.Instances = recordInstance.Item2; // list of instances
+                if (row != null)
+                {
+                    row.RefreshField();
+                    continue;
+                }
+
+                row = new FieldRow(null, RowTypes.Root);
+                row.GenericName = recordInstance.Key;
+                row.FieldType = recordInstance.Value.Item1; // instance type that matches selected node
+                row.Instances = recordInstance.Value.Item2; // list of instances
+
+                FieldGrid.Nodes.Add(row);
+                row.Init();
                 row.ExpandField();
             }
-            else
-            {
-                foreach (var recordInstance in GenericMap)
-                {
-                    var row = new FieldRow(null, RowTypes.Root);
-                    row.GenericName = recordInstance.Key;
-                    row.FieldType = recordInstance.Value.Item1; // instance type that matches selected node
-                    row.Instances = recordInstance.Value.Item2; // list of instances
 
-                    FieldGrid.Nodes.Add(row);
-                    row.Init();
-                    row.ExpandField();
-                }
-            }
+            foreach (FieldRow generic in FieldGrid.Nodes.OfType<FieldRow>())
+                generic.Expand();
 
-            AutoSizeColumns();
+            foreach (var col in newColumns)
+                AutoSizeColumn(col);
+            
+        }
+
+        private void AutoSizeColumn(DataGridViewColumn col)
+        {
+            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+
+            var width = col.Width + 10;
+
+            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+
+            col.Width = Math.Min(width, 200);
         }
 
         private void AutoSizeColumns()
         {
-            // set autosize mode
-            foreach(DataGridViewColumn col in FieldGrid.Columns)
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-
-            foreach(DataGridViewColumn col in FieldGrid.Columns)
-            {
-                var width = col.Width + 10;
-
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-
-                col.Width = Math.Min(width, 200);
-            }
+            // set autosize mode to cells
+            foreach (DataGridViewColumn col in FieldGrid.Columns)
+                AutoSizeColumn(col);
         }
 
         private void FieldGrid_NodeExpanding(object sender, ExpandingEventArgs e)
@@ -172,9 +189,32 @@ namespace XLibrary
 
             AutoSizeColumns();
         }
+
+        bool AutoRefreshOn = true;
+
+        private void AutoRefresh_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            AutoRefreshOn = !AutoRefreshOn;
+
+            RefreshTimer.Enabled = AutoRefreshOn;
+
+            AutoRefresh.Text = AutoRefreshOn ? "Turn off auto refresh" : "Turn on auto refresh";
+        }
+
+        private void RefreshTimer_Tick(object sender, EventArgs e)
+        {
+            RefreshTimer.Enabled = false;
+
+            RefreshTree(false);
+
+            // start next refrseh a second after the time it took to do the actual refresh
+            RefreshTimer.Enabled = AutoRefreshOn;
+        }
+
+       
     }
 
-    public enum RowTypes { Root, Age, Base, Declared, Selected, Enumerate, Element, Field }
+    public enum RowTypes { Root, Number, Age, Base, Declared, Selected, Enumerate, Element, Field }
 
     public class FieldRow : TreeGridNode
     {
@@ -237,6 +277,9 @@ namespace XLibrary
             if (RowType == RowTypes.Base)
                 InitCells("<base type>", "");
 
+            else if (RowType == RowTypes.Number)
+                InitCells("<instance#>", "");
+
             else if (RowType == RowTypes.Age)
                 InitCells("<age>", "");
 
@@ -292,6 +335,7 @@ namespace XLibrary
                 {
                     AddRow(new FieldRow(this, RowTypes.Declared));
                     AddRow(new FieldRow(this, RowTypes.Selected, FieldType));
+                    AddRow(new FieldRow(this, RowTypes.Number)); 
                     AddRow(new FieldRow(this, RowTypes.Age));
                 }
 
@@ -303,14 +347,18 @@ namespace XLibrary
 
         internal void RefreshField()
         {
-            for (int i = 0; i < Instances.Count && i < MAX_INSTANCES; i++)
+            int i = 0;
+            for (i = 0; i < Instances.Count && i < MAX_INSTANCES; i++)
                 RefreshCell(2 + i, Instances[i]);
+
+            for (; i < Cells.Count - 2; i++)
+                SetCellValue(2 + i, "");
 
             if (RowType == RowTypes.Enumerate && Expanded)
                 RefreshFieldEnumerations();
 
             if (RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
-                if(!Expanded)
+                if(!Expanded && Nodes.Count == 0)
                     Nodes.Add("loading...");
 
             foreach (var n in Nodes.OfType<FieldRow>())
@@ -323,26 +371,29 @@ namespace XLibrary
                 return;
 
             if (RowType == RowTypes.Declared)
-                Cells[i].Value = instance.InstanceType.ToString();
+                SetCellValue(i, instance.InstanceType.ToString());
 
             // match instance with selected node type (instance may be a sub-class of the selected node)
             else if (RowType == RowTypes.Selected)
-                Cells[i].Value = (FieldType != null) ? FieldType.ToString() : "<null>";
+                SetCellValue(i, (FieldType != null) ? FieldType.ToString() : "<null>");
 
             else if (RowType == RowTypes.Base)
-                Cells[i].Value = FieldType.ToString();
+                SetCellValue(i, FieldType.ToString());
+
+            else if (RowType == RowTypes.Number)
+                SetCellValue(i, "#" + instance.Number.ToString());
 
             else if (RowType == RowTypes.Age)
             {
                 var staticTag = instance.IsStatic ? " (static)" : "";
-                Cells[i].Value = ((int)(DateTime.Now - instance.Created).TotalSeconds).ToString() + staticTag;
+                SetCellValue(i, ((int)(DateTime.Now - instance.Created).TotalSeconds).ToString() + staticTag, showUpdate: false);
             }
 
             else
             {
                 if (!instance.IsStatic && instance.Ref.Target == null)
                 {
-                    Cells[i].Value = "<deleted>";
+                    SetCellValue(i, "<deleted>");
                     return;
                 }
                 
@@ -352,26 +403,42 @@ namespace XLibrary
                 if (value == null)
                 {
                    // XRay.ErrorLog.Add(i.ToString());
-                    Cells[i].Value = "<null>";
+                    SetCellValue(i, "<null>");
                     return;
                 }
 
                 if (RowType == RowTypes.Field)
-                    Cells[i].Value = GetObjectLabel(value);
+                    SetCellValue(i, GetObjectLabel(value));
 
                 else if (RowType == RowTypes.Enumerate)
                 {
                     var collection = value as ICollection;
 
                     if (collection != null)
-                        Cells[i].Value = "Count: " + collection.Count.ToString();
+                        SetCellValue(i, "Count: " + collection.Count.ToString());
                     else
-                        Cells[i].Value = "<not collection?>";
+                        SetCellValue(i, "<not collection?>");
                 }
 
                 else if (RowType == RowTypes.Element)
-                    Cells[i].Value = GetObjectLabel(value);
+                    SetCellValue(i, GetObjectLabel(value));
             }
+        }
+
+        public void SetCellValue(int i, string newValue, bool showUpdate=true)
+        {
+            var cell = Cells[i];
+            var currentValue = cell.Value as string;
+
+            if (showUpdate && currentValue != null)
+            {
+                if (currentValue.CompareTo(newValue) != 0)
+                    cell.Style.BackColor = Color.PeachPuff;
+                else
+                    cell.Style.BackColor = cell.OwningRow.DefaultCellStyle.BackColor;
+            }
+
+            cell.Value = newValue;
         }
 
         public object GetFieldValue(object rootInstanceValue)

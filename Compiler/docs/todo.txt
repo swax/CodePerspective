@@ -1,22 +1,25 @@
 ﻿
-ivcryptostream not showing anything still
+apps
+	de-ops
+		problem expanding dictionaries keyvalue elements in some classes
+	pixelscope
+		track instances in pixel scope doesnt work
+		can put pixelscope on laptop to analyze with xray?
 
-hyperlink in instance view to check out base types, etc..
-
-int32 values show as deleted
-	color modified fields - use same color as ui, shaded background
+instance view
+	clicking on field should highlight in instance grid and vice versa
+	ivcryptostream not showing anything still
+	hyperlink in instance view to check out base types, etc..
 	search on instance page
 	ability to modify values
-
-ability to turn refresh off and lock values, for example so test apps test class isnt disposed
+	ability to prevent deleting of references by 'locking' on refresh, keeping list of instances not weak refs
+	button to show next/prev page of instances?
+	detect cyclic references in instance browser
 
 dhtnetwork calls coming from nowhere, show them?
 	when zoomed in, external lines still coming in from other non-zoomed in parts
 	maybe class graph edges are still being drawn??
 	does 'reset hit' reset class hit status>
-
-
-
 
 flash class green/red when constructd/deconstructed
 
@@ -27,27 +30,26 @@ shortcut key, hook in app's global name space or maybe even windows itself to ac
 		start with UI shown/hidden
 	bind to windows key + x to show all xray UIs?
 
-commit
+search box
+	show count next to search box for found #, clicking on # filters display to those nodes
+	state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
 
-show count next to search box for found #, clicking on # filters display to those nodes
-state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
+reference graph
+	class graph ordered by who instantiates who
+	pan/zoom support
+	zoom in on class node shows method/field graph just for that node
+	it should look like how i 'think of the structure of deops' in my head
 
 asp.net support 
 
-detect cyclic references in instance browser
-
-when mouse over field then show values
-
 Graph Direct -> Method map, does not re-add call dashed lines
-
-Get properties for threaded list throws
-
-**light up changing fields, in list based field view as well
 
 Why using 100% cpu while idling on dependency full screen view
 	run xray on building / test.dat view
 
-button to turn on/off in toolbar - test with uberblox to test speed
+on/off button
+	add option to compiler to start xray 'off'
+	test with uberblox to test speed
 
 spring 2d graph
 spend a day and just give 3d a shot, make it a module that can be included
@@ -57,21 +59,17 @@ can 2d be rendered faster with 3d code?
 put in some tool tips for vis options
 	on selected radio mention ctrl click
 
-field view updates live
-
-field details, mouse over values?
-
 profile tab
 	reset timing button
 	draw out new visualization
 
 details tab
-  clicking on namespace - gives child classes with instance count for each
-  class - gives list of fields, and methods by base class
-  method - gives timing info
-  field - gives value for different instances
-  each has links to parents so can surf just through details
-  selection box follows
+	clicking on namespace - gives child classes with instance count for each
+	class - gives list of fields, and methods by base class
+	method - gives timing info
+	field - gives value for different instances
+	each has links to parents so can surf just through details
+	selection box follows
 
 console tab
    run funtions on existing instances manually
@@ -86,13 +84,6 @@ code panel
 	add to dat file
 	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
 	ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
-
-instance panel
-	button to show next/prev page of instances
-
-search box
-	upper right
-	filters based on input
 
 pan/zoom
 	stop drawing/iterating parts of tree that are totally off screen
@@ -196,26 +187,10 @@ thread colors
 	color nodes/lines between nodes according to hash
 	save red for nodes/calls hit by multiple colors
 
-search
-	as user types
-	sep thread takes latest value in search box
-	traverses node tree
-		highlights nodes that match
-	view mode can be set to only show nodes that match search
-
 website
 	email sign-up to get latest news on xray
 	paypal to buy xray and have a license generated/sent to you
 	forum to discuss
-
-show field grid
-	flash red when field set, blue when loaded, purple both
-	Mark field as hit when modified
-	Easy to see what parts of the app state are being modified
-	Would look good on treemap, and also in node graph possibly
-	have a tree map panel, below the node graph
-		showing a treemap of just fields
-		clicking on a field draws lines to functions that modify it
 
 full screen graph in mcforge using all cpu
 	are frames being skipped?
@@ -230,40 +205,12 @@ double click to zoom / navigate
 
 test app has a line in the tree map going to the middle of the class
 
-create call map class to class if class tracking is on
-	graph class map
-	create node graph inside classes of nodes
-
-use cecil to do assembly modifications
-	see if ilspy can be recompiled successfully
-	see if can track external mcForge calls
-	use recompile to figure out ilspy's de-obfuscate path
-	can cecil change a method from private to public?
-
 timing visualization
 	break each node into layers
 	layer size proportional to amount of time spent on call
 	line end points are hooked up to call slice
 	use alternating colors for slices cause not enough space for outlines
 	pan/zoom becomes more useful when drilling down into calls
-
-class as nodes
-	save graph of class to class calls
-	class node size by number of active internal items
-	save sep node graph for internal class stuff
-
-class instance count tracking
-
-class variables as nodes
-
-get class variable states using reflection (or something)
-	can we keep weak references to init'd classes and keep track of how many there are
-
-
-*** perfect debugging means truely making an application transparent,
-  being able to SEE anything out of place instantly
-
-
 
 
 in call graph mode, view external, calls recalc sizes, but does not add other nodes

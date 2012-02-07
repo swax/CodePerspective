@@ -11,40 +11,42 @@ namespace XLibrary.Panels
 {
     public partial class ViewPanel : UserControl
     {
-        TreePanelGdiPlus MainView;
+        MainForm Main;
+        ViewModel Model;
 
         public ViewPanel()
         {
             InitializeComponent();
         }
 
-        public void Init(TreePanelGdiPlus mainView)
+        public void Init(MainForm main)
         {
-            MainView = mainView;
+            Main = main;
+            Model = main.Model;
 
             CallsAllButton.Checked = XRay.ShowAllCalls;
-            CallsRealTimeButton.Checked = MainView.ShowCalls;
+            CallsRealTimeButton.Checked = Model.ShowCalls;
 
-            IncludeOutsideZoomButton.Checked = MainView.ShowOutside;
-            IncludeNotXRayedButton.Checked = MainView.ShowExternal;
-            IncludeFields.Checked = MainView.ShowFields;
-            IncludeMethods.Checked = MainView.ShowMethods;
+            IncludeOutsideZoomButton.Checked = Model.ShowOutside;
+            IncludeNotXRayedButton.Checked = Model.ShowExternal;
+            IncludeFields.Checked = Model.ShowFields;
+            IncludeMethods.Checked = Model.ShowMethods;
 
             // layout
-            LayoutTreeMapButton.Checked = MainView.ViewLayout == LayoutType.TreeMap;
-            LayoutCallGraphButton.Checked = MainView.ViewLayout == LayoutType.CallGraph;
-            LayoutInOrder.Checked = MainView.SequenceOrder;
+            LayoutTreeMapButton.Checked = Model.ViewLayout == LayoutType.TreeMap;
+            LayoutCallGraphButton.Checked = Model.ViewLayout == LayoutType.CallGraph;
+            LayoutInOrder.Checked = Model.SequenceOrder;
 
-            ShowAllButton.Checked = MainView.ShowLayout == ShowNodes.All;
-            ShowHitButton.Checked = MainView.ShowLayout == ShowNodes.Hit;
-            ShowNotHitButton.Checked = MainView.ShowLayout == ShowNodes.Unhit;
-            ShowInstancesButton.Checked = MainView.ShowLayout == ShowNodes.Instances;
+            ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
+            ShowHitButton.Checked = Model.ShowLayout == ShowNodes.Hit;
+            ShowNotHitButton.Checked = Model.ShowLayout == ShowNodes.Unhit;
+            ShowInstancesButton.Checked = Model.ShowLayout == ShowNodes.Instances;
 
-            SizeConstantButton.Checked = MainView.SizeLayout == SizeLayouts.Constant;
-            SizeLinesButton.Checked = MainView.SizeLayout == SizeLayouts.MethodSize;
-            SizeTimeInMethodButton.Checked = MainView.SizeLayout == SizeLayouts.TimeInMethod;
-            SizeCallsButton.Checked = MainView.SizeLayout == SizeLayouts.Hits;
-            SizeTimePerCallButton.Checked = MainView.SizeLayout == SizeLayouts.TimePerHit;
+            SizeConstantButton.Checked = Model.SizeLayout == SizeLayouts.Constant;
+            SizeLinesButton.Checked = Model.SizeLayout == SizeLayouts.MethodSize;
+            SizeTimeInMethodButton.Checked = Model.SizeLayout == SizeLayouts.TimeInMethod;
+            SizeCallsButton.Checked = Model.SizeLayout == SizeLayouts.Hits;
+            SizeTimePerCallButton.Checked = Model.SizeLayout == SizeLayouts.TimePerHit;
 
             // tracking
             TrackingMethodCalls.Enabled = XRay.FlowTracking;
@@ -61,10 +63,10 @@ namespace XLibrary.Panels
             if (!LayoutTreeMapButton.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.TreeMap;
-            MainView.MapMode = TreeMapMode.Normal;
-            MainView.DependenciesMode = ShowDependenciesMode.None;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.TreeMap;
+            Model.MapMode = TreeMapMode.Normal;
+            Model.DependenciesMode = ShowDependenciesMode.None;
+            Main.RefreshView();
         }
 
         private void LayoutCallGraphButton_CheckedChanged(object sender, EventArgs e)
@@ -72,10 +74,10 @@ namespace XLibrary.Panels
             if (!LayoutCallGraphButton.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.CallGraph;
-            MainView.GraphMode = CallGraphMode.Method;
-            MainView.DependenciesMode = ShowDependenciesMode.None;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Method;
+            Model.DependenciesMode = ShowDependenciesMode.None;
+            Main.RefreshView();
         }
 
         private void LayoutInOrder_CheckedChanged(object sender, EventArgs e)
@@ -83,8 +85,8 @@ namespace XLibrary.Panels
             if (!LayoutInOrder.Checked)
                 return;
 
-            MainView.SequenceOrder = LayoutInOrder.Checked;
-            MainView.RecalcValues();
+            Model.SequenceOrder = LayoutInOrder.Checked;
+            Main.RefreshView();
         }
 
         private void LayoutClassCallsButton_CheckedChanged(object sender, EventArgs e)
@@ -92,10 +94,25 @@ namespace XLibrary.Panels
             if (!LayoutClassCallsButton.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.CallGraph;
-            MainView.GraphMode = CallGraphMode.Class;
-            MainView.DependenciesMode = ShowDependenciesMode.None;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Class;
+            Model.DependenciesMode = ShowDependenciesMode.None;
+            Main.RefreshView();
+        }
+
+        private void Layout3dButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!Layout3dButton.Checked)
+                return;
+
+            Model.ViewLayout = LayoutType.ThreeD;
+            Model.MapMode = TreeMapMode.Normal;
+            Model.DependenciesMode = ShowDependenciesMode.None;
+
+            Model.SecondarySizeLayout = Model.SizeLayout;
+            Model.SizeLayout = SizeLayouts.Constant;
+
+            Main.RefreshView();
         }
 
         private void MapDirectDependencies_CheckedChanged(object sender, EventArgs e)
@@ -103,10 +120,10 @@ namespace XLibrary.Panels
             if (!MapDirectDependencies.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.TreeMap;
-            MainView.MapMode = TreeMapMode.Dependencies;
-            MainView.DependenciesMode = ShowDependenciesMode.Direct;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.TreeMap;
+            Model.MapMode = TreeMapMode.Dependencies;
+            Model.DependenciesMode = ShowDependenciesMode.Direct;
+            Main.RefreshView();
         }
 
         private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)
@@ -114,10 +131,10 @@ namespace XLibrary.Panels
             if (!MapAllDependencies.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.TreeMap;
-            MainView.MapMode = TreeMapMode.Dependencies;
-            MainView.DependenciesMode = ShowDependenciesMode.All;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.TreeMap;
+            Model.MapMode = TreeMapMode.Dependencies;
+            Model.DependenciesMode = ShowDependenciesMode.All;
+            Main.RefreshView();
         }
 
         private void GraphAllDependencies_CheckedChanged(object sender, EventArgs e)
@@ -125,10 +142,10 @@ namespace XLibrary.Panels
             if (!GraphAllDependencies.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.CallGraph;
-            MainView.GraphMode = CallGraphMode.Dependencies;
-            MainView.DependenciesMode = ShowDependenciesMode.All;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Dependencies;
+            Model.DependenciesMode = ShowDependenciesMode.All;
+            Main.RefreshView();
         }
 
         private void GraphDirectDependencies_CheckedChanged(object sender, EventArgs e)
@@ -136,10 +153,10 @@ namespace XLibrary.Panels
             if (!GraphDirectDependencies.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.CallGraph;
-            MainView.GraphMode = CallGraphMode.Dependencies;
-            MainView.DependenciesMode = ShowDependenciesMode.Direct;
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Dependencies;
+            Model.DependenciesMode = ShowDependenciesMode.Direct;
+            Main.RefreshView();
         }
 
         private void GraphIntermediateDependencies_CheckedChanged(object sender, EventArgs e)
@@ -147,35 +164,35 @@ namespace XLibrary.Panels
             if (!GraphIntermediateDependencies.Checked)
                 return;
 
-            MainView.ViewLayout = LayoutType.CallGraph;
-            MainView.GraphMode = CallGraphMode.Dependencies;
-            MainView.DependenciesMode = ShowDependenciesMode.Intermediates;
-            MainView.InterDependencies = MainView.GetClassesFromFocusedNodes();
-            MainView.RecalcValues();
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Dependencies;
+            Model.DependenciesMode = ShowDependenciesMode.Intermediates;
+            Model.InterDependencies = Model.GetClassesFromFocusedNodes();
+            Main.RefreshView();
         }
 
         private void ShowAllButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowLayout = ShowNodes.All;
-            MainView.RecalcValues();
+            Model.ShowLayout = ShowNodes.All;
+            Main.RefreshView();
         }
 
         private void ShowHitButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowLayout = ShowNodes.Hit;
-            MainView.RecalcValues();
+            Model.ShowLayout = ShowNodes.Hit;
+            Main.RefreshView();
         }
 
         private void ShowNotHitButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowLayout = ShowNodes.Unhit;
-            MainView.RecalcValues();
+            Model.ShowLayout = ShowNodes.Unhit;
+            Main.RefreshView();
         }
 
         private void ShowInstancesButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowLayout = ShowNodes.Instances;
-            MainView.RecalcValues();
+            Model.ShowLayout = ShowNodes.Instances;
+            Main.RefreshView();
         }
 
         private void ResetHitLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -184,7 +201,7 @@ namespace XLibrary.Panels
                 if (XRay.Nodes[i].StillInside == 0)
                     XRay.CoveredFunctions[i] = false;
 
-            MainView.RecalcValues();
+            Main.RefreshView();
         }
 
         private void ResetProfilingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -203,67 +220,67 @@ namespace XLibrary.Panels
                 call.TotalTimeOutsideDest = 0;
             }
 
-            MainView.RecalcValues();
+            Main.RefreshView();
         }
 
         private void CallsAllButton_CheckedChanged(object sender, EventArgs e)
         {
             XRay.ShowAllCalls = CallsAllButton.Checked;
-            MainView.Redraw();
+            Main.RefreshView(true);
         }
 
         private void CallsRealTimeButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowCalls = CallsRealTimeButton.Checked;
-            MainView.Redraw();
+            Model.ShowCalls = CallsRealTimeButton.Checked;
+            Main.RefreshView(true);
         }
 
         private void IncludeOutsideZoomButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowOutside = IncludeOutsideZoomButton.Checked;
-            MainView.RecalcValues();
+            Model.ShowOutside = IncludeOutsideZoomButton.Checked;
+            Main.RefreshView();
         }
         
         private void IncludeNotXRayedButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowExternal = IncludeNotXRayedButton.Checked;
-            MainView.RecalcValues();
+            Model.ShowExternal = IncludeNotXRayedButton.Checked;
+            Main.RefreshView();
         }
 
         private void IncludeFields_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowFields = IncludeFields.Checked;
-            MainView.RecalcValues();
+            Model.ShowFields = IncludeFields.Checked;
+            Main.RefreshView();
         }
 
         private void SizeConstantButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.SizeLayout = SizeLayouts.Constant;
-            MainView.RecalcValues();
+            Model.SizeLayout = SizeLayouts.Constant;
+            Main.RefreshView();
         }
 
         private void SizeLinesButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.SizeLayout = SizeLayouts.MethodSize;
-            MainView.RecalcValues();
+            Model.SizeLayout = SizeLayouts.MethodSize;
+            Main.RefreshView();
         }
 
         private void SizeTimeInMethodButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.SizeLayout = SizeLayouts.TimeInMethod;
-            MainView.RecalcValues();
+            Model.SizeLayout = SizeLayouts.TimeInMethod;
+            Main.RefreshView();
         }
 
         private void SizeCallsButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.SizeLayout = SizeLayouts.Hits;
-            MainView.RecalcValues();
+            Model.SizeLayout = SizeLayouts.Hits;
+            Main.RefreshView();
         }
 
         private void SizeTimePerCallButton_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.SizeLayout = SizeLayouts.TimePerHit;
-            MainView.RecalcValues();
+            Model.SizeLayout = SizeLayouts.TimePerHit;
+            Main.RefreshView();
         }
 
         private void TrackingMethodCalls_CheckedChanged(object sender, EventArgs e)
@@ -283,8 +300,8 @@ namespace XLibrary.Panels
 
         private void IncludeMethods_CheckedChanged(object sender, EventArgs e)
         {
-            MainView.ShowMethods = IncludeMethods.Checked;
-            MainView.RecalcValues();
+            Model.ShowMethods = IncludeMethods.Checked;
+            Main.RefreshView();
         }
     }
 }

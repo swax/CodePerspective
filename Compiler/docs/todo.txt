@@ -1,10 +1,39 @@
 ﻿
+fps counter - compare with open gl
+
+create a gl surface to draw on
+	abstract tree/graph drawing so an interface is passed to it from the drawing surface
+	draw 1000x1000 block, zoom out till i can see it
+	draw tree graph with open gl
+	implement mouse panning
+
+	texture functions with translucent code
+	have texture light up when hit
+	draw call lines underneath city, rotate world to see underneath
+
+	start off with isometric view
+	pull out functions as blocks
+	have blocks light up when hit
+	texture blocks
+	have name spaces just as blue outlines around class bases
+	mouse over highlight
+
+	color constructed classes
+	check out facebook
+	
+	'towers of code'
+		each function is a text on the surface of the wall, that lights up when run
+		fields are at the top of towers
+		class graph connects towers with lines bewteen
+
 apps
 	de-ops
 		problem expanding dictionaries keyvalue elements in some classes
 	pixelscope
 		track instances in pixel scope doesnt work
 		can put pixelscope on laptop to analyze with xray?
+	openTK
+		gives an assembly reference not found on compile
 
 instance view
 	clicking on field should highlight in instance grid and vice versa
@@ -48,7 +77,7 @@ Why using 100% cpu while idling on dependency full screen view
 	run xray on building / test.dat view
 
 on/off button
-	add option to compiler to start xray 'off'
+	add option to compiler to start xray 'off'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 	test with uberblox to test speed
 
 spring 2d graph

@@ -49,6 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.Layout3dButton = new System.Windows.Forms.RadioButton();
             this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
             this.GraphDirectDependencies = new System.Windows.Forms.RadioButton();
             this.GraphAllDependencies = new System.Windows.Forms.RadioButton();
@@ -60,6 +61,7 @@
             this.ResetHitLink = new System.Windows.Forms.LinkLabel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.IncludeMethods = new System.Windows.Forms.CheckBox();
             this.IncludeFields = new System.Windows.Forms.CheckBox();
             this.panel5 = new System.Windows.Forms.Panel();
             this.ResetProfilingLink = new System.Windows.Forms.LinkLabel();
@@ -69,7 +71,7 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
-            this.IncludeMethods = new System.Windows.Forms.CheckBox();
+            this.FpsLabel = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -306,6 +308,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.Layout3dButton);
             this.panel1.Controls.Add(this.GraphIntermediateDependencies);
             this.panel1.Controls.Add(this.GraphDirectDependencies);
             this.panel1.Controls.Add(this.GraphAllDependencies);
@@ -318,6 +321,18 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(189, 125);
             this.panel1.TabIndex = 21;
+            // 
+            // Layout3dButton
+            // 
+            this.Layout3dButton.AutoSize = true;
+            this.Layout3dButton.Location = new System.Drawing.Point(3, 72);
+            this.Layout3dButton.Name = "Layout3dButton";
+            this.Layout3dButton.Size = new System.Drawing.Size(63, 17);
+            this.Layout3dButton.TabIndex = 31;
+            this.Layout3dButton.TabStop = true;
+            this.Layout3dButton.Text = "3D Test";
+            this.Layout3dButton.UseVisualStyleBackColor = true;
+            this.Layout3dButton.CheckedChanged += new System.EventHandler(this.Layout3dButton_CheckedChanged);
             // 
             // GraphIntermediateDependencies
             // 
@@ -446,6 +461,17 @@
             this.panel4.Size = new System.Drawing.Size(101, 104);
             this.panel4.TabIndex = 24;
             // 
+            // IncludeMethods
+            // 
+            this.IncludeMethods.AutoSize = true;
+            this.IncludeMethods.Location = new System.Drawing.Point(3, 71);
+            this.IncludeMethods.Name = "IncludeMethods";
+            this.IncludeMethods.Size = new System.Drawing.Size(67, 17);
+            this.IncludeMethods.TabIndex = 13;
+            this.IncludeMethods.Text = "Methods";
+            this.IncludeMethods.UseVisualStyleBackColor = true;
+            this.IncludeMethods.CheckedChanged += new System.EventHandler(this.IncludeMethods_CheckedChanged);
+            // 
             // IncludeFields
             // 
             this.IncludeFields.AutoSize = true;
@@ -544,22 +570,21 @@
             this.label7.TabIndex = 28;
             this.label7.Text = "Depends";
             // 
-            // IncludeMethods
+            // FpsLabel
             // 
-            this.IncludeMethods.AutoSize = true;
-            this.IncludeMethods.Location = new System.Drawing.Point(3, 71);
-            this.IncludeMethods.Name = "IncludeMethods";
-            this.IncludeMethods.Size = new System.Drawing.Size(67, 17);
-            this.IncludeMethods.TabIndex = 13;
-            this.IncludeMethods.Text = "Methods";
-            this.IncludeMethods.UseVisualStyleBackColor = true;
-            this.IncludeMethods.CheckedChanged += new System.EventHandler(this.IncludeMethods_CheckedChanged);
+            this.FpsLabel.AutoSize = true;
+            this.FpsLabel.Location = new System.Drawing.Point(6, 155);
+            this.FpsLabel.Name = "FpsLabel";
+            this.FpsLabel.Size = new System.Drawing.Size(47, 13);
+            this.FpsLabel.TabIndex = 29;
+            this.FpsLabel.Text = "FPS: XX";
             // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
+            this.Controls.Add(this.FpsLabel);
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label7);
@@ -636,5 +661,7 @@
         private System.Windows.Forms.LinkLabel ResetProfilingLink;
         public System.Windows.Forms.RadioButton GraphIntermediateDependencies;
         public System.Windows.Forms.CheckBox IncludeMethods;
+        public System.Windows.Forms.RadioButton Layout3dButton;
+        public System.Windows.Forms.Label FpsLabel;
     }
 }

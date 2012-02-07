@@ -143,7 +143,6 @@ namespace XLibrary
         internal bool Hovered;
         internal bool Show = true;
 
-        internal RectangleD AreaD { get; private set; }
         internal RectangleF AreaF { get; private set; }
         internal PointF CenterF { get; private set; }
 
@@ -185,6 +184,8 @@ namespace XLibrary
         public bool Focused;
         public string UnformattedName;
         public bool SearchMatch;
+
+        public long SecondaryValue; // used for showing 3d height
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -242,12 +243,11 @@ namespace XLibrary
             return node;
         }
 
-        internal void SetArea(RectangleD area)
+        internal void SetArea(RectangleF area)
         {
-            AreaD = area;
-            AreaF = area.ToRectangleF();
-            CenterF = new PointF((float)(area.X + area.Width / 2),
-                                     (float)(area.Y + area.Height / 2));
+            AreaF = area;
+            CenterF = new PointF(area.X + area.Width / 2.0f,
+                                 area.Y + area.Height / 2.0f);
         }
 
         internal void AddCallIn(int sourceID, FunctionCall call)

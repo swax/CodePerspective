@@ -14,40 +14,23 @@ using System.Windows.Forms;
 namespace XLibrary
 {
     
-    public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
-    public enum ShowNodes { All, Hit, Unhit, Instances }
-
-    public enum LayoutType { TreeMap, CallGraph }
-    public enum TreeMapMode { Normal, Dependencies }
-    public enum CallGraphMode { Method, Class, Dependencies }
-    public enum ShowDependenciesMode { None, All, Direct, Intermediates }
 
     public partial class TreePanelGdiPlus : UserControl
     {
         public MainForm MainForm;
+        public ViewModel Model;
 
         public bool DoRedraw = true;
         public bool DoResize = true;
         bool DoRevalue = true;
         Bitmap DisplayBuffer;
 
-        internal bool ShowOutside;
-        internal bool ShowExternal;
         bool ShowingOutside;
         bool ShowingExternal;
-
-        internal LayoutType ViewLayout = LayoutType.TreeMap;
-        internal TreeMapMode MapMode = TreeMapMode.Normal;
-        internal SizeLayouts SizeLayout = SizeLayouts.MethodSize;
-        internal ShowNodes ShowLayout = ShowNodes.All;
-        internal bool ShowFields = true;
-        internal bool ShowMethods = true;
 
         internal bool ShowLabels = true;
         float LabelPadding = 2;
            
-        internal bool ShowCalls = true;
-
         Color UnknownColor = Color.Black;
         Color FileColor = Color.Black;
         Color NamespaceColor = Color.DarkBlue;
@@ -74,7 +57,8 @@ namespace XLibrary
         SolidBrush SearchMatchBrush = new SolidBrush(Color.Red);
 
         // border between outside/external panels
-        int BorderWidth = 4;
+        float PanelBorderWidth = 4;
+        float NodeBorderWidth = 4;
         SolidBrush BorderBrush = new SolidBrush(Color.Silver);
 
         Color CallColor = Color.Blue;
@@ -132,8 +116,6 @@ namespace XLibrary
         List<XNodeIn> GuiHovered = new List<XNodeIn>();
         XNodeIn[] NodesHovered = new XNodeIn[] { };
 
-        public List<XNodeIn> FocusedNodes = new List<XNodeIn>();
-
         Pen FilteredPen = new Pen(Color.LimeGreen, 3);
         SolidBrush FilteredBrush = new SolidBrush(Color.LimeGreen);
         Dictionary<int, XNodeIn> FilteredNodes = new Dictionary<int, XNodeIn>();
@@ -147,14 +129,11 @@ namespace XLibrary
         SolidBrush IndependentBrush = new SolidBrush(Color.Blue);
         SolidBrush InterdependentBrush = new SolidBrush(Color.Purple);
 
-        public ShowDependenciesMode DependenciesMode = ShowDependenciesMode.Direct;
-
         HashSet<int> DependentClasses = new HashSet<int>();
         HashSet<int> IndependentClasses = new HashSet<int>();
 
         public string SearchString;
         public string LastSearch;
-        public bool SearchStrobe;
 
 
         public TreePanelGdiPlus(MainForm main)
@@ -166,6 +145,7 @@ namespace XLibrary
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             MainForm = main;
+            Model = main.Model;
 
             TopRoot = XRay.RootNode;
             InternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
@@ -241,6 +221,7 @@ namespace XLibrary
             if ((!DoRedraw && !DoRevalue && !DoResize) || CurrentRoot == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
+                Model.FpsCounter++;
                 return;
             }
 
@@ -252,14 +233,14 @@ namespace XLibrary
 
             Debug.Assert(CurrentRoot != TopRoot); // current root should be intenalRoot in this case
 
-            ShowingOutside = ShowOutside && CurrentRoot != InternalRoot;
-            ShowingExternal = ShowExternal && !CurrentRoot.External;
+            ShowingOutside = Model.ShowOutside && CurrentRoot != InternalRoot;
+            ShowingExternal = Model.ShowExternal && !CurrentRoot.External;
 
             // clear and pre-process marked depencies
             DependentClasses.Clear();
             IndependentClasses.Clear();
 
-            if (DependenciesMode != ShowDependenciesMode.None && DependenciesMode != ShowDependenciesMode.Intermediates)
+            if (Model.DependenciesMode != ShowDependenciesMode.None && Model.DependenciesMode != ShowDependenciesMode.Intermediates)
                 RecalcDependencies();
 
             // figure out if we need to do a search
@@ -282,10 +263,10 @@ namespace XLibrary
             }
 
             // draw layout
-            if (ViewLayout == LayoutType.TreeMap)
+            if (Model.ViewLayout == LayoutType.TreeMap)
                 DrawTreeMap(buffer);
 
-            else if (ViewLayout == LayoutType.CallGraph)
+            else if (Model.ViewLayout == LayoutType.CallGraph)
                 DrawCallGraph(buffer);
 
             // draw ignored over nodes ignored may contain
@@ -297,7 +278,7 @@ namespace XLibrary
                 }
 
             // draw dividers for call graph
-            if (ViewLayout == LayoutType.CallGraph)
+            if (Model.ViewLayout == LayoutType.CallGraph)
             {
                 /*if (ShowRightOutsideArea)
                     buffer.DrawLine(CallDividerPen, RightDivider, 0, RightDivider, Height);
@@ -307,7 +288,7 @@ namespace XLibrary
             }
 
             // draw dependency graph
-            if (ViewLayout == LayoutType.CallGraph && GraphMode == CallGraphMode.Dependencies)
+            if (Model.ViewLayout == LayoutType.CallGraph && Model.GraphMode == CallGraphMode.Dependencies)
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -323,7 +304,7 @@ namespace XLibrary
 
                         bool focused = (source.Focused || destination.Focused);
 
-                        if (source.AreaD.X < destination.AreaD.X)
+                        if (source.AreaF.X < destination.AreaF.X)
                             DrawGraphEdge(buffer, focused ? CallOutPenFocused : CallOutPen, source, destination);
                         else
                             DrawGraphEdge(buffer, focused ? CallInPenFocused : CallInPen, source, destination);
@@ -333,7 +314,7 @@ namespace XLibrary
 
 
             // draw call graph
-            if (XRay.FlowTracking && GraphMode != CallGraphMode.Dependencies)
+            if (XRay.FlowTracking && Model.GraphMode != CallGraphMode.Dependencies)
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -359,17 +340,17 @@ namespace XLibrary
                         var callOutPen = focused ? CallOutPenFocused : CallOutPen;
                         var callInPen = focused ? CallInPenFocused : CallInPen;
 
-                        if (call.StillInside > 0 && ShowCalls)
+                        if (call.StillInside > 0 && Model.ShowCalls)
                         {
-                            if (ViewLayout == LayoutType.TreeMap)
+                            if (Model.ViewLayout == LayoutType.TreeMap)
                                 buffer.DrawLine(HoldingCallPen, source.CenterF, destination.CenterF);
-                            else if (ViewLayout == LayoutType.CallGraph)
+                            else if (Model.ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(buffer, HoldingCallPen, source, destination);
                         }
 
                         else if (XRay.ShowAllCalls)
                         {
-                            if (ViewLayout == LayoutType.TreeMap)
+                            if (Model.ViewLayout == LayoutType.TreeMap)
                             {
                                 PointF start = PositionMap[call.Source].CenterF;
                                 PointF end = PositionMap[call.Destination].CenterF;
@@ -378,23 +359,23 @@ namespace XLibrary
                                 buffer.DrawLine(callOutPen, start, mid);
                                 buffer.DrawLine(callInPen, mid, end);
                             }
-                            else if (ViewLayout == LayoutType.CallGraph)
+                            else if (Model.ViewLayout == LayoutType.CallGraph)
                             {
-                                if (source.AreaD.X < destination.AreaD.X)
+                                if (source.AreaF.X < destination.AreaF.X)
                                     DrawGraphEdge(buffer, callOutPen, source, destination);
                                 else
                                     DrawGraphEdge(buffer, callInPen, source, destination);
                             }
                         }
 
-                        if (call.Hit > 0 && ShowCalls)
+                        if (call.Hit > 0 && Model.ShowCalls)
                         {
                             Pen pen = focused ? CallPenFocused[call.Hit] : CallPen[call.Hit];
                             pen.DashOffset = call.DashOffset;
 
-                            if (ViewLayout == LayoutType.TreeMap)
+                            if (Model.ViewLayout == LayoutType.TreeMap)
                                 buffer.DrawLine(pen, source.CenterF, destination.CenterF);
-                            else if (ViewLayout == LayoutType.CallGraph)
+                            else if (Model.ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(buffer, pen, source, destination);
                         }
                     }
@@ -407,6 +388,7 @@ namespace XLibrary
 
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
+            Model.FpsCounter++;
 
             DoRedraw = false;
         }
@@ -414,11 +396,11 @@ namespace XLibrary
         private void DrawTreeMap(Graphics buffer)
         {
             if (DoRevalue ||
-                (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
-                (ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
+                (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||
+                (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
-                RecalcCover(InternalRoot);
-                RecalcCover(ExternalRoot);
+                Model.RecalcCover(InternalRoot);
+                Model.RecalcCover(ExternalRoot);
 
                 XRay.CoverChange = false;
                 XRay.InstanceChange = false;
@@ -429,32 +411,32 @@ namespace XLibrary
 
             if (DoResize)
             {
-                int offset = 0;
-                int centerWidth = Width;
+                float offset = 0;
+                float centerWidth = Width;
 
                 PositionMap.Clear();
                 CenterMap.Clear();
 
                 if (ShowingOutside)
                 {
-                    offset = Width * 1 / 4;
+                    offset = Width * 1.0f / 4.0f;
                     centerWidth -= offset;
 
-                    InternalRoot.SetArea(new RectangleD(0, 0, offset - BorderWidth, Height));
+                    InternalRoot.SetArea(new RectangleF(0, 0, offset - PanelBorderWidth, Height));
                     PositionMap[InternalRoot.ID] = InternalRoot;
                     SizeNode(buffer, InternalRoot, CurrentRoot, false);
                 }
                 if (ShowingExternal)
                 {
-                    int extWidth = Width * 1 / 4;
+                    float extWidth = Width * 1.0f / 4.0f;
                     centerWidth -= extWidth;
 
-                    ExternalRoot.SetArea(new RectangleD(offset + centerWidth + BorderWidth, 0, extWidth - BorderWidth, Height));
+                    ExternalRoot.SetArea(new RectangleF(offset + centerWidth + PanelBorderWidth, 0, extWidth - PanelBorderWidth, Height));
                     PositionMap[ExternalRoot.ID] = ExternalRoot;
                     SizeNode(buffer, ExternalRoot, null, false);
                 }
 
-                CurrentRoot.SetArea(new RectangleD(offset, 0, centerWidth, Height));
+                CurrentRoot.SetArea(new RectangleF(offset, 0, centerWidth, Height));
                 PositionMap[CurrentRoot.ID] = CurrentRoot;
                 SizeNode(buffer, CurrentRoot, null, true);
 
@@ -463,13 +445,13 @@ namespace XLibrary
 
             if (ShowingOutside)
             {
-                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, BorderWidth, InternalRoot.AreaF.Height);
+                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, PanelBorderWidth, InternalRoot.AreaF.Height);
                 DrawNode(buffer, InternalRoot, 0, true);
             }
 
             if (ShowingExternal)
             {
-                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - BorderWidth, 0, BorderWidth, ExternalRoot.AreaF.Height);
+                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, ExternalRoot.AreaF.Height);
                 DrawNode(buffer, ExternalRoot, 0, true);
             }
 
@@ -487,87 +469,12 @@ namespace XLibrary
             return false;
         }
 
-        private long RecalcCover(XNodeIn root)
-        {
-            root.Value = 0;
-
-            // only leaves have usable value
-            if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
-            {
-                switch (SizeLayout)
-                {
-                    case SizeLayouts.Constant:
-                        root.Value = 1;
-                        break;
-                    case SizeLayouts.MethodSize:
-                        root.Value = root.Lines;
-                        break;
-                    case SizeLayouts.TimeInMethod:
-                        // why is this negetive?? HAVENT RETURNED YET, property should return 0 i think if  neg, or detect still inside and return that
-                        if (root.CalledIn != null)
-                            foreach (FunctionCall call in root.CalledIn)
-                                root.Value += call.TotalTimeInsideDest;
-                        break;
-                    case SizeLayouts.Hits:
-                        if (root.CalledIn != null)
-                            foreach (FunctionCall call in root.CalledIn)
-                                root.Value += call.TotalHits;
-                        break;
-                    case SizeLayouts.TimePerHit:
-                        if (root.CalledIn != null)
-                        {
-                            int count = 0;
-
-                            foreach (FunctionCall call in root.CalledIn)
-                                if (call.TotalHits > 0)
-                                {
-                                    count++;
-                                    root.Value += call.TotalTimeInsideDest / call.TotalHits;
-                                }
-
-                            if (count > 0)
-                                root.Value /= count;
-                        }
-
-                        break;
-                }
-            }
-
-            foreach (XNodeIn node in root.Nodes)
-            {
-                if ( (node.ObjType == XObjType.Field && !ShowFields) ||
-                     (node.ObjType == XObjType.Method && !ShowMethods) )
-                {
-                    node.Show = false;
-                    continue;
-                }
-
-                node.Show = //node.ObjType != XObjType.Method ||
-                    ShowLayout == ShowNodes.All ||
-                    (ShowLayout == ShowNodes.Hit && XRay.CoveredFunctions[node.ID]) ||
-                    (ShowLayout == ShowNodes.Unhit && !XRay.CoveredFunctions[node.ID]) ||
-                    (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.Record != null && node.Record.Active.Count > 0)));
-
-                if (node.Show)
-                    root.Value += RecalcCover(node);
-            }
-
-
-            //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
-
-            Debug.Assert(root.Value >= 0);
-
-            return root.Value;
-        }
-
-        const int Border = 4;
-
         private void SizeNode(Graphics buffer, XNodeIn root, XNodeIn exclude, bool center)
         {
             if (!root.Show)
                 return;
 
-            RectangleD insideArea = root.AreaD;
+            RectangleF insideArea = root.AreaF;
 
             if (ShowLabels)
             {
@@ -575,9 +482,9 @@ namespace XLibrary
                 RectangleF label = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
           
 
-                float minHeight = (root.Nodes.Count > 0) ? label.Height * 2 : label.Height;
+                float minHeight = (root.Nodes.Count > 0) ? label.Height * 2.0f : label.Height;
 
-                if (root.AreaF.Height > minHeight && root.AreaF.Width > label.Width + LabelPadding * 2)
+                if (root.AreaF.Height > minHeight && root.AreaF.Width > label.Width + LabelPadding * 2.0f)
                 {
                     label.X += LabelPadding;
                     label.Y += LabelPadding;
@@ -596,12 +503,12 @@ namespace XLibrary
             {
                 XNodeIn node = sector.OriginalValue as XNodeIn;
 
-                sector.Rect.Contract(Border);
+                sector.Rect = RectangleExtensions.Contract(sector.Rect, NodeBorderWidth);
 
-                if (sector.Rect.X < Border) sector.Rect.X = Border;
-                if (sector.Rect.Y < Border) sector.Rect.Y = Border;
-                if (sector.Rect.X > insideArea.Width - Border) sector.Rect.X = insideArea.Width - Border;
-                if (sector.Rect.Y > insideArea.Height - Border) sector.Rect.Y = insideArea.Height - Border;
+                if (sector.Rect.X < NodeBorderWidth) sector.Rect.X = NodeBorderWidth;
+                if (sector.Rect.Y < NodeBorderWidth) sector.Rect.Y = NodeBorderWidth;
+                if (sector.Rect.X > insideArea.Width - NodeBorderWidth) sector.Rect.X = insideArea.Width - NodeBorderWidth;
+                if (sector.Rect.Y > insideArea.Height - NodeBorderWidth) sector.Rect.Y = insideArea.Height - NodeBorderWidth;
 
                 sector.Rect.X += insideArea.X;
                 sector.Rect.Y += insideArea.Y;
@@ -613,8 +520,8 @@ namespace XLibrary
 
                 if (center)
                     CenterMap[node.ID] = node;
-                
-                if(sector.Rect.Width > 1 && sector.Rect.Height > 1)
+
+                if (sector.Rect.Width > 1.0f && sector.Rect.Height > 1.0f)
                     SizeNode(buffer, node, exclude, center);
             }
         }
@@ -624,10 +531,10 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            bool pointBorder = node.AreaF.Width < 3 || node.AreaF.Height < 3;
+            bool pointBorder = node.AreaF.Width < 3.0f || node.AreaF.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool rect = ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
+            bool rect = Model.ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
 
             bool needBorder = true;
 
@@ -691,7 +598,7 @@ namespace XLibrary
                     fillFunction(HitBrush[node.FunctionHit]);
             }
 
-            if (FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
+            if (Model.FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
             {
                 bool dependent = DependentClasses.Contains(node.ID);
                 bool independent = IndependentClasses.Contains(node.ID);
@@ -706,7 +613,7 @@ namespace XLibrary
                     fillFunction(IndependentBrush);
             }
 
-            if (node.SearchMatch && !SearchStrobe)
+            if (node.SearchMatch && !Model.SearchStrobe)
                 fillFunction(SearchMatchBrush); 
 
             // if just a point, drawing a border messes up pixels
@@ -729,7 +636,7 @@ namespace XLibrary
                 else if (IgnoredNodes.ContainsKey(node.ID))
                     pen = IgnoredPen;
 
-                else if (FocusedNodes.Contains(node))
+                else if (Model.FocusedNodes.Contains(node))
                     pen = ObjFocusedPens[(int)node.ObjType];
                 else
                     pen = ObjPens[(int)node.ObjType];
@@ -755,7 +662,7 @@ namespace XLibrary
             }
 
 
-            if (MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
+            if (Model.MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
                 drawChildren = false;
 
             if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
@@ -800,7 +707,7 @@ namespace XLibrary
         {
             ClearHovered();
 
-            if (ViewLayout == LayoutType.TreeMap)
+            if (Model.ViewLayout == LayoutType.TreeMap)
             {
                 if (ShowingOutside)
                     TestHovered(InternalRoot, loc);
@@ -809,10 +716,10 @@ namespace XLibrary
 
                 TestHovered(CurrentRoot, loc);
             }
-            else if (ViewLayout == LayoutType.CallGraph)
+            else if (Model.ViewLayout == LayoutType.CallGraph)
             {
                 foreach(var node in PositionMap.Values)
-                    if (node.AreaD.Contains(loc.X, loc.Y))
+                    if (node.AreaF.Contains(loc.X, loc.Y))
                     {
                         GuiHovered.Add(node);
                         XNodeIn parent = node.Parent as XNodeIn;
@@ -853,7 +760,7 @@ namespace XLibrary
 
         private void TestHovered(XNodeIn node, Point loc)
         {
-            if (!node.Show || !node.AreaD.Contains(loc.X, loc.Y))
+            if (!node.Show || !node.AreaF.Contains(loc.X, loc.Y))
                 return;
 
             node.Hovered = true;
@@ -936,8 +843,8 @@ namespace XLibrary
             {
                 if (!CtrlDown)
                 {
-                    FocusedNodes.ForEach(n => n.Focused = false);
-                    FocusedNodes.Clear();
+                    Model.FocusedNodes.ForEach(n => n.Focused = false);
+                    Model.FocusedNodes.Clear();
                 }
 
                 var node = GuiHovered.LastOrDefault();
@@ -949,14 +856,14 @@ namespace XLibrary
                 {
                     node.Focused = false;
 
-                    FocusedNodes.Remove(node);
+                    Model.FocusedNodes.Remove(node);
                 }
 
                 else
                 {
                     node.Focused = true;
 
-                    FocusedNodes.Add(node);
+                    Model.FocusedNodes.Add(node);
 
                     if (node.ObjType == XObjType.Class)
                         MainForm.InstanceTab.NavigateTo(node);
@@ -1107,17 +1014,17 @@ namespace XLibrary
         private void RecalcDependencies()
         {
 
-            if (FocusedNodes.Count == 0)
+            if (Model.FocusedNodes.Count == 0)
                 return;
 
             // find dependencies for selected classes
-            Dictionary<int, XNodeIn> classes = GetClassesFromFocusedNodes();
+            Dictionary<int, XNodeIn> classes = Model.GetClassesFromFocusedNodes();
 
-            bool doRecurse = (DependenciesMode == ShowDependenciesMode.All);
+            bool doRecurse = (Model.DependenciesMode == ShowDependenciesMode.All);
             bool idFound = false;
 
             foreach (var dependenciesTo in classes.Values.Where(c => c.Dependencies != null)
-                                      .Select(c => c.Dependencies))
+                                                         .Select(c => c.Dependencies))
             {
                 Utilities.RecurseTree<int>(
                     dependenciesTo,
@@ -1150,36 +1057,6 @@ namespace XLibrary
                     }
                 );
             }
-        }
-
-        public Dictionary<int, XNodeIn> GetClassesFromFocusedNodes()
-        {
-            Dictionary<int, XNodeIn> classes = new Dictionary<int, XNodeIn>();
-
-            foreach (var node in FocusedNodes)
-            {
-                if (node.ObjType == XObjType.Class ||
-                    node.ObjType == XObjType.Method ||
-                    node.ObjType == XObjType.Field)
-                {
-                    classes[node.ID] =node.GetParentClass() as XNodeIn;
-                }
-                else
-                    Utilities.RecurseTree<XNodeIn>(
-                        node.Nodes.Cast<XNodeIn>(),
-                        evaluate: n =>
-                        {
-                            if (n.ObjType == XObjType.Class)
-                                classes[n.ID] = n;
-                        },
-                        recurse: n =>
-                        {
-                            return (n.ObjType != XObjType.Class) ? n.Nodes.Cast<XNodeIn>() : null;
-                        }
-                    );
-            }
-
-            return classes;
         }
 
         public void DrawFooterLabel(Graphics buffer)
@@ -1373,7 +1250,7 @@ namespace XLibrary
 
         public string GetMetricForNode(XNodeIn node)
         {
-            switch (SizeLayout)
+            switch (Model.SizeLayout)
             {
                 case SizeLayouts.Constant:
                     return node.Value.ToString() + " elements";

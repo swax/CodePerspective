@@ -14,15 +14,15 @@ namespace XLibrary
     {
         public readonly List<Sector> Results = new List<Sector>();
 
-        PointD Pos;
-        SizeD WorkArea;
-        SizeD OriginalArea;
+        PointF Pos;
+        SizeF WorkArea;
+        SizeF OriginalArea;
 
-        double CurrentHeight;
+        float CurrentHeight;
         bool DrawingVertically;
 
 
-        public TreeMap(XNodeIn root, XNodeIn exclude, SizeD size)
+        public TreeMap(XNodeIn root, XNodeIn exclude, SizeF size)
         {
             var values = from n in root.Nodes.Cast<XNodeIn>()
                         where n.Show && n != exclude
@@ -31,8 +31,8 @@ namespace XLibrary
             WorkArea = size;
             OriginalArea = size;
 
-            double totalArea = WorkArea.Width * WorkArea.Height;
-            double totalValue = root.Value; // values.Sum(value => value.Value);
+            float totalArea = WorkArea.Width * WorkArea.Height;
+            float totalValue = root.Value; // values.Sum(value => value.Value);
 
             var prepared = from v in values
                            orderby v.Value descending
@@ -42,13 +42,13 @@ namespace XLibrary
             Squarify(1, prepared.ToList(), new List<Sector>(), GetWidth());
         }
 
-        private void Squarify(int count, IList<Sector> values, List<Sector> currentRow, double width)
+        private void Squarify(int count, IList<Sector> values, List<Sector> currentRow, float width)
         {
             count++;
 
             // hacky mcHack
-            if (count == 10000)
-                return;
+            //if (count == 10000)
+            //    return;
 
             List<Sector> nextIterationPreview = currentRow.ToList();
 
@@ -60,8 +60,8 @@ namespace XLibrary
             else if (values.Count > 1)
                 nextIterationPreview.Add(values[0]);
 
-            double currentAspectRatio = CalculateAspectRatio(currentRow, width);
-            double nextAspectRatio = CalculateAspectRatio(nextIterationPreview, width);
+            float currentAspectRatio = CalculateAspectRatio(currentRow, width);
+            float nextAspectRatio = CalculateAspectRatio(nextIterationPreview, width);
 
             if (currentAspectRatio == 0 || 
                 (1 <= nextAspectRatio && nextAspectRatio < currentAspectRatio))
@@ -71,7 +71,7 @@ namespace XLibrary
 
                 CurrentHeight = currentRow.Sum(s => s.Area) / width;
 
-                if (double.IsNaN(CurrentHeight))
+                if (float.IsNaN(CurrentHeight))
                     CurrentHeight = 0;
 
                 Squarify(count, values, currentRow, width);
@@ -88,7 +88,7 @@ namespace XLibrary
 
         private void LayoutRow(IEnumerable<Sector> rowSectors)
         {
-            PointD startingPoint = Pos;
+            PointF startingPoint = Pos;
 
             if (!DrawingVertically)// && WorkArea.Height != CurrentHeight)
                 Pos.Y = WorkArea.Height - CurrentHeight;
@@ -97,8 +97,8 @@ namespace XLibrary
             foreach (Sector sector in rowSectors)
             {
                 // Calculate Width & Height
-                double width;
-                double height;
+                float width;
+                float height;
 
                 if (DrawingVertically)
                 {
@@ -111,12 +111,12 @@ namespace XLibrary
                     height = CurrentHeight;
                 }
 
-                if (double.IsNaN(width))
+                if (float.IsNaN(width))
                     width = 0;
-                if (double.IsNaN(height))
+                if (float.IsNaN(height))
                     height = 0;
 
-                sector.Rect = new RectangleD(Pos.X, Pos.Y, width, height);
+                sector.Rect = new RectangleF(Pos.X, Pos.Y, width, height);
 
                 /*if (sector.Rect.X > OriginalArea.Width ||
                     sector.Rect.X + sector.Rect.Width > OriginalArea.Width)
@@ -160,25 +160,25 @@ namespace XLibrary
             CurrentHeight = 0;
         }
 
-        private double CalculateAspectRatio(List<Sector> row, double width)
+        private float CalculateAspectRatio(List<Sector> row, float width)
         {
             if (row.Count == 0)
                 return 0;
 
-            double totalArea = row.Sum(s => s.Area);
-            double totalAreaSqaured = Math.Pow(totalArea, 2);
+            float totalArea = row.Sum(s => s.Area);
+            float totalAreaSqaured = (float) Math.Pow(totalArea, 2);
 
-            double widthSquared = Math.Pow(width, 2);
-            double maxArea = row.Max(s => s.Area);
-            double minArea = row.Min(s => s.Area);
+            float widthSquared = (float)Math.Pow(width, 2);
+            float maxArea = row.Max(s => s.Area);
+            float minArea = row.Min(s => s.Area);
 
-            double ratio1 = (widthSquared * maxArea) / totalAreaSqaured;
-            double ratio2 = totalAreaSqaured / (widthSquared * minArea);
+            float ratio1 = (widthSquared * maxArea) / totalAreaSqaured;
+            float ratio2 = totalAreaSqaured / (widthSquared * minArea);
 
             return Math.Max(ratio1, ratio2);
         }
 
-        private double GetWidth()
+        private float GetWidth()
         {
             DrawingVertically = WorkArea.Height < WorkArea.Width;
 
@@ -189,17 +189,53 @@ namespace XLibrary
     public class Sector
     {
         public InputValue OriginalValue;
-        public double Area;
-        public RectangleD Rect;
+        public float Area;
+        public RectangleF Rect;
 
-        public Sector(InputValue value, double area)
+        public Sector(InputValue value, float area)
         {
             OriginalValue = value;
             Area = area;
         }
     }
 
-    public struct RectangleD
+    public static class RectangleExtensions
+    {
+        public static RectangleF Contract(RectangleF rect, float amount)
+        {
+            RectangleF contacted = new RectangleF();
+
+            // if width less than 1, set to 1
+            // if width is less than one, then flo
+            if (rect.Width < amount * 2.0f + 1.0f)
+            {
+                contacted.X = rect.X + rect.Width / 2.0f;
+                contacted.Width = 1.0f;
+            }
+            else // new width will be greater than 1
+            {
+                contacted.X = rect.X + amount;
+                contacted.Width = rect.Width - amount * 2.0f;
+            }
+
+            if (rect.Height < amount * 2.0f + 1.0f)
+            {
+                contacted.Y = rect.Y + rect.Height / 2.0f;
+                contacted.Height = 1.0f;
+            }
+            else
+            {
+                contacted.Y = rect.Y + amount;
+                contacted.Height = rect.Height - amount * 2.0f;
+            }
+
+            return contacted;
+        }
+
+    }
+
+
+    /*public struct RectangleD
     {
         public double X;
         public double Y;
@@ -267,5 +303,5 @@ namespace XLibrary
     {
         public double Width;
         public double Height;
-    }
+    }*/
 }

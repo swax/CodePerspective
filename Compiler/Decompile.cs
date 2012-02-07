@@ -1283,7 +1283,14 @@ namespace XBuilder
             }
 
             // copy XLibrary to final destination
-            File.Copy(Path.Combine(Application.StartupPath, "XLibrary.dll"), Path.Combine(destPath, "XLibrary.dll"), true);
+            CopyLocalToOutputDir("XLibrary.dll", destPath);
+            CopyLocalToOutputDir("OpenTK.dll", destPath);
+            CopyLocalToOutputDir("OpenTK.GLControl.dll", destPath);
+        }
+
+        private static void CopyLocalToOutputDir(string filename, string destPath)
+        {
+            File.Copy(Path.Combine(Application.StartupPath, filename), Path.Combine(destPath, filename), true);
         }
     }
 

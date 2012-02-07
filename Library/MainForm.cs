@@ -8,11 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+
 namespace XLibrary
 {
     public partial class MainForm : Form
     {
         public TreePanelGdiPlus TreeView;
+        public GLPanel GLView;
+        public ViewModel Model = new ViewModel();
 
 
         public MainForm()
@@ -30,10 +33,15 @@ namespace XLibrary
 
             Text = "c0re XRay";
 
-            DisplayTab.Init(TreeView);
+            DisplayTab.Init(this);
             ConsoleTab.Init(this);
 
             TreeView.SetRoot(TreeView.CurrentRoot); // init first node in history
+        }
+
+        void GLView_Load(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public void UpdateBreadCrumbs()
@@ -120,7 +128,7 @@ namespace XLibrary
                 TimeoutFunctinCalls(XRay.ClassCallMap);
             }
 
-            TreeView.Redraw();
+            RefreshView();
         }
 
         void TimeoutFunctinCalls(SharedDictionary<FunctionCall> callMap)
@@ -140,15 +148,46 @@ namespace XLibrary
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
         {
-            if (TreeView.SizeLayout == SizeLayouts.TimeInMethod ||
-                TreeView.SizeLayout == SizeLayouts.Hits ||
-                TreeView.SizeLayout == SizeLayouts.TimePerHit)
+            DisplayTab.FpsLabel.Text = "FPS: " + Model.FpsCounter.ToString();
+            Model.FpsCounter = 0;
+
+            if (Model.SizeLayout == SizeLayouts.TimeInMethod ||
+                Model.SizeLayout == SizeLayouts.Hits ||
+                Model.SizeLayout == SizeLayouts.TimePerHit)
             {
-                TreeView.RecalcValues();
+                RefreshView();
             }
         }
 
+        public void RefreshView(bool redrawOnly=false)
+        {
+            if (Model.ViewLayout == LayoutType.ThreeD)
+            {
+                TreeView.Visible = false;
 
+                if (GLView == null)
+                {
+                    GLView = new GLPanel(this) { Dock = DockStyle.Fill };
+                    ViewHostPanel.Controls.Add(GLView);
+                }
+
+                GLView.Visible = true;
+                GLView.Redraw();
+            }
+            else
+            {
+                if(GLView != null)
+                    GLView.Visible = false;
+
+                TreeView.Visible = true;
+
+                // check if view exists
+                if (redrawOnly)
+                    TreeView.Redraw();
+                else
+                    TreeView.RecalcValues();
+            }
+        }
 
         private void BackButton_Click(object sender, EventArgs e)
         {
@@ -179,14 +218,14 @@ namespace XLibrary
         private void SearchTextBox_TextChanged(object sender, EventArgs e)
         {
             TreeView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
-            TreeView.SearchStrobe = false; // so matches are shown immediately
-            TreeView.Redraw();
+            Model.SearchStrobe = false; // so matches are shown immediately
+            RefreshView();
         }
 
         private void SearchTimer_Tick(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(TreeView.SearchString))
-                TreeView.SearchStrobe = !TreeView.SearchStrobe;
+                Model.SearchStrobe = !Model.SearchStrobe;
         }
 
         private void DisplayTab_Load(object sender, EventArgs e)

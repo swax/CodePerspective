@@ -33,21 +33,16 @@ namespace XLibrary
 
         const int MinCallNodeSize = 5;
 
-        public bool SequenceOrder = false;
-        public CallGraphMode GraphMode = CallGraphMode.Method;
-
-        public Dictionary<int, XNodeIn> InterDependencies = new Dictionary<int, XNodeIn>();
-
 
         private void DrawCallGraph(Graphics buffer)
         {
             if (DoRevalue || 
                 XRay.CallChange || 
-                (ShowLayout != ShowNodes.All && XRay.CoverChange) ||  
-                (ShowLayout == ShowNodes.Instances && XRay.InstanceChange) )
+                (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||  
+                (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange) )
             {
-                RecalcCover(InternalRoot);
-                RecalcCover(ExternalRoot);
+                Model.RecalcCover(InternalRoot);
+                Model.RecalcCover(ExternalRoot);
 
                 Graphs.Clear();
                 PositionMap.Clear();
@@ -55,7 +50,7 @@ namespace XLibrary
                 OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
-                if (DependenciesMode == ShowDependenciesMode.Intermediates)
+                if (Model.DependenciesMode == ShowDependenciesMode.Intermediates)
                 {
                     foreach (var n in XRay.Nodes)
                     {
@@ -63,12 +58,12 @@ namespace XLibrary
                         n.DependencyChainOut = null;
                     }
 
-                    foreach (var n in InterDependencies.Values)
+                    foreach (var n in Model.InterDependencies.Values)
                     {
                         CenterMap[n.ID] = n;
                         PositionMap[n.ID] = n;
 
-                        var find = InterDependencies.Keys.ToList();
+                        var find = Model.InterDependencies.Keys.ToList();
                         find.Remove(n.ID);
 
                         FindChainTo(n, find);
@@ -88,10 +83,10 @@ namespace XLibrary
                 {
                     AddCalledNodes(CurrentRoot, true);
 
-                    if (ShowOutside || CenterMap.Count == 1) // prevent blank screen
+                    if (Model.ShowOutside || CenterMap.Count == 1) // prevent blank screen
                         AddCalledNodes(InternalRoot, false);
 
-                    if (ShowExternal)
+                    if (Model.ShowExternal)
                         AddCalledNodes(ExternalRoot, false);
                 }
 
@@ -142,7 +137,7 @@ namespace XLibrary
                             if (size < MinCallNodeSize)
                                 size = MinCallNodeSize;
 
-                            node.SetArea(new RectangleD(
+                            node.SetArea(new RectangleF(
                                 Width * node.ScaledLocation.X - halfSize,
                                 Height * node.ScaledLocation.Y - halfSize,
                                 size, size));
@@ -219,10 +214,10 @@ namespace XLibrary
             Graphs = Graphs.OrderByDescending(g => g.Weight).ToList();
 
 
-            double totalWeight = Graphs.Sum(g => g.Weight);
-            double totalArea = 1; // unit scalable area
+            float totalWeight = Graphs.Sum(g => g.Weight);
+            float totalArea = 1; // unit scalable area
 
-            double weightToPix = totalArea / totalWeight * 0.5; // reduction factor
+            float weightToPix = totalArea / totalWeight * 0.5f; // reduction factor
 
             Graphs.ForEach(g =>
             {
@@ -285,7 +280,7 @@ namespace XLibrary
 
                 groupOffset += graph.ScaledHeight;
 
-                if (SequenceOrder)
+                if (Model.SequenceOrder)
                 {
                     for (int x = 0; x < 6; x++)
                         MinDistance(graph);
@@ -586,7 +581,7 @@ namespace XLibrary
             float freespace = 1 * graph.ScaledHeight - totalHeight;
 
             float ySpace = freespace / (nodes.Count + 1); // space between each block
-            rank.MinHeightSpace = (float) Math.Min(ySpace, 4.0 / (double) Height);
+            rank.MinHeightSpace = (float)Math.Min(ySpace, 4.0 / (float)Height);
             float yOffset = ySpace;
 
             foreach (var node in nodes)
@@ -669,7 +664,7 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            if (GraphMode == CallGraphMode.Dependencies)
+            if (Model.GraphMode == CallGraphMode.Dependencies)
             {
                 if ((node.Independencies != null && node.Independencies.Length > 0) ||
                           (node.Dependencies != null && node.Dependencies.Length > 0))
@@ -697,13 +692,13 @@ namespace XLibrary
                     }
                 }
             }
-            else if (GraphMode == CallGraphMode.Method || GraphMode == CallGraphMode.Class)
+            else if (Model.GraphMode == CallGraphMode.Method || Model.GraphMode == CallGraphMode.Class)
             {
                 if ( ((node.CalledIn != null && node.CalledIn.Length > 0) ||
                       (node.CallsOut != null && node.CallsOut.Length > 0)) 
                       &&
-                     ((GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                      (GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class)))
+                     ((Model.GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
+                      (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class)))
                 {
                     if (center)
                         CenterMap[node.ID] = node;
@@ -793,7 +788,7 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[sub.ID] = sub;
-                    if (!InterDependencies.ContainsKey(d))
+                    if (!Model.InterDependencies.ContainsKey(d))
                         OutsideMap[sub.ID] = sub;
 
                     n.AddIntermediateDependency(sub);
@@ -836,7 +831,7 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[parent.ID] = parent;
-                    if (!InterDependencies.ContainsKey(d))
+                    if (!Model.InterDependencies.ContainsKey(d))
                         OutsideMap[parent.ID] = parent;
 
                     parent.AddIntermediateDependency(n);

@@ -1,4 +1,12 @@
-﻿
+﻿min height for boxes
+outside view in opengl
+
+back button goes back
+click reset hit, dont clear nodes being held in
+
+costa rica
+----
+
 application as function tree map
 
 highlight hit functions

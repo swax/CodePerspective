@@ -41,8 +41,8 @@ namespace XLibrary
                 (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||  
                 (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange) )
             {
-                Model.RecalcCover(InternalRoot);
-                Model.RecalcCover(ExternalRoot);
+                Model.RecalcCover(Model.InternalRoot);
+                Model.RecalcCover(Model.ExternalRoot);
 
                 Graphs.Clear();
                 PositionMap.Clear();
@@ -81,13 +81,13 @@ namespace XLibrary
                 }
                 else
                 {
-                    AddCalledNodes(CurrentRoot, true);
+                    AddCalledNodes(Model.CurrentRoot, true);
 
                     if (Model.ShowOutside || CenterMap.Count == 1) // prevent blank screen
-                        AddCalledNodes(InternalRoot, false);
+                        AddCalledNodes(Model.InternalRoot, false);
 
                     if (Model.ShowExternal)
-                        AddCalledNodes(ExternalRoot, false);
+                        AddCalledNodes(Model.ExternalRoot, false);
                 }
 
                 if (PositionMap.Count > 0)
@@ -727,7 +727,7 @@ namespace XLibrary
             }
 
             foreach (XNodeIn sub in node.Nodes)
-                if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
+                if (sub != Model.InternalRoot) // when traversing outside root, dont interate back into center root
                     AddCalledNodes(sub, center);
         }
 

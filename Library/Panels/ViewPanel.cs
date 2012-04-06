@@ -109,9 +109,6 @@ namespace XLibrary.Panels
             Model.MapMode = TreeMapMode.Normal;
             Model.DependenciesMode = ShowDependenciesMode.None;
 
-            Model.SecondarySizeLayout = Model.SizeLayout;
-            Model.SizeLayout = SizeLayouts.Constant;
-
             Main.RefreshView();
         }
 
@@ -197,9 +194,20 @@ namespace XLibrary.Panels
 
         private void ResetHitLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            for (int i = 0; i < XRay.CoveredFunctions.Count; i++)
-                if (XRay.Nodes[i].StillInside == 0)
-                    XRay.CoveredFunctions[i] = false;
+            XRay.CoveredNodes.SetAll(false);
+
+            var stillCovered = new List<int>();
+
+            foreach (var node in XRay.Nodes.Where(n => n.StillInside > 0))
+            {
+                Utilities.IterateParents<XNode>(
+                    node,
+                    n => stillCovered.Add(n.ID),
+                    n => n.Parent);
+            }
+
+            foreach (var id in stillCovered)
+                XRay.CoveredNodes[id] = true;
 
             Main.RefreshView();
         }

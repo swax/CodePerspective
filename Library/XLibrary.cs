@@ -15,12 +15,12 @@ namespace XLibrary
     {
         static MainForm MainForm;
 
-        static Thread Gui;
+        internal static Thread Gui;
 
         internal static XNodeIn RootNode;
         internal static XNodeIn[] Nodes;
 
-        static int FunctionCount;
+        public static int FunctionCount;
 
         public static bool XRayEnabled = true;
 
@@ -28,7 +28,7 @@ namespace XLibrary
         internal static bool CallChange;
         internal static bool InstanceChange;
 
-        internal static BitArray CoveredFunctions;
+        internal static BitArray CoveredNodes;
         internal static bool ShowAllCalls;
 
         internal const int HitFrames = 15;
@@ -105,7 +105,7 @@ namespace XLibrary
                 LoadNodeMap(path);
 
                 // init tracking structures
-                CoveredFunctions = new BitArray(FunctionCount);
+                CoveredNodes = new BitArray(FunctionCount);
 
                 InitComplete = true;
 
@@ -250,18 +250,17 @@ namespace XLibrary
                 LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
 
             // mark covered, should probably check if show covered is checked
-            if (!CoveredFunctions[nodeID])
+            if (!CoveredNodes[nodeID])
             {
                 node.HitSequence = CurrentSequence++;
 
                 CoverChange = true;
 
-                XNode check = node;
-                while (check != null)
-                {
-                    CoveredFunctions[check.ID] = true;
-                    check = check.Parent;
-                }
+                Utilities.IterateParents<XNode>(
+                    node, 
+                    n => CoveredNodes[n.ID] = true, 
+                    n => n.Parent);
+
                 // clear cover change on paint
             }
 
@@ -527,6 +526,11 @@ namespace XLibrary
 
             if(node.Record.Add(obj))
                 InstanceChange = true;
+        }
+
+        static void form_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public static void Deconstructed(int index, Object obj)

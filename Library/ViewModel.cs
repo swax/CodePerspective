@@ -16,6 +16,11 @@ namespace XLibrary
 
     public class ViewModel
     {
+        internal XNodeIn CurrentRoot;
+        internal XNodeIn InternalRoot;
+        internal XNodeIn ExternalRoot;
+        internal XNodeIn TopRoot;   
+
         public bool ShowOutside;
         public bool ShowExternal;
 
@@ -25,7 +30,6 @@ namespace XLibrary
         public LayoutType ViewLayout = LayoutType.TreeMap;
         public TreeMapMode MapMode = TreeMapMode.Normal;
         public SizeLayouts SizeLayout = SizeLayouts.MethodSize;
-        public SizeLayouts SecondarySizeLayout = SizeLayouts.MethodSize;
         public ShowNodes ShowLayout = ShowNodes.All;
 
         public CallGraphMode GraphMode = CallGraphMode.Method;
@@ -49,15 +53,16 @@ namespace XLibrary
             // only leaves have usable value
             if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
             {
-                root.Value = GetValueForLayout(root, SizeLayout);
-
                 if (ViewLayout == LayoutType.ThreeD)
                 {
-                    root.SecondaryValue = GetValueForLayout(root, SecondarySizeLayout);
+                    root.Value = GetValueForLayout(root, SizeLayouts.Constant);
+                    root.SecondaryValue = GetValueForLayout(root, SizeLayout);
 
                     if (root.SecondaryValue > MaxSecondaryValue)
                         MaxSecondaryValue = root.SecondaryValue;
                 }
+                else
+                    root.Value = GetValueForLayout(root, SizeLayout);
             }
 
             foreach (XNodeIn node in root.Nodes)
@@ -71,8 +76,8 @@ namespace XLibrary
 
                 node.Show = //node.ObjType != XObjType.Method ||
                     ShowLayout == ShowNodes.All ||
-                    (ShowLayout == ShowNodes.Hit && XRay.CoveredFunctions[node.ID]) ||
-                    (ShowLayout == ShowNodes.Unhit && !XRay.CoveredFunctions[node.ID]) ||
+                    (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
+                    (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
                     (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.Record != null && node.Record.Active.Count > 0)));
 
                 if (node.Show)

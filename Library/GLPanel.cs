@@ -25,11 +25,6 @@ namespace XLibrary
         public bool DoResize = true;
         public bool DoRevalue = true;
 
-        public XNodeIn CurrentRoot;
-        XNodeIn InternalRoot;
-        XNodeIn ExternalRoot;
-        XNodeIn TopRoot;
-
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
         Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
         Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
@@ -115,10 +110,10 @@ namespace XLibrary
             MainForm = main;
             Model = main.Model;
 
-            TopRoot = XRay.RootNode;
-            InternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
-            ExternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
-            CurrentRoot = InternalRoot;
+            Model.TopRoot = XRay.RootNode;
+            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
+            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
+            Model.CurrentRoot = Model.InternalRoot;
 
             InitColors();
 
@@ -201,20 +196,21 @@ namespace XLibrary
             GL.ClearColor(System.Drawing.Color.Black);
             GL.ShadeModel(ShadingModel.Smooth);
 
-
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ColorMaterial);
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.Lighting);
             GL.Enable(EnableCap.Light0);
+
+            GL.CullFace(CullFaceMode.Back);
             
             float[] mat_emissive = { 0f, 0f, 0f, 1f };
             float[] mat_specular = { 1f, 1f, 1f, 1.0f };
 
-            float[] light_diffuse = { 1, 1f, 1f, 1f };
+            float[] light_diffuse = { .7f, .7f, .7f, .7f };
             float[] light_specular = { 1.0f, 1.0f, 1.0f, 1.0f };
             float[] light_position = { 1f, 1f, 1f, 0f };
-            float[] light_ambient = { 0f, 0f, 0f, 1f };
+            float[] light_ambient = { .5f, .5f, .35f, .5f };
 
             GL.Light(LightName.Light0, LightParameter.Diffuse, light_diffuse);  
             GL.Light(LightName.Light0, LightParameter.Ambient, light_ambient);
@@ -269,7 +265,7 @@ namespace XLibrary
             GL.LoadMatrix(ref lookat);
 
 
-            if ((!DoRedraw && !DoRevalue && !DoResize) || CurrentRoot == null)
+            if ((!DoRedraw && !DoRevalue && !DoResize) || Model.CurrentRoot == null)
             {
                 // do nothing to vbo
             }
@@ -304,16 +300,14 @@ namespace XLibrary
 
             GL.GenBuffers(1, out handle.VboID);
             GL.BindBuffer(BufferTarget.ArrayBuffer, handle.VboID);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verticesLength * BlittableValueType.StrideOf(vertices)), vertices,
-                          BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verticesLength * BlittableValueType.StrideOf(vertices)), vertices, BufferUsageHint.StaticDraw);
             GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out size);
             if (verticesLength * BlittableValueType.StrideOf(vertices) != size)
                 throw new ApplicationException("Vertex data not uploaded correctly");
 
             GL.GenBuffers(1, out handle.EboID);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, handle.EboID);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elementsLength * sizeof(int)), elements,
-                          BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elementsLength * sizeof(int)), elements, BufferUsageHint.StaticDraw);
             GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out size);
             if (elementsLength * sizeof(int) != size)
                 throw new ApplicationException("Element data not uploaded correctly");
@@ -331,15 +325,18 @@ namespace XLibrary
             // 4) Call DrawElements. (Note: the last parameter is an offset into the element buffer
             //    and will usually be IntPtr.Zero).
 
-            GL.EnableClientState(EnableCap.ColorArray);
-            GL.EnableClientState(EnableCap.VertexArray);
+            GL.EnableClientState(ArrayCap.ColorArray);
+            GL.EnableClientState(ArrayCap.VertexArray);
+            GL.EnableClientState(ArrayCap.NormalArray);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, handle.VboID);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, handle.EboID);
 
             GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
             GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
+            GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
+            
             GL.DrawElements(BeginMode.Quads, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 
@@ -350,15 +347,15 @@ namespace XLibrary
 
         private void RedrawTreeMap()
         {
-            ShowingOutside = Model.ShowOutside && CurrentRoot != InternalRoot;
-            ShowingExternal = Model.ShowExternal && !CurrentRoot.External;
+            ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
+            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
 
             if (DoRevalue ||
                 (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||
                 (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
-                Model.RecalcCover(InternalRoot);
-                Model.RecalcCover(ExternalRoot);
+                Model.RecalcCover(Model.InternalRoot);
+                Model.RecalcCover(Model.ExternalRoot);
 
                 XRay.CoverChange = false;
                 XRay.InstanceChange = false;
@@ -381,43 +378,43 @@ namespace XLibrary
                     offset = MapWidth * 1.0f / 4.0f;
                     centerWidth -= offset;
 
-                    InternalRoot.SetArea(new RectangleF(0, 0, offset - PanelBorderWidth, MapHeight));
-                    PositionMap[InternalRoot.ID] = InternalRoot;
-                    SizeNode(InternalRoot, CurrentRoot, false);
+                    Model.InternalRoot.SetArea(new RectangleF(0, 0, offset - PanelBorderWidth, MapHeight));
+                    PositionMap[Model.InternalRoot.ID] = Model.InternalRoot;
+                    SizeNode(Model.InternalRoot, Model.CurrentRoot, false);
                 }
                 if (ShowingExternal)
                 {
                     float extWidth = MapWidth * 1.0f / 4.0f;
                     centerWidth -= extWidth;
 
-                    ExternalRoot.SetArea(new RectangleF(offset + centerWidth + PanelBorderWidth, 0, extWidth - PanelBorderWidth, MapHeight));
-                    PositionMap[ExternalRoot.ID] = ExternalRoot;
-                    SizeNode(ExternalRoot, null, false);
+                    Model.ExternalRoot.SetArea(new RectangleF(offset + centerWidth + PanelBorderWidth, 0, extWidth - PanelBorderWidth, MapHeight));
+                    PositionMap[Model.ExternalRoot.ID] = Model.ExternalRoot;
+                    SizeNode(Model.ExternalRoot, null, false);
                 }
 
-                CurrentRoot.SetArea(new RectangleF(offset, 0, centerWidth, MapHeight));
-                PositionMap[CurrentRoot.ID] = CurrentRoot;
-                SizeNode(CurrentRoot, null, true);
+                Model.CurrentRoot.SetArea(new RectangleF(offset, 0, centerWidth, MapHeight));
+                PositionMap[Model.CurrentRoot.ID] = Model.CurrentRoot;
+                SizeNode(Model.CurrentRoot, null, true);
 
                 DoResize = false;
-            }
-
-            if (ShowingOutside)
-            {
-                FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, PanelBorderWidth, InternalRoot.AreaF.Height, 0, PlatformHeight);
-                DrawNode(InternalRoot, 0, true, 1);
-            }
-
-            if (ShowingExternal)
-            {
-                FillRectangle(BorderBrush, ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, ExternalRoot.AreaF.Height, 0, PlatformHeight);
-                DrawNode(ExternalRoot, 0, true, 1);
             }
 
             VertexCount = 0;
             ElementCount = 0;
 
-            DrawNode(CurrentRoot, 0, true, PlatformHeight);
+            if (ShowingOutside)
+            {
+                FillRectangle(BorderBrush, Model.InternalRoot.AreaF.Width, 0, PanelBorderWidth, Model.InternalRoot.AreaF.Height, 0, PlatformHeight);
+                DrawNode(Model.InternalRoot, 0, true, PlatformHeight);
+            }
+
+            if (ShowingExternal)
+            {
+                FillRectangle(BorderBrush, Model.ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, Model.ExternalRoot.AreaF.Height, 0, PlatformHeight);
+                DrawNode(Model.ExternalRoot, 0, true, PlatformHeight);
+            }
+
+            DrawNode(Model.CurrentRoot, 0, true, PlatformHeight);
         }
 
         int VertexCount = 0;
@@ -433,24 +430,16 @@ namespace XLibrary
 
         void FillRectangle(Color color, float x, float y, float width, float height, float z, float zheight)
         {
-            /*AddPoint(x,         y,          z, color);
-            AddPoint(x + width, y,          z, color);
-            AddPoint(x + width, y + height, z, color);
-            AddPoint(x,         y + height, z, color);
+            var vertexCount = 24;
 
-            AddPoint(x,         y,          z + zheight, color);
-            AddPoint(x + width, y,          z + zheight, color);
-            AddPoint(x + width, y + height, z + zheight, color);
-            AddPoint(x,         y + height, z + zheight, color);*/
-
-            if (VertexCount + 8 >= Vertices.Length)
+            if (VertexCount + vertexCount >= Vertices.Length)
             {
                 var newArray = new VertexPositionColor[Vertices.Length * 2];
                 Array.Copy(Vertices, newArray, VertexCount);
                 Vertices = newArray;
             }
 
-            if (ElementCount + 24 >= Elements.Length)
+            if (ElementCount + vertexCount >= Elements.Length)
             {
                 var newArray = new int[Elements.Length * 2];
                 Array.Copy(Elements, newArray, ElementCount);
@@ -459,53 +448,61 @@ namespace XLibrary
 
             int firstVertexID = VertexCount;
 
+            var southWestBottom = new Vector3(x, y, z);
+            var southEastBottom = new Vector3(x + width, y, z);
+            var northEastBottom = new Vector3(x + width, y + height, z);
+            var northWestBottom = new Vector3(x, y + height, z);
+
+            var southWestTop = new Vector3(x, y, z + zheight);
+            var southEastTop = new Vector3(x + width, y, z + zheight);
+            var northEastTop = new Vector3(x + width, y + height, z + zheight);
+            var northWestTop = new Vector3(x, y + height, z + zheight);
+
             // bottom vertices
-            Vertices[VertexCount++].Set(x,         y,          z, color);
-            Vertices[VertexCount++].Set(x + width, y,          z, color);
-            Vertices[VertexCount++].Set(x + width, y + height, z, color);
-            Vertices[VertexCount++].Set(x,         y + height, z, color);
+            var normal = new Vector3(0, 0, -1);
+            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+            Vertices[VertexCount++].Set(northEastBottom, color, normal);
+            Vertices[VertexCount++].Set(southEastBottom, color, normal);
+            Vertices[VertexCount++].Set(southWestBottom, color, normal); 
 
             // top vertices
-            Vertices[VertexCount++].Set(x,         y,          z + zheight, color);
-            Vertices[VertexCount++].Set(x + width, y,          z + zheight, color);
-            Vertices[VertexCount++].Set(x + width, y + height, z + zheight, color);
-            Vertices[VertexCount++].Set(x,         y + height, z + zheight, color);
+            normal = new Vector3(0, 0, 1);
+            Vertices[VertexCount++].Set(southWestTop, color, normal);
+            Vertices[VertexCount++].Set(southEastTop, color, normal);
+            Vertices[VertexCount++].Set(northEastTop, color, normal);
+            Vertices[VertexCount++].Set(northWestTop, color, normal);
 
-            // bottom
-            Elements[ElementCount++] = firstVertexID + 0;
-            Elements[ElementCount++] = firstVertexID + 1;
-            Elements[ElementCount++] = firstVertexID + 2;
-            Elements[ElementCount++] = firstVertexID + 3;
+            // front vertices
+            normal = new Vector3(0, -1, 0);
+            Vertices[VertexCount++].Set(southWestBottom, color, normal);
+            Vertices[VertexCount++].Set(southEastBottom, color, normal);
+            Vertices[VertexCount++].Set(southEastTop, color, normal);
+            Vertices[VertexCount++].Set(southWestTop, color, normal);
 
-            // right
-            Elements[ElementCount++] = firstVertexID + 1;
-            Elements[ElementCount++] = firstVertexID + 2;
-            Elements[ElementCount++] = firstVertexID + 6;
-            Elements[ElementCount++] = firstVertexID + 5;
+            // east vertices
+            normal = new Vector3(1, 0, 0);
+            Vertices[VertexCount++].Set(southEastBottom, color, normal);
+            Vertices[VertexCount++].Set(northEastBottom, color, normal);
+            Vertices[VertexCount++].Set(northEastTop, color, normal);
+            Vertices[VertexCount++].Set(southEastTop, color, normal);
 
-            // left
-            Elements[ElementCount++] = firstVertexID + 0;
-            Elements[ElementCount++] = firstVertexID + 3;
-            Elements[ElementCount++] = firstVertexID + 7;
-            Elements[ElementCount++] = firstVertexID + 4;
+            // back vertices
+            normal = new Vector3(0, 1, 0);
+            Vertices[VertexCount++].Set(northWestTop, color, normal);
+            Vertices[VertexCount++].Set(northEastTop, color, normal);
+            Vertices[VertexCount++].Set(northEastBottom, color, normal);
+            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+           
+            // west vertices
+            normal = new Vector3(-1, 0, 0);
+            Vertices[VertexCount++].Set(southWestTop, color, normal);
+            Vertices[VertexCount++].Set(northWestTop, color, normal);
+            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+            Vertices[VertexCount++].Set(southWestBottom, color, normal);
+           
 
-            // front
-            Elements[ElementCount++] = firstVertexID + 0;
-            Elements[ElementCount++] = firstVertexID + 1;
-            Elements[ElementCount++] = firstVertexID + 5;
-            Elements[ElementCount++] = firstVertexID + 4;
-
-            // back
-            Elements[ElementCount++] = firstVertexID + 2;
-            Elements[ElementCount++] = firstVertexID + 3;
-            Elements[ElementCount++] = firstVertexID + 7;
-            Elements[ElementCount++] = firstVertexID + 6;
-
-            // top
-            Elements[ElementCount++] = firstVertexID + 4;
-            Elements[ElementCount++] = firstVertexID + 5;
-            Elements[ElementCount++] = firstVertexID + 6;
-            Elements[ElementCount++] = firstVertexID + 7;
+            for (int i = 0; i < vertexCount; i++)
+                Elements[ElementCount++] = firstVertexID + i;
         }
 
         void FillEllipse(Color color, RectangleF rect, float z, float zheight)
@@ -531,7 +528,7 @@ namespace XLibrary
 
             int firstVertexID = VertexCount;
 
-            Vertices[VertexCount++].Set(x + width/2f, y,             z, color);
+            /*Vertices[VertexCount++].Set(x + width/2f, y,             z, color);
             Vertices[VertexCount++].Set(x + width,    y + height/2f, z, color);
             Vertices[VertexCount++].Set(x + width/2f, y + height,    z, color);
             Vertices[VertexCount++].Set(x,            y + height/2f, z, color);
@@ -539,7 +536,7 @@ namespace XLibrary
             Elements[ElementCount++] = firstVertexID + 0;
             Elements[ElementCount++] = firstVertexID + 1;
             Elements[ElementCount++] = firstVertexID + 2;
-            Elements[ElementCount++] = firstVertexID + 3;
+            Elements[ElementCount++] = firstVertexID + 3;*/
         }
 
         private void SizeNode(XNodeIn root, XNodeIn exclude, bool center)
@@ -611,7 +608,7 @@ namespace XLibrary
 
             float zheight = PlatformHeight;
             if (node.ObjType == XObjType.Method)
-                zheight = 250f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue;
+                zheight = Math.Max(250f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, 1);
             
 
             Color pen;
@@ -633,7 +630,7 @@ namespace XLibrary
                 if (depth > OverBrushes.Length - 1)
                     depth = OverBrushes.Length - 1;
 
-                CompositColors(OverBrushes[depth], ref pen);
+                BlendColors(OverBrushes[depth], ref pen);
             }
             //else
             //    FillRectangle(NothingBrush, node.AreaF, z);
@@ -644,37 +641,37 @@ namespace XLibrary
                 if (node.EntryPoint > 0)
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        CompositColors(MultiEntryBrush, ref pen);
+                        BlendColors(MultiEntryBrush, ref pen);
                     else
-                        CompositColors(EntryBrush, ref pen);
+                        BlendColors(EntryBrush, ref pen);
                 }
                 else
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        CompositColors(MultiHoldingBrush, ref pen);
+                        BlendColors(MultiHoldingBrush, ref pen);
                     else
-                        CompositColors(HoldingBrush, ref pen);
+                        BlendColors(HoldingBrush, ref pen);
                 }
             }
 
             // not an else if, draw over holding or entry
             if (node.ExceptionHit > 0)
-                CompositColors(ExceptionBrush[node.FunctionHit], ref pen);
+                BlendColors(ExceptionBrush[node.FunctionHit], ref pen);
 
             else if (node.FunctionHit > 0)
             {
                 if (XRay.ThreadTracking && node.ConflictHit > 0)
-                    CompositColors(MultiHitBrush[node.FunctionHit], ref pen);
+                    BlendColors(MultiHitBrush[node.FunctionHit], ref pen);
 
                 else if (node.ObjType == XObjType.Field)
                 {
                     if (node.LastFieldOp == FieldOp.Set)
-                        CompositColors(FieldSetBrush[node.FunctionHit], ref pen);
+                        BlendColors(FieldSetBrush[node.FunctionHit], ref pen);
                     else
-                        CompositColors(FieldGetBrush[node.FunctionHit], ref pen);
+                        BlendColors(FieldGetBrush[node.FunctionHit], ref pen);
                 }
                 else
-                    CompositColors(HitBrush[node.FunctionHit], ref pen);
+                    BlendColors(HitBrush[node.FunctionHit], ref pen);
             }
 
             if (Model.FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -683,17 +680,17 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    CompositColors(InterdependentBrush, ref pen);
+                    BlendColors(InterdependentBrush, ref pen);
 
                 else if (dependent)
-                    CompositColors(DependentBrush, ref pen);
+                    BlendColors(DependentBrush, ref pen);
 
                 else if (independent)
-                    CompositColors(IndependentBrush, ref pen);
+                    BlendColors(IndependentBrush, ref pen);
             }
 
             if (node.SearchMatch && !Model.SearchStrobe)
-                CompositColors(SearchMatchBrush, ref pen);
+                BlendColors(SearchMatchBrush, ref pen);
 
             // if just a point, drawing a border messes up pixels
             /*if (pointBorder)
@@ -761,7 +758,7 @@ namespace XLibrary
             }*/
         }
 
-        void CompositColors(Color src, ref Color tgt)
+        void BlendColors(Color src, ref Color tgt)
         {
             int a = ((src.A * src.A) >> 8) + ((tgt.A * (255 - src.A)) >> 8);
             int r = ((src.R * src.A) >> 8) + ((tgt.R * (255 - src.A)) >> 8);
@@ -778,13 +775,31 @@ namespace XLibrary
     {
         public Vector3 Position;
         public uint Color;
-        
+        public Vector3 Normal;
+
+        public void Set(Vector3 pos, Color color, Vector3 normal)
+        {
+            Position = pos;
+            Color = ToRgba(color);
+            Normal = normal;
+        }
+
         public void Set(float x, float y, float z, Color color)
         {
             Position.X = x;
             Position.Y = y;
             Position.Z = z;
+
             Color = ToRgba(color);
+        }
+
+        public void Set(float x, float y, float z, Color color, float nX, float nY, float nZ)
+        {
+            Set(x, y, z, color);
+
+            Normal.X = nX;
+            Normal.Y = nY;
+            Normal.Z = nZ;
         }
 
         static uint ToRgba(Color color)

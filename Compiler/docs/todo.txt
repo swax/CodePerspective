@@ -1,26 +1,67 @@
 ﻿
-fps counter - compare with open gl
+is every action helping someone like my DAD understand the code i write?
 
-create a gl surface to draw on
-	abstract tree/graph drawing so an interface is passed to it from the drawing surface
-	draw 1000x1000 block, zoom out till i can see it
-	draw tree graph with open gl
+
+drawing box wires, no height (fps speed up?)
+labels in opengl
+see if top view can replace current? 
+rotation
+
+wpf support
+asp.net support
+	dll running add hook somewhere or running xray service
+
+
+
+standardize rendering on open gl
+	test speed on netbook
+	gdi+ sux0rz, make it look the same
+
+implement 2d line drawn treemap in openGL, observe performance and replace
+	replace graph drawn with openGL
+
+speed up openGL riseOp rendering
+	if still lots faster than normal GDI..
+		dupe GDI rendering in openGL
+		implement pan/zoom
+
+now
+	manual mouse up/down click
+	pan/zoom/reset
+	force directed graph
+	rank / force directed graph
+
+incorporate sound somehow?
+
+integrate xray into an even more useful info display
+	init graph of classes
+	pan / zoom
+
+error handling
+	try to handle paint.net crashing with xray
+	maybe first pass source show's MSIL
+
+self compiling
+	put xCompiler in xLib dll
+	copy exe/dlls on compile and save markers where source can be read from them
+	while xraying dll, show source code directly ripped from source exe/dll
+	allow user to modify source
+	re-compile exe/dlls
+	re-xray compiled exe/dlls
+	re-start xray'd exe
+
+openGL
 	implement mouse panning
 
 	texture functions with translucent code
 	have texture light up when hit
 	draw call lines underneath city, rotate world to see underneath
 
-	start off with isometric view
-	pull out functions as blocks
-	have blocks light up when hit
-	texture blocks
 	have name spaces just as blue outlines around class bases
 	mouse over highlight
 
 	color constructed classes
-	check out facebook
-	
+
 	'towers of code'
 		each function is a text on the surface of the wall, that lights up when run
 		fields are at the top of towers
@@ -68,6 +109,7 @@ reference graph
 	pan/zoom support
 	zoom in on class node shows method/field graph just for that node
 	it should look like how i 'think of the structure of deops' in my head
+	should be able to edit code flat, then run it and see stuff light up
 
 asp.net support 
 
@@ -81,7 +123,6 @@ on/off button
 	test with uberblox to test speed
 
 spring 2d graph
-spend a day and just give 3d a shot, make it a module that can be included
 can 2d be rendered faster with 3d code?
 	find fps of current 2d stuff, maybe a 'time to render' stat
 

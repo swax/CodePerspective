@@ -77,5 +77,17 @@ namespace XLibrary
                     RecurseTree(subTree, evaluate, recurse);
             }
         }
+
+        public static void IterateParents<T>(T node, Action<T> evaluate, Func<T, T> traverseUp)
+        {
+            T parent = node;
+
+            while (parent != null)
+            {
+                evaluate(parent);
+
+                parent = traverseUp(parent);
+            }
+        }
     }
 }

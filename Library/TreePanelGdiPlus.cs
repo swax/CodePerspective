@@ -91,12 +91,7 @@ namespace XLibrary
 
         Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
         Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
-        Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
-
-        internal XNodeIn CurrentRoot;
-        XNodeIn InternalRoot;
-        XNodeIn ExternalRoot;
-        XNodeIn TopRoot;        
+        Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center     
 
         SolidBrush[] OverBrushes = new SolidBrush[7];
 
@@ -140,6 +135,8 @@ namespace XLibrary
         {
             InitializeComponent();
 
+            MouseWheel += new MouseEventHandler(TreePanelGdiPlus_MouseWheel);
+
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -147,10 +144,10 @@ namespace XLibrary
             MainForm = main;
             Model = main.Model;
 
-            TopRoot = XRay.RootNode;
-            InternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
-            ExternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
-            CurrentRoot = InternalRoot;
+            Model.TopRoot = XRay.RootNode;
+            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
+            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
+            Model.CurrentRoot = Model.InternalRoot;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
@@ -218,7 +215,7 @@ namespace XLibrary
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
 
-            if ((!DoRedraw && !DoRevalue && !DoResize) || CurrentRoot == null)
+            if ((!DoRedraw && !DoRevalue && !DoResize) || Model.CurrentRoot == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
                 Model.FpsCounter++;
@@ -231,10 +228,10 @@ namespace XLibrary
 
             buffer.Clear(Color.White);
 
-            Debug.Assert(CurrentRoot != TopRoot); // current root should be intenalRoot in this case
+            Debug.Assert(Model.CurrentRoot != Model.TopRoot); // current root should be intenalRoot in this case
 
-            ShowingOutside = Model.ShowOutside && CurrentRoot != InternalRoot;
-            ShowingExternal = Model.ShowExternal && !CurrentRoot.External;
+            ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
+            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
 
             // clear and pre-process marked depencies
             DependentClasses.Clear();
@@ -399,8 +396,8 @@ namespace XLibrary
                 (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||
                 (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
-                Model.RecalcCover(InternalRoot);
-                Model.RecalcCover(ExternalRoot);
+                Model.RecalcCover(Model.InternalRoot);
+                Model.RecalcCover(Model.ExternalRoot);
 
                 XRay.CoverChange = false;
                 XRay.InstanceChange = false;
@@ -411,51 +408,61 @@ namespace XLibrary
 
             if (DoResize)
             {
+                SizeF modelSize= new SizeF(Width, Height);
+                //ModelSize.Width = Width * ZoomFactor;
+                //ModelSize.Height = Height * ZoomFactor;
+
+                PointF modelOffset = PointF.Empty;
+                //ModelOffset.X = PanOffset.X + (Width * CenterFactor.X - ModelSize.Width * CenterFactor.X);
+                //ModelOffset.Y = PanOffset.Y + (Height * CenterFactor.Y - ModelSize.Height * CenterFactor.Y);
+
+                var drawArea = new RectangleF(modelOffset.X, modelOffset.Y, modelSize.Width, modelSize.Height);
+
                 float offset = 0;
-                float centerWidth = Width;
+                float centerWidth = drawArea.Width;
 
                 PositionMap.Clear();
                 CenterMap.Clear();
 
                 if (ShowingOutside)
                 {
-                    offset = Width * 1.0f / 4.0f;
+                    offset = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= offset;
 
-                    InternalRoot.SetArea(new RectangleF(0, 0, offset - PanelBorderWidth, Height));
-                    PositionMap[InternalRoot.ID] = InternalRoot;
-                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
+                    Model.InternalRoot.SetArea(new RectangleF(modelOffset.X, modelOffset.Y, offset - PanelBorderWidth, drawArea.Height));
+                    PositionMap[Model.InternalRoot.ID] = Model.InternalRoot;
+                    SizeNode(buffer, Model.InternalRoot, Model.CurrentRoot, false);
                 }
                 if (ShowingExternal)
                 {
-                    float extWidth = Width * 1.0f / 4.0f;
+                    float extWidth = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= extWidth;
 
-                    ExternalRoot.SetArea(new RectangleF(offset + centerWidth + PanelBorderWidth, 0, extWidth - PanelBorderWidth, Height));
-                    PositionMap[ExternalRoot.ID] = ExternalRoot;
-                    SizeNode(buffer, ExternalRoot, null, false);
+                    Model.ExternalRoot.SetArea(new RectangleF(modelOffset.X + offset + centerWidth + PanelBorderWidth, modelOffset.Y, extWidth - PanelBorderWidth, drawArea.Height));
+                    PositionMap[Model.ExternalRoot.ID] = Model.ExternalRoot;
+                    SizeNode(buffer, Model.ExternalRoot, null, false);
                 }
 
-                CurrentRoot.SetArea(new RectangleF(offset, 0, centerWidth, Height));
-                PositionMap[CurrentRoot.ID] = CurrentRoot;
-                SizeNode(buffer, CurrentRoot, null, true);
+                Model.CurrentRoot.SetArea(new RectangleF(modelOffset.X + offset, modelOffset.Y, centerWidth, drawArea.Height));
+                PositionMap[Model.CurrentRoot.ID] = Model.CurrentRoot;
+                SizeNode(buffer, Model.CurrentRoot, null, true);
 
                 DoResize = false;
             }
 
             if (ShowingOutside)
             {
-                buffer.FillRectangle(BorderBrush, InternalRoot.AreaF.Width, 0, PanelBorderWidth, InternalRoot.AreaF.Height);
-                DrawNode(buffer, InternalRoot, 0, true);
+                buffer.FillRectangle(BorderBrush, Model.InternalRoot.AreaF.Width, 0, PanelBorderWidth, Model.InternalRoot.AreaF.Height);
+                DrawNode(buffer, Model.InternalRoot, 0, true);
             }
 
             if (ShowingExternal)
             {
-                buffer.FillRectangle(BorderBrush, ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, ExternalRoot.AreaF.Height);
-                DrawNode(buffer, ExternalRoot, 0, true);
+                buffer.FillRectangle(BorderBrush, Model.ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, Model.ExternalRoot.AreaF.Height);
+                DrawNode(buffer, Model.ExternalRoot, 0, true);
             }
 
-            DrawNode(buffer, CurrentRoot, 0, true);
+            DrawNode(buffer, Model.CurrentRoot, 0, true);
         }
 
         private bool IsNodeFiltered(bool select, XNodeIn node)
@@ -698,9 +705,45 @@ namespace XLibrary
             }
         }
 
+        Point MouseDownPoint;
+        Point PanStart;
+        float ZoomFactor = 1;
+
+        void TreePanelGdiPlus_MouseWheel(object sender, MouseEventArgs e)
+        {
+            // change view point size and redraw
+            //ZoomFactor *= (float) Math.Pow(2, e.Delta / 120.0);
+
+            DoResize = true;
+            Invalidate();
+        }
+
+        private void TreePanelGdiPlus_MouseDown(object sender, MouseEventArgs e)
+        {
+            //MouseDownPoint = e.Location;
+            PanStart = PanOffset;
+        }
+
+        private void TreePanelGdiPlus_MouseUp(object sender, MouseEventArgs e)
+        {
+            //if (MouseDownPoint == e.Location)
+            //    ManualMouseClick(e);
+
+            //MouseDownPoint = Point.Empty;
+            //PanStart = Point.Empty;
+        }
+
+        Point PanOffset;
+
         private void TreePanel_MouseMove(object sender, MouseEventArgs e)
         {
-            RefreshHovered(e.Location);
+            if (MouseDownPoint != Point.Empty)
+            {
+                //PanOffset.X = PanStart.X + e.Location.X - MouseDownPoint.X;
+                //PanOffset.Y = PanStart.Y + e.Location.Y - MouseDownPoint.Y;
+            }
+            else
+                RefreshHovered(e.Location);
         }
 
         private void RefreshHovered(Point loc)
@@ -710,11 +753,11 @@ namespace XLibrary
             if (Model.ViewLayout == LayoutType.TreeMap)
             {
                 if (ShowingOutside)
-                    TestHovered(InternalRoot, loc);
+                    TestHovered(Model.InternalRoot, loc);
                 if (ShowingExternal)
-                    TestHovered(ExternalRoot, loc);
+                    TestHovered(Model.ExternalRoot, loc);
 
-                TestHovered(CurrentRoot, loc);
+                TestHovered(Model.CurrentRoot, loc);
             }
             else if (Model.ViewLayout == LayoutType.CallGraph)
             {
@@ -887,11 +930,11 @@ namespace XLibrary
                     bool selected = FilteredNodes.ContainsKey(node.ID);
                     bool ignored = IgnoredNodes.ContainsKey(node.ID);
 
-                    menu.MenuItems.Add( new MenuItem("Zoom", (s, a) => SetRoot(node)) );
-                            
-                    menu.MenuItems.Add( new MenuItem("Filter", (s, a) => ToggleNode(FilteredNodes, node)) { Checked = selected } );
+                    menu.MenuItems.Add(new MenuItem("Zoom", (s, a) => SetRoot(node)));
 
-                    menu.MenuItems.Add( new MenuItem("Ignore", (s, a) => ToggleNode(IgnoredNodes, node)) { Checked = ignored } );
+                    menu.MenuItems.Add(new MenuItem("Filter", (s, a) => ToggleNode(FilteredNodes, node)) { Checked = selected });
+
+                    menu.MenuItems.Add(new MenuItem("Ignore", (s, a) => ToggleNode(IgnoredNodes, node)) { Checked = ignored });
                 }
 
                 if (FilteredNodes.Count > 0 || IgnoredNodes.Count > 0)
@@ -911,11 +954,11 @@ namespace XLibrary
 
             // back button zoom out
             else if (e.Button == MouseButtons.XButton1)
-                Zoom(false);
+                NavBack();
 
             // forward button zoom in
             else if (e.Button == MouseButtons.XButton2)
-                Zoom(true);
+                NavForward();
         }
 
         private void Zoom(bool inward)
@@ -930,10 +973,10 @@ namespace XLibrary
             }
             else
             {
-                if (CurrentRoot.Parent == null)
+                if (Model.CurrentRoot.Parent == null)
                     return;
 
-                SetRoot(CurrentRoot.Parent as XNodeIn);
+                SetRoot(Model.CurrentRoot.Parent as XNodeIn);
             }
 
             // put cursor in the same block after the view changes
@@ -949,7 +992,8 @@ namespace XLibrary
         public void SetRoot(XNodeIn node, bool logHistory=true)
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
-            CurrentRoot = (node == TopRoot) ? InternalRoot : node;
+            PanOffset = Point.Empty;
+            Model.CurrentRoot = (node == Model.TopRoot) ? Model.InternalRoot : node;
            
             if (logHistory)
             {
@@ -959,9 +1003,9 @@ namespace XLibrary
 
                 // dont set node if last node is already this
                 var last = HistoryList.LastOrDefault();
-                if (CurrentRoot != last)
+                if (Model.CurrentRoot != last)
                 {
-                    HistoryList.AddLast(CurrentRoot);
+                    HistoryList.AddLast(Model.CurrentRoot);
                     CurrentHistory = HistoryList.Last;
                 }
             }

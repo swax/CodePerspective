@@ -36,7 +36,9 @@ namespace XLibrary
             DisplayTab.Init(this);
             ConsoleTab.Init(this);
 
-            TreeView.SetRoot(TreeView.CurrentRoot); // init first node in history
+            TreeView.SetRoot(Model.CurrentRoot); // init first node in history
+
+            FormClosed += (s, e) => { XRay.Gui = null; };
         }
 
         void GLView_Load(object sender, EventArgs e)
@@ -56,7 +58,7 @@ namespace XLibrary
             List<XNodeIn> crumbs = new List<XNodeIn>();
 
             // iterate up tree
-            var node = TreeView.CurrentRoot;
+            var node = Model.CurrentRoot;
 
             while (node != null)
             {
@@ -172,6 +174,7 @@ namespace XLibrary
                 }
 
                 GLView.Visible = true;
+                GLView.DoRevalue = !redrawOnly;
                 GLView.Redraw();
             }
             else

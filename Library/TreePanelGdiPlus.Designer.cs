@@ -40,8 +40,10 @@
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyUp);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseClick);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDoubleClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDown);
             this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseUp);
             this.Resize += new System.EventHandler(this.TreePanel_Resize);
             this.ResumeLayout(false);
 

@@ -49,6 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.OpenGLFlatCheck = new System.Windows.Forms.CheckBox();
             this.Layout3dButton = new System.Windows.Forms.RadioButton();
             this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
             this.GraphDirectDependencies = new System.Windows.Forms.RadioButton();
@@ -72,6 +73,7 @@
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
+            this.IncludeAnon = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -308,6 +310,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.OpenGLFlatCheck);
             this.panel1.Controls.Add(this.Layout3dButton);
             this.panel1.Controls.Add(this.GraphIntermediateDependencies);
             this.panel1.Controls.Add(this.GraphDirectDependencies);
@@ -322,15 +325,26 @@
             this.panel1.Size = new System.Drawing.Size(189, 125);
             this.panel1.TabIndex = 21;
             // 
+            // OpenGLFlatCheck
+            // 
+            this.OpenGLFlatCheck.AutoSize = true;
+            this.OpenGLFlatCheck.Location = new System.Drawing.Point(16, 96);
+            this.OpenGLFlatCheck.Name = "OpenGLFlatCheck";
+            this.OpenGLFlatCheck.Size = new System.Drawing.Size(43, 17);
+            this.OpenGLFlatCheck.TabIndex = 30;
+            this.OpenGLFlatCheck.Text = "Flat";
+            this.OpenGLFlatCheck.UseVisualStyleBackColor = true;
+            this.OpenGLFlatCheck.CheckedChanged += new System.EventHandler(this.OpenGLFlatCheck_CheckedChanged);
+            // 
             // Layout3dButton
             // 
             this.Layout3dButton.AutoSize = true;
             this.Layout3dButton.Location = new System.Drawing.Point(3, 72);
             this.Layout3dButton.Name = "Layout3dButton";
-            this.Layout3dButton.Size = new System.Drawing.Size(63, 17);
+            this.Layout3dButton.Size = new System.Drawing.Size(65, 17);
             this.Layout3dButton.TabIndex = 31;
             this.Layout3dButton.TabStop = true;
-            this.Layout3dButton.Text = "3D Test";
+            this.Layout3dButton.Text = "OpenGL";
             this.Layout3dButton.UseVisualStyleBackColor = true;
             this.Layout3dButton.CheckedChanged += new System.EventHandler(this.Layout3dButton_CheckedChanged);
             // 
@@ -452,13 +466,14 @@
             // 
             // panel4
             // 
+            this.panel4.Controls.Add(this.IncludeAnon);
             this.panel4.Controls.Add(this.IncludeMethods);
             this.panel4.Controls.Add(this.IncludeFields);
             this.panel4.Controls.Add(this.IncludeOutsideZoomButton);
             this.panel4.Controls.Add(this.IncludeNotXRayedButton);
             this.panel4.Location = new System.Drawing.Point(392, 17);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(101, 104);
+            this.panel4.Size = new System.Drawing.Size(101, 151);
             this.panel4.TabIndex = 24;
             // 
             // IncludeMethods
@@ -579,6 +594,17 @@
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
             // 
+            // IncludeAnon
+            // 
+            this.IncludeAnon.AutoSize = true;
+            this.IncludeAnon.Location = new System.Drawing.Point(3, 94);
+            this.IncludeAnon.Name = "IncludeAnon";
+            this.IncludeAnon.Size = new System.Drawing.Size(51, 17);
+            this.IncludeAnon.TabIndex = 14;
+            this.IncludeAnon.Text = "Anon";
+            this.IncludeAnon.UseVisualStyleBackColor = true;
+            this.IncludeAnon.CheckedChanged += new System.EventHandler(this.IncludeAnon_CheckedChanged);
+            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -663,5 +689,7 @@
         public System.Windows.Forms.CheckBox IncludeMethods;
         public System.Windows.Forms.RadioButton Layout3dButton;
         public System.Windows.Forms.Label FpsLabel;
+        private System.Windows.Forms.CheckBox OpenGLFlatCheck;
+        public System.Windows.Forms.CheckBox IncludeAnon;
     }
 }

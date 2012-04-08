@@ -1,33 +1,46 @@
 ﻿
-is every action helping someone like my DAD understand the code i write?
+what is xray, a teaching tool, a demonstration tool, a tool to faciliate understanding
+keep on coding and exploring, when I need 3d I will know exactly what for, not just eye candy ub
+
+dont have a todo, just try to understand fb app more
+	an instantiation graph would be cool and probably help make sense of things
+
+spring graph - just do it and look
+	apply spring rules between ranks
+scale up node size a bit in graph
+
+alt
+	option to order class view by init path	
+		class rank-graph view - top down
+	    internal method rank-graph view - left-right
+
+	pan/zoom graph view
+		shouldn't have to re-align graph as its already drawn in 1x1
+
+	option to show methods
 
 
-drawing box wires, no height (fps speed up?)
-labels in opengl
-see if top view can replace current? 
-rotation
+draw flat treemap in orthagonal view
+	click to select should work well
+load in letter textures and draw labels
+add call graph to opengl flat render
+click object in openGL windows (hit testing, pixel to object)
+panning should be very fast
 
-wpf support
-asp.net support
-	dll running add hook somewhere or running xray service
+preventing layout changes on zoom	
+	render everything per level
+	if an oject is too small then don't perform internal rendering
+	always leave room for label, if space is big enough then add the label into it
+pan/zoom with orthagonal view
+see if fps can be improved
 
 
-
-standardize rendering on open gl
-	test speed on netbook
-	gdi+ sux0rz, make it look the same
-
-implement 2d line drawn treemap in openGL, observe performance and replace
-	replace graph drawn with openGL
-
-speed up openGL riseOp rendering
-	if still lots faster than normal GDI..
-		dupe GDI rendering in openGL
-		implement pan/zoom
+unit-tests built in
+	ability to run funtions manually
+	can visually see real code block run and affected code blocks
 
 now
 	manual mouse up/down click
-	pan/zoom/reset
 	force directed graph
 	rank / force directed graph
 
@@ -35,7 +48,7 @@ incorporate sound somehow?
 
 integrate xray into an even more useful info display
 	init graph of classes
-	pan / zoom
+	pan / zoom - problem in treemap view betcause expanding treemap size reconfigures the layout
 
 error handling
 	try to handle paint.net crashing with xray
@@ -189,8 +202,6 @@ Put sub-classses inside parent classes so functions/methods are adacent?
 	windows lighting up are running functions
 	zooming in on building shows fields/values
 	zooming in on function shows code
-
-openGL renderer, test update fps with/wihout
 
 surf through state
 	mouse over function/fields lights up connected functions/fields

@@ -24,8 +24,9 @@ namespace XLibrary
         public bool ShowOutside;
         public bool ShowExternal;
 
-        public bool ShowFields = true;
+        public bool ShowFields = false;
         public bool ShowMethods = true;
+        public bool ShowAnon = false;
 
         public LayoutType ViewLayout = LayoutType.TreeMap;
         public TreeMapMode MapMode = TreeMapMode.Normal;
@@ -67,14 +68,16 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
-                if ((node.ObjType == XObjType.Field && !ShowFields) ||
-                     (node.ObjType == XObjType.Method && !ShowMethods))
+                if ( (node.ObjType == XObjType.Field && !ShowFields) ||
+                     (node.ObjType == XObjType.Method && !ShowMethods) ||
+                     (node.IsAnon && !ShowAnon)
+                   )
                 {
                     node.Show = false;
                     continue;
                 }
 
-                node.Show = //node.ObjType != XObjType.Method ||
+                node.Show = 
                     ShowLayout == ShowNodes.All ||
                     (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
                     (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||

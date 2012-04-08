@@ -1,6 +1,10 @@
-﻿min height for boxes
-outside view in opengl
+﻿
+ellipse text in treemap
+get text to show up next to nodes more often
+fixed text not showing up on call graph
 
+min height for boxes
+outside view in opengl
 back button goes back
 click reset hit, dont clear nodes being held in
 

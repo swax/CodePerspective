@@ -548,9 +548,13 @@ namespace XBuilder
             // if class move anonymous objects into their non-anon counterparts
             if(node.ObjType == XObjType.Class)
             {
+                // class under a namespace could be anon
+                if(node.Name.StartsWith("<>"))
+                    MarkNodeAsAnon(node);
+
                 // put anonymous classes in the functions that they were generated from
                 // ex -. Nested Class: <>c__DisplayClass15, has method: <FilterTextBox_TextChanged>b__11
-                var anonClasses = node.Nodes.Where(n => n.ObjType == XObjType.Class && n.Name.StartsWith("<>c")).ToArray();
+                var anonClasses = node.Nodes.Where(n => n.ObjType == XObjType.Class && n.Name.StartsWith("<>")).ToArray();
 
                 foreach(XNodeOut anonClass in anonClasses)
                 {
@@ -558,7 +562,7 @@ namespace XBuilder
                     MarkNodeAsAnon(anonClass);
 
                     // if parent is not anon
-                    if( !(anonClass.Parent as XNodeOut).IsAnon )
+                    if( !anonClass.Parent.IsAnon )
                     {
                         // iterate anon methods to find association
                         var anonMethod = anonClass.Nodes.FirstOrDefault(n => !n.Name.StartsWith("<>") && n.Name.StartsWith("<") && n.Name.Contains(">"));
@@ -625,7 +629,7 @@ namespace XBuilder
                 }
 
                 else if (node.IsAnon || // simple anon method
-                         (node.Parent as XNodeOut).IsAnon) // method of an anon class
+                         node.Parent.IsAnon) // method of an anon class
                 {
                     if (node.Name.StartsWith("<"))
                     {

@@ -47,7 +47,7 @@ namespace XLibrary
         public List<XNode> Nodes = new List<XNode>();
 
         public bool External;
-
+        public bool IsAnon;
 
         public string FullName()
         {
@@ -156,6 +156,7 @@ namespace XLibrary
         internal int StillInside;
 
         internal bool RoomForLabel;
+        internal bool LabelClipped;
         internal RectangleF LabelRect;
 
         internal SharedDictionary<FunctionCall> CalledIn;
@@ -172,6 +173,7 @@ namespace XLibrary
         internal List<XNodeIn> Adjacents;
         internal PointF ScaledLocation;
         internal float ScaledSize; // width and height
+        internal float VelocityY;
 
         public InstanceRecord Record;
 
@@ -194,7 +196,9 @@ namespace XLibrary
             // name size 4
             // name x
             // type 4
-            // lines 4
+            // value 4
+            // external 1
+            // anon 1
             // id 8
             // parent exist? 1
             //      parent id 4
@@ -222,6 +226,7 @@ namespace XLibrary
             node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
             node.Value = node.Lines; // default
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
+            node.IsAnon = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
 
             bool hasParent = BitConverter.ToBoolean(stream.Read(1), 0);

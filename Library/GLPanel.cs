@@ -1,15 +1,18 @@
-﻿using System;
+﻿using System;    
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Data;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using System.IO;
 
 
 namespace XLibrary
@@ -90,11 +93,10 @@ namespace XLibrary
 
         public float PlatformHeight = 5.0f;
 
-
-
-        //const float rotation_speed = 180.0f;
-        //float angle;
-
+        public bool FlatMode = true;
+        int FontTexture;
+        int FontList;
+ 
         struct Vbo 
         { 
             public int VboID;
@@ -203,7 +205,8 @@ namespace XLibrary
             GL.Enable(EnableCap.Light0);
 
             GL.CullFace(CullFaceMode.Back);
-            
+
+
             float[] mat_emissive = { 0f, 0f, 0f, 1f };
             float[] mat_specular = { 1f, 1f, 1f, 1.0f };
 
@@ -217,9 +220,10 @@ namespace XLibrary
             GL.Light(LightName.Light0, LightParameter.Specular, light_specular);
             GL.Light(LightName.Light0, LightParameter.Position, light_position);
 
-
-
             GLLoaded = true;
+
+            LoadTextures();
+            BuildFont();
         }
 
         private void GLView_Resize(object sender, EventArgs e)
@@ -230,26 +234,60 @@ namespace XLibrary
                 return;
 
             SetupViewport();
+        }
+
+        internal void SetupViewport()
+        {
+            GL.Viewport(0, 0, GLView.Width, GLView.Height);
+
+            if (FlatMode)
+            {
+                GL.MatrixMode(MatrixMode.Projection);
+
+                GL.LoadIdentity();
+                GL.Ortho(0, Width, 0, Height, -1000, 1000);
+                //GL.Scale(1, -1, 1);
+                //GL.Translate(0, -Height, 0);
+                GL.MatrixMode(MatrixMode.Modelview);
+            }
+            else
+            {
+                GL.MatrixMode(MatrixMode.Projection);
+
+                float aspect_ratio = GLView.Width / (float)GLView.Height;
+                Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
+                GL.LoadMatrix(ref perpective);
+
+                GL.MatrixMode(MatrixMode.Modelview);
+                Matrix4 lookat = Matrix4.LookAt(new Vector3(1500.0f, -500.0f, 1000.0f),
+                                                new Vector3(500.0f, 500.0f, 0),
+                                                new Vector3(0.0f, 0.0f, 1.0f));
+                GL.LoadMatrix(ref lookat);
+            }
 
             GLView.Invalidate();
         }
 
-        void SetupViewport()
+        /*void OrthogonalStart()
         {
-            int w = GLView.Width;
-            int h = GLView.Height;
-
-            GL.Viewport(0, 0, w, h);
-
-            float aspect_ratio = w / (float)h;
-            Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
             GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref perpective);
+            GL.PushMatrix();
+
+            GL.LoadIdentity();
+            GL.Ortho(0, Width, 0, Height, 1000, -1000);
+            GL.Scale(1, -1, 1);
+            GL.Translate(0, -Height, 0);
 
             GL.MatrixMode(MatrixMode.Modelview);
-            Matrix4 mv = Matrix4.LookAt(Vector3.UnitZ, Vector3.Zero, Vector3.UnitY);
-            GL.LoadMatrix(ref mv);
         }
+
+        void OthogonalEnd()
+        {
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.PopMatrix();
+
+            GL.MatrixMode(MatrixMode.Modelview);
+        }*/
 
         private void GLView_Paint(object sender, PaintEventArgs e)
         {
@@ -257,13 +295,6 @@ namespace XLibrary
                 return;
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            Matrix4 lookat = Matrix4.LookAt(1500.0f, -500.0f, 1000.0f,
-                                            500.0f, 500.0f,    0,
-                                            0.0f,     0.0f,    1.0f);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref lookat);
-
 
             if ((!DoRedraw && !DoRevalue && !DoResize) || Model.CurrentRoot == null)
             {
@@ -278,10 +309,7 @@ namespace XLibrary
 
             Draw(TreeMapVbo);
 
-            /*angle += rotation_speed * 0.030f;// *(float)e.Time;
-            GL.Rotate(angle, 0.0f, 1.0f, 0.0f);
-
-            Draw(vbo[0]);*/
+            //glPrint(10, 10, "HELLOOOOOOOO");
 
             GLView.SwapBuffers();
 
@@ -336,8 +364,16 @@ namespace XLibrary
             GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
             GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
-            
-            GL.DrawElements(BeginMode.Quads, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
+
+            if (FlatMode)
+            {
+                GL.DrawElements(BeginMode.Lines, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            }
+            else
+            {
+                GL.DrawElements(BeginMode.Quads, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            }
+
         }
 
         float PanelBorderWidth = 4;
@@ -347,6 +383,9 @@ namespace XLibrary
 
         private void RedrawTreeMap()
         {
+            MapWidth = FlatMode ? GLView.Width : 1000;
+            MapHeight = FlatMode ? GLView.Height : 1000;
+
             ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
             ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
 
@@ -423,6 +462,34 @@ namespace XLibrary
         int ElementCount = 0;
         int[] Elements = new int[1000];
 
+        void DrawRectangle(Color color, RectangleF rect)
+        {
+            DrawRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, 0);
+        }
+
+        void DrawRectangle(Color color, float x, float y, float width, float height, float z)
+        {
+            AddNewVerticies(8);
+
+            var southWestBottom = new Vector3(x, y, z);
+            var southEastBottom = new Vector3(x + width, y, z);
+            var northEastBottom = new Vector3(x + width, y + height, z);
+            var northWestBottom = new Vector3(x, y + height, z);
+
+            var normal = new Vector3(0, 0, 1);
+            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+            Vertices[VertexCount++].Set(northEastBottom, color, normal);
+
+            Vertices[VertexCount++].Set(northEastBottom, color, normal);
+            Vertices[VertexCount++].Set(southEastBottom, color, normal);
+
+            Vertices[VertexCount++].Set(southEastBottom, color, normal);
+            Vertices[VertexCount++].Set(southWestBottom, color, normal); 
+
+            Vertices[VertexCount++].Set(southWestBottom, color, normal);
+            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+        }
+
         void FillRectangle(Color color, RectangleF rect, float z, float zheight)
         {
             FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, z, zheight);
@@ -430,23 +497,7 @@ namespace XLibrary
 
         void FillRectangle(Color color, float x, float y, float width, float height, float z, float zheight)
         {
-            var vertexCount = 24;
-
-            if (VertexCount + vertexCount >= Vertices.Length)
-            {
-                var newArray = new VertexPositionColor[Vertices.Length * 2];
-                Array.Copy(Vertices, newArray, VertexCount);
-                Vertices = newArray;
-            }
-
-            if (ElementCount + vertexCount >= Elements.Length)
-            {
-                var newArray = new int[Elements.Length * 2];
-                Array.Copy(Elements, newArray, ElementCount);
-                Elements = newArray;
-            }
-
-            int firstVertexID = VertexCount;
+            AddNewVerticies(24);
 
             var southWestBottom = new Vector3(x, y, z);
             var southEastBottom = new Vector3(x + width, y, z);
@@ -499,10 +550,26 @@ namespace XLibrary
             Vertices[VertexCount++].Set(northWestTop, color, normal);
             Vertices[VertexCount++].Set(northWestBottom, color, normal);
             Vertices[VertexCount++].Set(southWestBottom, color, normal);
-           
+        }
 
-            for (int i = 0; i < vertexCount; i++)
-                Elements[ElementCount++] = firstVertexID + i;
+        private void AddNewVerticies(int amount)
+        {
+            if (VertexCount + amount >= Vertices.Length)
+            {
+                var newArray = new VertexPositionColor[Vertices.Length * 2];
+                Array.Copy(Vertices, newArray, VertexCount);
+                Vertices = newArray;
+            }
+
+            if (ElementCount + amount >= Elements.Length)
+            {
+                var newArray = new int[Elements.Length * 2];
+                Array.Copy(Elements, newArray, ElementCount);
+                Elements = newArray;
+            }
+
+            for (int i = 0; i < amount; i++)
+                Elements[ElementCount++] = VertexCount + i;
         }
 
         void FillEllipse(Color color, RectangleF rect, float z, float zheight)
@@ -708,11 +775,15 @@ namespace XLibrary
 
                 try
                 {
-                    if (rect)
-                        FillRectangle(pen, node.AreaF, z, zheight);
+                    if(FlatMode)
+                        DrawRectangle(pen, node.AreaF);
                     else
-                        FillEllipse(pen, node.AreaF, z, zheight);
-
+                    {
+                        if (rect)
+                            FillRectangle(pen, node.AreaF, z, zheight);
+                        else
+                            FillEllipse(pen, node.AreaF, z, zheight);
+                    }
 
                     /*if (rect)
                         DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height, z);
@@ -766,6 +837,100 @@ namespace XLibrary
             int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
 
             tgt = Color.FromArgb(a, r, g, b);
+        }
+
+        protected void LoadTextures()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            // loading the original font causes an error in texImage2D even with 8bpp set
+            var stream = asm.GetManifestResourceStream("XLibrary.Resources.Font2.png");
+
+            var image = new Bitmap(stream);
+
+            if (image == null)
+                return;
+
+            GL.Enable(EnableCap.Texture2D);
+            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+
+            FontTexture = GL.GenTexture();
+
+            image.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            
+            Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
+
+            BitmapData bitmapdata = image.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, image.PixelFormat);
+
+            // Create Linear Filtered Texture
+            GL.BindTexture(TextureTarget.Texture2D, FontTexture);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 256, 256, 0,
+                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapdata.Scan0);
+
+            image.UnlockBits(bitmapdata);
+            image.Dispose();
+
+            GL.Disable(EnableCap.Texture2D);
+        }
+
+        public void BuildFont()									// Build Our Font Display List
+        {
+            float cx;											// Holds Our X Character Coord
+            float cy;											// Holds Our Y Character Coord
+
+            FontList = GL.GenLists(256);					// Creating 256 Display Lists
+            GL.BindTexture(TextureTarget.Texture2D, FontTexture);	// Select Our Font Texture
+            for (int loop = 0; loop < 256; loop++)				// Loop Through All 256 Lists
+            {
+                cx = (float)(loop % 16) / 16.0f;				// X Position Of Current Character
+                cy = (float)(loop / 16) / 16.0f;				// Y Position Of Current Character
+
+
+                GL.NewList(FontList + loop, ListMode.Compile);  // Start Building A List
+                GL.Begin(BeginMode.Quads);				        // Use A Quad For Each Character
+                GL.TexCoord2(cx, 1 - cy - 0.0625f);			    // Texture Coord (Bottom Left)
+                GL.Vertex2(0, 0);							    // Vertex Coord (Bottom Left)
+                GL.TexCoord2(cx + 0.0625f, 1 - cy - 0.0625f);   // Texture Coord (Bottom Right)
+                GL.Vertex2(16, 0);							    // Vertex Coord (Bottom Right)
+                GL.TexCoord2(cx + 0.0625f, 1 - cy);			    // Texture Coord (Top Right)
+                GL.Vertex2(16, 16);							    // Vertex Coord (Top Right)
+                GL.TexCoord2(cx, 1 - cy);					    // Texture Coord (Top Left)
+                GL.Vertex2(0, 16);							    // Vertex Coord (Top Left)
+                GL.End();										// Done Building Our Quad (Character)
+                GL.Translate(10, 0, 0);						    // Move To The Right Of The Character
+                GL.EndList();									// Done Building The Display List
+            }													// Loop Until All 256 Are Built
+        }
+
+
+        public void glPrint(int x, int y, string str)	// Where The Printing Happens
+        {
+            GL.BindTexture(TextureTarget.Texture2D, FontTexture);	// Select Our Font Texture
+            GL.Disable(EnableCap.DepthTest);							// Disables Depth Testing
+            GL.MatrixMode(MatrixMode.Projection);						// Select The Projection Matrix
+            GL.PushMatrix();										// Store The Projection Matrix
+            GL.LoadIdentity();									// Reset The Projection Matrix
+            GL.Ortho(0, GLView.Width, 0, GLView.Height, -1, 1);						// Set Up An Ortho Screen
+            GL.MatrixMode(MatrixMode.Modelview);						// Select The Modelview Matrix
+            GL.PushMatrix();										// Store The Modelview Matrix
+            GL.LoadIdentity();									// Reset The Modelview Matrix
+            GL.Translate(x, y, 0);									// Position The Text (0,0 - Bottom Left)
+
+            GL.ListBase(FontList - 32);	// Choose The Font Set (0 or 1)
+            // This is a really, really strange quirk of the CsGL library.  It seems that the glCallLists
+            // function, when passed a string, is supposed to be in unicode format, which means that we have
+            // to double the length for it to print the full string.  Strange, but it works.
+            
+            //GL.glCallLists(str.Length * 2, GL.GL_UNSIGNED_BYTE, str);	// Write The Text To The Screen
+            GL.CallLists<char>(str.Length, ListNameType.UnsignedByte, str.ToCharArray());
+            GL.MatrixMode(MatrixMode.Projection);						// Select The Projection Matrix
+            GL.PopMatrix();										// Restore The Old Projection Matrix
+            GL.MatrixMode(MatrixMode.Modelview);					// Select The Modelview Matrix
+            GL.PopMatrix();										// Restore The Old Projection Matrix
+            GL.Enable(EnableCap.DepthTest);								// Enables Depth Testing
         }
     }
 

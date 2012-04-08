@@ -29,6 +29,8 @@ namespace XLibrary
         bool ShowingExternal;
 
         internal bool ShowLabels = true;
+        StringFormat LabelFormat = new StringFormat();
+
         float LabelPadding = 2;
            
         Color UnknownColor = Color.Black;
@@ -47,6 +49,7 @@ namespace XLibrary
 
 
         SolidBrush NothingBrush = new SolidBrush(Color.White);
+        SolidBrush OutsideBrush = new SolidBrush(Color.LightGray);
 
         SolidBrush EntryBrush = new SolidBrush(Color.LightGreen);
         SolidBrush MultiEntryBrush = new SolidBrush(Color.LimeGreen);
@@ -148,6 +151,8 @@ namespace XLibrary
             Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
             Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
             Model.CurrentRoot = Model.InternalRoot;
+
+            LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
@@ -358,7 +363,8 @@ namespace XLibrary
                             }
                             else if (Model.ViewLayout == LayoutType.CallGraph)
                             {
-                                if (source.AreaF.X < destination.AreaF.X)
+                                if ((!DrawCallGraphVertically && source.AreaF.X < destination.AreaF.X) || 
+                                    (DrawCallGraphVertically && source.AreaF.Y < destination.AreaF.Y))
                                     DrawGraphEdge(buffer, callOutPen, source, destination);
                                 else
                                     DrawGraphEdge(buffer, callInPen, source, destination);
@@ -486,21 +492,29 @@ namespace XLibrary
             if (ShowLabels)
             {
                 // check if enough room in root box for label
-                RectangleF label = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
-          
+                var labelSpace = root.AreaF;
+                labelSpace.Width -= LabelPadding * 2.0f;
+                labelSpace.Height -= LabelPadding * 2.0f;
 
-                float minHeight = (root.Nodes.Count > 0) ? label.Height * 2.0f : label.Height;
+                var labelSize = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
+                float minHeight = (root.Nodes.Count > 0) ? labelSize.Height * 2.0f : labelSize.Height;
 
-                if (root.AreaF.Height > minHeight && root.AreaF.Width > label.Width + LabelPadding * 2.0f)
+                if (minHeight < labelSpace.Height && labelSize.Width / 3f < labelSpace.Width )
                 {
-                    label.X += LabelPadding;
-                    label.Y += LabelPadding;
+                    labelSize.X += LabelPadding;
+                    labelSize.Y += LabelPadding;
 
-                    insideArea.Y += label.Height;
-                    insideArea.Height -= label.Height;
+                    if (labelSpace.Width < labelSize.Width)
+                    {
+                        root.LabelClipped = true;
+                        labelSize.Width = labelSpace.Width;
+                    }
+
+                    insideArea.Y += labelSize.Height;
+                    insideArea.Height -= labelSize.Height;
 
                     root.RoomForLabel = true;
-                    root.LabelRect = label;
+                    root.LabelRect = labelSize;
                 }
             }
 
@@ -524,6 +538,7 @@ namespace XLibrary
                 PositionMap[node.ID] = node;
 
                 node.RoomForLabel = false; // cant do above without graphic artifacts
+                node.LabelClipped = false;
 
                 if (center)
                     CenterMap[node.ID] = node;
@@ -564,7 +579,7 @@ namespace XLibrary
                 fillFunction(OverBrushes[depth]);
             }
             else
-                buffer.FillRectangle(NothingBrush, node.AreaF);
+                fillFunction(rect ? NothingBrush : OutsideBrush);
 
             // check if function is an entry point or holding
             if (XRay.FlowTracking && node.StillInside > 0)
@@ -662,10 +677,11 @@ namespace XLibrary
             }
 
             // draw label
+            //buffer.FillRectangle(SearchMatchBrush, node.DebugRect);
             if (ShowLabels && node.RoomForLabel)
             {
                 buffer.FillRectangle(LabelBgBrush, node.LabelRect);
-                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect);
+                buffer.DrawString(node.Name, TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect, LabelFormat);
             }
 
 
@@ -1167,7 +1183,7 @@ namespace XLibrary
             float indentAmount = 0;
 
             // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
-            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel).ToArray();
+            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || n.LabelClipped).ToArray();
 
             if (labels.Length == 0)
                 return;

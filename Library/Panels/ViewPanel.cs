@@ -31,6 +31,7 @@ namespace XLibrary.Panels
             IncludeNotXRayedButton.Checked = Model.ShowExternal;
             IncludeFields.Checked = Model.ShowFields;
             IncludeMethods.Checked = Model.ShowMethods;
+            IncludeAnon.Checked = Model.ShowAnon;
 
             // layout
             LayoutTreeMapButton.Checked = Model.ViewLayout == LayoutType.TreeMap;
@@ -82,9 +83,6 @@ namespace XLibrary.Panels
 
         private void LayoutInOrder_CheckedChanged(object sender, EventArgs e)
         {
-            if (!LayoutInOrder.Checked)
-                return;
-
             Model.SequenceOrder = LayoutInOrder.Checked;
             Main.RefreshView();
         }
@@ -309,6 +307,21 @@ namespace XLibrary.Panels
         private void IncludeMethods_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowMethods = IncludeMethods.Checked;
+            Main.RefreshView();
+        }
+
+        private void OpenGLFlatCheck_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Main.GLView != null)
+            {
+                Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
+                Main.GLView.SetupViewport();
+            }
+        }
+
+        private void IncludeAnon_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.ShowAnon = IncludeAnon.Checked;
             Main.RefreshView();
         }
     }

@@ -20,7 +20,6 @@ namespace XBuilder
         public int Indent;
         public string IndentString = "    "; // 2 for class, 2 for method
         public int InitCount = 1;
-        public bool IsAnon;
         public int AnonFuncs = 1;
         public int AnonClasses = 1;
 
@@ -98,6 +97,7 @@ namespace XBuilder
             // type 4
             // value 4
             // external 1
+            // anon 1
             // id 8
             // parent exist? 1
             //      parent id 4
@@ -122,6 +122,9 @@ namespace XBuilder
             pos += 4;
 
             BitConverter.GetBytes(External).CopyTo(temp, pos);
+            pos += 1;
+
+            BitConverter.GetBytes(IsAnon).CopyTo(temp, pos);
             pos += 1;
 
             BitConverter.GetBytes(ID).CopyTo(temp, pos);

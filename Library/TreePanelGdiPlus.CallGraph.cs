@@ -33,6 +33,8 @@ namespace XLibrary
 
         const int MinCallNodeSize = 5;
 
+        bool DrawCallGraphVertically = false;
+
 
         private void DrawCallGraph(Graphics buffer)
         {
@@ -110,94 +112,7 @@ namespace XLibrary
 
             if (DoResize)
             {
-                float fullSize = (float)Math.Min(Width, Height) / 2;
-
-                foreach (var graph in Graphs)
-                {
-                    for (int i = 0; i < graph.Ranks.Length; i++)
-                    {
-                        var rank = graph.Ranks[i];
-
-                        float right = Width;
-                        if (ShowLabels)
-                        {
-                            if (i < graph.Ranks.Length - 1)
-                                right = Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
-                                        (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
-                        }
-
-                        for (int x = 0; x < rank.Column.Count; x++)
-                        {
-                            var node = rank.Column[x];
-
-                            float size = fullSize * node.ScaledSize;
-
-                            float halfSize = size / 2;
-
-                            if (size < MinCallNodeSize)
-                                size = MinCallNodeSize;
-
-                            node.SetArea(new RectangleF(
-                                Width * node.ScaledLocation.X - halfSize,
-                                Height * node.ScaledLocation.Y - halfSize,
-                                size, size));
-
-                            if (node.ID == 0) // dont draw intermediate nodes
-                                continue;
-
-                            // check if enough room in box for label
-                            node.RoomForLabel = false;
-
-                            if (ShowLabels)
-                            {
-                                SizeF textSize = buffer.MeasureString(node.Name, TextFont);
-
-                                //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
-                                float left = node.AreaF.Right;
-                                float top = graph.ScaledOffset;
-                                if (x != 0)
-                                {
-                                    float distance = rank.Column[x].ScaledLocation.Y - rank.Column[x - 1].ScaledLocation.Y;
-                                    top = rank.Column[x - 1].ScaledLocation.Y + (distance / 2);
-                                }
-
-                                float bottom = graph.ScaledOffset + graph.ScaledHeight;
-                                if (x < rank.Column.Count - 1)
-                                {
-                                    float distance = rank.Column[x + 1].ScaledLocation.Y - rank.Column[x].ScaledLocation.Y;
-                                    bottom = rank.Column[x].ScaledLocation.Y + (distance / 2);
-                                }
- 
-                                float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                                top = (node.ScaledLocation.Y - distanceFromCenter) * Height;
-                                bottom = (node.ScaledLocation.Y + distanceFromCenter) * Height;
-
-                                
-                                node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
-
-                                if (textSize.Height < node.LabelRect.Height && textSize.Width < node.LabelRect.Width)
-                                {
-                                    node.RoomForLabel = true;
-
-                                    node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2) - (textSize.Height / 2);
-                                    node.LabelRect.Height = textSize.Height;
-                                }
-
-                                /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
-                                    label.Width < node.AreaF.Width + LabelPadding * 2)
-                                {
-                                    label.X += LabelPadding;
-                                    label.Y += LabelPadding;
-
-                                    node.RoomForLabel = true;
-                                    node.LabelRect = label;
-                                }*/
-                            }
-                        }
-                    }
-                }
-
-                DoResize = false;
+                ScaleGraph(buffer);
             }
 
             foreach (var node in Graphs.SelectMany(g => g.Nodes()))
@@ -207,6 +122,125 @@ namespace XLibrary
 
                 DrawNode(buffer, node, 0, false);
             }
+        }
+
+        private void ScaleGraph(Graphics buffer)
+        {
+            float fullSize = (float)Math.Min(Width, Height) / 2;
+
+            foreach (var graph in Graphs)
+            {
+                for (int i = 0; i < graph.Ranks.Length; i++)
+                {
+                    var rank = graph.Ranks[i];
+
+                    if (DrawCallGraphVertically)
+                    {
+                        for (int x = 0; x < rank.Column.Count; x++)
+                        {
+                            var node = rank.Column[x];
+
+                            var temp = node.ScaledLocation.X;
+                            node.ScaledLocation.X = node.ScaledLocation.Y;
+                            node.ScaledLocation.Y = temp;
+                        }
+                    }
+
+                    float right = Width;
+                    if (ShowLabels)
+                    {
+                        if (i < graph.Ranks.Length - 1)
+                            right = Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                                    (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
+                    }
+
+                    // set node area
+                    for (int x = 0; x < rank.Column.Count; x++)
+                    {
+                        var node = rank.Column[x];
+
+                        float size = fullSize * node.ScaledSize;
+
+                        float halfSize = size / 2;
+
+                        if (size < MinCallNodeSize)
+                            size = MinCallNodeSize;
+
+                        node.SetArea(new RectangleF(
+                            Width * node.ScaledLocation.X - halfSize,
+                            Height * node.ScaledLocation.Y - halfSize,
+                            size, size));
+                    }
+
+                    if (ShowLabels)
+                    {
+                        var rankNodes = rank.Column.Where(n => n.ID != 0).ToArray();
+
+                        for (int x = 0; x < rankNodes.Length; x++)
+                        {
+                            var node = rankNodes[x];
+
+                            // check if enough room in box for label
+                            node.RoomForLabel = false;
+                            node.LabelClipped = false;
+
+
+                            SizeF textSize = buffer.MeasureString(node.Name, TextFont);
+
+                            //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
+                            float left = node.AreaF.Right;
+                            float top = graph.ScaledOffset;
+
+                            var thisY = rankNodes[x].ScaledLocation.Y;
+
+                            if (x > 0)
+                            {
+                                var aboveY = rankNodes[x - 1].ScaledLocation.Y;
+                                float distance = thisY - aboveY;
+                                top = aboveY + (distance / 2f);
+                            }
+
+                            float bottom = graph.ScaledOffset + graph.ScaledHeight;
+                            if (x < rankNodes.Length - 1)
+                            {
+                                var belowY = rankNodes[x + 1].ScaledLocation.Y;
+                                float distance = belowY - thisY;
+                                bottom = thisY + (distance / 2f);
+                            }
+
+                            float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
+                            top = (node.ScaledLocation.Y - distanceFromCenter) * Height;
+                            bottom = (node.ScaledLocation.Y + distanceFromCenter) * Height;
+
+
+                            node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
+      
+                            if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
+                            {
+                                node.RoomForLabel = true;
+
+                                if (node.LabelRect.Width < textSize.Width)
+                                    node.LabelClipped = true;
+
+                                node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2f) - (textSize.Height / 2f);
+                                node.LabelRect.Height = textSize.Height;
+                            }
+
+                            /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
+                                label.Width < node.AreaF.Width + LabelPadding * 2)
+                            {
+                                label.X += LabelPadding;
+                                label.Y += LabelPadding;
+
+                                node.RoomForLabel = true;
+                                node.LabelRect = label;
+                            }*/
+                        }
+                    }
+                }
+            }
+
+            DoResize = false;
         }
 
         private void SizeGraphs()
@@ -284,6 +318,8 @@ namespace XLibrary
                 {
                     for (int x = 0; x < 6; x++)
                         MinDistance(graph);
+
+                    //Spring(graph);
                 }
                 else
                 {
@@ -341,6 +377,8 @@ namespace XLibrary
                     LayoutGraph(graph, unrankedNode, minRank.Value - 1, new List<int>());//, new List<string>());
                 }
 
+                
+                // remove graphs with 1 element
                 if (graph.Count == 1)
                 {
                     var remove = graph.Values.First();
@@ -521,6 +559,96 @@ namespace XLibrary
             return sum / count;
         }
 
+        private void Spring(Graph graph)
+        {
+            float total_kinetic_energy = 40; // running sum of total kinetic energy over all particles
+
+            float spring_const = -1;
+            float damping = 0.8f; // between 0 and 1
+            float timestep = 0.1f;
+            float mass = 1f;
+
+            do
+            {
+                // for each node
+                foreach (var rank in graph.Ranks)
+                {
+                    float minY = 0;
+                    float maxY = 1;
+
+                    foreach (var node in rank.Column)
+                    {
+                        float forceY = 0; // running sum of total force on this particular node
+       
+
+                        // for each other node apply Coulomb repulsion 1/distance
+                        foreach (var other_node in rank.Column.Where(n => n != node))
+                        {
+                            float distance = GetDistanceY(other_node, node);
+                            if (distance > 0)
+                                forceY += 1.0f / distance;
+                            else
+                                forceY += .1f;
+                        }
+
+                        // for each spring connected to this node net-force + Hooke_attraction( this_node, spring )
+
+                        if (node.EdgesOut != null)
+                            foreach (var destId in node.EdgesOut)
+                                if (PositionMap.ContainsKey(destId))
+                                {
+                                    if (node.Intermediates != null && node.Intermediates.ContainsKey(destId))
+                                        forceY += -spring_const * GetDistanceY(node.Intermediates[destId][0], node);
+                                    else
+                                        forceY += -spring_const * GetDistanceY(PositionMap[destId], node);
+                                }
+
+                        if (node.EdgesIn != null)
+                            foreach (var source in node.EdgesIn)
+                                if (PositionMap.ContainsKey(source))
+                                {
+                                    var sourceNode = PositionMap[source];
+                                    if (sourceNode.Intermediates != null && sourceNode.Intermediates.ContainsKey(node.ID))
+                                        forceY += -spring_const * GetDistanceY(sourceNode.Intermediates[node.ID].Last(), node);
+                                    else
+                                        forceY += -spring_const * GetDistanceY(PositionMap[source], node);
+                                }
+
+                        // should only be attached to intermediate nodes
+                        if (node.Adjacents != null)
+                            foreach (var adj in node.Adjacents)
+                                forceY += -spring_const * GetDistanceY(adj, node);
+
+                        // without damping, it moves forever
+                        node.VelocityY = (node.VelocityY + timestep * forceY) * damping;
+                        node.ScaledLocation.Y += timestep * node.VelocityY;
+
+                        if (node.ScaledLocation.Y < minY)
+                            minY = node.ScaledLocation.Y;
+                        if (node.ScaledLocation.Y > maxY)
+                            maxY = node.ScaledLocation.Y;
+
+                        total_kinetic_energy--; // += node.Value * (float)Math.Pow(node.VelocityY, 2); // node.value is mass
+                    }
+
+
+                    // scale positions of nodes back
+                    float range = maxY - minY;
+
+                    if (range > 1)
+                        foreach (var node in rank.Column)
+                            node.ScaledLocation.Y /= range;
+                }
+
+            } while (total_kinetic_energy > 0); // the simulation has stopped moving
+
+        }
+
+        private float GetDistanceY(XNodeIn other_node, XNodeIn node)
+        {
+            return Math.Abs(other_node.ScaledLocation.Y - node.ScaledLocation.Y);
+        }
+
         private void MinDistance(Graph graph)
         {
             // moves nodes with-in rank closer to their adjacent nodes without changing order in rank
@@ -698,7 +826,12 @@ namespace XLibrary
                       (node.CallsOut != null && node.CallsOut.Length > 0)) 
                       &&
                      ((Model.GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                      (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class)))
+                      (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
+                     &&
+                     (!node.IsAnon || 
+                      (node.IsAnon && Model.ShowAnon))
+                   )
+                    
                 {
                     if (center)
                         CenterMap[node.ID] = node;

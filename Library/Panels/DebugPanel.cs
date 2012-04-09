@@ -56,13 +56,19 @@ namespace XLibrary.Panels
             // function calls
             Output.AppendLine("");
             Output.AppendLine("Method Call Map:");
-            foreach (FunctionCall call in XRay.CallMap)
+            foreach (var call in XRay.CallMap)
                 Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
 
             Output.AppendLine("");
             Output.AppendLine("Class Call Map:");
-            foreach (FunctionCall call in XRay.ClassCallMap)
+            foreach (var call in XRay.ClassCallMap)
                 Output.AppendFormat("  {0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
+
+            Output.AppendLine("");
+            Output.AppendLine("Init Map:");
+            foreach (var init in XRay.InitMap)
+                Output.AppendFormat("  {0} -> {1}\r\n", init.Source, init.Destination);
+
 
             // function calls
             Output.AppendLine("");

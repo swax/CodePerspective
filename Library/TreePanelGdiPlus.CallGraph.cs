@@ -52,7 +52,7 @@ namespace XLibrary
                 OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
-                if (Model.DependenciesMode == ShowDependenciesMode.Intermediates)
+                if (Model.GraphMode == CallGraphMode.Intermediates)
                 {
                     foreach (var n in XRay.Nodes)
                     {
@@ -293,10 +293,10 @@ namespace XLibrary
                 graph.ScaledHeight = maxRankHeights[i] / stackHeight;
                 graph.ScaledOffset = groupOffset;
 
-                float freespace = 1 - maxRankWidths[i] * reduce;
+                float freespace = 1;// -maxRankWidths[i] * reduce;
 
-                float spaceX = freespace / (graph.Ranks.Length + 1);
-                float xOffset = spaceX;
+                float spaceX = freespace / graph.Ranks.Length;
+                float xOffset = 0;
 
                 for (int x = 0; x < graph.Ranks.Length; x++)
                 {
@@ -309,7 +309,7 @@ namespace XLibrary
 
                     PositionRank(graph, rank, xOffset + maxSize / 2);
 
-                    xOffset += maxSize + spaceX;
+                    xOffset += spaceX;
                 }
 
                 groupOffset += graph.ScaledHeight;
@@ -355,10 +355,10 @@ namespace XLibrary
                 LayoutGraph(graph, unrankedNode, 0, new List<int>());
 
                 // while group contains unranked nodes
-                while (graph.Values.Any(n => n.Rank == null))
+                while (graph.Values.Any(n => n.Rank == null && n.EdgesOut != null))
                 {
                     // head node to start traversal
-                    unrankedNode = graph.Values.First(n => n.Rank == null);
+                    unrankedNode = graph.Values.First(n => n.Rank == null && n.EdgesOut != null);
 
                     // only way node could be in group is if child added it, so there is a minrank
                     // min rank is 1 back from the lowest ranked child of the node
@@ -675,7 +675,7 @@ namespace XLibrary
                         if (lowerbound >= upperbound)
                         {
                             // usually if this happens they're very close
-                            XRay.LogError("lower bound greater than upper in layout. pos: {0}, nodeID: {1}, lower: {4}, upper: {5}, minheight: {6}", x, node.ID, lowerbound, upperbound, rank.MinHeightSpace);
+                            XRay.LogError("lower bound greater than upper in layout. pos: {0}, nodeID: {1}, lower: {2}, upper: {3}, minheight: {4}", x, node.ID, lowerbound, upperbound, rank.MinHeightSpace);
                             //continue;
                         }
 
@@ -792,76 +792,73 @@ namespace XLibrary
             if (!node.Show)
                 return;
 
-            if (Model.GraphMode == CallGraphMode.Dependencies)
+            if (node.IsAnon && !Model.ShowAnon)
             {
-                if ((node.Independencies != null && node.Independencies.Length > 0) ||
-                          (node.Dependencies != null && node.Dependencies.Length > 0))
+                // ignore node
+            }
+
+            else if (Model.GraphMode == CallGraphMode.Dependencies && 
+                     ((node.Independencies != null && node.Independencies.Length > 0) ||
+                      (node.Dependencies != null && node.Dependencies.Length > 0)))
+            {
+                if (center)
+                    CenterMap[node.ID] = node;
+
+                // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
+                if (center || DependentClasses.Contains(node.ID) || IndependentClasses.Contains(node.ID))
                 {
-                    if (center)
-                        CenterMap[node.ID] = node;
+                    PositionMap[node.ID] = node;
 
-                    // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
-                    if (center || DependentClasses.Contains(node.ID) || IndependentClasses.Contains(node.ID))
-                    {
-                        PositionMap[node.ID] = node;
+                    if (!CenterMap.ContainsKey(node.ID))
+                        OutsideMap[node.ID] = node;
+  
+                    if (node.Independencies != null)
+                        node.EdgesIn = node.Independencies;
 
-                        if (!CenterMap.ContainsKey(node.ID))
-                            OutsideMap[node.ID] = node;
-
-                        node.EdgesIn = null;
-                        node.EdgesOut = null;
-                        node.Intermediates = null;
-
-                        if (node.Independencies != null)
-                            node.EdgesIn = node.Independencies;
-
-                        if (node.Dependencies != null)
-                            node.EdgesOut = node.Dependencies;
-                    }
+                    if (node.Dependencies != null)
+                        node.EdgesOut = node.Dependencies;
                 }
             }
-            else if (Model.GraphMode == CallGraphMode.Method || Model.GraphMode == CallGraphMode.Class)
+            else if (Model.GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class)
             {
-                if ( ((node.CalledIn != null && node.CalledIn.Length > 0) ||
-                      (node.CallsOut != null && node.CallsOut.Length > 0)) 
-                      &&
-                     ((Model.GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                      (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
-                     &&
-                     (!node.IsAnon || 
-                      (node.IsAnon && Model.ShowAnon))
-                   )
-                    
-                {
-                    if (center)
-                        CenterMap[node.ID] = node;
-
-                    // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
-                    if ( center ||
-                         (node.CalledIn != null && node.CalledIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
-                         (node.CallsOut != null && node.CallsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
-                    {
-                        PositionMap[node.ID] = node;
-
-                        if (!CenterMap.ContainsKey(node.ID))
-                            OutsideMap[node.ID] = node;
-
-                        node.EdgesIn = null;
-                        node.EdgesOut = null;
-                        node.Intermediates = null;
-
-                        if (node.CalledIn != null)
-                            node.EdgesIn = node.CalledIn.Select(c => c.Source).ToArray();
-
-                        if (node.CallsOut != null)
-                            node.EdgesOut = node.CallsOut.Select(c => c.Destination).ToArray();
-                    }
-                }
+                AddEdges(node, center, node.InitsBy, node.InitsOf);
+            }
+            else if ((Model.GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
+                     (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
+            {
+                AddEdges(node, center, node.CalledIn, node.CallsOut);
             }
 
             foreach (XNodeIn sub in node.Nodes)
                 if (sub != Model.InternalRoot) // when traversing outside root, dont interate back into center root
                     AddCalledNodes(sub, center);
+        }
+
+        private void AddEdges(XNodeIn node, bool center, SharedDictionary<FunctionCall> callsIn, SharedDictionary<FunctionCall> callsOut)
+        {
+            if ((callsIn == null || callsIn.Length == 0) &&
+                (callsOut == null || callsOut.Length == 0))
+                return;
+
+            if (center)
+                CenterMap[node.ID] = node;
+
+            // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
+            if (center ||
+                 (callsIn != null && callsIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
+                 (callsOut != null && callsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
+            {
+                PositionMap[node.ID] = node;
+
+                if (!CenterMap.ContainsKey(node.ID))
+                    OutsideMap[node.ID] = node;
+
+                if (callsIn != null)
+                    node.EdgesIn = callsIn.Select(c => c.Source).ToArray();
+
+                if (callsOut != null)
+                    node.EdgesOut = callsOut.Select(c => c.Destination).ToArray();
+            }
         }
 
         private void DrawGraphEdge(Graphics buffer, Pen pen, XNodeIn source, XNodeIn destination)

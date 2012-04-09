@@ -44,6 +44,7 @@ namespace XLibrary
         internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
         internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
         internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
+        internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -327,13 +328,13 @@ namespace XLibrary
                 // add link to node that its been called
                 if (TrackCallGraph)
                 {
-                    node.AddCallIn(source, call);
+                    node.AddFunctionCall(ref node.CalledIn, source, call);
 
                     var srcNode = Nodes[source];
                     if (srcNode == null)
                         return;
 
-                    srcNode.AddCallOut(nodeID, call);
+                    srcNode.AddFunctionCall(ref srcNode.CallsOut, nodeID, call);
                 }
 
                 CallChange = true;
@@ -393,14 +394,14 @@ namespace XLibrary
             FunctionCall call;
             if (!ClassCallMap.TryGetValue(hash, out call))
             {
-                LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
+                //LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
 
                 call = new FunctionCall() { Source = sourceClass.ID, Destination = destClass.ID };
                 ClassCallMap.Add(hash, call);
 
-                destClass.AddCallIn(sourceClass.ID, call);
-
-                sourceClass.AddCallOut(destClass.ID, call);
+                destClass.AddFunctionCall(ref destClass.CalledIn, sourceClass.ID, call);
+               
+                sourceClass.AddFunctionCall(ref sourceClass.CallsOut, destClass.ID, call);
             }
 
             call.Hit = ShowTicks;
@@ -526,6 +527,79 @@ namespace XLibrary
 
             if(node.Record.Add(obj))
                 InstanceChange = true;
+
+
+            // track who constructed this object
+            TrackInit(node);
+        }
+
+        private static void TrackInit(XNodeIn node)
+        {
+            int thread = 0;
+            if (ThreadTracking)
+                thread = Thread.CurrentThread.ManagedThreadId;
+
+            ThreadFlow flow;
+            if (!FlowMap.TryGetValue(thread, out flow))
+            {
+                LogError("Init Error 1");
+                return;
+            }
+
+            if (flow.Pos < 0)
+            {
+                LogError("Init Error 2");
+                return;
+            }
+
+            XNodeIn sourceClass = null;
+
+            // travel up stack until we find something we know and mark that as the source of the init
+            for (int i = flow.Pos; i >= 0; i--)
+            {
+                int source = flow.Stack[i].NodeID;
+
+                var srcNode = Nodes[source];
+                if (srcNode == null)
+                    continue;
+
+                sourceClass = GetContainingClass(srcNode) as XNodeIn;
+                if (sourceClass != null && sourceClass != node)
+                    break;
+            }
+
+            if (sourceClass == null)
+            {
+                LogError("Init Error 3");
+                return;
+            }
+
+            if (node.ObjType != XObjType.Class)
+            {
+                LogError("Init Error 4");
+                return;
+            }
+
+            if (sourceClass == node)
+            {
+                LogError("Init Error 5 " + node.Name); //? class could create itself...
+                return;
+            }
+
+            // link 
+            int hash = sourceClass.ID * FunctionCount + node.ID;
+
+            FunctionCall call;
+            if (!InitMap.TryGetValue(hash, out call))
+            {
+                //LogError("Adding to init map {0} -> {1} with hash {2}", sourceClass.ID, node.ID, hash);
+
+                call = new FunctionCall() { Source = sourceClass.ID, Destination = node.ID };
+                InitMap.Add(hash, call);
+
+                node.AddFunctionCall(ref node.InitsBy, sourceClass.ID, call);
+                sourceClass.AddFunctionCall(ref sourceClass.InitsOf, node.ID, call);
+            }
         }
 
         static void form_KeyPress(object sender, KeyPressEventArgs e)

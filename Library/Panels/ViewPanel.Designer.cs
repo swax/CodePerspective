@@ -49,19 +49,19 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.OpenGLFlatCheck = new System.Windows.Forms.CheckBox();
+            this.LayoutInitGraphButton = new System.Windows.Forms.RadioButton();
+            this.ShowAllDependenciesCheckBox = new System.Windows.Forms.CheckBox();
             this.Layout3dButton = new System.Windows.Forms.RadioButton();
             this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
-            this.GraphDirectDependencies = new System.Windows.Forms.RadioButton();
-            this.GraphAllDependencies = new System.Windows.Forms.RadioButton();
-            this.MapDirectDependencies = new System.Windows.Forms.RadioButton();
-            this.MapAllDependencies = new System.Windows.Forms.RadioButton();
+            this.GraphDependencies = new System.Windows.Forms.RadioButton();
+            this.MapDependencies = new System.Windows.Forms.RadioButton();
             this.LayoutClassCallsButton = new System.Windows.Forms.RadioButton();
             this.LayoutInOrder = new System.Windows.Forms.CheckBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.ResetHitLink = new System.Windows.Forms.LinkLabel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.IncludeAnon = new System.Windows.Forms.CheckBox();
             this.IncludeMethods = new System.Windows.Forms.CheckBox();
             this.IncludeFields = new System.Windows.Forms.CheckBox();
             this.panel5 = new System.Windows.Forms.Panel();
@@ -71,9 +71,7 @@
             this.TrackingMethodCalls = new System.Windows.Forms.CheckBox();
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
-            this.IncludeAnon = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -109,10 +107,10 @@
             this.LayoutCallGraphButton.AutoSize = true;
             this.LayoutCallGraphButton.Location = new System.Drawing.Point(3, 26);
             this.LayoutCallGraphButton.Name = "LayoutCallGraphButton";
-            this.LayoutCallGraphButton.Size = new System.Drawing.Size(93, 17);
+            this.LayoutCallGraphButton.Size = new System.Drawing.Size(86, 17);
             this.LayoutCallGraphButton.TabIndex = 2;
             this.LayoutCallGraphButton.TabStop = true;
-            this.LayoutCallGraphButton.Text = "Method Graph";
+            this.LayoutCallGraphButton.Text = "Method Calls";
             this.LayoutCallGraphButton.UseVisualStyleBackColor = true;
             this.LayoutCallGraphButton.CheckedChanged += new System.EventHandler(this.LayoutCallGraphButton_CheckedChanged);
             // 
@@ -144,7 +142,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(496, 1);
+            this.label2.Location = new System.Drawing.Point(497, 1);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 13);
             this.label2.TabIndex = 3;
@@ -190,7 +188,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(389, 0);
+            this.label3.Location = new System.Drawing.Point(390, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(49, 13);
             this.label3.TabIndex = 9;
@@ -223,10 +221,10 @@
             this.ShowNotHitButton.AutoSize = true;
             this.ShowNotHitButton.Location = new System.Drawing.Point(3, 49);
             this.ShowNotHitButton.Name = "ShowNotHitButton";
-            this.ShowNotHitButton.Size = new System.Drawing.Size(58, 17);
+            this.ShowNotHitButton.Size = new System.Drawing.Size(75, 17);
             this.ShowNotHitButton.TabIndex = 15;
             this.ShowNotHitButton.TabStop = true;
-            this.ShowNotHitButton.Text = "Not Hit";
+            this.ShowNotHitButton.Text = "Not Execd";
             this.ShowNotHitButton.UseVisualStyleBackColor = true;
             this.ShowNotHitButton.CheckedChanged += new System.EventHandler(this.ShowNotHitButton_CheckedChanged);
             // 
@@ -235,10 +233,10 @@
             this.ShowHitButton.AutoSize = true;
             this.ShowHitButton.Location = new System.Drawing.Point(3, 26);
             this.ShowHitButton.Name = "ShowHitButton";
-            this.ShowHitButton.Size = new System.Drawing.Size(38, 17);
+            this.ShowHitButton.Size = new System.Drawing.Size(70, 17);
             this.ShowHitButton.TabIndex = 14;
             this.ShowHitButton.TabStop = true;
-            this.ShowHitButton.Text = "Hit";
+            this.ShowHitButton.Text = "Executed";
             this.ShowHitButton.UseVisualStyleBackColor = true;
             this.ShowHitButton.CheckedChanged += new System.EventHandler(this.ShowHitButton_CheckedChanged);
             // 
@@ -258,7 +256,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(201, 0);
+            this.label4.Location = new System.Drawing.Point(202, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(58, 13);
             this.label4.TabIndex = 12;
@@ -302,7 +300,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(301, 0);
+            this.label5.Location = new System.Drawing.Point(302, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(34, 13);
             this.label5.TabIndex = 18;
@@ -310,113 +308,101 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.OpenGLFlatCheck);
+            this.panel1.Controls.Add(this.LayoutInitGraphButton);
+            this.panel1.Controls.Add(this.ShowAllDependenciesCheckBox);
             this.panel1.Controls.Add(this.Layout3dButton);
             this.panel1.Controls.Add(this.GraphIntermediateDependencies);
-            this.panel1.Controls.Add(this.GraphDirectDependencies);
-            this.panel1.Controls.Add(this.GraphAllDependencies);
-            this.panel1.Controls.Add(this.MapDirectDependencies);
-            this.panel1.Controls.Add(this.MapAllDependencies);
+            this.panel1.Controls.Add(this.GraphDependencies);
+            this.panel1.Controls.Add(this.MapDependencies);
             this.panel1.Controls.Add(this.LayoutClassCallsButton);
             this.panel1.Controls.Add(this.LayoutTreeMapButton);
             this.panel1.Controls.Add(this.LayoutCallGraphButton);
             this.panel1.Location = new System.Drawing.Point(6, 17);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(189, 125);
+            this.panel1.Size = new System.Drawing.Size(192, 125);
             this.panel1.TabIndex = 21;
+            this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
-            // OpenGLFlatCheck
+            // LayoutInitGraphButton
             // 
-            this.OpenGLFlatCheck.AutoSize = true;
-            this.OpenGLFlatCheck.Location = new System.Drawing.Point(16, 96);
-            this.OpenGLFlatCheck.Name = "OpenGLFlatCheck";
-            this.OpenGLFlatCheck.Size = new System.Drawing.Size(43, 17);
-            this.OpenGLFlatCheck.TabIndex = 30;
-            this.OpenGLFlatCheck.Text = "Flat";
-            this.OpenGLFlatCheck.UseVisualStyleBackColor = true;
-            this.OpenGLFlatCheck.CheckedChanged += new System.EventHandler(this.OpenGLFlatCheck_CheckedChanged);
+            this.LayoutInitGraphButton.AutoSize = true;
+            this.LayoutInitGraphButton.Location = new System.Drawing.Point(3, 72);
+            this.LayoutInitGraphButton.Name = "LayoutInitGraphButton";
+            this.LayoutInitGraphButton.Size = new System.Drawing.Size(71, 17);
+            this.LayoutInitGraphButton.TabIndex = 33;
+            this.LayoutInitGraphButton.TabStop = true;
+            this.LayoutInitGraphButton.Text = "Init Graph";
+            this.LayoutInitGraphButton.UseVisualStyleBackColor = true;
+            this.LayoutInitGraphButton.CheckedChanged += new System.EventHandler(this.LayoutInitGraphButton_CheckedChanged);
+            // 
+            // ShowAllDependenciesCheckBox
+            // 
+            this.ShowAllDependenciesCheckBox.AutoSize = true;
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(95, 50);
+            this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
+            this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(89, 17);
+            this.ShowAllDependenciesCheckBox.TabIndex = 32;
+            this.ShowAllDependenciesCheckBox.Text = "Sub-depends";
+            this.ShowAllDependenciesCheckBox.UseVisualStyleBackColor = true;
+            this.ShowAllDependenciesCheckBox.CheckedChanged += new System.EventHandler(this.ShowAllDependenciesCheckBox_CheckedChanged);
             // 
             // Layout3dButton
             // 
             this.Layout3dButton.AutoSize = true;
-            this.Layout3dButton.Location = new System.Drawing.Point(3, 72);
+            this.Layout3dButton.Location = new System.Drawing.Point(3, 94);
             this.Layout3dButton.Name = "Layout3dButton";
-            this.Layout3dButton.Size = new System.Drawing.Size(65, 17);
+            this.Layout3dButton.Size = new System.Drawing.Size(63, 17);
             this.Layout3dButton.TabIndex = 31;
             this.Layout3dButton.TabStop = true;
-            this.Layout3dButton.Text = "OpenGL";
+            this.Layout3dButton.Text = "3D Map";
             this.Layout3dButton.UseVisualStyleBackColor = true;
             this.Layout3dButton.CheckedChanged += new System.EventHandler(this.Layout3dButton_CheckedChanged);
             // 
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(104, 95);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(94, 73);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
-            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(67, 17);
+            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(90, 17);
             this.GraphIntermediateDependencies.TabIndex = 30;
             this.GraphIntermediateDependencies.TabStop = true;
-            this.GraphIntermediateDependencies.Text = "Selected";
+            this.GraphIntermediateDependencies.Text = "Inter-depends";
             this.GraphIntermediateDependencies.UseVisualStyleBackColor = true;
             this.GraphIntermediateDependencies.CheckedChanged += new System.EventHandler(this.GraphIntermediateDependencies_CheckedChanged);
             // 
-            // GraphDirectDependencies
+            // GraphDependencies
             // 
-            this.GraphDirectDependencies.AutoSize = true;
-            this.GraphDirectDependencies.Location = new System.Drawing.Point(104, 49);
-            this.GraphDirectDependencies.Name = "GraphDirectDependencies";
-            this.GraphDirectDependencies.Size = new System.Drawing.Size(85, 17);
-            this.GraphDirectDependencies.TabIndex = 29;
-            this.GraphDirectDependencies.TabStop = true;
-            this.GraphDirectDependencies.Text = "Graph Direct";
-            this.GraphDirectDependencies.UseVisualStyleBackColor = true;
-            this.GraphDirectDependencies.CheckedChanged += new System.EventHandler(this.GraphDirectDependencies_CheckedChanged);
+            this.GraphDependencies.AutoSize = true;
+            this.GraphDependencies.Location = new System.Drawing.Point(95, 27);
+            this.GraphDependencies.Name = "GraphDependencies";
+            this.GraphDependencies.Size = new System.Drawing.Size(100, 17);
+            this.GraphDependencies.TabIndex = 25;
+            this.GraphDependencies.TabStop = true;
+            this.GraphDependencies.Text = "Depends Graph";
+            this.GraphDependencies.UseVisualStyleBackColor = true;
+            this.GraphDependencies.CheckedChanged += new System.EventHandler(this.GraphAllDependencies_CheckedChanged);
             // 
-            // GraphAllDependencies
+            // MapDependencies
             // 
-            this.GraphAllDependencies.AutoSize = true;
-            this.GraphAllDependencies.Location = new System.Drawing.Point(104, 72);
-            this.GraphAllDependencies.Name = "GraphAllDependencies";
-            this.GraphAllDependencies.Size = new System.Drawing.Size(68, 17);
-            this.GraphAllDependencies.TabIndex = 25;
-            this.GraphAllDependencies.TabStop = true;
-            this.GraphAllDependencies.Text = "Graph All";
-            this.GraphAllDependencies.UseVisualStyleBackColor = true;
-            this.GraphAllDependencies.CheckedChanged += new System.EventHandler(this.GraphAllDependencies_CheckedChanged);
-            // 
-            // MapDirectDependencies
-            // 
-            this.MapDirectDependencies.AutoSize = true;
-            this.MapDirectDependencies.Location = new System.Drawing.Point(104, 3);
-            this.MapDirectDependencies.Name = "MapDirectDependencies";
-            this.MapDirectDependencies.Size = new System.Drawing.Size(77, 17);
-            this.MapDirectDependencies.TabIndex = 23;
-            this.MapDirectDependencies.TabStop = true;
-            this.MapDirectDependencies.Text = "Map Direct";
-            this.MapDirectDependencies.UseVisualStyleBackColor = true;
-            this.MapDirectDependencies.CheckedChanged += new System.EventHandler(this.MapDirectDependencies_CheckedChanged);
-            // 
-            // MapAllDependencies
-            // 
-            this.MapAllDependencies.AutoSize = true;
-            this.MapAllDependencies.Location = new System.Drawing.Point(104, 26);
-            this.MapAllDependencies.Name = "MapAllDependencies";
-            this.MapAllDependencies.Size = new System.Drawing.Size(60, 17);
-            this.MapAllDependencies.TabIndex = 24;
-            this.MapAllDependencies.TabStop = true;
-            this.MapAllDependencies.Text = "Map All";
-            this.MapAllDependencies.UseVisualStyleBackColor = true;
-            this.MapAllDependencies.CheckedChanged += new System.EventHandler(this.MapAllDependencies_CheckedChanged);
+            this.MapDependencies.AutoSize = true;
+            this.MapDependencies.Location = new System.Drawing.Point(94, 4);
+            this.MapDependencies.Name = "MapDependencies";
+            this.MapDependencies.Size = new System.Drawing.Size(92, 17);
+            this.MapDependencies.TabIndex = 24;
+            this.MapDependencies.TabStop = true;
+            this.MapDependencies.Text = "Depends Map";
+            this.MapDependencies.UseVisualStyleBackColor = true;
+            this.MapDependencies.CheckedChanged += new System.EventHandler(this.MapAllDependencies_CheckedChanged);
             // 
             // LayoutClassCallsButton
             // 
             this.LayoutClassCallsButton.AutoSize = true;
             this.LayoutClassCallsButton.Location = new System.Drawing.Point(3, 49);
             this.LayoutClassCallsButton.Name = "LayoutClassCallsButton";
-            this.LayoutClassCallsButton.Size = new System.Drawing.Size(82, 17);
+            this.LayoutClassCallsButton.Size = new System.Drawing.Size(75, 17);
             this.LayoutClassCallsButton.TabIndex = 3;
             this.LayoutClassCallsButton.TabStop = true;
-            this.LayoutClassCallsButton.Text = "Class Graph";
+            this.LayoutClassCallsButton.Text = "Class Calls";
             this.LayoutClassCallsButton.UseVisualStyleBackColor = true;
             this.LayoutClassCallsButton.CheckedChanged += new System.EventHandler(this.LayoutClassCallsButton_CheckedChanged);
             // 
@@ -438,7 +424,7 @@
             this.panel2.Controls.Add(this.ShowHitButton);
             this.panel2.Controls.Add(this.ShowNotHitButton);
             this.panel2.Controls.Add(this.ShowInstancesButton);
-            this.panel2.Location = new System.Drawing.Point(204, 17);
+            this.panel2.Location = new System.Drawing.Point(205, 17);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(89, 137);
             this.panel2.TabIndex = 22;
@@ -459,7 +445,7 @@
             this.panel3.Controls.Add(this.CallsAllButton);
             this.panel3.Controls.Add(this.CallsRealTimeButton);
             this.panel3.Controls.Add(this.LayoutInOrder);
-            this.panel3.Location = new System.Drawing.Point(304, 17);
+            this.panel3.Location = new System.Drawing.Point(305, 17);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(77, 73);
             this.panel3.TabIndex = 23;
@@ -471,10 +457,21 @@
             this.panel4.Controls.Add(this.IncludeFields);
             this.panel4.Controls.Add(this.IncludeOutsideZoomButton);
             this.panel4.Controls.Add(this.IncludeNotXRayedButton);
-            this.panel4.Location = new System.Drawing.Point(392, 17);
+            this.panel4.Location = new System.Drawing.Point(393, 17);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(101, 151);
             this.panel4.TabIndex = 24;
+            // 
+            // IncludeAnon
+            // 
+            this.IncludeAnon.AutoSize = true;
+            this.IncludeAnon.Location = new System.Drawing.Point(3, 94);
+            this.IncludeAnon.Name = "IncludeAnon";
+            this.IncludeAnon.Size = new System.Drawing.Size(51, 17);
+            this.IncludeAnon.TabIndex = 14;
+            this.IncludeAnon.Text = "Anon";
+            this.IncludeAnon.UseVisualStyleBackColor = true;
+            this.IncludeAnon.CheckedChanged += new System.EventHandler(this.IncludeAnon_CheckedChanged);
             // 
             // IncludeMethods
             // 
@@ -506,7 +503,7 @@
             this.panel5.Controls.Add(this.SizeTimeInMethodButton);
             this.panel5.Controls.Add(this.SizeCallsButton);
             this.panel5.Controls.Add(this.SizeTimePerCallButton);
-            this.panel5.Location = new System.Drawing.Point(499, 17);
+            this.panel5.Location = new System.Drawing.Point(500, 17);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(111, 151);
             this.panel5.TabIndex = 25;
@@ -527,7 +524,7 @@
             this.panel6.Controls.Add(this.TrackingInstances);
             this.panel6.Controls.Add(this.TrackingMethodCalls);
             this.panel6.Controls.Add(this.TrackingClassCalls);
-            this.panel6.Location = new System.Drawing.Point(616, 17);
+            this.panel6.Location = new System.Drawing.Point(617, 17);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(107, 89);
             this.panel6.TabIndex = 27;
@@ -569,21 +566,11 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(613, 1);
+            this.label6.Location = new System.Drawing.Point(614, 1);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(57, 13);
             this.label6.TabIndex = 26;
             this.label6.Text = "Tracking";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(107, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(57, 13);
-            this.label7.TabIndex = 28;
-            this.label7.Text = "Depends";
             // 
             // FpsLabel
             // 
@@ -594,17 +581,6 @@
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
             // 
-            // IncludeAnon
-            // 
-            this.IncludeAnon.AutoSize = true;
-            this.IncludeAnon.Location = new System.Drawing.Point(3, 94);
-            this.IncludeAnon.Name = "IncludeAnon";
-            this.IncludeAnon.Size = new System.Drawing.Size(51, 17);
-            this.IncludeAnon.TabIndex = 14;
-            this.IncludeAnon.Text = "Anon";
-            this.IncludeAnon.UseVisualStyleBackColor = true;
-            this.IncludeAnon.CheckedChanged += new System.EventHandler(this.IncludeAnon_CheckedChanged);
-            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -613,7 +589,6 @@
             this.Controls.Add(this.FpsLabel);
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.label6);
-            this.Controls.Add(this.label7);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
@@ -625,7 +600,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(728, 177);
+            this.Size = new System.Drawing.Size(737, 177);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -678,18 +653,16 @@
         private System.Windows.Forms.Label label6;
         public System.Windows.Forms.CheckBox LayoutInOrder;
         public System.Windows.Forms.CheckBox IncludeFields;
-        public System.Windows.Forms.RadioButton GraphAllDependencies;
-        public System.Windows.Forms.RadioButton MapDirectDependencies;
-        public System.Windows.Forms.RadioButton MapAllDependencies;
-        public System.Windows.Forms.RadioButton GraphDirectDependencies;
-        private System.Windows.Forms.Label label7;
+        public System.Windows.Forms.RadioButton GraphDependencies;
+        public System.Windows.Forms.RadioButton MapDependencies;
         private System.Windows.Forms.LinkLabel ResetHitLink;
         private System.Windows.Forms.LinkLabel ResetProfilingLink;
         public System.Windows.Forms.RadioButton GraphIntermediateDependencies;
         public System.Windows.Forms.CheckBox IncludeMethods;
         public System.Windows.Forms.RadioButton Layout3dButton;
         public System.Windows.Forms.Label FpsLabel;
-        private System.Windows.Forms.CheckBox OpenGLFlatCheck;
         public System.Windows.Forms.CheckBox IncludeAnon;
+        private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
+        public System.Windows.Forms.RadioButton LayoutInitGraphButton;
     }
 }

@@ -17,6 +17,20 @@ namespace XLibrary.Panels
         public ViewPanel()
         {
             InitializeComponent();
+
+            new ToolTip().SetToolTip(LayoutInitGraphButton,  "A graph showing which class created which class");
+
+            new ToolTip().SetToolTip(MapDependencies, "Select a class node to show dependencies in a treemap\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
+            new ToolTip().SetToolTip(GraphDependencies, "Select a class node to show dependencies in a dependecy graph\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
+            new ToolTip().SetToolTip(ShowAllDependenciesCheckBox, "Show dependencies of dependencies");
+            new ToolTip().SetToolTip(GraphIntermediateDependencies, "Given 2 selected class nodes, show how they depend on each other");
+
+            new ToolTip().SetToolTip(IncludeOutsideZoomButton, "Show methods outside current zoom level\r\nIn call graph view these methods are gray");
+            new ToolTip().SetToolTip(IncludeNotXRayedButton, "Shows methods outside what was xrayed\r\nIn call graph view these methods are circles");
+            new ToolTip().SetToolTip(LayoutInOrder, "In the call graph methods are shown in the order that they were first called top to bottom");
+
+            new ToolTip().SetToolTip(ShowAllButton, "Show all calls ever made.\r\nIn graph mode, red lines are calls LtR, blue lines are RtL and purple is both.");
+            
         }
 
         public void Init(MainForm main)
@@ -57,6 +71,8 @@ namespace XLibrary.Panels
             TrackingMethodCalls.Checked = XRay.FlowTracking;
             TrackingClassCalls.Checked = XRay.ClassTracking;
             TrackingInstances.Checked = XRay.InstanceTracking;
+
+            ShowAllDependenciesCheckBox.Checked = Model.ShowAllDependencies;
         }
 
         private void LayoutTreeMapButton_CheckedChanged(object sender, EventArgs e)
@@ -66,7 +82,6 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.TreeMap;
             Model.MapMode = TreeMapMode.Normal;
-            Model.DependenciesMode = ShowDependenciesMode.None;
             Main.RefreshView();
         }
 
@@ -77,9 +92,19 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Method;
-            Model.DependenciesMode = ShowDependenciesMode.None;
             Main.RefreshView();
         }
+
+        private void LayoutInitGraphButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!LayoutInitGraphButton.Checked)
+                return;
+
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Init;
+            Main.RefreshView();
+        }
+
 
         private void LayoutInOrder_CheckedChanged(object sender, EventArgs e)
         {
@@ -94,7 +119,6 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Class;
-            Model.DependenciesMode = ShowDependenciesMode.None;
             Main.RefreshView();
         }
 
@@ -105,52 +129,29 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.ThreeD;
             Model.MapMode = TreeMapMode.Normal;
-            Model.DependenciesMode = ShowDependenciesMode.None;
 
-            Main.RefreshView();
-        }
-
-        private void MapDirectDependencies_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!MapDirectDependencies.Checked)
-                return;
-
-            Model.ViewLayout = LayoutType.TreeMap;
-            Model.MapMode = TreeMapMode.Dependencies;
-            Model.DependenciesMode = ShowDependenciesMode.Direct;
             Main.RefreshView();
         }
 
         private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)
         {
-            if (!MapAllDependencies.Checked)
+            if (!MapDependencies.Checked)
                 return;
 
             Model.ViewLayout = LayoutType.TreeMap;
             Model.MapMode = TreeMapMode.Dependencies;
-            Model.DependenciesMode = ShowDependenciesMode.All;
+            Model.ShowAllDependencies = true;
             Main.RefreshView();
         }
 
         private void GraphAllDependencies_CheckedChanged(object sender, EventArgs e)
         {
-            if (!GraphAllDependencies.Checked)
+            if (!GraphDependencies.Checked)
                 return;
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Dependencies;
-            Model.DependenciesMode = ShowDependenciesMode.All;
-            Main.RefreshView();
-        }
-
-        private void GraphDirectDependencies_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!GraphDirectDependencies.Checked)
-                return;
-
-            Model.ViewLayout = LayoutType.CallGraph;
-            Model.GraphMode = CallGraphMode.Dependencies;
-            Model.DependenciesMode = ShowDependenciesMode.Direct;
+            Model.ShowAllDependencies = true;
             Main.RefreshView();
         }
 
@@ -160,9 +161,14 @@ namespace XLibrary.Panels
                 return;
 
             Model.ViewLayout = LayoutType.CallGraph;
-            Model.GraphMode = CallGraphMode.Dependencies;
-            Model.DependenciesMode = ShowDependenciesMode.Intermediates;
+            Model.GraphMode = CallGraphMode.Intermediates;
             Model.InterDependencies = Model.GetClassesFromFocusedNodes();
+            Main.RefreshView();
+        }
+
+        private void ShowAllDependenciesCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.ShowAllDependencies = ShowAllDependenciesCheckBox.Checked;
             Main.RefreshView();
         }
 
@@ -314,7 +320,7 @@ namespace XLibrary.Panels
         {
             if (Main.GLView != null)
             {
-                Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
+                //Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
                 Main.GLView.SetupViewport();
             }
         }
@@ -323,6 +329,11 @@ namespace XLibrary.Panels
         {
             Model.ShowAnon = IncludeAnon.Checked;
             Main.RefreshView();
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

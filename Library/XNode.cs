@@ -162,6 +162,9 @@ namespace XLibrary
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
 
+        internal SharedDictionary<FunctionCall> InitsOf;
+        internal SharedDictionary<FunctionCall> InitsBy;
+
         internal int[] EdgesIn;
         internal int[] EdgesOut;
         internal Dictionary<int, List<XNodeIn>> Intermediates;
@@ -255,23 +258,13 @@ namespace XLibrary
                                  area.Y + area.Height / 2.0f);
         }
 
-        internal void AddCallIn(int sourceID, FunctionCall call)
+        internal void AddFunctionCall(ref SharedDictionary<FunctionCall> map, int nodeId, FunctionCall call)
         {
-            if (CalledIn == null)
-                CalledIn = new SharedDictionary<FunctionCall>(1);
+            if (map == null)
+                map = new SharedDictionary<FunctionCall>(1);
 
-            if (!CalledIn.Contains(sourceID))
-                CalledIn.Add(sourceID, call);
-
-        }
-
-        internal void AddCallOut(int destId, FunctionCall call)
-        {
-            if (CallsOut == null)
-                CallsOut = new SharedDictionary<FunctionCall>(1);
-
-            if (!CallsOut.Contains(destId))
-                CallsOut.Add(destId, call);
+            if (!map.Contains(nodeId))
+                map.Add(nodeId, call);
         }
 
         internal void AddIntermediateDependency(XNodeIn sub)

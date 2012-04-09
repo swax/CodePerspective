@@ -92,8 +92,8 @@ namespace XLibrary
         HashSet<int> IndependentClasses = new HashSet<int>();
 
         public float PlatformHeight = 5.0f;
-
-        public bool FlatMode = true;
+       
+        public bool FlatMode = false;
         int FontTexture;
         int FontList;
  

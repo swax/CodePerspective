@@ -1,4 +1,7 @@
 ﻿
+instantiation graph
+	when new object is created, created an edge from creating class to new class
+
 ellipse text in treemap
 get text to show up next to nodes more often
 fixed text not showing up on call graph

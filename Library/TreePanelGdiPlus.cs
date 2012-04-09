@@ -242,8 +242,11 @@ namespace XLibrary
             DependentClasses.Clear();
             IndependentClasses.Clear();
 
-            if (Model.DependenciesMode != ShowDependenciesMode.None && Model.DependenciesMode != ShowDependenciesMode.Intermediates)
+            if ((Model.ViewLayout == LayoutType.TreeMap && Model.MapMode == TreeMapMode.Dependencies) ||
+                (Model.ViewLayout == LayoutType.CallGraph && Model.GraphMode == CallGraphMode.Dependencies))
+            {
                 RecalcDependencies();
+            }
 
             // figure out if we need to do a search
             if (SearchString != LastSearch)
@@ -290,7 +293,8 @@ namespace XLibrary
             }
 
             // draw dependency graph
-            if (Model.ViewLayout == LayoutType.CallGraph && Model.GraphMode == CallGraphMode.Dependencies)
+            if (Model.ViewLayout == LayoutType.CallGraph && 
+                (Model.GraphMode == CallGraphMode.Dependencies || Model.GraphMode == CallGraphMode.Init))
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -306,7 +310,8 @@ namespace XLibrary
 
                         bool focused = (source.Focused || destination.Focused);
 
-                        if (source.AreaF.X < destination.AreaF.X)
+                        if ((!DrawCallGraphVertically && source.AreaF.X < destination.AreaF.X) ||
+                            (DrawCallGraphVertically && source.AreaF.Y < destination.AreaF.Y))
                             DrawGraphEdge(buffer, focused ? CallOutPenFocused : CallOutPen, source, destination);
                         else
                             DrawGraphEdge(buffer, focused ? CallInPenFocused : CallInPen, source, destination);
@@ -314,9 +319,8 @@ namespace XLibrary
                 }
             }
 
-
             // draw call graph
-            if (XRay.FlowTracking && Model.GraphMode != CallGraphMode.Dependencies)
+            else if (XRay.FlowTracking)
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -556,16 +560,15 @@ namespace XLibrary
             bool pointBorder = node.AreaF.Width < 3.0f || node.AreaF.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool rect = Model.ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
-
+            bool ellipse = Model.ViewLayout == LayoutType.CallGraph && node.External;
             bool needBorder = true;
 
             Action<Brush> fillFunction = (b) =>
                 {
-                    if(rect)
-                        buffer.FillRectangle(b, node.AreaF);
+                    if (ellipse)
+                         buffer.FillEllipse(b, node.AreaF);
                     else
-                        buffer.FillEllipse(b, node.AreaF);
+                        buffer.FillRectangle(b, node.AreaF);
 
                     needBorder = false;
                 };
@@ -578,8 +581,10 @@ namespace XLibrary
 
                 fillFunction(OverBrushes[depth]);
             }
+            else if (Model.ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID))
+                fillFunction(NothingBrush);
             else
-                fillFunction(rect ? NothingBrush : OutsideBrush);
+                fillFunction(OutsideBrush);
 
             // check if function is an entry point or holding
             if (XRay.FlowTracking && node.StillInside > 0)
@@ -665,10 +670,10 @@ namespace XLibrary
 
                 try
                 {
-                    if(rect)
-                        buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                    if(ellipse)
+                         buffer.DrawEllipse(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
                     else
-                        buffer.DrawEllipse(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                        buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);    
                 }
                 catch (Exception ex)
                 {
@@ -1080,7 +1085,7 @@ namespace XLibrary
             // find dependencies for selected classes
             Dictionary<int, XNodeIn> classes = Model.GetClassesFromFocusedNodes();
 
-            bool doRecurse = (Model.DependenciesMode == ShowDependenciesMode.All);
+            bool doRecurse = Model.ShowAllDependencies;
             bool idFound = false;
 
             foreach (var dependenciesTo in classes.Values.Where(c => c.Dependencies != null)

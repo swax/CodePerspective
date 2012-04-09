@@ -1,9 +1,11 @@
 ﻿
-what is xray, a teaching tool, a demonstration tool, a tool to faciliate understanding
-keep on coding and exploring, when I need 3d I will know exactly what for, not just eye candy ub
+fix graph width issues
+show real-time calls between nodes on init graph
 
-dont have a todo, just try to understand fb app more
-	an instantiation graph would be cool and probably help make sense of things
+pan/zoom
+sub-graphs
+
+an instantiation graph would be cool and probably help make sense of things
 
 spring graph - just do it and look
 	apply spring rules between ranks

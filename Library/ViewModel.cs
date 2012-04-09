@@ -10,8 +10,7 @@ namespace XLibrary
 
     public enum LayoutType { TreeMap, CallGraph, ThreeD }
     public enum TreeMapMode { Normal, Dependencies }
-    public enum CallGraphMode { Method, Class, Dependencies }
-    public enum ShowDependenciesMode { None, All, Direct, Intermediates }
+    public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init }
 
 
     public class ViewModel
@@ -37,7 +36,7 @@ namespace XLibrary
         public bool ShowCalls = true;
         public bool SequenceOrder = false;
 
-        public ShowDependenciesMode DependenciesMode = ShowDependenciesMode.Direct;
+        public bool ShowAllDependencies = false;
         public Dictionary<int, XNodeIn> InterDependencies = new Dictionary<int, XNodeIn>();
 
         public List<XNodeIn> FocusedNodes = new List<XNodeIn>();

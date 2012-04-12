@@ -1,26 +1,24 @@
 ﻿
-fix graph width issues
-show real-time calls between nodes on init graph
 
-pan/zoom
-sub-graphs
+now
+	pan/zoom
+		figure out header size by using 800px height as a base
+		render treemap with floats, just hide small stuff
+	sub-graphs
+	msil view, test upgraded cecil
+		take a look at decompiler first to see how msil should be included
+		include msil with functions in dat by offset
+	dll support, service?
 
-an instantiation graph would be cool and probably help make sense of things
+abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
+	compare deOps performance because its sloooww
+	blend colors in gdi like openGl
 
-spring graph - just do it and look
-	apply spring rules between ranks
-scale up node size a bit in graph
+flash class green/red when constructd/deconstructed
 
-alt
-	option to order class view by init path	
-		class rank-graph view - top down
-	    internal method rank-graph view - left-right
+dependency graph for methods
 
-	pan/zoom graph view
-		shouldn't have to re-align graph as its already drawn in 1x1
-
-	option to show methods
-
+remove the filtering/ignore node stuff?
 
 draw flat treemap in orthagonal view
 	click to select should work well
@@ -40,11 +38,6 @@ see if fps can be improved
 unit-tests built in
 	ability to run funtions manually
 	can visually see real code block run and affected code blocks
-
-now
-	manual mouse up/down click
-	force directed graph
-	rank / force directed graph
 
 incorporate sound somehow?
 
@@ -75,12 +68,26 @@ openGL
 	have name spaces just as blue outlines around class bases
 	mouse over highlight
 
-	color constructed classes
-
 	'towers of code'
 		each function is a text on the surface of the wall, that lights up when run
 		fields are at the top of towers
 		class graph connects towers with lines bewteen
+
+	load IL and write on the walls of the cube
+	black sky
+	boxes dark blue semi translucent
+	code on walls of box
+	code lights up white when function is run
+	wsad/mouselook fly through, click highlights selected
+	 
+	flying white dot cars through program city
+	   use 2d xray app to figure out how to generate paths
+		  hide everything but methods, and show calls in lanes
+			 find shortest path to destination node
+  		   start off in direction of node, if hit a wall, chage direction
+  		   set height of car based on distance traveling
+				 lower = farther, higher = short jumps
+     			 color by number of bounaries crossed, class, namespace, 
 
 apps
 	de-ops
@@ -106,8 +113,6 @@ dhtnetwork calls coming from nowhere, show them?
 	maybe class graph edges are still being drawn??
 	does 'reset hit' reset class hit status>
 
-flash class green/red when constructd/deconstructed
-
 shortcut key, hook in app's global name space or maybe even windows itself to activate xray and turn it off when closed
 	would be nice to hide xray UIs
 	build settings
@@ -130,16 +135,9 @@ asp.net support
 
 Graph Direct -> Method map, does not re-add call dashed lines
 
-Why using 100% cpu while idling on dependency full screen view
-	run xray on building / test.dat view
-
 on/off button
 	add option to compiler to start xray 'off'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 	test with uberblox to test speed
-
-spring 2d graph
-can 2d be rendered faster with 3d code?
-	find fps of current 2d stuff, maybe a 'time to render' stat
 
 put in some tool tips for vis options
 	on selected radio mention ctrl click
@@ -192,9 +190,7 @@ Thread differentiation
 Put sub-classses inside parent classes so functions/methods are adacent?
 
 
-2d spring graph
-
-3d hackers selling point -
+3d hackers
 	each class is a building
 	align in graph projection
 	make the connecting lines roads, with cars as green moving dots
@@ -228,41 +224,13 @@ keep track anon/external option or just have it able to turn off on client side?
 
 show what the compiler settinsg were of the app when opened with xray
 
-i want to see the value of the variables in realtime
-	weak reference map all objects, mapped by type
-	click on variable, look at all instances of that object and do toString on values
-		possibly reflection of type next, build a psuedo debugger view
-		any way to modify the variables during runtime?
-		
-turn on/off diff tracking types xray side
-
-a left hand panel for turning on/off all options quickly
-
-pan/zoom call graph and tree map with reset view option in menu
-
-could use static int field on classes to track instances, and communication between instances
-
 can hook up to dll without exe?
 
 get code for method
 
 registery to remem last used configuration
 
-spring graph
-
-spring graph with class blogs and functions inside
-
-spring graph 3d
-
 make it look so good people will want to full screen it and use as a screen saver
-
-profile performance
-
-need some sort of benchmark to see what xray slowdown is
-	maybe use riseop sim mode
-	I think it had a second to sim second benchmark..
-	try turning off diff tracking options while running and watching sim speedup
-		have a benchmark native speed
 
 thread colors
 	option to turn on/off
@@ -278,16 +246,6 @@ website
 full screen graph in mcforge using all cpu
 	are frames being skipped?
 
-zoom in to a class, like a funtion
-	and see all calls in/out
-
-double click to zoom / navigate
-
-	right click for extended info
-
-
-test app has a line in the tree map going to the middle of the class
-
 timing visualization
 	break each node into layers
 	layer size proportional to amount of time spent on call
@@ -295,268 +253,64 @@ timing visualization
 	use alternating colors for slices cause not enough space for outlines
 	pan/zoom becomes more useful when drilling down into calls
 
-
-in call graph mode, view external, calls recalc sizes, but does not add other nodes
-	if zoom changes should be diff type of redraw?
-
 site written as asp.net dll 
 	when the dll is instantiated an xray server is created
 	this starts another server that xray remote can be used on
 	periodically the remote client sends a compressed bitfield of hit functions
-	
-most useful
-	time vis
-	instance tracking
-		instance modding
 
-reference tracking
-	double click on any node
-	in details, get the instance that is getting hit
-		double click on instance gets variables
-		ability to mod instance details
-		ability to call functions on instance directly
-			variable builder
-	compile everything as public?
-	in ctor put weak reference in list
-	every class node has a map <hash, weak reference>
-		when funcion hit, map checked
-		periodically clear references from map
-	shade class area purple depending on how many instances exist
-	in 3d each reference is a slice
-		when slice is hit it lights up
-		click on slice and see values of members
-		ability to run functions manually
-		ability to override function
-			stack something else on top of function visually in 3d
-		stack slices up to 10, after that, just auto expand on mouse over
-	option to show only nodes with active instances
-
-instance tracking
-	.ctor calls inst in xlib with class id
-		weak ref added to class node
-
-call graph 
-
-	in double pane mode - mouse over a class for instance outlines all NODES in that class blue in the call map
-
-	figure out if enough room next to node for label
-		area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
-	view
-	   show scope of call graph, really need a splitter or seperate window to show both simultaneously
-			mouse overs replicate over both views
-	   show options - showing calls from outside of scope- (outside icon)
-					  showing calls external to scope - (show external icon)
-					  could label as calls to/from xrayed/non xrayed code
-
-	graph spazing when sized by time in func because of slight variations in node size, should stableize somehow
-
-	A -> B, B -> A, temp node should be created so loop can be seen
-
-	real-time mode, (show recently called) build graph based on current active nodes
-
-	left docked view options wouldnt be bad, if tree/call shown simultaneously then splitter there
-	right side docked is properties of whats clicked on, each have push pin hiding
-	show all calls default in call graph
-
-	reset timing - like reset hit option
-
-	select node - highlight connected edges
-	mouse over line - highlight, descriptive tool tip
-	
-	different entry points should have call lines going form them in diff colors (per graph)
-	   so simultaneous actions on graph can be untangled (wells dragging selection box)
-	
-	def need simultaneous tree view so mouse overs reflect in each
-		ideally diff window so simultanous graph types can be opened and worked with simultanously
-	
-	3d - rotating call graph column
-		min points to adjacent ranks
-		if points share same coord then space radially
-	
 stats
-	re-calcs/sec,   re-calc time
+	re-calcs/sec, re-calc time
 	re-size/sec,  re-size time
-	re-draw/sec, re-draw time
+	re-draw/sec,  re-draw time
 	ability in interface to speedup/slowdown update speed
 
+thread time graph
+	x axis time - moving forward in real time
+	y axis each thread
+	each function a different color along thread column
 
-
-
-now2
-	try to implement timeInfunc recalc,
-		determine if functioncall should use direct links to nodes and not ids
-	show new metrics in details, sum children, show object type as column
-	light up detail selections
-	mouse over give more details in certain view modes
-
-now
-	show only nodes that have been recently called in called
-	position recently called nodes by way of a descending call tree
-		switch to show only hit
-		size nodes based on half of available area
-		give nodes a charge, lines a spring
-		methods in same class attract
-		edges have magnetism / spring
-		nodes attract/repel baseed on relationship
-
-	details not working when show only hit is on, details of unhit nodes
-	real-time search docked on status bar with X to close, like firefox, 
-		options to filter or just highlight found nodes
-		
-	bug - show only hit in test mode
-	test - show only hit when zoomed in on unhit
-
-	if calls array near exhausted, make a debug log
-		also show number of nodes loaded so i can do mem usage estimates
-
-	thread time graph
-		x axis time - moving forward in real time
-		y axis each thread
-		each function a different color along thread column
-
-	field tracking
-	
-	layout
-		labels
-		spring
-		3d option for both, xna treemap, xna 3d spring nodes call map
-
-	legend
-		colors
-		timing - 1000 us in 1 ms / 1000 ms in 1 s / 60 s in 1 m
-
-	details
-		blink green outline when navigated
-		clicking on call in list, blinks the link
-			show under call dots
+profiling
+	blink green outline when navigated
+	clicking on call in list, blinks the link
+		show under call dots
 			
-		hook back/forward buttons up to details
-		sorting list view
+	hook back/forward buttons up to details
+	sorting list view
 			
-		refresh link at bottom
-		sum total time of all calls to functions in higher than method details
-		timer updating stats
-		if same details window already open use that
-		tooltips for list headers, say that this, is this, sum is sum of all times in bottom pane
+	refresh link at bottom
+	sum total time of all calls to functions in higher than method details
+	timer updating stats
+	if same details window already open use that
+	tooltips for list headers, say that this, is this, sum is sum of all times in bottom pane
 		
-	perf menu or dialog
-		can show functions with most hits
-		functions wiht most time in side
-		functions with most time per hit
-		reset option to reset timing on a func
-		is call rate another metric??
-	
-	left/right keys - zoom in/out
+look at functions with links that are no longer active
+	see if function could have returned without triggering an exit
+	test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
+
+override
+	allow user to click view MSIL
+	user can edit MSIL
+	save, compile and activate override
+	override needs to be specified as a compile option
+	if override, and new code, then run new code, else run original code
+	msil could have hyper links to other functions
 		
-	look at functions with links that are no longer active
-		see if function could have returned without triggering an exit
-		test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
-
-	tool  strip
-		clear filtering withen active
-		button when errors in the debug log
-		item to draw box around smaller or just a group of functions and zoom in only on that
+	can an entire late bound application be written from scratch inside, c#, 
+	later compiled without xray bindings, can xray build itself another xray??
 	
-	option to not use windows forms, and late bind test with rpc hookups	
-	
-	override
-		allow user to click view MSIL
-		user can edit MSIL
-		save, compile and activate override
-		override needs to be specified as a compile option
-		if override, and new code, then run new code, else run original code
-		
-		can an entire late bound application be written from scratch inside, c#, later compiled without xray bindings, can xray build itself another xray??
-		
-
-	hold down tab or a toggle button to show labels in upper right of functions that can fit the label
-	
-	when going from spring to tree map view, animate rest of map hiding, and called functions remaining, and moving towards gravity
-
-	recompile mscorlib, and put in same dir as software so my internal one is used instead
-		test recompiling mscorlib and rest of .net and having it used locally
-			see whole app run, debug into windows libs, use ilasm to inspect code
-			partner with the red code to get their disassembler
-			disassemble their dissassembler to STEAL their disassembler
-				reflector has global method - a$PST06000001
-			re-compiled reflector failing to launch
-
-	show array/map sizes in debug
-		show in debug settings exe was compiled with 
-		
-	future 
-		people write and modify code as the app runs
-			able to override funcs and save result
-		people can collaborate and write running software in real time
-		full introspection and manipulation of all running objects
+recompile mscorlib, and put in same dir as software so my internal one is used instead
+	test recompiling mscorlib and rest of .net and having it used locally
 
 
-goal
-	if todo items helps me understand app better then its higher on the list
-	ill know its ready when i can xray any app and in a few minutes understand how the app works and is structured
-	in my brain coding is visual, i make connections between objects, but in practice i dont code with objects, 
-		but text and am forced to imagine the visual which blows your mind the larger the program becomes
-	then the 3d shit, go gibson
-	Test - SwarmNLP (simple), Paint.Net, RiseOp (straight c#), Wells (VB), Storm (many files mixed code), release/debug
-		world wind, WPF, mscorlib, reflector
-	testing: investigate how color control works in paint.net
-	priorities - external, details, spring, 3d
-    totally translucent operating system
-    get xray working with webstorm / silverlight
-    
-xray gui
-	right click option to show msil for function, or fields of a class, msil could have hyper links to other functions
-	mouse over instance count
-	   for green nodes (entry points) display the instance count
-	current redraw time / fps
-	saving current option set to use between runs
-		saves current select/ignore settings, user can label as 'transfer graph' etc..
-	show notice somewhere on gui if there are entries in the debug log
-	how too zoom in on piddly functions?
+future 
+	people write and modify code as the app runs
+		able to override funcs and save result
+	people can collaborate and write running software in real time
+	full introspection and manipulation of all running objects
 
-springs
-	only show hit boxes
-	free moving, hanging, the repulse each other
-	the less related 2 objects are the more repulsive they are
-	opens another with boxes connected by strings
-	mirrors treemap window, selections, ignores, etc.. the windows are linked
-	maybe use a splitter to the user gets 2 concurrent views
-	option to spawn more xray windows so differnt classes can be viewed in diff windows, or trees simultaneously
+memory tracking - heap dump tree map 
 
-instance tracking
-	option in builder that passes 'this' in function call
-	xlib stores 'this' in a weak reference map
-	user can right click on node and do view instances which allows viewing all the vars of each instance
-
-bugs 
-	these files not building - dragonfly.loki, dragonfly.storm.core, DragonFly.Storm.World.Client, DragonFly.Util.Native, DragonFly.Video.MXF
-    mscorlib, system.core, reflector
-    
-build
-	options
-		track construction, threads
-	progress bar of file ops
-	ability to pause tracking in interface
-	time how long it takes to do redraw, option to draw less frames, option to set fps, which mods frames/timer settings - option in viz
-	
-release
-	need to take out any storm/wells research refs
-
-advanced
-	get to work with dlls, users pick entry function, should make asp tracking work
-	xray search box, as letters are typed in, matching function name boxes are bolded
-	easter egg - extreme zoom in factal hacker code effect
-	 
-memory tracking
-	heap dump tree map ;) can figure out where allocated??
-	hash call path to allocated memory
-		so we see as a box all strings allocated by a->b->c and its size
-
-function tree map
-	how to draw/show anonymous methods
-	
-	larger xray? these are apps running on your computer as blocks (size by memory, height by cpu) 
-		borders are external services - hard drives, network interfaces, sound, display, etc...
+tracking file system, network access from graph?
 
 sub function tracking
    break every block where there's a branch in msil into it's own node
@@ -567,33 +321,6 @@ sub function tracking
 	   shade nodes by percent thats been covered (more red if less covered)
    call lines will come from sub  function of node with-in node
    
-3d function tree map
-	constant square size, height dependnent on amount of code (cities)
-	fly through like hackers
-	taller towards middle of box
-	load IL and write on the walls of the cube
-	black sky
-	boxes dark blue semi translucent
-	code on walls of box
-	code lights up white when function is run
-	wsad/mouselook fly through, click highlights selected
-	 
-	flying white dot cars through program city
-	   use 2d xray app to figure out how to generate paths
-		  hide everything but methods, and show calls in lanes
-			 find shortest path to destination node
-  		   start off in direction of node, if hit a wall, chage direction
-  		   set height of car based on distance traveling
-				 lower = farther, higher = short jumps
-     			 color by number of bounaries crossed, class, namespace, 
-
-	 
-release 
-	open source with donate button
-	put donate button in about of app as well,
-	link to my page with other projects like rise op, cant hurt
-
-
 different colors per thread
 	each entry instance has an id, could map instance ids to function calls
 
@@ -603,36 +330,7 @@ different colors per thread
 	map thread id to array index
 	every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
 
-stack planes - size number of instances
-	override ctor / deconstructor and add counters
-	for now put number inside box
-	need to research iso view mapping, wpf display
-	if ctor/finalize not found, create it
-    
-add to xray ability to gen interface from the classes themselves
-   work with program directly, manipulate internal variables 
-   and inspect those values on the fly
-   use try/catch so that iterating exceptions are handled
-   or i guess xray would lock object as iterating...
-
-names
-	introspective
-	introvert c# csharp .net msil
-	xray whoami existance
-	soul inside translucent window clear
-	xray, invisible, MRI
-	scan, clearSense, lucent
-	glass, inside out
-	soul, spirit, ghost, phantom, spectre
-	xray.net
-	flow, clarity, system, getting a 'sense' 
-	seesharp
-	
-	license
-		fair support license
-		general public license
-
-editor
+future editor
 	click on blocks, edit code
 	f5 launches app and everything starts lighting up
 	the end of multiple files for projects
@@ -640,24 +338,27 @@ editor
 		can find classes/vars quickly by typing the name like itunes
 	integrate with visual studio for real editing, post build step to use xray
 
-riseop
-	what better platform for interactive building, debugging, version control and comm
+remote monitoring dll plugins to webserver
+
+	xray dll mode starts a mini http server embedded in dll
+	   serves div pages colered as blocks
+	   use javascript to click blocks zoom
+
+	  each dll has an embedded web server that when activated shows
+		whats going on in system
+
+	  if running as http then can go into xray mode at will, release with
+		xray inside and debug on demand, use a browser on any machine to
+		debug your app. go to the xray port
+		every second each http listening xray object pings the main port
+		   takes it if available, serves as a directory for other xray
+		   apps
 	
-release
-	when i make a page with all my apps, put link to c0re in about of all apps so can link back
-	contact .net developers individual tell them ive tried their app and would like their opinion on
-		the app, what we could do to help them understand their app better
-	also good for professors teaching CS
-		find schools using C#/VB.Net for the class and ask could it be used as a teaching tool?
-		what features would they wany?
-		high level app design, how components communicate
-	coming into an unfamiliar project and getting a 'sense' of the code quickly
-	make a youtube demo video
- 
-    A useful PRESENTATION tool for engineers to show management how their systems work and inter-operate
-		ever want to explain to your manager how the system works easily?
-		
-		
+system xray converter
+	scan system for .net exe's and dlls
+	recompile all with xray
+	when anything starts up it finds the running xray process and gives it a handle to be hooked into whenever
+
 future
 	---X-Ray
 	  if xrayed application detects ctrl alt x, current
@@ -695,21 +396,6 @@ future
 	higher level.  the nucleus is procedural.  while the program 
 	build on procedural parts is acts functional.
 	-----
-
-
-	xray dll mode starts a mini http server embedded in dll
-	   serves div pages colered as blocks
-	   use javascript to click blocks zoom
-
-	  each dll has an embedded web server that when activated shows
-		whats going on in system
-
-	  if running as http then can go into xray mode at will, release with
-		xray inside and debug on demand, use a browser on any machine to
-		debug your app. go to the xray port
-		every second each http listening xray object pings the main port
-		   takes it if available, serves as a directory for other xray
-		   apps
 
 
 	>-------

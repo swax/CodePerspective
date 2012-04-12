@@ -133,6 +133,10 @@ namespace XLibrary
         public string SearchString;
         public string LastSearch;
 
+        SizeF ModelSize = Size.Empty; // in screen coords
+        PointF ModelOffset = PointF.Empty; // in model coords 0-1
+        PointF PanOffset; // in model coords
+ 
 
         public TreePanelGdiPlus(MainForm main)
         {
@@ -268,6 +272,11 @@ namespace XLibrary
             }
 
             // draw layout
+            ModelSize.Width = Width * ZoomFactor;
+            ModelSize.Height = Height * ZoomFactor;
+            ModelOffset.X = PanOffset.X * ModelSize.Width;// +(Width * CenterFactor.X - ModelSize.Width * CenterFactor.X);
+            ModelOffset.Y = PanOffset.Y * ModelSize.Height;// +(Height * CenterFactor.Y - ModelSize.Height * CenterFactor.Y);
+
             if (Model.ViewLayout == LayoutType.TreeMap)
                 DrawTreeMap(buffer);
 
@@ -294,7 +303,9 @@ namespace XLibrary
 
             // draw dependency graph
             if (Model.ViewLayout == LayoutType.CallGraph && 
-                (Model.GraphMode == CallGraphMode.Dependencies || Model.GraphMode == CallGraphMode.Init))
+                (Model.GraphMode == CallGraphMode.Dependencies || 
+                 Model.GraphMode == CallGraphMode.Init || 
+                 Model.GraphMode == CallGraphMode.Intermediates))
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -320,7 +331,7 @@ namespace XLibrary
             }
 
             // draw call graph
-            else if (XRay.FlowTracking)
+            if (XRay.FlowTracking)
             {
                 foreach (var source in PositionMap.Values)
                 {
@@ -354,7 +365,9 @@ namespace XLibrary
                                 DrawGraphEdge(buffer, HoldingCallPen, source, destination);
                         }
 
-                        else if (XRay.ShowAllCalls)
+                        else if (XRay.ShowAllCalls && 
+                                 Model.GraphMode != CallGraphMode.Intermediates && 
+                                 Model.GraphMode != CallGraphMode.Init)
                         {
                             if (Model.ViewLayout == LayoutType.TreeMap)
                             {
@@ -418,15 +431,7 @@ namespace XLibrary
 
             if (DoResize)
             {
-                SizeF modelSize= new SizeF(Width, Height);
-                //ModelSize.Width = Width * ZoomFactor;
-                //ModelSize.Height = Height * ZoomFactor;
-
-                PointF modelOffset = PointF.Empty;
-                //ModelOffset.X = PanOffset.X + (Width * CenterFactor.X - ModelSize.Width * CenterFactor.X);
-                //ModelOffset.Y = PanOffset.Y + (Height * CenterFactor.Y - ModelSize.Height * CenterFactor.Y);
-
-                var drawArea = new RectangleF(modelOffset.X, modelOffset.Y, modelSize.Width, modelSize.Height);
+                var drawArea = new RectangleF(ModelOffset.X, ModelOffset.Y, ModelSize.Width, ModelSize.Height);
 
                 float offset = 0;
                 float centerWidth = drawArea.Width;
@@ -439,7 +444,7 @@ namespace XLibrary
                     offset = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= offset;
 
-                    Model.InternalRoot.SetArea(new RectangleF(modelOffset.X, modelOffset.Y, offset - PanelBorderWidth, drawArea.Height));
+                    Model.InternalRoot.SetArea(new RectangleF(ModelOffset.X, ModelOffset.Y, offset - PanelBorderWidth, drawArea.Height));
                     PositionMap[Model.InternalRoot.ID] = Model.InternalRoot;
                     SizeNode(buffer, Model.InternalRoot, Model.CurrentRoot, false);
                 }
@@ -448,12 +453,12 @@ namespace XLibrary
                     float extWidth = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= extWidth;
 
-                    Model.ExternalRoot.SetArea(new RectangleF(modelOffset.X + offset + centerWidth + PanelBorderWidth, modelOffset.Y, extWidth - PanelBorderWidth, drawArea.Height));
+                    Model.ExternalRoot.SetArea(new RectangleF(ModelOffset.X + offset + centerWidth + PanelBorderWidth, ModelOffset.Y, extWidth - PanelBorderWidth, drawArea.Height));
                     PositionMap[Model.ExternalRoot.ID] = Model.ExternalRoot;
                     SizeNode(buffer, Model.ExternalRoot, null, false);
                 }
 
-                Model.CurrentRoot.SetArea(new RectangleF(modelOffset.X + offset, modelOffset.Y, centerWidth, drawArea.Height));
+                Model.CurrentRoot.SetArea(new RectangleF(ModelOffset.X + offset, ModelOffset.Y, centerWidth, drawArea.Height));
                 PositionMap[Model.CurrentRoot.ID] = Model.CurrentRoot;
                 SizeNode(buffer, Model.CurrentRoot, null, true);
 
@@ -727,13 +732,33 @@ namespace XLibrary
         }
 
         Point MouseDownPoint;
-        Point PanStart;
+        PointF PanStart;
         float ZoomFactor = 1;
 
         void TreePanelGdiPlus_MouseWheel(object sender, MouseEventArgs e)
         {
+            // get fractional position in model
+            var modelPos = new PointF();
+            modelPos.X = (e.Location.X - ModelOffset.X) / ModelSize.Width;
+            modelPos.Y = (e.Location.Y - ModelOffset.Y) / ModelSize.Height; 
+
+            // get fractional position in window
+            var winPos = new SizeF();
+            winPos.Width = (float)e.Location.X / (float)Width;// -0.5f;
+            winPos.Height = (float)e.Location.Y / (float)Height;// -0.5f;
+            
             // change view point size and redraw
-            //ZoomFactor *= (float) Math.Pow(2, e.Delta / 120.0);
+            float zoomAmount = (float)Math.Pow(1.3, e.Delta / 120.0);
+
+            ZoomFactor *= zoomAmount;
+
+            // we want to keep the zoom over the cursor, the modify the window offset by the zoom levl
+            winPos.Width /= ZoomFactor;
+            winPos.Height /= ZoomFactor;
+
+            // subtract the window pos from our target pos in the model to find the amount that should be panned
+            PanOffset.X = winPos.Width - modelPos.X;
+            PanOffset.Y = winPos.Height - modelPos.Y; 
 
             DoResize = true;
             Invalidate();
@@ -741,27 +766,26 @@ namespace XLibrary
 
         private void TreePanelGdiPlus_MouseDown(object sender, MouseEventArgs e)
         {
-            //MouseDownPoint = e.Location;
+            MouseDownPoint = e.Location;
             PanStart = PanOffset;
         }
 
         private void TreePanelGdiPlus_MouseUp(object sender, MouseEventArgs e)
         {
-            //if (MouseDownPoint == e.Location)
-            //    ManualMouseClick(e);
+            if (MouseDownPoint == e.Location)
+                ManualMouseClick(e);
 
-            //MouseDownPoint = Point.Empty;
-            //PanStart = Point.Empty;
+            MouseDownPoint = Point.Empty;
+            PanStart = Point.Empty;
         }
-
-        Point PanOffset;
 
         private void TreePanel_MouseMove(object sender, MouseEventArgs e)
         {
             if (MouseDownPoint != Point.Empty)
             {
-                //PanOffset.X = PanStart.X + e.Location.X - MouseDownPoint.X;
-                //PanOffset.Y = PanStart.Y + e.Location.Y - MouseDownPoint.Y;
+                PanOffset.X = PanStart.X + (e.Location.X - MouseDownPoint.X) / ModelSize.Width;
+                PanOffset.Y = PanStart.Y + (e.Location.Y - MouseDownPoint.Y) / ModelSize.Height;
+                Invalidate();
             }
             else
                 RefreshHovered(e.Location);
@@ -902,6 +926,11 @@ namespace XLibrary
 
 
         private void TreePanel_MouseClick(object sender, MouseEventArgs e)
+        {
+            //ManualMouseClick();
+        }
+
+        private void ManualMouseClick(MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {

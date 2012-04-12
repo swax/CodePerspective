@@ -56,6 +56,7 @@ namespace XLibrary
                 {
                     foreach (var n in XRay.Nodes)
                     {
+                        n.Intermediates = null;
                         n.DependencyChainIn = null;
                         n.DependencyChainOut = null;
                     }
@@ -69,7 +70,7 @@ namespace XLibrary
                         find.Remove(n.ID);
 
                         FindChainTo(n, find);
-                        //FindIntermediatesFrom(n);
+                        //FindIntermediatesFrom(n); // creates too many interdependent links, gets confusing
                     }
 
                     foreach (var n in XRay.Nodes)
@@ -126,7 +127,7 @@ namespace XLibrary
 
         private void ScaleGraph(Graphics buffer)
         {
-            float fullSize = (float)Math.Min(Width, Height) / 2;
+            float fullSize = (float)Math.Min(ModelSize.Width, ModelSize.Height) / 2;
 
             foreach (var graph in Graphs)
             {
@@ -146,11 +147,11 @@ namespace XLibrary
                         }
                     }
 
-                    float right = Width;
+                    float right = ModelOffset.X + ModelSize.Width;
                     if (ShowLabels)
                     {
                         if (i < graph.Ranks.Length - 1)
-                            right = Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                            right = ModelOffset.X + ModelSize.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
                                     (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
                     }
 
@@ -167,8 +168,8 @@ namespace XLibrary
                             size = MinCallNodeSize;
 
                         node.SetArea(new RectangleF(
-                            Width * node.ScaledLocation.X - halfSize,
-                            Height * node.ScaledLocation.Y - halfSize,
+                            ModelOffset.X + ModelSize.Width * node.ScaledLocation.X - halfSize,
+                            ModelOffset.Y + ModelSize.Height * node.ScaledLocation.Y - halfSize,
                             size, size));
                     }
 
@@ -209,8 +210,8 @@ namespace XLibrary
                             }
 
                             float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                            top = (node.ScaledLocation.Y - distanceFromCenter) * Height;
-                            bottom = (node.ScaledLocation.Y + distanceFromCenter) * Height;
+                            top = ModelOffset.Y + (node.ScaledLocation.Y - distanceFromCenter) * ModelSize.Height;
+                            bottom = ModelOffset.Y + (node.ScaledLocation.Y + distanceFromCenter) * ModelSize.Height;
 
 
                             node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
@@ -293,21 +294,22 @@ namespace XLibrary
                 graph.ScaledHeight = maxRankHeights[i] / stackHeight;
                 graph.ScaledOffset = groupOffset;
 
-                float freespace = 1;// -maxRankWidths[i] * reduce;
+                float xOffset = graph.Ranks[0].Column.Max(n => n.ScaledSize) / 2f; // 0.02f;
+                float freespace = 1 - xOffset;// -maxRankWidths[i] * reduce;
 
                 float spaceX = freespace / graph.Ranks.Length;
-                float xOffset = 0;
+                
 
                 for (int x = 0; x < graph.Ranks.Length; x++)
                 {
                     var rank = graph.Ranks[x];
 
-                    float maxSize = rank.Column.Max(n => n.ScaledSize);
+                    //float maxSize = rank.Column.Max(n => n.ScaledSize);
 
                     // a good first guess at how nodes should be ordered to min crossing
                     rank.Column = rank.Column.OrderBy(n => n.HitSequence).ToList();
 
-                    PositionRank(graph, rank, xOffset + maxSize / 2);
+                    PositionRank(graph, rank, xOffset);// + maxSize / 2);
 
                     xOffset += spaceX;
                 }
@@ -791,6 +793,8 @@ namespace XLibrary
         {
             if (!node.Show)
                 return;
+
+            node.Intermediates = null;
 
             if (node.IsAnon && !Model.ShowAnon)
             {

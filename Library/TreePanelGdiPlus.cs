@@ -785,7 +785,11 @@ namespace XLibrary
             {
                 PanOffset.X = PanStart.X + (e.Location.X - MouseDownPoint.X) / ModelSize.Width;
                 PanOffset.Y = PanStart.Y + (e.Location.Y - MouseDownPoint.Y) / ModelSize.Height;
-                Invalidate();
+
+                // to make faster resizing should keep things in scale value
+                // so we just have to call redraw() which is faster and would apply perspective correction at draw time
+
+                RecalcSizes(); 
             }
             else
                 RefreshHovered(e.Location);
@@ -1036,13 +1040,19 @@ namespace XLibrary
                 Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
         }
 
+        public void ResetZoom()
+        {
+            PanOffset = Point.Empty;
+            ZoomFactor = 1;
+        }
+
         public LinkedList<XNodeIn> HistoryList = new LinkedList<XNodeIn>();
-        public LinkedListNode<XNodeIn> CurrentHistory; 
+        public LinkedListNode<XNodeIn> CurrentHistory;
 
         public void SetRoot(XNodeIn node, bool logHistory=true)
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
-            PanOffset = Point.Empty;
+            ResetZoom();
             Model.CurrentRoot = (node == Model.TopRoot) ? Model.InternalRoot : node;
            
             if (logHistory)

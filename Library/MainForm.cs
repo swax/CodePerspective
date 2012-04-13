@@ -130,7 +130,7 @@ namespace XLibrary
                 TimeoutFunctinCalls(XRay.ClassCallMap);
             }
 
-            RefreshView();
+            RefreshView(true, false);
         }
 
         void TimeoutFunctinCalls(SharedDictionary<FunctionCall> callMap)
@@ -157,11 +157,11 @@ namespace XLibrary
                 Model.SizeLayout == SizeLayouts.Hits ||
                 Model.SizeLayout == SizeLayouts.TimePerHit)
             {
-                RefreshView();
+                RefreshView(false, false);
             }
         }
 
-        public void RefreshView(bool redrawOnly=false)
+        public void RefreshView(bool redrawOnly=false, bool resetZoom=true)
         {
             if (Model.ViewLayout == LayoutType.ThreeD)
             {
@@ -183,6 +183,9 @@ namespace XLibrary
                     GLView.Visible = false;
 
                 TreeView.Visible = true;
+
+                if (resetZoom)
+                    TreeView.ResetZoom();
 
                 // check if view exists
                 if (redrawOnly)
@@ -222,7 +225,7 @@ namespace XLibrary
         {
             TreeView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
             Model.SearchStrobe = false; // so matches are shown immediately
-            RefreshView();
+            RefreshView(true, false);
         }
 
         private void SearchTimer_Tick(object sender, EventArgs e)

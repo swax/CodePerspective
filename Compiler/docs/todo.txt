@@ -1,14 +1,16 @@
 ﻿
-
 now
-	pan/zoom
-		figure out header size by using 800px height as a base
-		render treemap with floats, just hide small stuff
-	sub-graphs
-	msil view, test upgraded cecil
-		take a look at decompiler first to see how msil should be included
+	double click, change graph type - reset zoom
+	test upgraded cecil
+	msil view
+		embed code on decompile - embed in dat with offset for quick lookup
+		link msil code to other msil code
+		try getting shorter generic names
 		include msil with functions in dat by offset
+	add method / field dependencies to graph
 	dll support, service?
+	sub-graphs
+	
 
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
 	compare deOps performance because its sloooww
@@ -18,7 +20,8 @@ flash class green/red when constructd/deconstructed
 
 dependency graph for methods
 
-remove the filtering/ignore node stuff?
+can remove whole right click
+	remove the filtering/ignore node stuff?
 
 draw flat treemap in orthagonal view
 	click to select should work well
@@ -27,23 +30,11 @@ add call graph to opengl flat render
 click object in openGL windows (hit testing, pixel to object)
 panning should be very fast
 
-preventing layout changes on zoom	
-	render everything per level
-	if an oject is too small then don't perform internal rendering
-	always leave room for label, if space is big enough then add the label into it
-pan/zoom with orthagonal view
-see if fps can be improved
-
-
 unit-tests built in
 	ability to run funtions manually
 	can visually see real code block run and affected code blocks
 
 incorporate sound somehow?
-
-integrate xray into an even more useful info display
-	init graph of classes
-	pan / zoom - problem in treemap view betcause expanding treemap size reconfigures the layout
 
 error handling
 	try to handle paint.net crashing with xray
@@ -124,13 +115,6 @@ search box
 	show count next to search box for found #, clicking on # filters display to those nodes
 	state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
 
-reference graph
-	class graph ordered by who instantiates who
-	pan/zoom support
-	zoom in on class node shows method/field graph just for that node
-	it should look like how i 'think of the structure of deops' in my head
-	should be able to edit code flat, then run it and see stuff light up
-
 asp.net support 
 
 Graph Direct -> Method map, does not re-add call dashed lines
@@ -168,11 +152,6 @@ code panel
 	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
 	ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
-pan/zoom
-	stop drawing/iterating parts of tree that are totally off screen
-	wheel does the zoom part
-	zooming all the way out brings view back to normal
-
 help tab
 	scrolls down
 	legend
@@ -203,13 +182,10 @@ Put sub-classses inside parent classes so functions/methods are adacent?
 
 surf through state
 	mouse over function/fields lights up connected functions/fields
-
 	click on function
 		top accessed fields and states
-
 	zooms in on class box
 	state is sitting right there
-
 	connected functions sitting there
 
 hook calls to edge of node in graph view?

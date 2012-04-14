@@ -965,6 +965,9 @@ namespace XLibrary
                     if (node.ObjType == XObjType.Class)
                         MainForm.InstanceTab.NavigateTo(node);
 
+                    if (node.ObjType == XObjType.Method)
+                        MainForm.CodeTab.NavigateTo(node);
+
                     MainForm.TimingPanel.NavigateTo(node);
                 }
 

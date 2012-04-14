@@ -1,12 +1,13 @@
 ﻿
 now
-	double click, change graph type - reset zoom
-	test upgraded cecil
+	zoom resets when checking all calls
 	msil view
+		dump msil code then make interesting
 		embed code on decompile - embed in dat with offset for quick lookup
 		link msil code to other msil code
 		try getting shorter generic names
 		include msil with functions in dat by offset
+		when showing code show values of variables in real-time if available
 	add method / field dependencies to graph
 	dll support, service?
 	sub-graphs

@@ -49,6 +49,9 @@ namespace XLibrary
         public bool External;
         public bool IsAnon;
 
+        public List<string> Code;
+ 
+
         public string FullName()
         {
             if (Parent == null) // dont show name for root node
@@ -236,14 +239,26 @@ namespace XLibrary
             if(hasParent)
                 node.ParentID = BitConverter.ToInt32(stream.Read(4), 0);
 
-            bool hasDependencies = BitConverter.ToBoolean(stream.Read(1), 0);
-            if (hasDependencies)
+            int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
+            if(dependencyCount > 0)
             {
-                int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
                 node.Dependencies = new int[dependencyCount];
 
                 for (int i = 0; i < dependencyCount; i++)
                     node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
+            }
+
+            int codeLines = BitConverter.ToInt32(stream.Read(4), 0);
+            if (codeLines > 0)
+            {
+                node.Code = new List<string>();
+
+                for (int i = 0; i < codeLines; i++)
+                {
+                    int strLen = BitConverter.ToInt32(stream.Read(4), 0);
+                    var codeLine = UTF8Encoding.UTF8.GetString(stream.Read(strLen));
+                    node.Code.Add(codeLine);
+                }
             }
 
             stream.Position = startPos + totalSize;

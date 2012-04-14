@@ -81,12 +81,14 @@ namespace XBuilder
             byte[] temp = new byte[4096];
 
             using (FileStream stream = new FileStream(path, FileMode.Create))
-                trackedObjects += Write(stream, temp);
+            {
+                trackedObjects += WriteDat(stream);
+            }
 
             return trackedObjects;
         }
 
-        public long Write(FileStream stream, byte[] temp)
+        public long WriteDat(FileStream stream)
         {
             if (Exclude)
                 return 0;
@@ -105,69 +107,65 @@ namespace XBuilder
             //      dependency count 4
             //      dependent ids 4x
 
-            int pos = 0;
+            long startPos = stream.Length;
 
-            byte[] name = UTF8Encoding.UTF8.GetBytes(Name);
+            // write empty size of packet to be set at the end of the function
+            stream.Write(BitConverter.GetBytes(0));
 
-            BitConverter.GetBytes(name.Length).CopyTo(temp, pos);
-            pos += 4;
+            byte[] str = UTF8Encoding.UTF8.GetBytes(Name);
+            stream.Write(BitConverter.GetBytes(str.Length));
+            stream.Write(str);
 
-            name.CopyTo(temp, pos);
-            pos += name.Length;
+            stream.Write(BitConverter.GetBytes((int)ObjType));
 
-            BitConverter.GetBytes((int)ObjType).CopyTo(temp, pos);
-            pos += 4;
+            stream.Write(BitConverter.GetBytes(Lines));
 
-            BitConverter.GetBytes(Lines).CopyTo(temp, pos);
-            pos += 4;
+            stream.Write(BitConverter.GetBytes(External));
 
-            BitConverter.GetBytes(External).CopyTo(temp, pos);
-            pos += 1;
+            stream.Write(BitConverter.GetBytes(IsAnon));
 
-            BitConverter.GetBytes(IsAnon).CopyTo(temp, pos);
-            pos += 1;
-
-            BitConverter.GetBytes(ID).CopyTo(temp, pos);
-            pos += 4;
+            stream.Write(BitConverter.GetBytes(ID));
 
             // parent 
-            BitConverter.GetBytes(Parent != null).CopyTo(temp, pos);
-            pos += 1;
+            stream.Write(BitConverter.GetBytes(Parent != null));
 
             if (Parent != null)
-            {
-                BitConverter.GetBytes(Parent.ID).CopyTo(temp, pos);
-                pos += 4;
-            }
+                stream.Write(BitConverter.GetBytes(Parent.ID));
 
             // dependencies
-            bool hasDependencies = (ClassDependencies != null && ClassDependencies.Count > 0);
+            int dependencyCount = 0;
+            if (ClassDependencies != null)
+                dependencyCount = ClassDependencies.Count;
 
-            BitConverter.GetBytes(hasDependencies).CopyTo(temp, pos);
-            pos += 1;
+            stream.Write(BitConverter.GetBytes(dependencyCount));
 
-            if (hasDependencies)
-            {
-                BitConverter.GetBytes(ClassDependencies.Count).CopyTo(temp, pos);
-                pos += 4;
-
+            if (dependencyCount > 0)
                 foreach (int dependentId in ClassDependencies)
+                    stream.Write(BitConverter.GetBytes(dependentId));
+
+            int codeLines = 0;
+            if (Code != null)
+                codeLines = Code.Count;
+
+            stream.Write(BitConverter.GetBytes(codeLines));
+
+            if (codeLines > 0)
+                foreach (var line in Code)
                 {
-                    BitConverter.GetBytes(dependentId).CopyTo(temp, pos);
-                    pos += 4;
+                    str = UTF8Encoding.UTF8.GetBytes(line);
+                    stream.Write(BitConverter.GetBytes(str.Length));
+                    stream.Write(str);
                 }
-            }
 
-            // write total size of packet
-            stream.Write(BitConverter.GetBytes(4 + pos));
-
-            //write packet
-            stream.Write(temp, 0, pos);
+            // write size of packet
+            stream.Position = startPos;
+            stream.Write(BitConverter.GetBytes((int)(stream.Length - startPos)));
+            stream.Position = stream.Length;
 
             long trackedObjects = 1;
 
             foreach (XNodeOut child in Nodes.Cast<XNodeOut>())
-                trackedObjects += child.Write(stream, temp);
+                trackedObjects += child.WriteDat(stream);
 
             return trackedObjects;
         }

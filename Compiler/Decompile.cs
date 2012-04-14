@@ -293,6 +293,13 @@ namespace XBuilder
                 if (method.Body == null)
                     continue;
 
+                // record method instructions
+                methodNode.Code = new List<string>();
+                foreach (var inst in method.Body.Instructions)
+                {
+                    methodNode.Code.Add(inst.ToString());
+                }
+
                 // local vars
                 foreach (var local in method.Body.Variables)
                     SetClassDependency(classNode, local.VariableType);

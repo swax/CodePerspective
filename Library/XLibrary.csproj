@@ -106,6 +106,12 @@
     <Compile Include="GLPanel.Designer.cs">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Panels\CodePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\CodePanel.Designer.cs">
+      <DependentUpon>CodePanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\ConsolePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -173,6 +179,9 @@
   <ItemGroup>
     <EmbeddedResource Include="GLPanel.resx">
       <DependentUpon>GLPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\CodePanel.resx">
+      <DependentUpon>CodePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\ConsolePanel.resx">
       <DependentUpon>ConsolePanel.cs</DependentUpon>

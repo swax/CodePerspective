@@ -31,8 +31,6 @@ namespace XLibrary
             RevalueTimer.Interval = 1000;
             RevalueTimer.Enabled = true;
 
-            Text = "c0re XRay";
-
             DisplayTab.Init(this);
             ConsoleTab.Init(this);
 
@@ -150,8 +148,13 @@ namespace XLibrary
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
         {
-            DisplayTab.FpsLabel.Text = "FPS: " + Model.FpsCounter.ToString();
-            Model.FpsCounter = 0;
+            DisplayTab.FpsLabel.Text = string.Format("x/s - revalue: {0}, resize {1}, redraw {2}, frames {3}",
+                Model.RevalueCount, Model.ResizeCount, Model.RedrawCount, Model.FpsCount);
+
+            Model.RevalueCount = 0;
+            Model.ResizeCount = 0;
+            Model.RedrawCount = 0;
+            Model.FpsCount = 0;
 
             if (Model.SizeLayout == SizeLayouts.TimeInMethod ||
                 Model.SizeLayout == SizeLayouts.Hits ||

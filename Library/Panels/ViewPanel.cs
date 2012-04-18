@@ -238,13 +238,13 @@ namespace XLibrary.Panels
         private void CallsAllButton_CheckedChanged(object sender, EventArgs e)
         {
             XRay.ShowAllCalls = CallsAllButton.Checked;
-            Main.RefreshView(true);
+            Main.RefreshView(true, false);
         }
 
         private void CallsRealTimeButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowCalls = CallsRealTimeButton.Checked;
-            Main.RefreshView(true);
+            Main.RefreshView(true, false);
         }
 
         private void IncludeOutsideZoomButton_CheckedChanged(object sender, EventArgs e)

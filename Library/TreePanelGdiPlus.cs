@@ -64,13 +64,13 @@ namespace XLibrary
         float NodeBorderWidth = 4;
         SolidBrush BorderBrush = new SolidBrush(Color.Silver);
 
-        Color CallColor = Color.Blue;
+        Color CallColor = Color.DarkGreen;
         Pen ShowCallPen = new Pen(Color.FromArgb(32, Color.Black));// { EndCap = LineCap.ArrowAnchor };
         Pen CallOutPen = new Pen(Color.FromArgb(48, Color.Red));
         Pen CallInPen = new Pen(Color.FromArgb(48, Color.Blue));
         Pen CallOutPenFocused = new Pen(Color.FromArgb(70, Color.Red), 2);
         Pen CallInPenFocused = new Pen(Color.FromArgb(70, Color.Blue), 2);
-        Pen HoldingCallPen = new Pen(Color.FromArgb(48, Color.Blue)) { EndCap = LineCap.ArrowAnchor };
+        Pen HoldingCallPen = new Pen(Color.FromArgb(48, Color.Green)) { EndCap = LineCap.ArrowAnchor };
 
         Pen CallDividerPen = new Pen(Color.FromArgb(0xcc, 0xcc, 0xcc));
 
@@ -227,7 +227,7 @@ namespace XLibrary
             if ((!DoRedraw && !DoRevalue && !DoResize) || Model.CurrentRoot == null)
             {
                 e.Graphics.DrawImage(DisplayBuffer, 0, 0);
-                Model.FpsCounter++;
+                Model.FpsCount++;
                 return;
             }
 
@@ -408,9 +408,10 @@ namespace XLibrary
 
             // Copy buffer to display
             e.Graphics.DrawImage(DisplayBuffer, 0, 0);
-            Model.FpsCounter++;
+            Model.FpsCount++;
 
             DoRedraw = false;
+            Model.RedrawCount++;
         }
 
         private void DrawTreeMap(Graphics buffer)
@@ -426,6 +427,8 @@ namespace XLibrary
                 XRay.InstanceChange = false;
 
                 DoRevalue = false;
+                Model.RevalueCount++;
+
                 DoResize = true;
             }
 
@@ -463,6 +466,7 @@ namespace XLibrary
                 SizeNode(buffer, Model.CurrentRoot, null, true);
 
                 DoResize = false;
+                Model.ResizeCount++;
             }
 
             if (ShowingOutside)
@@ -752,13 +756,22 @@ namespace XLibrary
 
             ZoomFactor *= zoomAmount;
 
-            // we want to keep the zoom over the cursor, the modify the window offset by the zoom levl
-            winPos.Width /= ZoomFactor;
-            winPos.Height /= ZoomFactor;
 
-            // subtract the window pos from our target pos in the model to find the amount that should be panned
-            PanOffset.X = winPos.Width - modelPos.X;
-            PanOffset.Y = winPos.Height - modelPos.Y; 
+            if (ZoomFactor < 1)
+            {
+                ZoomFactor = 1;
+                PanOffset = new PointF();
+            }
+            else
+            {
+                // we want to keep the zoom over the cursor, the modify the window offset by the zoom levl
+                winPos.Width /= ZoomFactor;
+                winPos.Height /= ZoomFactor;
+
+                // subtract the window pos from our target pos in the model to find the amount that should be panned
+                PanOffset.X = winPos.Width - modelPos.X;
+                PanOffset.Y = winPos.Height - modelPos.Y;
+            }
 
             DoResize = true;
             Invalidate();

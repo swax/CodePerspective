@@ -49,8 +49,12 @@ namespace XLibrary
         public bool External;
         public bool IsAnon;
 
-        public List<string> Code;
- 
+        public int ReturnID;
+        public int[] ParamIDs;
+        public string[] ParamNames;
+
+        public List<XInstruction> Instructions;
+
 
         public string FullName()
         {
@@ -195,6 +199,9 @@ namespace XLibrary
 
         public long SecondaryValue; // used for showing 3d height
 
+        public long CodePos;
+        public int CodeLines;
+
 
         internal static XNodeIn Read(FileStream stream)
         {
@@ -217,11 +224,8 @@ namespace XLibrary
             long startPos = stream.Position;
 
             int totalSize = BitConverter.ToInt32(stream.Read(4), 0);
-            int nameSize = BitConverter.ToInt32(stream.Read(4), 0);
+            node.Name = ReadString(stream);
 
-            //node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
-
-            node.Name = UTF8Encoding.UTF8.GetString(stream.Read(nameSize));
             //if (node.ObjType == XObjType.Class)
             //{
                 node.UnformattedName = node.Name;
@@ -239,6 +243,21 @@ namespace XLibrary
             if(hasParent)
                 node.ParentID = BitConverter.ToInt32(stream.Read(4), 0);
 
+            node.ReturnID = BitConverter.ToInt32(stream.Read(4), 0);
+
+            int paramCount = BitConverter.ToInt32(stream.Read(4), 0);
+            if (paramCount > 0)
+            {
+                node.ParamIDs = new int[paramCount];
+                node.ParamNames = new string[paramCount];
+
+                for (int i = 0; i < paramCount; i++)
+                {
+                    node.ParamIDs[i] = BitConverter.ToInt32(stream.Read(4), 0);
+                    node.ParamNames[i] = ReadString(stream);
+                }
+            }
+
             int dependencyCount = BitConverter.ToInt32(stream.Read(4), 0);
             if(dependencyCount > 0)
             {
@@ -248,22 +267,30 @@ namespace XLibrary
                     node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
             }
 
-            int codeLines = BitConverter.ToInt32(stream.Read(4), 0);
-            if (codeLines > 0)
+            node.CodeLines = BitConverter.ToInt32(stream.Read(4), 0);
+            if (node.CodeLines > 0)
             {
-                node.Code = new List<string>();
+                node.CodePos = stream.Position;
+                /*node.Code = new List<string>();
 
-                for (int i = 0; i < codeLines; i++)
-                {
-                    int strLen = BitConverter.ToInt32(stream.Read(4), 0);
-                    var codeLine = UTF8Encoding.UTF8.GetString(stream.Read(strLen));
-                    node.Code.Add(codeLine);
-                }
+                for (int i = 0; i < CodeLines; i++)
+                    node.Code.Add(ReadString(stream));
+                }*/
             }
 
             stream.Position = startPos + totalSize;
 
             return node;
+        }
+
+        public static string ReadString(FileStream stream)
+        {
+            int strlen = BitConverter.ToInt32(stream.Read(4), 0);
+
+            if (strlen == 0)
+                return "";
+
+            return UTF8Encoding.UTF8.GetString(stream.Read(strlen));
         }
 
         internal void SetArea(RectangleF area)
@@ -293,4 +320,14 @@ namespace XLibrary
             sub.DependencyChainIn[ID] = this;
         }
     }
+
+    public class XInstruction
+    {
+        public int Offset;
+        public string OpCode;
+        public string Line;
+        public int RefId;
+    }
+
+
 }

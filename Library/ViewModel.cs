@@ -43,7 +43,12 @@ namespace XLibrary
 
         public bool SearchStrobe;
         public long MaxSecondaryValue;
-        public int FpsCounter;
+
+        // performance
+        public int FpsCount;
+        public int RevalueCount;
+        public int ResizeCount;
+        public int RedrawCount;
 
 
         public long RecalcCover(XNodeIn root)

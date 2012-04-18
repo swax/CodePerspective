@@ -313,7 +313,7 @@ namespace XLibrary
 
             GLView.SwapBuffers();
 
-            Model.FpsCounter++;
+            Model.FpsCount++;
         }
 
         Vbo LoadVBO<TVertex>(TVertex[] vertices, int verticesLength, int[] elements, int elementsLength) where TVertex : struct

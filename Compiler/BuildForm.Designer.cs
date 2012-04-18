@@ -54,9 +54,9 @@
             // 
             // FileList
             // 
-            this.FileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.FileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FileList.FormattingEnabled = true;
             this.FileList.IntegralHeight = false;
             this.FileList.Location = new System.Drawing.Point(12, 36);
@@ -171,8 +171,8 @@
             // 
             // OutputLink
             // 
-            this.OutputLink.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.OutputLink.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.OutputLink.AutoEllipsis = true;
             this.OutputLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.OutputLink.Location = new System.Drawing.Point(10, 208);
@@ -198,8 +198,8 @@
             // 
             // OptionsPanel
             // 
-            this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.OptionsPanel.Controls.Add(this.TrackInstancesCheckBox);
             this.OptionsPanel.Controls.Add(this.TrackFieldsCheckBox);
             this.OptionsPanel.Controls.Add(this.StatusLabel);
@@ -246,8 +246,8 @@
             // 
             // StatusLabel
             // 
-            this.StatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.StatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StatusLabel.ForeColor = System.Drawing.Color.Green;
             this.StatusLabel.Location = new System.Drawing.Point(0, 223);
@@ -323,7 +323,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.FileList);
             this.Name = "BuildForm";
-            this.Text = "XRay";
+            this.Text = "Introspex";
             this.OptionsPanel.ResumeLayout(false);
             this.OptionsPanel.PerformLayout();
             this.ResumeLayout(false);

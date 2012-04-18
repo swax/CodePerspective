@@ -9,7 +9,7 @@ namespace XLibrary
     {
         public static string FormatTemplateName(string name)
         {
-            return name;
+            //return name;
 
             string originalName = name;
 

@@ -106,6 +106,8 @@ namespace XLibrary
                 XRay.InstanceChange = false;
 
                 DoRevalue = false;
+                Model.RevalueCount++;
+
                 DoResize = true;
             }
 
@@ -114,6 +116,9 @@ namespace XLibrary
             if (DoResize)
             {
                 ScaleGraph(buffer);
+
+                DoResize = false;
+                Model.ResizeCount++;
             }
 
             foreach (var node in Graphs.SelectMany(g => g.Nodes()))
@@ -240,8 +245,6 @@ namespace XLibrary
                     }
                 }
             }
-
-            DoResize = false;
         }
 
         private void SizeGraphs()

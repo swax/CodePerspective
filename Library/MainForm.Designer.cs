@@ -43,19 +43,19 @@
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.TimingPanel = new XLibrary.TimingPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.debugPanel1 = new XLibrary.Panels.DebugPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
+            this.CodeTab = new XLibrary.Panels.CodePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
             this.SearchTimer = new System.Windows.Forms.Timer(this.components);
-            this.tabPage6 = new System.Windows.Forms.TabPage();
-            this.DisplayTab = new XLibrary.Panels.ViewPanel();
-            this.InstanceTab = new XLibrary.InstancePanel();
-            this.TimingPanel = new XLibrary.TimingPanel();
-            this.debugPanel1 = new XLibrary.Panels.DebugPanel();
-            this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.CodeTab = new XLibrary.Panels.CodePanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -206,6 +206,15 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // DisplayTab
+            // 
+            this.DisplayTab.AutoScroll = true;
+            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
+            this.DisplayTab.Name = "DisplayTab";
+            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
+            this.DisplayTab.TabIndex = 0;
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.InstanceTab);
@@ -217,6 +226,14 @@
             this.tabPage2.Text = "Instance";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // InstanceTab
+            // 
+            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
+            this.InstanceTab.Name = "InstanceTab";
+            this.InstanceTab.Size = new System.Drawing.Size(536, 188);
+            this.InstanceTab.TabIndex = 0;
+            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.TimingPanel);
@@ -226,6 +243,14 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Profile";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // TimingPanel
+            // 
+            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
+            this.TimingPanel.Name = "TimingPanel";
+            this.TimingPanel.Size = new System.Drawing.Size(542, 194);
+            this.TimingPanel.TabIndex = 0;
             // 
             // tabPage4
             // 
@@ -238,6 +263,14 @@
             this.tabPage4.Text = "Debug";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // debugPanel1
+            // 
+            this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.debugPanel1.Location = new System.Drawing.Point(3, 3);
+            this.debugPanel1.Name = "debugPanel1";
+            this.debugPanel1.Size = new System.Drawing.Size(536, 188);
+            this.debugPanel1.TabIndex = 0;
+            // 
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.ConsoleTab);
@@ -248,16 +281,13 @@
             this.tabPage5.Text = "Console";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
-            // RevalueTimer
+            // ConsoleTab
             // 
-            this.RevalueTimer.Interval = 1000;
-            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
-            // 
-            // SearchTimer
-            // 
-            this.SearchTimer.Enabled = true;
-            this.SearchTimer.Interval = 300;
-            this.SearchTimer.Tick += new System.EventHandler(this.SearchTimer_Tick);
+            this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ConsoleTab.Location = new System.Drawing.Point(0, 0);
+            this.ConsoleTab.Name = "ConsoleTab";
+            this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
+            this.ConsoleTab.TabIndex = 0;
             // 
             // tabPage6
             // 
@@ -270,47 +300,6 @@
             this.tabPage6.Text = "Code";
             this.tabPage6.UseVisualStyleBackColor = true;
             // 
-            // DisplayTab
-            // 
-            this.DisplayTab.AutoScroll = true;
-            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
-            this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
-            this.DisplayTab.TabIndex = 0;
-            // 
-            // InstanceTab
-            // 
-            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
-            this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(536, 188);
-            this.InstanceTab.TabIndex = 0;
-            // 
-            // TimingPanel
-            // 
-            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
-            this.TimingPanel.Name = "TimingPanel";
-            this.TimingPanel.Size = new System.Drawing.Size(542, 194);
-            this.TimingPanel.TabIndex = 0;
-            // 
-            // debugPanel1
-            // 
-            this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.debugPanel1.Location = new System.Drawing.Point(3, 3);
-            this.debugPanel1.Name = "debugPanel1";
-            this.debugPanel1.Size = new System.Drawing.Size(536, 188);
-            this.debugPanel1.TabIndex = 0;
-            // 
-            // ConsoleTab
-            // 
-            this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ConsoleTab.Location = new System.Drawing.Point(0, 0);
-            this.ConsoleTab.Name = "ConsoleTab";
-            this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
-            this.ConsoleTab.TabIndex = 0;
-            // 
             // CodeTab
             // 
             this.CodeTab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -321,6 +310,17 @@
             this.CodeTab.Size = new System.Drawing.Size(536, 188);
             this.CodeTab.TabIndex = 0;
             // 
+            // RevalueTimer
+            // 
+            this.RevalueTimer.Interval = 1000;
+            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
+            // 
+            // SearchTimer
+            // 
+            this.SearchTimer.Enabled = true;
+            this.SearchTimer.Interval = 300;
+            this.SearchTimer.Tick += new System.EventHandler(this.SearchTimer_Tick);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -328,7 +328,7 @@
             this.ClientSize = new System.Drawing.Size(550, 584);
             this.Controls.Add(this.splitContainer1);
             this.Name = "MainForm";
-            this.Text = "MainForm";
+            this.Text = "Introspex";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);

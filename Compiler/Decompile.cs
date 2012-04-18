@@ -40,6 +40,7 @@ namespace XBuilder
         public bool TrackExternal;
         public bool TrackAnon;
         public bool TrackFields;
+        public bool TrackCode = true;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -194,9 +195,68 @@ namespace XBuilder
             if (TrackFields && classDef.HasFields)
                 foreach (var fieldDef in classDef.Fields)
                 {
-                    classNode.AddField(fieldDef);
+                    var fieldNode = classNode.AddField(fieldDef);
 
                     SetClassDependency(classNode, fieldDef.DeclaringType);
+
+                    fieldNode.ReturnID = GetClassRef(fieldDef.DeclaringType).ID;
+                }
+
+            if(TrackCode)
+                foreach (var method in classDef.Methods)
+                {
+                    XNodeOut methodNode = classNode.AddMethod(method);
+
+                    if (method.Body == null)
+                        continue;
+
+                    // record method instructions
+                    methodNode.Instructions = new List<XInstruction>();
+                    foreach (var inst in method.Body.Instructions)
+                    {
+                        var xInst = new XInstruction();
+                        xInst.Offset = inst.Offset;
+                        xInst.OpCode = inst.OpCode.Name;
+                        xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
+
+                        if (inst.OpCode == OpCodes.Call ||
+                            inst.OpCode == OpCodes.Calli ||
+                            inst.OpCode == OpCodes.Callvirt ||
+                            inst.OpCode == OpCodes.Newobj ||
+                            inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
+                        {
+                            var call = inst.Operand as MethodReference;
+                            var classRef = GetClassRef(call.DeclaringType);
+                            var methodRef = classRef.AddMethod(call);
+
+                            xInst.RefId = methodRef.ID;
+                        }
+                        else if (inst.OpCode == OpCodes.Stfld ||
+                                  inst.OpCode == OpCodes.Stsfld ||
+                                  inst.OpCode == OpCodes.Ldfld ||
+                                  inst.OpCode == OpCodes.Ldflda ||
+                                  inst.OpCode == OpCodes.Ldsfld ||
+                                  inst.OpCode == OpCodes.Ldsflda)
+                        {
+                            var fieldDef = inst.Operand as FieldReference;
+                            var classRef = GetClassRef(fieldDef.DeclaringType);
+                            var fieldRef = classRef.AddField(fieldDef);
+                            xInst.RefId = fieldRef.ID;
+                        }
+                        else if (inst.OpCode.FlowControl == FlowControl.Branch ||
+                                 inst.OpCode.FlowControl == FlowControl.Cond_Branch)
+                        {
+                            var op = inst.Operand as Instruction;
+                            if (op != null)
+                            {
+                                int offset = op.Offset;
+                                xInst.Line = "goto " + offset.ToString("X");
+                                xInst.RefId = offset;
+                            }
+                        }
+
+                        methodNode.Instructions.Add(xInst);
+                    }
                 }
 
             if (TrackInstances)
@@ -281,24 +341,33 @@ namespace XBuilder
             // iterate method nodes
             foreach (var method in classDef.Methods)
             {
-                XNodeOut methodNode = classNode.AddNode(method.Name, XObjType.Method);
+                XNodeOut methodNode = classNode.AddMethod(method);
 
                 // return
-                SetClassDependency(classNode, method.ReturnType);
-
+                if(method.ReturnType != null)
+                {
+                    var returnNode = SetClassDependency(classNode, method.ReturnType);
+                    if(returnNode != null)
+                        methodNode.ReturnID = returnNode.ID;
+                }
                 // params
-                foreach (var p in method.Parameters)
-                    SetClassDependency(classNode, p.ParameterType);
+                for(int i = 0; i < method.Parameters.Count; i++)
+                {
+                    var p = method.Parameters[i];
+
+                    if (methodNode.ParamIDs == null)
+                    {
+                        methodNode.ParamIDs = new int[method.Parameters.Count];
+                        methodNode.ParamNames = new string[method.Parameters.Count];
+                    }
+
+                    var paramNode = SetClassDependency(classNode, p.ParameterType);
+                    methodNode.ParamIDs[i] = paramNode.ID;
+                    methodNode.ParamNames[i] = p.Name;
+                }
 
                 if (method.Body == null)
                     continue;
-
-                // record method instructions
-                methodNode.Code = new List<string>();
-                foreach (var inst in method.Body.Instructions)
-                {
-                    methodNode.Code.Add(inst.ToString());
-                }
 
                 // local vars
                 foreach (var local in method.Body.Variables)
@@ -348,8 +417,8 @@ namespace XBuilder
                         {
                             if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
                                 continue; // call added to cctor by xray
-                            
-                            var methodRef = classRef.AddNode(call.Name, XObjType.Method);
+
+                            var methodRef = classRef.AddMethod(call);
 
                             methodRef.Lines = 1;
 
@@ -383,7 +452,12 @@ namespace XBuilder
                     }
 
                     else if (TrackFields && 
-                             (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Ldfld || instruction.OpCode == OpCodes.Ldflda))
+                             (instruction.OpCode == OpCodes.Stfld || 
+                              instruction.OpCode == OpCodes.Stsfld ||
+                              instruction.OpCode == OpCodes.Ldfld ||
+                              instruction.OpCode == OpCodes.Ldflda ||
+                              instruction.OpCode == OpCodes.Ldsfld ||
+                              instruction.OpCode == OpCodes.Ldsflda))
                     {
                         var fieldDef = instruction.Operand as FieldReference;
 
@@ -399,8 +473,8 @@ namespace XBuilder
                         }
 
                         AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, fieldRef.ID));
-                        
-                        if(instruction.OpCode == OpCodes.Stfld)
+
+                        if (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld)
                             AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
                         else
                             AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
@@ -445,10 +519,10 @@ namespace XBuilder
             }
         }
 
-        void SetClassDependency(XNodeOut dependentClass, TypeReference declaringType)
+        XNodeOut SetClassDependency(XNodeOut dependentClass, TypeReference declaringType)
         {
             if (declaringType == null)
-                return;
+                return null;
 
             var target = GetClassRef(declaringType);
 
@@ -459,6 +533,8 @@ namespace XBuilder
                 dependentClass.ClassDependencies = new HashSet<int>();
 
             dependentClass.ClassDependencies.Add(target.ID);
+
+            return target;
         }
 
         XNodeOut GetClassRef(TypeReference declaringType)
@@ -494,6 +570,7 @@ namespace XBuilder
             // traverse or add namespace to root
             foreach (var name in namespaces.Split('.'))
                 node = node.AddNode(name, XObjType.Namespace);
+
 
             return node.AddNode(className, XObjType.Class);
         }

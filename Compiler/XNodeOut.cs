@@ -7,6 +7,7 @@ using System.Text;
 using Mono.Cecil;
 using XLibrary;
 using System.Runtime.Serialization;
+using Mono.Cecil.Cil;
 
 
 namespace XBuilder
@@ -24,6 +25,7 @@ namespace XBuilder
         public int AnonClasses = 1;
 
         public HashSet<int> ClassDependencies;
+        MethodReference MethodRef;
 
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
@@ -47,14 +49,24 @@ namespace XBuilder
         {
             // used for namespaces
             XNodeOut existing = Nodes.Where(n => n.Name == name && n.ObjType == objType).FirstOrDefault() as XNodeOut;
-
             if (existing != null)
                 return existing;
 
             XNodeOut node = new XNodeOut(this, name, objType);
-
             Nodes.Add(node);
+            return node;
+        }
 
+        public XNodeOut AddMethod(MethodReference method)
+        {
+            // used for namespaces
+            XNodeOut existing = Nodes.Cast<XNodeOut>().Where(n => n.MethodRef != null && n.MethodRef.FullName == method.FullName).FirstOrDefault();
+            if (existing != null)
+                return existing;
+
+            XNodeOut node = new XNodeOut(this, method.Name, XObjType.Method);
+            node.MethodRef = method;
+            Nodes.Add(node);
             return node;
         }
 
@@ -112,9 +124,7 @@ namespace XBuilder
             // write empty size of packet to be set at the end of the function
             stream.Write(BitConverter.GetBytes(0));
 
-            byte[] str = UTF8Encoding.UTF8.GetBytes(Name);
-            stream.Write(BitConverter.GetBytes(str.Length));
-            stream.Write(str);
+            WriteString(stream, Name);
 
             stream.Write(BitConverter.GetBytes((int)ObjType));
 
@@ -132,11 +142,26 @@ namespace XBuilder
             if (Parent != null)
                 stream.Write(BitConverter.GetBytes(Parent.ID));
 
+            // return
+            stream.Write(BitConverter.GetBytes(ReturnID));
+
+            // params
+            int paramCount = 0;
+            if (ParamIDs != null)
+                paramCount = ParamIDs.Length;
+            stream.Write(BitConverter.GetBytes(paramCount));
+
+            if (paramCount > 0)
+                for (int i = 0; i < paramCount; i++)
+                {
+                    stream.Write(BitConverter.GetBytes(ParamIDs[i]));
+                    WriteString(stream, ParamNames[i]);
+                }
+
             // dependencies
             int dependencyCount = 0;
             if (ClassDependencies != null)
                 dependencyCount = ClassDependencies.Count;
-
             stream.Write(BitConverter.GetBytes(dependencyCount));
 
             if (dependencyCount > 0)
@@ -144,17 +169,17 @@ namespace XBuilder
                     stream.Write(BitConverter.GetBytes(dependentId));
 
             int codeLines = 0;
-            if (Code != null)
-                codeLines = Code.Count;
-
+            if (Instructions != null)
+                codeLines = Instructions.Count;
             stream.Write(BitConverter.GetBytes(codeLines));
 
             if (codeLines > 0)
-                foreach (var line in Code)
+                foreach (var inst in Instructions)
                 {
-                    str = UTF8Encoding.UTF8.GetBytes(line);
-                    stream.Write(BitConverter.GetBytes(str.Length));
-                    stream.Write(str);
+                    stream.Write(BitConverter.GetBytes(inst.Offset));
+                    WriteString(stream, inst.OpCode);
+                    WriteString(stream, inst.Line);
+                    stream.Write(BitConverter.GetBytes(inst.RefId));
                 }
 
             // write size of packet
@@ -168,6 +193,19 @@ namespace XBuilder
                 trackedObjects += child.WriteDat(stream);
 
             return trackedObjects;
+        }
+
+        private void WriteString(FileStream stream, string str)
+        {
+            if (str.Length == 0)
+            {
+                stream.Write(BitConverter.GetBytes(0));
+                return;
+            }
+
+            byte[] buff = UTF8Encoding.UTF8.GetBytes(str);
+            stream.Write(BitConverter.GetBytes(buff.Length));
+            stream.Write(buff);
         }
 
         internal XNodeOut AddField(FieldReference fieldDef)
@@ -196,5 +234,10 @@ namespace XBuilder
 
             return next;
         }
+    }
+
+    class CodeLine
+    {
+
     }
 }

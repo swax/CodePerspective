@@ -1,17 +1,22 @@
 ﻿
+code paths as a tree
+	clickin on node in tree shows subset
+	tree shows last run
+
 now
-	zoom resets when checking all calls
-	msil view
-		dump msil code then make interesting
-		embed code on decompile - embed in dat with offset for quick lookup
-		link msil code to other msil code
-		try getting shorter generic names
-		include msil with functions in dat by offset
-		when showing code show values of variables in real-time if available
+	double click focused class go to method view, save view mode in history
+	field value mouse over
+	field value in code view
+	links in code view
+	search also highlights code/instances
 	add method / field dependencies to graph
-	dll support, service?
-	sub-graphs
+	track internal msil graph
+
+	msil view - lots of dupe items in list`1 class
 	
+	dll support, service? - test asp.net
+	exe support to bring xray up after closed, maybe use same dll service
+	3d play
 
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
 	compare deOps performance because its sloooww
@@ -19,17 +24,12 @@ abstract rendering, openGL (without text for now) / gdi plus / Direct2D later fo
 
 flash class green/red when constructd/deconstructed
 
-dependency graph for methods
-
-can remove whole right click
-	remove the filtering/ignore node stuff?
 
 draw flat treemap in orthagonal view
 	click to select should work well
-load in letter textures and draw labels
-add call graph to opengl flat render
-click object in openGL windows (hit testing, pixel to object)
-panning should be very fast
+	load in letter textures and draw labels
+	add call graph to opengl flat render
+	click object in openGL windows (hit testing, pixel to object)
 
 unit-tests built in
 	ability to run funtions manually
@@ -51,8 +51,6 @@ self compiling
 	re-start xray'd exe
 
 openGL
-	implement mouse panning
-
 	texture functions with translucent code
 	have texture light up when hit
 	draw call lines underneath city, rotate world to see underneath
@@ -115,8 +113,6 @@ shortcut key, hook in app's global name space or maybe even windows itself to ac
 search box
 	show count next to search box for found #, clicking on # filters display to those nodes
 	state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
-
-asp.net support 
 
 Graph Direct -> Method map, does not re-add call dashed lines
 

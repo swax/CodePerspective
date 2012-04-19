@@ -56,12 +56,15 @@ namespace XLibrary
         public List<XInstruction> Instructions;
 
 
-        public string FullName()
+        public string FullName(bool excludeFile=false)
         {
             if (Parent == null) // dont show name for root node
                 return "";
 
-            string parent = Parent.FullName();
+            string parent = Parent.FullName(excludeFile);
+
+            if (excludeFile && ObjType == XObjType.File)
+                return "";
 
             string myName = Name;
             if (ObjType == XObjType.File)
@@ -226,18 +229,23 @@ namespace XLibrary
             int totalSize = BitConverter.ToInt32(stream.Read(4), 0);
             node.Name = ReadString(stream);
 
-            //if (node.ObjType == XObjType.Class)
-            //{
-                node.UnformattedName = node.Name;
-                node.Name = Utilities.FormatTemplateName(node.UnformattedName);
-            //}
-
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
             node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
             node.Value = node.Lines; // default
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.IsAnon = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
+
+            // mod name for readability
+            node.UnformattedName = node.Name;
+            node.Name = Utilities.FormatTemplateName(node.UnformattedName);
+            
+            if (node.ObjType == XObjType.Field)
+            {
+                int pos = node.Name.LastIndexOf(' ');
+                if (pos != -1)
+                    node.UnformattedName = node.Name.Substring(pos + 1);
+            }
 
             bool hasParent = BitConverter.ToBoolean(stream.Read(1), 0);
             if(hasParent)
@@ -318,6 +326,47 @@ namespace XLibrary
             if (sub.DependencyChainIn == null)
                 sub.DependencyChainIn = new Dictionary<int, XNodeIn>();
             sub.DependencyChainIn[ID] = this;
+        }
+
+
+        public string GetMethodName(bool includeClass)
+        {
+            string name = Name;
+
+            if (includeClass)
+            {
+                var parentClass = GetParentClass();
+                name = parentClass.Name + "::" + Name;
+            }
+
+            if (ReturnID != 0)
+            {
+                var retNode = XRay.Nodes[ReturnID];
+                name = retNode.Name + " " + name;
+            }
+
+            if (ObjType == XObjType.Method)
+            {
+                name += "(";
+
+                if (ParamIDs != null)
+                {
+                    for (int i = 0; i < ParamIDs.Length; i++)
+                    {
+                        var pId = ParamIDs[i];
+                        var pName = ParamNames[i];
+                        var pNode = XRay.Nodes[pId];
+
+                        name += pNode.Name + " " + pName + ", ";
+                    }
+
+                    name = name.TrimEnd(' ', ',');
+                }
+
+                name += ")";
+            }
+
+            return name;
         }
     }
 

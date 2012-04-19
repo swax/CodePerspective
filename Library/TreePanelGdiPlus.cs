@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace XLibrary
 {
@@ -1242,19 +1243,135 @@ namespace XLibrary
             const float indent = 5;
             float indentAmount = 0;
 
-            // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
-            var labels = NodesHovered.Where(n => !ShowLabels || !n.RoomForLabel || n.LabelClipped).ToArray();
+            var labels = new List<Tuple<string, SolidBrush>>();
+            string indentStr = "";
 
-            if (labels.Length == 0)
+            // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
+            //foreach(var node in NodesHovered)//.Where(n => !ShowLabels || !n.RoomForLabel || n.LabelClipped))
+            //{    
+            var n = NodesHovered.Last();
+            SolidBrush color = GuiHovered.Contains(n) ? ObjBrushes[(int)n.ObjType] : ObjDitheredBrushes[(int)n.ObjType];
+            labels.Add(new Tuple<string, SolidBrush>(indentStr + n.Name, color));
+            indentStr += " ";
+            //}
+
+            if (labels.Count == 0)
                 return;
 
-            var lastNode = labels.Last();
+            var lastNode = NodesHovered.Last();
+
+            if (lastNode.ObjType == XObjType.Class)
+            {
+                int staticCount = 0;
+                int instCount = 0;
+                if (lastNode != null && lastNode.Record != null && lastNode.Record.Active.Count > 0)
+                {
+                    var record = lastNode.Record;
+
+                    lock (record.Active)
+                    {
+                        for (int i = 0; i < record.Active.Count; i++)
+                        {
+                            var instance = record.Active[i];
+
+                            if (instance.IsStatic)
+                                staticCount++;
+                            else
+                                instCount++;
+                        }
+                    }
+                }
+
+                string classInfo = "0 instances";
+
+                if (instCount > 0)
+                    classInfo = instCount.ToString() + " instances";
+                else if (staticCount > 0)
+                    classInfo = "static instance";
+
+                labels.Add(new Tuple<string, SolidBrush>(classInfo, TextBrush));
+            }
+
+            else if (lastNode.ObjType == XObjType.Method)
+            {
+                labels.Add(new Tuple<string, SolidBrush>(lastNode.GetMethodName(false), TextBrush));
+            }
+
+            else if (lastNode.ObjType == XObjType.Namespace)
+            {
+                labels.Clear();
+                labels.Add(new Tuple<string, SolidBrush>(lastNode.FullName(true), ObjBrushes[(int)lastNode.ObjType]));
+            }
+
+            else if (lastNode.ObjType == XObjType.Field)
+            {
+                var classNode = lastNode.GetParentClass() as XNodeIn;
+
+                if (classNode != null && classNode.Record != null && classNode.Record.Active.Count > 0)
+                {
+                    var record = classNode.Record;
+
+                    lock (record.Active)
+                    {
+                        FieldInfo field = null;
+
+                        for (int i = 0; i < record.Active.Count; i++)
+                        {
+                            var instance = record.Active[i];
+
+                            object target = null;
+                            if (instance != null && instance.Ref != null)
+                                target = instance.Ref.Target;
+
+                            if (field == null)
+                            {
+                                Type instanceBase = instance.InstanceType;
+                                while (field == null)
+                                {
+                                    field = instance.InstanceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+                                                            .FirstOrDefault(f => f.Name == lastNode.UnformattedName);
+
+                                    instanceBase = instanceBase.BaseType;
+                                    if (instanceBase == null)
+                                        break;
+                                }
+                            }
+
+                            // dont query the static class instance of the class for non-static fields
+                            if (!field.IsStatic && target == null)
+                                continue;
+
+                            string text = "";
+                            try
+                            {
+                                if (target == null)
+                                    text += "(static) ";
+                                else
+                                    text += "#" + instance.Number + ": ";
+
+                                object val = field.GetValue(target);
+
+                                text += (val != null) ? val.ToString() : "<null>";
+                            }
+                            catch (Exception ex)
+                            {
+                                text = ex.Message;
+                                //continue; 
+                            }
+
+                            labels.Add(new Tuple<string, SolidBrush>(text, TextBrush));
+
+                            if (field.IsStatic)
+                                break;
+                        }
+                    }
+                }
+            }
 
             // find the size of the background box
-            //foreach (XNodeIn node in labels)
-            XNodeIn node = labels.Last();
-            //{
-                string label = node.Name;
+            foreach (var node in labels)
+            {
+                string label = node.Item1;
                 //if (node == lastNode)
                 //     label += " (" + GetMetricForNode(node) + ")";
 
@@ -1265,37 +1382,32 @@ namespace XLibrary
 
                 bgHeight += size.Height;
                 lineHeight = size.Height;
-                indentAmount += indent;
-            //}
+                //indentAmount += indent;
+            }
 
             // put box lower right corner at cursor
-            //pos.X -= bgWidth;
+            if (pos.X + bgWidth > Width)
+                pos.X = Width - bgWidth;
+
             pos.Y -= bgHeight;
 
             // ensure it doesnt go off screen
             if (pos.X < 0) pos.X = 0;
             if (pos.Y < 0) pos.Y = 0;
 
+
             // draw background
             buffer.FillRectangle(TextBgBrush, pos.X, pos.Y, bgWidth, bgHeight);
 
             //GraphDebuggingLabel(buffer, pos);
 
-            //foreach (XNodeIn node in labels)
-            node = labels.Last();
-            //{
-                // dither label if it is not on screen
-                SolidBrush textColor = GuiHovered.Contains(node) ? ObjBrushes[(int)node.ObjType] : ObjDitheredBrushes[(int)node.ObjType];
-
-                label = node.Name;
-                //if (node == lastNode)
-                //    label += " (" + GetMetricForNode(node) + ")";
-
-                buffer.DrawString(label, TextFont, textColor, pos.X, pos.Y);
+            foreach (var node in labels)
+            {
+                buffer.DrawString(node.Item1, TextFont, node.Item2, pos.X, pos.Y);
 
                 pos.Y += lineHeight;
-                pos.X += indent;
-            //}
+               // pos.X += indent;
+            }
         }
 
         private void GraphDebuggingLabel(Graphics buffer, PointF pos)

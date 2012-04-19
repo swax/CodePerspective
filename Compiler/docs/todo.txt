@@ -1,22 +1,25 @@
 ﻿
-code paths as a tree
-	clickin on node in tree shows subset
-	tree shows last run
-
 now
-	double click focused class go to method view, save view mode in history
 	field value mouse over
+	only show instance view when clicked or visible
+	on click method/node, show that instance view, and select the line with that field
+
 	field value in code view
 	links in code view
 	search also highlights code/instances
 	add method / field dependencies to graph
+	double click focused class go to method view, save view mode in history
+	msil view - lots of dupe items in list`1 class
 	track internal msil graph
 
-	msil view - lots of dupe items in list`1 class
-	
 	dll support, service? - test asp.net
 	exe support to bring xray up after closed, maybe use same dll service
 	3d play
+
+code paths as a tree
+	clickin on node in tree shows subset
+	tree shows last run
+
 
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
 	compare deOps performance because its sloooww

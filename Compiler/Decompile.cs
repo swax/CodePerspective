@@ -526,8 +526,8 @@ namespace XBuilder
 
             var target = GetClassRef(declaringType);
 
-            target = target.GetParentClass() as XNodeOut;
-            dependentClass = dependentClass.GetParentClass() as XNodeOut; 
+            target = target.GetParentClass(true) as XNodeOut;
+            dependentClass = dependentClass.GetParentClass(true) as XNodeOut; 
 
             if (dependentClass.ClassDependencies == null)
                 dependentClass.ClassDependencies = new HashSet<int>();

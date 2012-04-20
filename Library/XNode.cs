@@ -102,17 +102,20 @@ namespace XLibrary
             return result;
         }
 
-        public XNode GetParentClass()
+        public XNode GetParentClass(bool rootClass)
         {
             var parentClass = this;
-
             var up = Parent;
 
             while (up != null)
             {
                 if (up.ObjType == XObjType.Class)
+                {
                     parentClass = up;
 
+                    if (!rootClass)
+                        break;
+                }
                 up = up.Parent;
             }
 
@@ -335,7 +338,7 @@ namespace XLibrary
 
             if (includeClass)
             {
-                var parentClass = GetParentClass();
+                var parentClass = GetParentClass(false);
                 name = parentClass.Name + "::" + Name;
             }
 

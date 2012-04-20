@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Reflection;
 
 
 namespace XLibrary
@@ -735,6 +736,24 @@ namespace XLibrary
                 InstanceType = obj.GetType();
                 Ref = new WeakReference(obj, false);
             }
+        }
+
+        internal FieldInfo GetField(string name)
+        {
+            FieldInfo field = null;
+
+            Type instanceBase = InstanceType;
+            while (field == null)
+            {
+                field = InstanceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+                                        .FirstOrDefault(f => f.Name == name);
+
+                instanceBase = instanceBase.BaseType;
+                if (instanceBase == null)
+                    break;
+            }
+
+            return field;
         }
     }
 

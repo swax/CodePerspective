@@ -976,12 +976,8 @@ namespace XLibrary
 
                     Model.FocusedNodes.Add(node);
 
-                    if (node.ObjType == XObjType.Class)
-                        MainForm.InstanceTab.NavigateTo(node);
-
-                    if (node.ObjType == XObjType.Method)
-                        MainForm.CodeTab.NavigateTo(node);
-
+                    MainForm.InstanceTab.NavigateTo(node);
+                    MainForm.CodeTab.NavigateTo(node);
                     MainForm.TimingPanel.NavigateTo(node);
                 }
 
@@ -1305,7 +1301,7 @@ namespace XLibrary
 
             else if (lastNode.ObjType == XObjType.Field)
             {
-                var classNode = lastNode.GetParentClass() as XNodeIn;
+                var classNode = lastNode.GetParentClass(false) as XNodeIn;
 
                 if (classNode != null && classNode.Record != null && classNode.Record.Active.Count > 0)
                 {
@@ -1316,31 +1312,19 @@ namespace XLibrary
                         FieldInfo field = null;
 
                         for (int i = 0; i < record.Active.Count; i++)
-                        {
+                        {                        
                             var instance = record.Active[i];
+
+                            field = instance.GetField(lastNode.UnformattedName);
 
                             object target = null;
                             if (instance != null && instance.Ref != null)
                                 target = instance.Ref.Target;
-
-                            if (field == null)
-                            {
-                                Type instanceBase = instance.InstanceType;
-                                while (field == null)
-                                {
-                                    field = instance.InstanceType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
-                                                            .FirstOrDefault(f => f.Name == lastNode.UnformattedName);
-
-                                    instanceBase = instanceBase.BaseType;
-                                    if (instanceBase == null)
-                                        break;
-                                }
-                            }
-
+   
                             // dont query the static class instance of the class for non-static fields
-                            if (!field.IsStatic && target == null)
+                            if (field == null || !field.IsStatic && target == null)
                                 continue;
-
+                            
                             string text = "";
                             try
                             {

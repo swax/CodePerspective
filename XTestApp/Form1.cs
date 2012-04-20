@@ -23,6 +23,12 @@ namespace XTestApp
 
         Dictionary<int, string> TestMap = new Dictionary<int, string>();
 
+        TemplateClass<int, int> templateInt = new TemplateClass<int, int>();
+        TemplateClass<string, string> templateString = new TemplateClass<string, string>();
+
+        NestedClass x = new NestedClass();
+
+
         public Form1()
         {
             InitializeComponent();

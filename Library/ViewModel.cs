@@ -154,7 +154,7 @@ namespace XLibrary
                     node.ObjType == XObjType.Method ||
                     node.ObjType == XObjType.Field)
                 {
-                    classes[node.ID] = node.GetParentClass() as XNodeIn;
+                    classes[node.ID] = node.GetParentClass(true) as XNodeIn;
                 }
                 else
                     Utilities.RecurseTree<XNodeIn>(

@@ -17,6 +17,7 @@ namespace XLibrary
     public partial class InstancePanel : UserControl
     {
         public XNodeIn SelectedNode;
+        public string FieldFilter = "";
 
         Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
 
@@ -30,7 +31,18 @@ namespace XLibrary
 
         public void NavigateTo(XNodeIn node)
         {
-            SelectedNode = node;
+            if (node.ObjType == XObjType.Class)
+            {
+                SelectedNode = node;
+                FieldFilter = null;
+            }
+            else if (node.ObjType == XObjType.Field)
+            {
+                SelectedNode = node.GetParentClass(false) as XNodeIn;
+                FieldFilter = node.UnformattedName;
+            }
+            else
+                return;
 
             RefreshTree(true);
         }
@@ -85,8 +97,8 @@ namespace XLibrary
                         if (!instance.IsStatic && instance.Ref.Target == null)
                             continue;
 
-                        var recordType = instance.InstanceType;
-                        var recordTypeName = "";
+                        Type recordType = instance.InstanceType;
+                        string recordTypeName = "";
 
                         while (recordType != null)
                         {
@@ -101,8 +113,10 @@ namespace XLibrary
                         if (recordType == null)
                             throw new Exception(string.Format("record type not found for node type {0} and instance type {1}", nodeTypeName, recordType.ToString()));
 
+                        // if we're looking at a template class, then each root node is a diff type of template List<int>, List<string> etc..
+
                         recordTypeName = recordType.ToString();
-                        var genericName = SelectedNode.Name;
+                        string genericName = SelectedNode.Name;
 
                         if (recordTypeName.Contains('`'))
                             genericName = recordTypeName.Substring(recordTypeName.IndexOf('`'));
@@ -110,7 +124,7 @@ namespace XLibrary
                         if (!GenericMap.ContainsKey(genericName))
                             GenericMap[genericName] = new Tuple<Type, List<ActiveRecord>>(recordType, new List<ActiveRecord>());
 
-                        var recordList = GenericMap[genericName].Item2;
+                        List<ActiveRecord> recordList = GenericMap[genericName].Item2;
                         if( !recordList.Contains(instance) )
                             recordList.Add(instance);
                     }
@@ -149,7 +163,7 @@ namespace XLibrary
 
                 FieldGrid.Nodes.Add(row);
                 row.Init();
-                row.ExpandField();
+                row.ExpandField(FieldFilter);
             }
 
             foreach (FieldRow generic in FieldGrid.Nodes.OfType<FieldRow>())
@@ -320,7 +334,7 @@ namespace XLibrary
             Cells[1].Value = value;
         }
 
-        internal void ExpandField()
+        internal void ExpandField(string fieldFilter=null)
         {
             if (Expanded)
                 return;
@@ -331,7 +345,7 @@ namespace XLibrary
 
             if (FieldType != null)
             {
-                if (RowType == RowTypes.Root)
+                if (RowType == RowTypes.Root && fieldFilter == null)
                 {
                     AddRow(new FieldRow(this, RowTypes.Declared));
                     AddRow(new FieldRow(this, RowTypes.Selected, FieldType));
@@ -339,7 +353,18 @@ namespace XLibrary
                     AddRow(new FieldRow(this, RowTypes.Age));
                 }
 
-                AddFieldMembers();
+                if (fieldFilter == null)
+                    AddFieldMembers();
+                else
+                {
+                    var field = FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(f => f.Name == fieldFilter);
+                    if (field != null)
+                    {
+                        var row = new FieldRow(this, RowTypes.Field, field);
+                        AddRow(row);
+                        row.ExpandField();
+                    }
+                }
             }
 
             RefreshField();

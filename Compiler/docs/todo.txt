@@ -1,6 +1,28 @@
 ﻿
 now
-	field value mouse over
+	make asp.net or dll replacing easy
+		-keep entry point init as an alternative
+		-overwrite original options (create xbackup folder)
+		-check if files already xrayed, restore backups
+		-hardcode dat path
+		
+		commit
+		module path or something to title of window
+		if trying to startup dlls, notify user..
+
+		class to class calls being shown on method map
+		blend colors so i can see outside calls bettter
+		search option to search file/namespace path, see diff components interacting
+
+		
+			create ipc channel and tray app to start/stop xray UIs
+		add to debug window the list of packages that were initally xrayed and the date
+
+	better browsing
+		double click on class to see internal methods (or zoom in on class)
+		combine instance and code view
+		show some default help text in console window
+
 	only show instance view when clicked or visible
 	on click method/node, show that instance view, and select the line with that field
 
@@ -8,6 +30,8 @@ now
 	links in code view
 	search also highlights code/instances
 	add method / field dependencies to graph
+		add info if method is encapsulated by a try, or parent is (trace if there's anyway for unhandled exceptions)
+
 	double click focused class go to method view, save view mode in history
 	msil view - lots of dupe items in list`1 class
 	track internal msil graph
@@ -19,7 +43,8 @@ now
 code paths as a tree
 	clickin on node in tree shows subset
 	tree shows last run
-
+	there is 'something' here, there a 'code paths' that get run periodically
+		how can i define and show these paths, catagorize by time freq?
 
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
 	compare deOps performance because its sloooww

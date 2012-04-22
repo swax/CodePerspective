@@ -82,13 +82,11 @@ namespace XBuilder
             return sum;
         }
 
-        public long SaveTree(string dir)
+        public long SaveTree(string path)
         {
             long trackedObjects = 0;
 
             ComputeSums();
-
-            string path = Path.Combine(dir, "XRay.dat");
 
             byte[] temp = new byte[4096];
 

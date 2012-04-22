@@ -63,8 +63,8 @@ namespace XLibrary
         public static DateTime StartTime;
         //public static double BytesSent;
 
-
-        public static void TestInit(string path)
+        // opens xray from the builder exe to analyze the dat
+        public static void Analyze(string path)
         {
             if (LoadNodeMap(path))
             {
@@ -73,19 +73,17 @@ namespace XLibrary
             }
         }           
             
-        public static void Init(bool trackFlow, bool trackInstances)
+        // called from re-compiled app's entrypoint
+        public static void Init(string datPath, bool trackFlow, bool trackInstances)
         {
+            LogError("Entry point Init");
+
             if (InitComplete)
             {
                 LogError("Init already called");
                 return;
             }
 
-            Init2(trackFlow, trackInstances);
-        }
-
-        public static void Init2(bool trackFlow, bool trackInstances)
-        {
             StartTime = DateTime.Now;
 
             try
@@ -102,9 +100,7 @@ namespace XLibrary
                 InstanceTracking = trackInstances;
 
                 // data file with node info should be along side ext
-                string path = Path.Combine(Application.StartupPath, "XRay.dat");
-
-                LoadNodeMap(path);
+                LoadNodeMap(datPath);
 
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);

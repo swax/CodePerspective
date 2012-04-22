@@ -11,6 +11,9 @@ namespace XLibrary
         {
             //return name;
 
+            // i think this is left over by cecil, indicating the class was passed by ref, rare, should fig out more detail
+            name = name.TrimEnd('&');
+
             string originalName = name;
 
             // make template name more readable
@@ -37,7 +40,9 @@ namespace XLibrary
             }
 
             int start = pos + 1;
-            int numT = int.Parse(name.Substring(start, endPos - start));
+            int numT;
+            if (!int.TryParse(name.Substring(start, endPos - start), out numT))
+                return name;
 
             string nameT = name.Substring(0, pos);
 

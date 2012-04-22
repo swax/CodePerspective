@@ -91,6 +91,7 @@
     <Compile Include="BuildForm.Designer.cs">
       <DependentUpon>BuildForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Decompile.MS.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>

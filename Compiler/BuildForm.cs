@@ -20,6 +20,7 @@ namespace XBuilder
     {
         string SourceDir;
         string OutputDir;
+        string DatPath;
 
         public BuildForm()
         {
@@ -32,11 +33,10 @@ Unchecked: Slightly less overhead.");
 
             new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(SidebySideCheckBox,
 @"Checked: XRay copies and re-compiles the selected files then runs them side by side the originals.
-          This case maintains the relative paths the original files had for configuration, etc...
+           This case maintains the relative paths the original files had for configuration, etc...
 
-Unchecked: XRay creates a new directory to put re-compiled files into so that renaming is not necessary.
-          This case is useful when getting 'error loading token' during verification usually cause by 
-          re-compiling a sub-set of a project with many interconnected dlls.");
+Unchecked: XRay overwrites the original files with XRayed versions, originals are put in a backup directory.
+           Namespaces are kept the same so referencing assemblies should still work.");
         }
 
         private void AddLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -88,6 +88,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
             OptionsPanel.Enabled = false;
 
+            // have to extract out because thread cant access gui elements
             bool trackFlow = TrackFlowCheckBox.Checked;
             bool trackExternal = TrackExternalCheckBox.Checked;
             bool trackAnon = TrackAnonCheckBox.Checked;
@@ -97,6 +98,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
             bool doVerify = RunVerifyCheckbox.Checked;
             bool compileWithMS = MsToolsCheckbox.Checked;
             bool decompileAgain = DecompileAgainCheckbox.Checked;
+
 
             new Thread(() =>
             {
@@ -115,6 +117,14 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                 try
                 {
+                    status("checking", "");
+                    if (XDecompile.CheckIfAlreadyXRayed(files) &&
+                        !TryRestoreBackups(files))
+                    {
+                        RunInGui(() => OptionsPanel.Enabled = true);
+                        return;
+                    }
+
                     status("Preparing", "");
                     XDecompile.PrepareOutputDir(SourceDir, OutputDir);
 
@@ -129,9 +139,10 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     foreach (XRayedFile item in files)
                         item.FileNode = intRoot.AddNode(Path.GetFileName(item.FilePath), XObjType.File);
 
+
                     foreach (XRayedFile item in files)
                     {
-                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, files, trackFlow, trackExternal, trackAnon, trackFields, trackInstances);
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, DatPath, files, sidebySide, trackFlow, trackExternal, trackAnon, trackFields, trackInstances);
 
                         try
                         {
@@ -194,7 +205,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                     // save node map before verifying because we dont want bogus verify 
                     // errors from preventing the dat file form being made
                     status("Saving Map", "");
-                    trackedObjects = root.SaveTree(OutputDir);
+                    trackedObjects = root.SaveTree(DatPath);
 
 
                     // verify last and aggregate errors'
@@ -227,8 +238,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                     if (sidebySide)
                         summary = summary.Replace("Unable to resolve token.",
-                            "UUnable to resolve token. (Try turning off side by side)");
-
+                            "Unable to resolve token. (Try turning off side by side)");
 
                     //todo token error - turn off side by side
 
@@ -250,6 +260,37 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
 
             }).Start();
+        }
+
+        private bool TryRestoreBackups(XRayedFile[] files)
+        {
+            var result = MessageBox.Show("Some of these files have already been XRayed. Try to restore originals?", "Problem", MessageBoxButtons.YesNo);
+
+            // dont just ignore error because we dont want to backup an xrayed version over an original version and have the user lose their original file
+
+            if (result == DialogResult.No)
+            {
+                RunInGui(() =>StatusLabel.Text = "Recompile canceled");
+                return false;
+            }
+
+            // iterate through backup dir, copy overwrite xrayed files
+            var backupDir = Path.Combine(OutputDir, "xBackup");
+            foreach (var backupFile in Directory.GetFiles(backupDir))
+            {
+                var originalPath = backupFile.Replace("\\xBackup", "");
+                File.Copy(backupFile, originalPath, true);
+            }
+
+            // re-check, if still xrayed, say failed to restore backups
+            if (XDecompile.CheckIfAlreadyXRayed(files))
+            {
+                RunInGui(() => StatusLabel.Text = "Failed to restore backup");
+                return false;
+            }
+           
+            RunInGui(() => StatusLabel.Text = "Restored backups");
+            return true;
         }
 
         void RunInGui(Action method)
@@ -277,7 +318,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
         private void ShowMapButton_Click(object sender, EventArgs e)
         {
             //string path = @"C:\RAID\Main\Dev\WellsResearch\PSDev - Copy\PixelScope\Application\bin\Debug PixelScopePro\XRay.dat";
-            //XRay.TestInit(path);
+            //XRay.Analyze(path);
             //return;
 
             try
@@ -286,7 +327,7 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
 
                 string path = Path.Combine(OutputDir, "XRay.dat");
 
-                XRay.TestInit(path);
+                XRay.Analyze(path);
             }
             catch (Exception ex)
             {
@@ -319,11 +360,8 @@ Unchecked: XRay creates a new directory to put re-compiled files into so that re
                 return;
             }
 
-            if (SidebySideCheckBox.Checked)
-                OutputDir = SourceDir;
-            else
-                OutputDir = Path.Combine(SourceDir, "XRay");
-
+            OutputDir = SourceDir;
+            DatPath = Path.Combine(OutputDir, "XRay.dat");
             OutputLink.Text = "Output: " + OutputDir;
             OutputLink.Visible = true;
         }

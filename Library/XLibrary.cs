@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Ipc;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -107,24 +110,67 @@ namespace XLibrary
 
                 InitComplete = true;
 
-                // boot up the xray gui
-                if (Gui != null)
-                    return;
+                StartIpcServer();
 
-                Gui = new Thread(() =>
+                StartGui();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        public static void StartGui()
+        {
+            if (Gui != null)
+                return;
+
+            Gui = new Thread(() =>
+            {
+                try
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
 
                     MainForm = new MainForm();
                     Application.Run(MainForm);
-                });
-                Gui.SetApartmentState(ApartmentState.STA);
-                Gui.Start();
+                }
+                catch (Exception ex)
+                {
+                    LogError("Gui Error: " + ex.Message);
+                }
+
+                Gui = null;
+            });
+            Gui.SetApartmentState(ApartmentState.STA);
+            Gui.Start();
+        }
+
+        static IpcServerChannel XRayChannel;
+        static IpcQuery XRayQuery;
+
+        private static void StartIpcServer()
+        {
+            // url - ipc://xray_1/query
+            try
+            {
+                string unique = new Random().Next().ToString();
+                string host = "xray_" + unique;
+                string queryUri = "query";
+                string url = "ipc://" + host + "/" + queryUri;
+
+                XRayChannel = new IpcServerChannel(host);
+
+                ChannelServices.RegisterChannel(XRayChannel, false);
+
+                RemotingConfiguration.RegisterWellKnownServiceType(typeof(IpcQuery), queryUri, WellKnownObjectMode.Singleton);
+
+                XRayQuery = new IpcQuery();
+                RemotingServices.Marshal(XRayQuery, queryUri);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                LogError("Error starting IPC server: " + ex.Message);
             }
         }
 
@@ -874,4 +920,41 @@ namespace XLibrary
         #endregion
     }
 
+    public class IpcQuery : MarshalByRefObject
+    {
+        public override object InitializeLifetimeService()
+        {
+            // Make sure the object exists "forever"
+            return null;
+        }
+
+        public string GetName()
+        {
+            return Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
+        }
+
+        public bool GuiVisible
+        {
+            get
+            {
+                return (XRay.Gui != null);
+            }
+            set
+            {
+                XRay.StartGui();
+            }
+        }
+
+        public bool Tracking
+        {
+            get
+            {
+                return XRay.XRayEnabled;
+            }
+            set
+            {
+                XRay.XRayEnabled = value;
+            }
+        }
+    }
 }

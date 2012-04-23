@@ -68,6 +68,7 @@
     </Reference>
     <Reference Include="System.Core">
     </Reference>
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml.Linq">
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">
@@ -84,14 +85,26 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="BuildPanel.Designer.cs">
+      <DependentUpon>BuildPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Decompile.cs" />
-    <Compile Include="BuildForm.cs">
+    <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="BuildForm.Designer.cs">
-      <DependentUpon>BuildForm.cs</DependentUpon>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.MS.cs" />
+    <Compile Include="MonitorPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="MonitorPanel.Designer.cs">
+      <DependentUpon>MonitorPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -101,9 +114,15 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XNodeOut.cs" />
-    <EmbeddedResource Include="BuildForm.resx">
-      <DependentUpon>BuildForm.cs</DependentUpon>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BuildPanel.resx">
+      <DependentUpon>BuildPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MonitorPanel.resx">
+      <DependentUpon>MonitorPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>

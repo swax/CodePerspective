@@ -79,6 +79,7 @@
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing">
     </Reference>
+    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Windows.Forms">
     </Reference>
     <Reference Include="System.Xml.Linq">
@@ -100,53 +101,53 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GLPanel.cs">
+    <Compile Include="UI\GLPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="GLPanel.Designer.cs">
+    <Compile Include="UI\GLPanel.Designer.cs">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\CodePanel.cs">
+    <Compile Include="UI\Panels\CodePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\CodePanel.Designer.cs">
+    <Compile Include="UI\Panels\CodePanel.Designer.cs">
       <DependentUpon>CodePanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\ConsolePanel.cs">
+    <Compile Include="UI\Panels\ConsolePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\ConsolePanel.Designer.cs">
+    <Compile Include="UI\Panels\ConsolePanel.Designer.cs">
       <DependentUpon>ConsolePanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\DebugPanel.cs">
+    <Compile Include="UI\Panels\DebugPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\DebugPanel.Designer.cs">
+    <Compile Include="UI\Panels\DebugPanel.Designer.cs">
       <DependentUpon>DebugPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\InstancePanel.cs">
+    <Compile Include="UI\Panels\InstancePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\InstancePanel.Designer.cs">
+    <Compile Include="UI\Panels\InstancePanel.Designer.cs">
       <DependentUpon>InstancePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Extensions.cs" />
-    <Compile Include="MainForm.cs">
+    <Compile Include="UI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\TimingPanel.cs">
+    <Compile Include="UI\Panels\TimingPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\TimingPanel.Designer.cs">
+    <Compile Include="UI\Panels\TimingPanel.Designer.cs">
       <DependentUpon>TimingPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\ViewPanel.cs">
+    <Compile Include="UI\Panels\ViewPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\ViewPanel.Designer.cs">
+    <Compile Include="UI\Panels\ViewPanel.Designer.cs">
       <DependentUpon>ViewPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
@@ -154,59 +155,59 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TreeGrid\TreeGridCell.cs" />
-    <Compile Include="TreeGrid\TreeGridEvents.cs" />
-    <Compile Include="TreeGrid\TreeGridNode.cs" />
-    <Compile Include="TreeGrid\TreeGridNodeCollection.cs" />
-    <Compile Include="TreeGrid\TreeGridView.cs" />
-    <Compile Include="TreeMap.cs" />
-    <Compile Include="TreePanelGdiPlus.CallGraph.cs">
+    <Compile Include="UI\TreeGrid\TreeGridCell.cs" />
+    <Compile Include="UI\TreeGrid\TreeGridEvents.cs" />
+    <Compile Include="UI\TreeGrid\TreeGridNode.cs" />
+    <Compile Include="UI\TreeGrid\TreeGridNodeCollection.cs" />
+    <Compile Include="UI\TreeGrid\TreeGridView.cs" />
+    <Compile Include="UI\TreeMap.cs" />
+    <Compile Include="UI\TreePanelGdiPlus.CallGraph.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="TreePanelGdiPlus.cs">
+    <Compile Include="UI\TreePanelGdiPlus.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="TreePanelGdiPlus.Designer.cs">
+    <Compile Include="UI\TreePanelGdiPlus.Designer.cs">
       <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
     </Compile>
     <Compile Include="Utilities.cs" />
-    <Compile Include="ViewModel.cs" />
+    <Compile Include="UI\ViewModel.cs" />
     <Compile Include="Win32.cs" />
     <Compile Include="XLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XNode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="GLPanel.resx">
+    <EmbeddedResource Include="UI\GLPanel.resx">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\CodePanel.resx">
+    <EmbeddedResource Include="UI\Panels\CodePanel.resx">
       <DependentUpon>CodePanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\ConsolePanel.resx">
+    <EmbeddedResource Include="UI\Panels\ConsolePanel.resx">
       <DependentUpon>ConsolePanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\DebugPanel.resx">
+    <EmbeddedResource Include="UI\Panels\DebugPanel.resx">
       <DependentUpon>DebugPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\InstancePanel.resx">
+    <EmbeddedResource Include="UI\Panels\InstancePanel.resx">
       <DependentUpon>InstancePanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
+    <EmbeddedResource Include="UI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\TimingPanel.resx">
+    <EmbeddedResource Include="UI\Panels\TimingPanel.resx">
       <DependentUpon>TimingPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\ViewPanel.resx">
+    <EmbeddedResource Include="UI\Panels\ViewPanel.resx">
       <DependentUpon>ViewPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="TreePanelGdiPlus.resx">
+    <EmbeddedResource Include="UI\TreePanelGdiPlus.resx">
       <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -229,10 +230,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Font.bmp" />
+    <EmbeddedResource Include="UI\Resources\Font.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Font2.png" />
+    <EmbeddedResource Include="UI\Resources\Font2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,22 +1,12 @@
 ﻿
 now
-	make asp.net or dll replacing easy
-		-keep entry point init as an alternative
-		-overwrite original options (create xbackup folder)
-		-check if files already xrayed, restore backups
-		-hardcode dat path
-		
-		commit
-		module path or something to title of window
-		if trying to startup dlls, notify user..
+	fix build name for dlls
+	option to start with xray gui off
+	if trying to startup dlls, notify user..
 
-		class to class calls being shown on method map
-		blend colors so i can see outside calls bettter
-		search option to search file/namespace path, see diff components interacting
-
-		
-			create ipc channel and tray app to start/stop xray UIs
-		add to debug window the list of packages that were initally xrayed and the date
+	class to class calls being shown on method map
+	blend colors so i can see outside calls bettter
+	search option to search file/namespace path, see diff components interacting
 
 	better browsing
 		double click on class to see internal methods (or zoom in on class)
@@ -37,8 +27,11 @@ now
 	track internal msil graph
 
 	dll support, service? - test asp.net
-	exe support to bring xray up after closed, maybe use same dll service
 	3d play
+
+	post-build command line to introspex a build in debug mode so dev at any time can start introspex monitor
+	
+	flash class green/red when constructd/deconstructed
 
 code paths as a tree
 	clickin on node in tree shows subset
@@ -49,9 +42,6 @@ code paths as a tree
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
 	compare deOps performance because its sloooww
 	blend colors in gdi like openGl
-
-flash class green/red when constructd/deconstructed
-
 
 draw flat treemap in orthagonal view
 	click to select should work well
@@ -187,10 +177,6 @@ help tab
 	ctrl click to select multiple
 
 
-
-Thread differentiation
-	sep call graphs per thread, or list of ids, select to show graph for just that
-
 Put sub-classses inside parent classes so functions/methods are adacent?
 
 
@@ -215,8 +201,6 @@ surf through state
 
 hook calls to edge of node in graph view?
 
-get working with just a dll
-
 rename field with types to anon classes to new name
 
 option to re-organize classes methods 'processClassNames'
@@ -225,19 +209,20 @@ keep track anon/external option or just have it able to turn off on client side?
 
 show what the compiler settinsg were of the app when opened with xray
 
-can hook up to dll without exe?
-
-get code for method
-
-registery to remem last used configuration
-
 make it look so good people will want to full screen it and use as a screen saver
 
-thread colors
+different colors per thread
 	option to turn on/off
 	pick 6 colors, take thread.getHash() % 6 to get index of color
 	color nodes/lines between nodes according to hash
 	save red for nodes/calls hit by multiple colors
+	each entry instance has an id, could map instance ids to function calls
+	6 red orange yellow green blue purple
+	black interlace when threads intersect
+	array 0 - 5
+	map thread id to array index
+	every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
+	sep call graphs per thread, or list of ids, select to show graph for just that
 
 website
 	email sign-up to get latest news on xray
@@ -322,15 +307,6 @@ sub function tracking
 	   shade nodes by percent thats been covered (more red if less covered)
    call lines will come from sub  function of node with-in node
    
-different colors per thread
-	each entry instance has an id, could map instance ids to function calls
-
-	6 red orange yellow green blue purple
-	black interlace when threads intersect
-	array 0 - 5
-	map thread id to array index
-	every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
-
 future editor
 	click on blocks, edit code
 	f5 launches app and everything starts lighting up

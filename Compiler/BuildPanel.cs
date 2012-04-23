@@ -1,28 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.IO;
+using System.Data;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
-
+using System.Threading;
+using System.Runtime.Remoting.Channels.Ipc;
+using System.IO;
+using System.Runtime.Remoting;
 using XLibrary;
-using System.CodeDom.Compiler;
-using System.Reflection;
+using System.Diagnostics;
+using System.Runtime.Remoting.Channels;
 
 namespace XBuilder
 {
-    public partial class BuildForm : Form
+    public partial class BuildPanel : UserControl
     {
         string SourceDir;
         string OutputDir;
         string DatPath;
 
-        public BuildForm()
+        public BuildPanel()
         {
             InitializeComponent();
 
@@ -57,7 +57,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
                 return;
             }
 
-            foreach(string path in open.FileNames)
+            foreach (string path in open.FileNames)
                 FileList.Items.Add(new XRayedFile(path));
 
             UpdateOutputPath();
@@ -70,6 +70,12 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             foreach (XRayedFile item in FileList.SelectedItems.Cast<XRayedFile>().ToArray())
                 FileList.Items.Remove(item);
 
+            UpdateOutputPath();
+        }
+
+        private void ResetLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            FileList.Items.Clear();
             UpdateOutputPath();
         }
 
@@ -262,6 +268,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             }).Start();
         }
 
+
         private bool TryRestoreBackups(XRayedFile[] files)
         {
             var result = MessageBox.Show("Some of these files have already been XRayed. Try to restore originals?", "Problem", MessageBoxButtons.YesNo);
@@ -270,7 +277,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
 
             if (result == DialogResult.No)
             {
-                RunInGui(() =>StatusLabel.Text = "Recompile canceled");
+                RunInGui(() => StatusLabel.Text = "Recompile canceled");
                 return false;
             }
 
@@ -288,7 +295,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
                 RunInGui(() => StatusLabel.Text = "Failed to restore backup");
                 return false;
             }
-           
+
             RunInGui(() => StatusLabel.Text = "Restored backups");
             return true;
         }
@@ -315,12 +322,9 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             Process.Start(info);
         }
 
+
         private void ShowMapButton_Click(object sender, EventArgs e)
         {
-            //string path = @"C:\RAID\Main\Dev\WellsResearch\PSDev - Copy\PixelScope\Application\bin\Debug PixelScopePro\XRay.dat";
-            //XRay.Analyze(path);
-            //return;
-
             try
             {
                 XRayedFile item = GetSelectedItem();
@@ -340,12 +344,6 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             XRayedFile item = FileList.SelectedItem as XRayedFile;
 
             return FileList.Items.Cast<XRayedFile>().FirstOrDefault(i => i.FileName.EndsWith(".exe"));
-        }
-
-        private void ResetLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            FileList.Items.Clear();
-            UpdateOutputPath();
         }
 
         private void UpdateOutputPath()
@@ -378,82 +376,18 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             }
         }
 
-        private void SidebySideBox_CheckedChanged(object sender, EventArgs e)
+        private void SidebySideCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             UpdateOutputPath();
         }
 
         private void TestCompile_Click(object sender, EventArgs e)
         {
-           // StringEval("y.xxx");
+            // StringEval("y.xxx");
             ReCompile(true);
         }
-
-
-       /* string EvalBody = @"
-            using System;
-
-            public delegate void Proc();
-
-            public class Wrapper 
-            { 
-                public static object Set(string name, object value) 
-                { 
-                    AppDomain.CurrentDomain.SetData(name, value);
-                    return value; 
-                }
-
-                public static object Get(string name) 
-                { 
-                    return AppDomain.CurrentDomain.GetData(name);
-                }
-
-                public static object Invoke(Proc proc) 
-                { 
-                    proc();
-                    return null; 
-                }
-
-                public static object Eval(dynamic y) 
-                { 
-                    return {0}; 
-                }
-            }";
-
-        string StringEval(string expr)
-        {
-            string program = EvalBody.Replace("{0}", expr);
-
-            var x = CodeDomProvider.GetAllCompilerInfo();
-
-            var provider = CodeDomProvider.CreateProvider("C#");
-            CompilerParameters cp = new CompilerParameters();
-            cp.ReferencedAssemblies.Add("System.Core.dll");
-            cp.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
-            cp.GenerateExecutable = false;
-            cp.GenerateInMemory = true;
-
-            CompilerResults results = provider.CompileAssemblyFromSource(cp, program);
-
-            if (results.Errors.HasErrors)
-            {
-                if (results.Errors[0].ErrorNumber == "CS0029")
-                    return StringEval("Invoke(delegate { " + expr + "; })");
-
-                return results.Errors[0].ErrorText;
-            }
-            else
-            {
-                Assembly assm = results.CompiledAssembly;
-                Type target = assm.GetType("Wrapper");
-                MethodInfo method = target.GetMethod("Eval");
-
-                object result = method.Invoke(null, new object[] { XRay });
-
-                return result == null ? "null" : result.ToString();
-            }
-        }*/
     }
+
 
     public class XRayedFile
     {

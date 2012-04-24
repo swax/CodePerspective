@@ -1,18 +1,16 @@
 ﻿
 now
-	fix build name for dlls
-	option to start with xray gui off
-	if trying to startup dlls, notify user..
-
 	class to class calls being shown on method map
 	blend colors so i can see outside calls bettter
 	search option to search file/namespace path, see diff components interacting
 
-	better browsing
-		double click on class to see internal methods (or zoom in on class)
-		combine instance and code view
-		show some default help text in console window
+	combine instance and code view
+	show some default help text in console window
+	flash class green/red when constructd/deconstructed
+	decompile c# code option - ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
+	better browsing - double click on class to see internal methods (or zoom in on class)
+		
 	only show instance view when clicked or visible
 	on click method/node, show that instance view, and select the line with that field
 
@@ -25,14 +23,11 @@ now
 	double click focused class go to method view, save view mode in history
 	msil view - lots of dupe items in list`1 class
 	track internal msil graph
-
-	dll support, service? - test asp.net
+	
 	3d play
 
 	post-build command line to introspex a build in debug mode so dev at any time can start introspex monitor
 	
-	flash class green/red when constructd/deconstructed
-
 code paths as a tree
 	clickin on node in tree shows subset
 	tree shows last run
@@ -40,6 +35,7 @@ code paths as a tree
 		how can i define and show these paths, catagorize by time freq?
 
 abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
+	rendering interface that can be passed in, cache color brushes/pens
 	compare deOps performance because its sloooww
 	blend colors in gdi like openGl
 
@@ -121,25 +117,11 @@ dhtnetwork calls coming from nowhere, show them?
 	maybe class graph edges are still being drawn??
 	does 'reset hit' reset class hit status>
 
-shortcut key, hook in app's global name space or maybe even windows itself to activate xray and turn it off when closed
-	would be nice to hide xray UIs
-	build settings
-		start with xray enabled/disabled
-		start with UI shown/hidden
-	bind to windows key + x to show all xray UIs?
-
 search box
 	show count next to search box for found #, clicking on # filters display to those nodes
 	state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
 
 Graph Direct -> Method map, does not re-add call dashed lines
-
-on/off button
-	add option to compiler to start xray 'off'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-	test with uberblox to test speed
-
-put in some tool tips for vis options
-	on selected radio mention ctrl click
 
 profile tab
 	reset timing button
@@ -161,11 +143,6 @@ bugs
 	why isnt main function showing up when resetting hit nodes?
 	why are some functions the root of a call graph, but not the thread start?
 	constant size not working in call graph mode
-
-code panel
-	add to dat file
-	load byte position of source in file, so whole source file doesnt need to be loaded into memeory
-	ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
 help tab
 	scrolls down
@@ -244,11 +221,7 @@ site written as asp.net dll
 	this starts another server that xray remote can be used on
 	periodically the remote client sends a compressed bitfield of hit functions
 
-stats
-	re-calcs/sec, re-calc time
-	re-size/sec,  re-size time
-	re-draw/sec,  re-draw time
-	ability in interface to speedup/slowdown update speed
+ability in interface to speedup/slowdown update speed
 
 thread time graph
 	x axis time - moving forward in real time
@@ -274,7 +247,6 @@ look at functions with links that are no longer active
 	test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
 
 override
-	allow user to click view MSIL
 	user can edit MSIL
 	save, compile and activate override
 	override needs to be specified as a compile option

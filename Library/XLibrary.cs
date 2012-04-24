@@ -77,7 +77,7 @@ namespace XLibrary
         }           
             
         // called from re-compiled app's entrypoint
-        public static void Init(string datPath, bool trackFlow, bool trackInstances)
+        public static void Init(string datPath, bool showUiOnStart, bool trackFlow, bool trackInstances)
         {
             LogError("Entry point Init");
 
@@ -112,7 +112,8 @@ namespace XLibrary
 
                 StartIpcServer();
 
-                StartGui();
+                if(showUiOnStart)
+                    StartGui();
             }
             catch (Exception ex)
             {

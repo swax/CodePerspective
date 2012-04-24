@@ -42,6 +42,7 @@ namespace XBuilder
         public bool TrackAnon;
         public bool TrackFields;
         public bool TrackCode = true;
+        public bool ShowUIonStart;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -60,7 +61,7 @@ namespace XBuilder
         public XRayedFile[] XRayedFiles;
 
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, string datPath, XRayedFile[] files, bool sxs, bool trackFlow, bool trackExternal, bool trackAnon, bool trackFields, bool trackInstances)
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, string datPath, XRayedFile[] files, bool sxs, bool trackFlow, bool trackExternal, bool trackAnon, bool trackFields, bool trackInstances, bool showUiOnStart)
         {
             ExtRoot = extRoot;
             OriginalPath = item.FilePath;
@@ -76,6 +77,7 @@ namespace XBuilder
             TrackAnon = trackAnon;
             TrackFields = trackFields;
             TrackInstances = trackInstances;
+            ShowUIonStart = showUiOnStart;
         }
 
         internal void MonoRecompile()
@@ -100,7 +102,7 @@ namespace XBuilder
 
             asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
             
-            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool) }));
+            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
 			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
             ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
             CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
@@ -204,6 +206,7 @@ namespace XBuilder
             int i = 0;
 
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldstr, DatPath));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, ShowUIonStart ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackFlow ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackInstances ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Call, XRayInitRef));
@@ -226,7 +229,7 @@ namespace XBuilder
 
             RecompileMethods(classDef, classNode);
 
-            foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class))
+            foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class).ToArray())
                 RecompileClass(nestedDef, classNode);
 
             return classNode;

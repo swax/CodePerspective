@@ -31,12 +31,16 @@ namespace XBuilder
 
 Unchecked: Slightly less overhead.");
 
-            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(SidebySideCheckBox,
-@"Checked: XRay copies and re-compiles the selected files then runs them side by side the originals.
+            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(ReplaceOriginalCheckBox,
+@"Unchecked: XRay copies and re-compiles the selected files then runs them side by side the originals.
            This case maintains the relative paths the original files had for configuration, etc...
 
-Unchecked: XRay overwrites the original files with XRayed versions, originals are put in a backup directory.
+Checked: XRay overwrites the original files with XRayed versions, originals are put in a backup directory.
            Namespaces are kept the same so referencing assemblies should still work.");
+
+            RunVerifyCheckbox.Visible = false;
+            DecompileAgainCheckbox.Visible = false;
+            MsToolsCheckbox.Visible = false;
         }
 
         private void AddLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -100,10 +104,11 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             bool trackAnon = TrackAnonCheckBox.Checked;
             bool trackFields = TrackFieldsCheckBox.Checked;
             bool trackInstances = TrackInstancesCheckBox.Checked;
-            bool sidebySide = SidebySideCheckBox.Checked;
+            bool replaceOriginal = ReplaceOriginalCheckBox.Checked;
             bool doVerify = RunVerifyCheckbox.Checked;
             bool compileWithMS = MsToolsCheckbox.Checked;
             bool decompileAgain = DecompileAgainCheckbox.Checked;
+            bool showUiOnStart = ShowOnStartCheckBox.Checked;
 
 
             new Thread(() =>
@@ -148,7 +153,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
 
                     foreach (XRayedFile item in files)
                     {
-                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, DatPath, files, sidebySide, trackFlow, trackExternal, trackAnon, trackFields, trackInstances);
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, DatPath, files, !replaceOriginal, trackFlow, trackExternal, trackAnon, trackFields, trackInstances, showUiOnStart);
 
                         try
                         {
@@ -242,7 +247,7 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
                     summary = summary.Replace("Unmanaged pointers are not a verifiable type.",
                         "Unmanaged pointers are not a verifiable type. (Ignore)");
 
-                    if (sidebySide)
+                    if (!replaceOriginal)
                         summary = summary.Replace("Unable to resolve token.",
                             "Unable to resolve token. (Try turning off side by side)");
 
@@ -313,6 +318,12 @@ Unchecked: XRay overwrites the original files with XRayed versions, originals ar
             if (item.RecompiledPath == null)
             {
                 MessageBox.Show(item.ToString() + " has not been re-compiled yet");
+                return;
+            }
+
+            if (!item.RecompiledPath.EndsWith(".exe"))
+            {
+                MessageBox.Show("Can only launch exes, for dlls launch the exe that uses the dll.");
                 return;
             }
 

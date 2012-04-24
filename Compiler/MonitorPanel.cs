@@ -23,8 +23,15 @@ namespace XBuilder
 
             SelectedGroupBox.Visible = false;
 
-            XChannel = new IpcClientChannel();
-            ChannelServices.RegisterChannel(XChannel, false);
+            try
+            {
+                XChannel = new IpcClientChannel();
+                ChannelServices.RegisterChannel(XChannel, false);
+            }
+            catch 
+            {
+                LastErrorLabel.Text = "Unabled to open IPC channel";
+            }
         }
 
         private void RefreshTimer_Tick(object sender, EventArgs e)

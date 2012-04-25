@@ -1,6 +1,22 @@
 ﻿
-now
-	class to class calls being shown on method map
+now	
+	break out color profile for GL. put color profiles in their own file, commit
+
+	timeline
+		have some sort of action queue of the last 10000 items
+		each entry is stack depth, start/stop time
+			have a max stack dept
+		renderer just goes through timeline and draws
+		able to zoom in on stack levels
+			compress upper stack levels
+				mouse over shows time
+		or maybe.... compress all stack levels
+			when something happens
+		exageration
+			10x, etc..
+			time function times increased, but stopped before over lapping next function
+		increase timeline length based on the amount of time it takes to process this list
+
 	blend colors so i can see outside calls bettter
 	search option to search file/namespace path, see diff components interacting
 
@@ -28,6 +44,10 @@ now
 
 	post-build command line to introspex a build in debug mode so dev at any time can start introspex monitor
 	
+call graph, filtered by thread
+	add to function call class an int[] for each thread id that used the call
+	drop down combo of threads tracked, name is name of entry point
+
 code paths as a tree
 	clickin on node in tree shows subset
 	tree shows last run

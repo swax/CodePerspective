@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 
 namespace XLibrary
 {
@@ -13,12 +14,20 @@ namespace XLibrary
     public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init }
 
 
-    public class ViewModel
+    public partial class ViewModel
     {
-        internal XNodeIn CurrentRoot;
-        internal XNodeIn InternalRoot;
-        internal XNodeIn ExternalRoot;
-        internal XNodeIn TopRoot;   
+        public bool DoRedraw = true;
+        public bool DoResize = true;
+        public bool DoRevalue = true;
+
+        public Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
+        public Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
+        public Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center     
+
+        public XNodeIn CurrentRoot;
+        public XNodeIn InternalRoot;
+        public XNodeIn ExternalRoot;
+        public XNodeIn TopRoot;
 
         public bool ShowOutside;
         public bool ShowExternal;
@@ -31,10 +40,12 @@ namespace XLibrary
         public TreeMapMode MapMode = TreeMapMode.Normal;
         public SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         public ShowNodes ShowLayout = ShowNodes.All;
+        public bool DrawCallGraphVertically = false;
 
         public CallGraphMode GraphMode = CallGraphMode.Method;
         public bool ShowCalls = true;
         public bool SequenceOrder = false;
+        public bool ShowLabels = true;
 
         public bool ShowAllDependencies = false;
         public Dictionary<int, XNodeIn> InterDependencies = new Dictionary<int, XNodeIn>();
@@ -43,6 +54,15 @@ namespace XLibrary
 
         public bool SearchStrobe;
         public long MaxSecondaryValue;
+
+        public SizeF Size; // in screen coords
+        public PointF Offset; // in model coords 0-1
+        public PointF PanOffset; // in model coords
+
+        public HashSet<int> DependentClasses = new HashSet<int>();
+        public HashSet<int> IndependentClasses = new HashSet<int>();
+
+        public Font TextFont = new Font("tahoma", 8, FontStyle.Bold);
 
         // performance
         public int FpsCount;
@@ -72,7 +92,7 @@ namespace XLibrary
 
             foreach (XNodeIn node in root.Nodes)
             {
-                if ( (node.ObjType == XObjType.Field && !ShowFields) ||
+                if ((node.ObjType == XObjType.Field && !ShowFields) ||
                      (node.ObjType == XObjType.Method && !ShowMethods) ||
                      (node.IsAnon && !ShowAnon)
                    )
@@ -81,7 +101,7 @@ namespace XLibrary
                     continue;
                 }
 
-                node.Show = 
+                node.Show =
                     ShowLayout == ShowNodes.All ||
                     (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
                     (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
@@ -172,6 +192,61 @@ namespace XLibrary
             }
 
             return classes;
+        }
+
+        public void RecalcDependencies()
+        {
+            DependentClasses.Clear();
+            IndependentClasses.Clear();
+
+            if ((ViewLayout == LayoutType.TreeMap && MapMode == TreeMapMode.Dependencies) ||
+                (ViewLayout == LayoutType.CallGraph && GraphMode == CallGraphMode.Dependencies))
+            {
+
+                if (FocusedNodes.Count == 0)
+                    return;
+
+                // find dependencies for selected classes
+                Dictionary<int, XNodeIn> classes = GetClassesFromFocusedNodes();
+
+                bool doRecurse = ShowAllDependencies;
+                bool idFound = false;
+
+                foreach (var dependenciesTo in classes.Values.Where(c => c.Dependencies != null)
+                                                             .Select(c => c.Dependencies))
+                {
+                    Utilities.RecurseTree<int>(
+                        dependenciesTo,
+                        evaluate: id =>
+                        {
+                            idFound = DependentClasses.Contains(id);
+                            DependentClasses.Add(id);
+                        },
+                        recurse: id =>
+                        {
+                            return (doRecurse && !idFound) ? XRay.Nodes[id].Dependencies : null;
+                        }
+                    );
+                }
+
+                // find all dependencies from
+                foreach (var dependenciesFrom in classes.Values.Where(c => c.Independencies != null)
+                                            .Select(c => c.Independencies))
+                {
+                    Utilities.RecurseTree<int>(
+                        dependenciesFrom,
+                        evaluate: id =>
+                        {
+                            idFound = IndependentClasses.Contains(id);
+                            IndependentClasses.Add(id);
+                        },
+                        recurse: id =>
+                        {
+                            return (doRecurse && !idFound) ? XRay.Nodes[id].Independencies : null;
+                        }
+                    );
+                }
+            }
         }
     }
 }

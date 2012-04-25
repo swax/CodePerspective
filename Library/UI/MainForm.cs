@@ -22,7 +22,7 @@ namespace XLibrary
         {
             InitializeComponent();
 
-            TreeView = new TreePanelGdiPlus(this) { Dock = DockStyle.Fill };
+            TreeView = new TreePanelGdiPlus(this, new BrightColorProfile()) { Dock = DockStyle.Fill };
             ViewHostPanel.Controls.Add(TreeView);
 
             ResetTimer.Interval = 1000 / XRay.HitFrames;
@@ -177,7 +177,7 @@ namespace XLibrary
                 }
 
                 GLView.Visible = true;
-                GLView.DoRevalue = !redrawOnly;
+                Model.DoRevalue = !redrawOnly;
                 GLView.Redraw();
             }
             else

@@ -1,50 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Text;
-
-/*Based on call graph in test panel
-  
-The dot algorithm produces a ranked layout of a graph honoring edge directions. 
-It is particularly appropriate for displaying hierarchies or directed acyclic 
-graphs. The basic layout scheme is attributed to Sugiyama et al. The specific 
-algorithm used by dot follows the steps described by Gansner et al.
-
-dot draws a graph in four main phases. Knowing this helps you to understand what 
-kind of layouts dot makes and how you can control them. The layout procedure used 
-by dot relies on the graph being acyclic. Thus, the first step is to break any 
-cycles which occur in the input graph by reversing the internal direction of 
-certain cyclic edges. The next step assigns nodes to discrete ranks or levels. 
-In a top-to-bottom drawing, ranks determine Y coordinates. Edges that span more 
-than one rank are broken into chains of virtual nodes and unit-length edges. The 
-third step orders nodes within ranks to avoid crossings. The fourth step sets X 
-coordnates of nodes to keep edges short, and the final step routes edge splines.
-
-In dot, higher edge weights have the effect of causing edges to be shorter and straighter. 
- */
+using System.Drawing;
+using System.Diagnostics;
 
 namespace XLibrary
 {
-    partial class TreePanelGdiPlus
+	partial class ViewModel
     {
-        List<Graph> Graphs = new List<Graph>();
+        public List<Graph> Graphs = new List<Graph>();
 
         const int MinCallNodeSize = 5;
 
-        bool DrawCallGraphVertically = false;
 
-
-        private void DrawCallGraph(Graphics buffer)
+        public void DrawCallGraph(Graphics buffer)
         {
-            if (DoRevalue || 
-                XRay.CallChange || 
-                (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||  
-                (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange) )
+            if (DoRevalue ||
+                XRay.CallChange ||
+                (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
+                (ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
-                Model.RecalcCover(Model.InternalRoot);
-                Model.RecalcCover(Model.ExternalRoot);
+                RecalcCover(InternalRoot);
+                RecalcCover(ExternalRoot);
 
                 Graphs.Clear();
                 PositionMap.Clear();
@@ -52,7 +30,7 @@ namespace XLibrary
                 OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
-                if (Model.GraphMode == CallGraphMode.Intermediates)
+                if (GraphMode == CallGraphMode.Intermediates)
                 {
                     foreach (var n in XRay.Nodes)
                     {
@@ -61,12 +39,12 @@ namespace XLibrary
                         n.DependencyChainOut = null;
                     }
 
-                    foreach (var n in Model.InterDependencies.Values)
+                    foreach (var n in InterDependencies.Values)
                     {
                         CenterMap[n.ID] = n;
                         PositionMap[n.ID] = n;
 
-                        var find = Model.InterDependencies.Keys.ToList();
+                        var find = InterDependencies.Keys.ToList();
                         find.Remove(n.ID);
 
                         FindChainTo(n, find);
@@ -84,13 +62,13 @@ namespace XLibrary
                 }
                 else
                 {
-                    AddCalledNodes(Model.CurrentRoot, true);
+                    AddCalledNodes(CurrentRoot, true);
 
-                    if (Model.ShowOutside || CenterMap.Count == 1) // prevent blank screen
-                        AddCalledNodes(Model.InternalRoot, false);
+                    if (ShowOutside || CenterMap.Count == 1) // prevent blank screen
+                        AddCalledNodes(InternalRoot, false);
 
-                    if (Model.ShowExternal)
-                        AddCalledNodes(Model.ExternalRoot, false);
+                    if (ShowExternal)
+                        AddCalledNodes(ExternalRoot, false);
                 }
 
                 if (PositionMap.Count > 0)
@@ -106,7 +84,7 @@ namespace XLibrary
                 XRay.InstanceChange = false;
 
                 DoRevalue = false;
-                Model.RevalueCount++;
+                RevalueCount++;
 
                 DoResize = true;
             }
@@ -118,21 +96,13 @@ namespace XLibrary
                 ScaleGraph(buffer);
 
                 DoResize = false;
-                Model.ResizeCount++;
-            }
-
-            foreach (var node in Graphs.SelectMany(g => g.Nodes()))
-            {
-                if (node.ID == 0) // dont draw intermediate nodes
-                    continue;
-
-                DrawNode(buffer, node, 0, false);
+                ResizeCount++;
             }
         }
 
         private void ScaleGraph(Graphics buffer)
         {
-            float fullSize = (float)Math.Min(ModelSize.Width, ModelSize.Height) / 2;
+            float fullSize = (float)Math.Min(Size.Width, Size.Height) / 2;
 
             foreach (var graph in Graphs)
             {
@@ -152,11 +122,11 @@ namespace XLibrary
                         }
                     }
 
-                    float right = ModelOffset.X + ModelSize.Width;
+                    float right = Offset.X + Size.Width;
                     if (ShowLabels)
                     {
                         if (i < graph.Ranks.Length - 1)
-                            right = ModelOffset.X + ModelSize.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                            right = Offset.X + Size.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
                                     (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
                     }
 
@@ -173,8 +143,8 @@ namespace XLibrary
                             size = MinCallNodeSize;
 
                         node.SetArea(new RectangleF(
-                            ModelOffset.X + ModelSize.Width * node.ScaledLocation.X - halfSize,
-                            ModelOffset.Y + ModelSize.Height * node.ScaledLocation.Y - halfSize,
+                            Offset.X + Size.Width * node.ScaledLocation.X - halfSize,
+                            Offset.Y + Size.Height * node.ScaledLocation.Y - halfSize,
                             size, size));
                     }
 
@@ -215,8 +185,8 @@ namespace XLibrary
                             }
 
                             float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                            top = ModelOffset.Y + (node.ScaledLocation.Y - distanceFromCenter) * ModelSize.Height;
-                            bottom = ModelOffset.Y + (node.ScaledLocation.Y + distanceFromCenter) * ModelSize.Height;
+                            top = Offset.Y + (node.ScaledLocation.Y - distanceFromCenter) * Size.Height;
+                            bottom = Offset.Y + (node.ScaledLocation.Y + distanceFromCenter) * Size.Height;
 
 
                             node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
@@ -319,7 +289,7 @@ namespace XLibrary
 
                 groupOffset += graph.ScaledHeight;
 
-                if (Model.SequenceOrder)
+                if (SequenceOrder)
                 {
                     for (int x = 0; x < 6; x++)
                         MinDistance(graph);
@@ -714,7 +684,7 @@ namespace XLibrary
             float freespace = 1 * graph.ScaledHeight - totalHeight;
 
             float ySpace = freespace / (nodes.Count + 1); // space between each block
-            rank.MinHeightSpace = (float)Math.Min(ySpace, 4.0 / (float)Height);
+            rank.MinHeightSpace = ySpace;// (float)Math.Min(ySpace, 4.0 / (float)Height);
             float yOffset = ySpace;
 
             foreach (var node in nodes)
@@ -799,12 +769,12 @@ namespace XLibrary
 
             node.Intermediates = null;
 
-            if (node.IsAnon && !Model.ShowAnon)
+            if (node.IsAnon && !ShowAnon)
             {
                 // ignore node
             }
 
-            else if (Model.GraphMode == CallGraphMode.Dependencies && 
+            else if (GraphMode == CallGraphMode.Dependencies && 
                      ((node.Independencies != null && node.Independencies.Length > 0) ||
                       (node.Dependencies != null && node.Dependencies.Length > 0)))
             {
@@ -826,18 +796,18 @@ namespace XLibrary
                         node.EdgesOut = node.Dependencies;
                 }
             }
-            else if (Model.GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class)
+            else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class)
             {
                 AddEdges(node, center, node.InitsBy, node.InitsOf);
             }
-            else if ((Model.GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                     (Model.GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
+            else if ((GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
+                     (GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
             {
                 AddEdges(node, center, node.CalledIn, node.CallsOut);
             }
 
             foreach (XNodeIn sub in node.Nodes)
-                if (sub != Model.InternalRoot) // when traversing outside root, dont interate back into center root
+                if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
                     AddCalledNodes(sub, center);
         }
 
@@ -865,31 +835,6 @@ namespace XLibrary
 
                 if (callsOut != null)
                     node.EdgesOut = callsOut.Select(c => c.Destination).ToArray();
-            }
-        }
-
-        private void DrawGraphEdge(Graphics buffer, Pen pen, XNodeIn source, XNodeIn destination)
-        {
-            if (source.Intermediates == null || !source.Intermediates.ContainsKey(destination.ID))
-                buffer.DrawLine(pen, source.CenterF, destination.CenterF);
-            else
-            {
-                var intermediates = source.Intermediates[destination.ID];
-
-                var originalCap = pen.EndCap;
-                pen.EndCap = System.Drawing.Drawing2D.LineCap.NoAnchor;
-
-                var prev = source;
-                var last = intermediates.Last();
-
-                foreach (var next in intermediates)
-                {
-                    if(next == last)
-                        pen.EndCap = originalCap;
-
-                    buffer.DrawLine(pen, prev.CenterF, next.CenterF);
-                    prev = next;
-                }
             }
         }
 
@@ -925,7 +870,7 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[sub.ID] = sub;
-                    if (!Model.InterDependencies.ContainsKey(d))
+                    if (!InterDependencies.ContainsKey(d))
                         OutsideMap[sub.ID] = sub;
 
                     n.AddIntermediateDependency(sub);
@@ -968,7 +913,7 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[parent.ID] = parent;
-                    if (!Model.InterDependencies.ContainsKey(d))
+                    if (!InterDependencies.ContainsKey(d))
                         OutsideMap[parent.ID] = parent;
 
                     parent.AddIntermediateDependency(n);
@@ -978,29 +923,29 @@ namespace XLibrary
 
             return pathFound;
         }
+    }
 
 
-        class Graph
+    public class Graph
+    {
+        internal Rank[] Ranks;
+        internal long Weight;
+
+        internal float ScaledHeight;
+        internal float ScaledOffset;
+
+        internal IEnumerable<XNodeIn> Nodes()
         {
-            internal Rank[] Ranks;
-            internal long Weight;
-
-            internal float ScaledHeight;
-            internal float ScaledOffset;
-
-            internal IEnumerable<XNodeIn> Nodes()
-            {
-                foreach (var r in Ranks)
-                    foreach (var n in r.Column)
-                        yield return n;
-            }
+            foreach (var r in Ranks)
+                foreach (var n in r.Column)
+                    yield return n;
         }
+    }
 
-        class Rank
-        {
-            internal List<XNodeIn> Column = new List<XNodeIn>();
+    public class Rank
+    {
+        internal List<XNodeIn> Column = new List<XNodeIn>();
 
-            internal float MinHeightSpace;
-        }
+        internal float MinHeightSpace;
     }
 }

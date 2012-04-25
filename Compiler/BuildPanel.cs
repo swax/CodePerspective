@@ -312,18 +312,24 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
 
         private void LaunchButton_Click(object sender, EventArgs e)
         {
+            if(FileList.Items.Count == 0)
+            {
+                MessageBox.Show("Nothing to launch");
+                return;
+            }
+
             // execute selected assembly
-            XRayedFile item = GetSelectedItem();
+            XRayedFile item =  FileList.Items.Cast<XRayedFile>().FirstOrDefault(i => i.FileName.EndsWith(".exe"));
+
+            if (item == null)
+            {
+                MessageBox.Show("Can only launch exes, for dlls launch the exe that uses the dll.");
+                return;
+            }
 
             if (item.RecompiledPath == null)
             {
                 MessageBox.Show(item.ToString() + " has not been re-compiled yet");
-                return;
-            }
-
-            if (!item.RecompiledPath.EndsWith(".exe"))
-            {
-                MessageBox.Show("Can only launch exes, for dlls launch the exe that uses the dll.");
                 return;
             }
 
@@ -338,8 +344,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
         {
             try
             {
-                XRayedFile item = GetSelectedItem();
-
                 string path = Path.Combine(OutputDir, "XRay.dat");
 
                 XRay.Analyze(path);
@@ -348,13 +352,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             {
                 MessageBox.Show(ex.Message);
             }
-        }
-
-        XRayedFile GetSelectedItem()
-        {
-            XRayedFile item = FileList.SelectedItem as XRayedFile;
-
-            return FileList.Items.Cast<XRayedFile>().FirstOrDefault(i => i.FileName.EndsWith(".exe"));
         }
 
         private void UpdateOutputPath()

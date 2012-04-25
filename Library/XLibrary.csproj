@@ -101,6 +101,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SharedDictionary.cs" />
+    <Compile Include="UI\ColorProfile.cs" />
     <Compile Include="UI\GLPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -160,16 +162,15 @@
     <Compile Include="UI\TreeGrid\TreeGridNode.cs" />
     <Compile Include="UI\TreeGrid\TreeGridNodeCollection.cs" />
     <Compile Include="UI\TreeGrid\TreeGridView.cs" />
-    <Compile Include="UI\TreeMap.cs" />
-    <Compile Include="UI\TreePanelGdiPlus.CallGraph.cs">
+    <Compile Include="UI\CalcTreeMap.cs" />
+    <Compile Include="UI\GdiPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\TreePanelGdiPlus.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="UI\GdiPanel.Designer.cs">
+      <DependentUpon>GdiPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\TreePanelGdiPlus.Designer.cs">
-      <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
-    </Compile>
+    <Compile Include="UI\ViewModel.Timeline.cs" />
+    <Compile Include="UI\ViewModel.TreeMap.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="UI\ViewModel.cs" />
     <Compile Include="Win32.cs" />
@@ -207,8 +208,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\TreePanelGdiPlus.resx">
-      <DependentUpon>TreePanelGdiPlus.cs</DependentUpon>
+    <EmbeddedResource Include="UI\GdiPanel.resx">
+      <DependentUpon>GdiPanel.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
@@ -234,6 +235,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UI\Resources\Font2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="UI\ViewModel.CallGraph.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

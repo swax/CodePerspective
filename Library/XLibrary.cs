@@ -50,6 +50,10 @@ namespace XLibrary
         internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
         internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
+        internal static bool TimelineEnabled = true;
+        internal static int TimelinePos = -1;
+        internal static StackItem[] Timeline = new StackItem[1000]; 
+
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
         internal static string DatPath;
@@ -345,7 +349,7 @@ namespace XLibrary
             if (flow.Pos == -1)
             {
                 flow.Pos = 0;
-                flow.Stack[0] = new StackItem() { NodeID = nodeID, Ticks = Watch.ElapsedTicks };
+                AddStackItem(flow, nodeID, null);
                 node.EntryPoint++;
                 return;
             }
@@ -395,11 +399,37 @@ namespace XLibrary
                 call.StillInside++;
 
                 flow.Pos++;
-                flow.Stack[flow.Pos] = new StackItem() { NodeID = nodeID, Call = call, Ticks = Watch.ElapsedTicks };
+
+                AddStackItem(flow, nodeID, call);
             }
 
             if(ClassTracking)
                 TrackClassCall(nodeID, node, source);
+        }
+
+        private static void AddStackItem(ThreadFlow flow, int nodeID, FunctionCall call)
+        {
+            var newItem = new StackItem() { NodeID = nodeID, Call = call, StartTick = Watch.ElapsedTicks };
+            flow.Stack[flow.Pos] = newItem;
+
+            if (!TimelineEnabled)
+                return;
+
+            // dont over write items in timeline that haven't ended yet
+            while(true)
+            {
+                TimelinePos++;
+                if (TimelinePos >= Timeline.Length)
+                    TimelinePos = 0;
+
+                var overwrite = Timeline[TimelinePos];
+
+                if (overwrite == null || overwrite.EndTick != 0)
+                {
+                    Timeline[TimelinePos] = newItem;
+                    break;
+                }
+            }
         }
 
         public static XNode GetContainingClass(XNode node)
@@ -486,6 +516,7 @@ namespace XLibrary
                         for (int x = i; x <= exit; x++)
                         {
                             StackItem exited = flow.Stack[x];
+                            exited.EndTick = ticks;
 
                             Nodes[exited.NodeID].StillInside--;
 
@@ -493,10 +524,10 @@ namespace XLibrary
                                 continue;
 
                             exited.Call.StillInside--;
-                            exited.Call.TotalCallTime += ticks - exited.Ticks;
+                            exited.Call.TotalCallTime += ticks - exited.StartTick;
 
                             if (x > 0 && flow.Stack[x - 1].Call != null)
-                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.Ticks;
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.StartTick;
                         }
 
                         if (i == 0)
@@ -536,9 +567,10 @@ namespace XLibrary
                         for (int x = i + 1; x <= exit; x++)
                         {
                             StackItem exited = flow.Stack[x];
+                            exited.EndTick = ticks;
 
                             Nodes[exited.NodeID].StillInside--;
-                            exited.Call.TotalCallTime += ticks - exited.Ticks;
+                            exited.Call.TotalCallTime += ticks - exited.StartTick;
 
                             Nodes[exited.NodeID].ExceptionHit = ShowTicks;
 
@@ -546,7 +578,7 @@ namespace XLibrary
                                 exited.Call.StillInside--;
 
                             if (x > 0 && flow.Stack[x - 1].Call != null)
-                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.Ticks;
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.StartTick;
                         }
 
                         break;
@@ -719,8 +751,6 @@ namespace XLibrary
         /// </summary>
         public bool Add(object obj)
         {
-
-
             Created++;
 
             lock (Active)
@@ -812,7 +842,8 @@ namespace XLibrary
     {
         internal int NodeID;
         internal FunctionCall Call;
-        internal long Ticks;
+        internal long StartTick;
+        internal long EndTick;
     }
 
     class FunctionCall
@@ -846,81 +877,7 @@ namespace XLibrary
         }
     }
 
-    // this is a dictionary where values can be added, for fast look up dynamically without needing a lock
-    // one thread needs to be able to write values fast
-    // while another threads need to be able to read values fast
-    class SharedDictionary<T>  : IEnumerable<T>
-        where T : class
-    {
-        internal int Length;
-        internal T[] Values;
-
-        Dictionary<int, int> Map = new Dictionary<int, int>();
-
-        internal SharedDictionary(int keyMax)
-        {
-            Values = new T[keyMax];
-        }
-
-        internal bool Contains(int hash)
-        {
-            return Map.ContainsKey(hash);
-        }
-
-        internal bool TryGetValue(int hash, out T call)
-        {
-            int index;
-            if (Map.TryGetValue(hash, out index))
-            {
-                call = Values[index];
-                return true;
-            }
-
-            call = null;
-            return false;
-        }
-
-        internal void Add(int hash, T call)
-        {
-            // locking isnt so bad because once app is running, add won't be called so much
-            lock (this)
-            {
-                if (Length >= Values.Length)
-                {
-                    T[] resized = new T[Values.Length * 2];
-                    Values.CopyTo(resized, 0);
-                    Values = resized;
-                }
-
-                int index = Length;
-                Map[hash] = index;
-                Values[index] = call;
-
-                Length++;
-            }
-        }
-
-        #region IEnumerable<T> Members
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < Length; i++)
-                yield return Values[i];
-        }
-
-        #endregion
-
-        #region IEnumerable Members
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            for (int i = 0; i < Length; i++)
-                yield return Values[i];
-        }
-
-        #endregion
-    }
-
+    
     public class IpcQuery : MarshalByRefObject
     {
         public override object InitializeLifetimeService()

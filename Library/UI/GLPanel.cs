@@ -24,14 +24,6 @@ namespace XLibrary
 
         bool GLLoaded = false;
 
-        public bool DoRedraw = true;
-        public bool DoResize = true;
-        public bool DoRevalue = true;
-
-        Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
-        Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
-        Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
-
         bool ShowingOutside;
         bool ShowingExternal;
 
@@ -187,7 +179,7 @@ namespace XLibrary
 
         public void Redraw()
         {
-            DoRedraw = true;
+            Model.DoRedraw = true;
             GLView.Invalidate();
         }
 
@@ -296,7 +288,7 @@ namespace XLibrary
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if ((!DoRedraw && !DoRevalue && !DoResize) || Model.CurrentRoot == null)
+            if ((!Model.DoRedraw && !Model.DoRevalue && !Model.DoResize) || Model.CurrentRoot == null)
             {
                 // do nothing to vbo
             }
@@ -389,7 +381,7 @@ namespace XLibrary
             ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
             ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
 
-            if (DoRevalue ||
+            if (Model.DoRevalue ||
                 (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||
                 (Model.ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {
@@ -399,18 +391,18 @@ namespace XLibrary
                 XRay.CoverChange = false;
                 XRay.InstanceChange = false;
 
-                DoRevalue = false;
-                DoResize = true;
+                Model.DoRevalue = false;
+                Model.DoResize = true;
             }
 
 
-            if (DoResize)
+            if (Model.DoResize)
             {
                 float offset = 0.0f;
                 float centerWidth = MapWidth;
 
-                PositionMap.Clear();
-                CenterMap.Clear();
+                Model.PositionMap.Clear();
+                Model.CenterMap.Clear();
 
                 if (ShowingOutside)
                 {
@@ -418,7 +410,7 @@ namespace XLibrary
                     centerWidth -= offset;
 
                     Model.InternalRoot.SetArea(new RectangleF(0, 0, offset - PanelBorderWidth, MapHeight));
-                    PositionMap[Model.InternalRoot.ID] = Model.InternalRoot;
+                    Model.PositionMap[Model.InternalRoot.ID] = Model.InternalRoot;
                     SizeNode(Model.InternalRoot, Model.CurrentRoot, false);
                 }
                 if (ShowingExternal)
@@ -427,15 +419,15 @@ namespace XLibrary
                     centerWidth -= extWidth;
 
                     Model.ExternalRoot.SetArea(new RectangleF(offset + centerWidth + PanelBorderWidth, 0, extWidth - PanelBorderWidth, MapHeight));
-                    PositionMap[Model.ExternalRoot.ID] = Model.ExternalRoot;
+                    Model.PositionMap[Model.ExternalRoot.ID] = Model.ExternalRoot;
                     SizeNode(Model.ExternalRoot, null, false);
                 }
 
                 Model.CurrentRoot.SetArea(new RectangleF(offset, 0, centerWidth, MapHeight));
-                PositionMap[Model.CurrentRoot.ID] = Model.CurrentRoot;
+                Model.PositionMap[Model.CurrentRoot.ID] = Model.CurrentRoot;
                 SizeNode(Model.CurrentRoot, null, true);
 
-                DoResize = false;
+                Model.DoResize = false;
             }
 
             VertexCount = 0;
@@ -650,12 +642,12 @@ namespace XLibrary
                 sector.Rect.Y += insideArea.Y;
 
                 node.SetArea(sector.Rect);
-                PositionMap[node.ID] = node;
+                Model.PositionMap[node.ID] = node;
 
                 node.RoomForLabel = false; // cant do above without graphic artifacts
 
                 if (center)
-                    CenterMap[node.ID] = node;
+                    Model.CenterMap[node.ID] = node;
 
                 if (sector.Rect.Width > 1.0f && sector.Rect.Height > 1.0f)
                     SizeNode(node, exclude, center);
@@ -671,7 +663,7 @@ namespace XLibrary
             //bool pointBorder = node.AreaF.Width < 3.0f || node.AreaF.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool rect = Model.ViewLayout == LayoutType.ThreeD || Model.ViewLayout == LayoutType.TreeMap || CenterMap.ContainsKey(node.ID);
+            bool rect = Model.ViewLayout == LayoutType.ThreeD || Model.ViewLayout == LayoutType.TreeMap || Model.CenterMap.ContainsKey(node.ID);
 
             float zheight = PlatformHeight;
             if (node.ObjType == XObjType.Method)

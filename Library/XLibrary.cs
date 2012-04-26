@@ -52,7 +52,7 @@ namespace XLibrary
 
         internal static bool TimelineEnabled = true;
         internal static int TimelinePos = -1;
-        internal static StackItem[] Timeline = new StackItem[1000]; 
+        internal static StackItem[] Timeline = new StackItem[2000]; // if vert res is 1200, then 16px entrys would be like 75 timeline lines, across 5 threads would be 500
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -63,7 +63,7 @@ namespace XLibrary
 
         static bool InitComplete;
 
-        static Stopwatch Watch = new Stopwatch();
+        public static Stopwatch Watch = new Stopwatch();
 
         static uint CurrentSequence;
 
@@ -96,7 +96,7 @@ namespace XLibrary
             try
             {
                 Watch.Start();
-
+              
                 // read compiled settings
                 if (trackFlow)
                 {
@@ -409,7 +409,15 @@ namespace XLibrary
 
         private static void AddStackItem(ThreadFlow flow, int nodeID, FunctionCall call)
         {
-            var newItem = new StackItem() { NodeID = nodeID, Call = call, StartTick = Watch.ElapsedTicks };
+            var newItem = new StackItem() 
+            { 
+                NodeID = nodeID, 
+                Call = call, 
+                StartTick = Watch.ElapsedTicks, 
+                Depth = flow.Pos, 
+                ThreadID = flow.ThreadID 
+            };
+
             flow.Stack[flow.Pos] = newItem;
 
             if (!TimelineEnabled)
@@ -838,12 +846,14 @@ namespace XLibrary
         internal StackItem[] Stack = new StackItem[XRay.MaxStack];
     }
 
-    class StackItem
+    public class StackItem
     {
         internal int NodeID;
         internal FunctionCall Call;
         internal long StartTick;
         internal long EndTick;
+        internal int ThreadID;
+        internal int Depth;
     }
 
     class FunctionCall

@@ -3,19 +3,18 @@ now
 	break out color profile for GL. put color profiles in their own file, commit
 
 	timeline
-		have some sort of action queue of the last 10000 items
-		each entry is stack depth, start/stop time
-			have a max stack dept
-		renderer just goes through timeline and draws
-		able to zoom in on stack levels
-			compress upper stack levels
-				mouse over shows time
-		or maybe.... compress all stack levels
-			when something happens
-		exageration
-			10x, etc..
-			time function times increased, but stopped before over lapping next function
-		increase timeline length based on the amount of time it takes to process this list
+		thread order?
+		show fields
+		filter zoomed nodes
+		ellipses text
+		hang onto dead threads a bit longer?, put thread # at bottom so i can see how stuff is jumping
+		optimize so big apps look good
+
+	Top level thread filter in crumbs - works in all views?
+
+	filter call graph by selected thread
+
+	profile auto refresh
 
 	blend colors so i can see outside calls bettter
 	search option to search file/namespace path, see diff components interacting

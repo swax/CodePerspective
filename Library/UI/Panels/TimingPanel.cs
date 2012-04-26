@@ -45,8 +45,8 @@ namespace XLibrary
             BackLink.Enabled = Current.Previous != null;
             ForwardLink.Enabled = Current.Next != null;*/
 
-            CallersList.Items.Clear();
-            CalledList.Items.Clear();
+            CalledByList.Items.Clear();
+            CalledToList.Items.Clear();
 
             if (node.ObjType == XObjType.Method)
             {
@@ -58,7 +58,7 @@ namespace XLibrary
                 foreach (FunctionCall call in XRay.CallMap.Where(v => v.Destination == id))
                 {
                     XNode caller = XRay.Nodes[call.Source];
-                    CallersList.Items.Add( new CallItem(call, caller, ShowPerCall));
+                    CalledByList.Items.Add( new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
                 CallersLabel.Text = count.ToString() + " methods called " + node.Name;
@@ -67,10 +67,17 @@ namespace XLibrary
                 foreach (FunctionCall call in XRay.CallMap.Where(v => v.Source == id))
                 {
                     XNode called = XRay.Nodes[call.Destination];
-                    CalledList.Items.Add(new CallItem(call, called, ShowPerCall));
+                    CalledToList.Items.Add(new CallItem(call, called, ShowPerCall));
                     count++;
                 }
+
                 CalledLabel.Text = node.Name + " called " + count.ToString() + " methods";
+
+
+                long totalOutside = CalledToList.Items.Cast<CallItem>().Sum(i => i.Total);
+                var totalItem = new ListViewItem(new string[] {"Total outside", "", Xtensions.TicksToString(totalOutside)});
+                CalledToList.Items.Add(new ListViewItem());
+                CalledToList.Items.Add(totalItem);
             }
             else
             {
@@ -84,12 +91,12 @@ namespace XLibrary
 
                 foreach (XNode child in node.Nodes)
                 {
-                    CallersList.Items.Add(new CallItem(null, child, ShowPerCall));
+                    CalledByList.Items.Add(new CallItem(null, child, ShowPerCall));
                 }
             }
 
-            CallersList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
-            CalledList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            CalledByList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            CalledToList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
 
         private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -134,22 +141,24 @@ namespace XLibrary
 
         private void CallersList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (CallersList.SelectedItems.Count == 0)
+            if (CalledByList.SelectedItems.Count == 0)
                 return;
 
-            CallItem item = CallersList.SelectedItems[0] as CallItem;
+            CallItem item = CalledByList.SelectedItems[0] as CallItem;
 
-            NavigateTo(item.Node);
+            if(item != null)
+                NavigateTo(item.Node);
         }
 
         private void CalledList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (CalledList.SelectedItems.Count == 0)
+            if (CalledToList.SelectedItems.Count == 0)
                 return;
 
-            CallItem item = CalledList.SelectedItems[0] as CallItem;
+            CallItem item = CalledToList.SelectedItems[0] as CallItem;
 
-            NavigateTo(item.Node);
+            if (item != null)
+                NavigateTo(item.Node);
         }
 
         private void CumulativeRadio_CheckedChanged(object sender, EventArgs e)
@@ -175,6 +184,7 @@ namespace XLibrary
     {
         FunctionCall Call;
         internal XNode Node;
+        internal long Total;
 
         public CallItem(FunctionCall call, XNode node, bool perCall)
         {
@@ -204,6 +214,8 @@ namespace XLibrary
 
             SubItems.Add(Xtensions.TicksToString(inside));
             SubItems.Add(Xtensions.TicksToString(outside));
+
+            Total = inside + outside;
         }
     }
 }

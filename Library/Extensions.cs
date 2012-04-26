@@ -94,19 +94,31 @@ namespace XLibrary
             if (ticks == 0)
                 return "0";
 
-            TimeSpan span = new TimeSpan(ticks);
+            double seconds = TicksToSeconds(ticks);
 
-            if (span.TotalMinutes >= 1)
-                return span.TotalMinutes.ToString("0.00 m");
+            if (seconds >= 60)
+            {
+                double minutes = seconds / 60.0;
+                return ((int)minutes).ToString("0 m");
+            }
+            else if (seconds >= 1.0)
+                return ((int)seconds).ToString("0 s");
 
-            else if (span.TotalSeconds >= 1)
-                return span.TotalSeconds.ToString("0.00 s");
-
-            else if (span.TotalMilliseconds >= 1)
-                return span.TotalMilliseconds.ToString("0.00 ms");
-
+            else if (seconds >= 0.001)
+            {
+                double ms = seconds * 1000;
+                return ((int)ms).ToString("0 ms");
+            }
             else
-                return (span.TotalMilliseconds * 1000).ToString("0.##") + " us";
+            {
+                double us = seconds * 1000 * 1000;
+                return ((int)us).ToString("0 µs");
+            }
+        }
+
+        public static double TicksToSeconds(long ticks)
+        {
+            return (double)ticks / (double)Stopwatch.Frequency;
         }
     }
 

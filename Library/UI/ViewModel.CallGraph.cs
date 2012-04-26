@@ -102,7 +102,7 @@ namespace XLibrary
 
         private void ScaleGraph(Graphics buffer)
         {
-            float fullSize = (float)Math.Min(Size.Width, Size.Height) / 2;
+            float fullSize = (float)Math.Min(ScreenSize.Width, ScreenSize.Height) / 2;
 
             foreach (var graph in Graphs)
             {
@@ -122,11 +122,11 @@ namespace XLibrary
                         }
                     }
 
-                    float right = Offset.X + Size.Width;
+                    float right = ScreenOffset.X + ScreenSize.Width;
                     if (ShowLabels)
                     {
                         if (i < graph.Ranks.Length - 1)
-                            right = Offset.X + Size.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                            right = ScreenOffset.X + ScreenSize.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
                                     (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
                     }
 
@@ -143,8 +143,8 @@ namespace XLibrary
                             size = MinCallNodeSize;
 
                         node.SetArea(new RectangleF(
-                            Offset.X + Size.Width * node.ScaledLocation.X - halfSize,
-                            Offset.Y + Size.Height * node.ScaledLocation.Y - halfSize,
+                            ScreenOffset.X + ScreenSize.Width * node.ScaledLocation.X - halfSize,
+                            ScreenOffset.Y + ScreenSize.Height * node.ScaledLocation.Y - halfSize,
                             size, size));
                     }
 
@@ -185,8 +185,8 @@ namespace XLibrary
                             }
 
                             float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                            top = Offset.Y + (node.ScaledLocation.Y - distanceFromCenter) * Size.Height;
-                            bottom = Offset.Y + (node.ScaledLocation.Y + distanceFromCenter) * Size.Height;
+                            top = ScreenOffset.Y + (node.ScaledLocation.Y - distanceFromCenter) * ScreenSize.Height;
+                            bottom = ScreenOffset.Y + (node.ScaledLocation.Y + distanceFromCenter) * ScreenSize.Height;
 
 
                             node.LabelRect = new RectangleF(left, top, right - left, bottom - top);

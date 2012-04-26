@@ -50,6 +50,7 @@ namespace XLibrary.Panels
             // layout
             LayoutTreeMapButton.Checked = Model.ViewLayout == LayoutType.TreeMap;
             LayoutCallGraphButton.Checked = Model.ViewLayout == LayoutType.CallGraph;
+            TimelineButton.Checked = Model.ViewLayout == LayoutType.Timeline;
             LayoutInOrder.Checked = Model.SequenceOrder;
 
             ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
@@ -119,6 +120,15 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Class;
+            Main.RefreshView();
+        }
+
+        private void TimelineButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!TimelineButton.Checked)
+                return;
+
+            Model.ViewLayout = LayoutType.Timeline;
             Main.RefreshView();
         }
 

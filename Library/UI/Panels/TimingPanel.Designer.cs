@@ -38,11 +38,11 @@
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.CallersList = new System.Windows.Forms.ListView();
+            this.CalledByList = new System.Windows.Forms.ListView();
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader9 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.PerCallRadio = new System.Windows.Forms.RadioButton();
-            this.CalledList = new System.Windows.Forms.ListView();
+            this.CalledToList = new System.Windows.Forms.ListView();
             this.columnHeader10 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.CalledLabel = new System.Windows.Forms.Label();
             this.FunctionPanel = new System.Windows.Forms.SplitContainer();
@@ -113,43 +113,43 @@
             // 
             // columnHeader5
             // 
-            this.columnHeader5.Text = "Name";
-            this.columnHeader5.Width = 160;
+            this.columnHeader5.Text = "Called to";
+            this.columnHeader5.Width = 63;
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Name";
-            this.columnHeader1.Width = 160;
+            this.columnHeader1.Text = "Called by";
+            this.columnHeader1.Width = 66;
             // 
             // columnHeader3
             // 
-            this.columnHeader3.Text = "t in func";
+            this.columnHeader3.Text = "t in THIS";
             this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader3.Width = 75;
             // 
-            // CallersList
+            // CalledByList
             // 
-            this.CallersList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.CallersList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.CalledByList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.CalledByList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader4,
             this.columnHeader9});
-            this.CallersList.FullRowSelect = true;
-            this.CallersList.Location = new System.Drawing.Point(6, 16);
-            this.CallersList.Name = "CallersList";
-            this.CallersList.Size = new System.Drawing.Size(289, 166);
-            this.CallersList.TabIndex = 11;
-            this.CallersList.UseCompatibleStateImageBehavior = false;
-            this.CallersList.View = System.Windows.Forms.View.Details;
-            this.CallersList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.CallersList_MouseDoubleClick);
+            this.CalledByList.FullRowSelect = true;
+            this.CalledByList.Location = new System.Drawing.Point(6, 16);
+            this.CalledByList.Name = "CalledByList";
+            this.CalledByList.Size = new System.Drawing.Size(289, 166);
+            this.CalledByList.TabIndex = 11;
+            this.CalledByList.UseCompatibleStateImageBehavior = false;
+            this.CalledByList.View = System.Windows.Forms.View.Details;
+            this.CalledByList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.CallersList_MouseDoubleClick);
             // 
             // columnHeader4
             // 
-            this.columnHeader4.Text = "t in THIS";
+            this.columnHeader4.Text = "t outside";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.columnHeader4.Width = 75;
             // 
@@ -169,25 +169,25 @@
             this.PerCallRadio.UseVisualStyleBackColor = true;
             this.PerCallRadio.CheckedChanged += new System.EventHandler(this.PerCallRadio_CheckedChanged);
             // 
-            // CalledList
+            // CalledToList
             // 
-            this.CalledList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.CalledList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.CalledToList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.CalledToList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader5,
             this.columnHeader6,
             this.columnHeader7,
             this.columnHeader8,
             this.columnHeader10});
-            this.CalledList.FullRowSelect = true;
-            this.CalledList.Location = new System.Drawing.Point(6, 16);
-            this.CalledList.Name = "CalledList";
-            this.CalledList.Size = new System.Drawing.Size(292, 166);
-            this.CalledList.TabIndex = 12;
-            this.CalledList.UseCompatibleStateImageBehavior = false;
-            this.CalledList.View = System.Windows.Forms.View.Details;
-            this.CalledList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.CalledList_MouseDoubleClick);
+            this.CalledToList.FullRowSelect = true;
+            this.CalledToList.Location = new System.Drawing.Point(6, 16);
+            this.CalledToList.Name = "CalledToList";
+            this.CalledToList.Size = new System.Drawing.Size(292, 166);
+            this.CalledToList.TabIndex = 12;
+            this.CalledToList.UseCompatibleStateImageBehavior = false;
+            this.CalledToList.View = System.Windows.Forms.View.Details;
+            this.CalledToList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.CalledList_MouseDoubleClick);
             // 
             // columnHeader10
             // 
@@ -205,20 +205,20 @@
             // 
             // FunctionPanel
             // 
-            this.FunctionPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.FunctionPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FunctionPanel.Location = new System.Drawing.Point(0, 21);
             this.FunctionPanel.Name = "FunctionPanel";
             // 
             // FunctionPanel.Panel1
             // 
             this.FunctionPanel.Panel1.Controls.Add(this.CallersLabel);
-            this.FunctionPanel.Panel1.Controls.Add(this.CallersList);
+            this.FunctionPanel.Panel1.Controls.Add(this.CalledByList);
             // 
             // FunctionPanel.Panel2
             // 
-            this.FunctionPanel.Panel2.Controls.Add(this.CalledList);
+            this.FunctionPanel.Panel2.Controls.Add(this.CalledToList);
             this.FunctionPanel.Panel2.Controls.Add(this.CalledLabel);
             this.FunctionPanel.Size = new System.Drawing.Size(597, 185);
             this.FunctionPanel.SplitterDistance = 295;
@@ -268,10 +268,10 @@
         private System.Windows.Forms.ColumnHeader columnHeader5;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.ListView CallersList;
+        private System.Windows.Forms.ListView CalledByList;
         private System.Windows.Forms.ColumnHeader columnHeader4;
         private System.Windows.Forms.RadioButton PerCallRadio;
-        private System.Windows.Forms.ListView CalledList;
+        private System.Windows.Forms.ListView CalledToList;
         private System.Windows.Forms.Label CalledLabel;
         private System.Windows.Forms.SplitContainer FunctionPanel;
         private System.Windows.Forms.ColumnHeader columnHeader9;

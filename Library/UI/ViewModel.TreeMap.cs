@@ -35,7 +35,7 @@ namespace XLibrary
 
             if (DoResize)
             {
-                var drawArea = new RectangleF(Offset.X, Offset.Y, Size.Width, Size.Height);
+                var drawArea = new RectangleF(ScreenOffset.X, ScreenOffset.Y, ScreenSize.Width, ScreenSize.Height);
 
                 float offset = 0;
                 float centerWidth = drawArea.Width;
@@ -48,7 +48,7 @@ namespace XLibrary
                     offset = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= offset;
 
-                    InternalRoot.SetArea(new RectangleF(Offset.X, Offset.Y, offset - PanelBorderWidth, drawArea.Height));
+                    InternalRoot.SetArea(new RectangleF(ScreenOffset.X, ScreenOffset.Y, offset - PanelBorderWidth, drawArea.Height));
                     PositionMap[InternalRoot.ID] = InternalRoot;
                     SizeNode(buffer, InternalRoot, CurrentRoot, false);
                 }
@@ -57,12 +57,12 @@ namespace XLibrary
                     float extWidth = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= extWidth;
 
-                    ExternalRoot.SetArea(new RectangleF(Offset.X + offset + centerWidth + PanelBorderWidth, Offset.Y, extWidth - PanelBorderWidth, drawArea.Height));
+                    ExternalRoot.SetArea(new RectangleF(ScreenOffset.X + offset + centerWidth + PanelBorderWidth, ScreenOffset.Y, extWidth - PanelBorderWidth, drawArea.Height));
                     PositionMap[ExternalRoot.ID] = ExternalRoot;
                     SizeNode(buffer, ExternalRoot, null, false);
                 }
 
-                CurrentRoot.SetArea(new RectangleF(Offset.X + offset, Offset.Y, centerWidth, drawArea.Height));
+                CurrentRoot.SetArea(new RectangleF(ScreenOffset.X + offset, ScreenOffset.Y, centerWidth, drawArea.Height));
                 PositionMap[CurrentRoot.ID] = CurrentRoot;
                 SizeNode(buffer, CurrentRoot, null, true);
 

@@ -214,8 +214,8 @@ namespace XLibrary
 
             GLLoaded = true;
 
-            LoadTextures();
-            BuildFont();
+            //LoadTextures();
+            //BuildFont();
         }
 
         private void GLView_Resize(object sender, EventArgs e)

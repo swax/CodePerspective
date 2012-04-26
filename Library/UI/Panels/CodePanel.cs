@@ -20,8 +20,6 @@ namespace XLibrary.Panels
         public CodePanel()
         {
             InitializeComponent();
-
-            
         }
 
         public void NavigateTo(XNodeIn node)
@@ -84,6 +82,8 @@ namespace XLibrary.Panels
                 var row = new CodeRow(inst, line);
                 CodeList.Items.Add(row);
             }
+
+            CodeList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
         string GetMethodName(int nodeID)

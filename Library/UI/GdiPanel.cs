@@ -294,10 +294,10 @@ namespace XLibrary
             }
 
             // draw layout
-            Model.Size.Width = Width * ZoomFactor;
-            Model.Size.Height = Height * ZoomFactor;
-            Model.Offset.X = Model.PanOffset.X * Model.Size.Width;// +(Width * CenterFactor.X - ModelSize.Width * CenterFactor.X);
-            Model.Offset.Y = Model.PanOffset.Y * Model.Size.Height;// +(Height * CenterFactor.Y - ModelSize.Height * CenterFactor.Y);
+            Model.ScreenSize.Width = Width * ZoomFactor;
+            Model.ScreenSize.Height = Height * ZoomFactor;
+            Model.ScreenOffset.X = Model.PanOffset.X * Model.ScreenSize.Width;// +(Width * CenterFactor.X - ModelSize.Width * CenterFactor.X);
+            Model.ScreenOffset.Y = Model.PanOffset.Y * Model.ScreenSize.Height;// +(Height * CenterFactor.Y - ModelSize.Height * CenterFactor.Y);
 
             if (Model.ViewLayout == LayoutType.TreeMap)
             {
@@ -325,6 +325,14 @@ namespace XLibrary
                 // id 0 nodes are intermediates
                 foreach (var node in Model.Graphs.SelectMany(g => g.Nodes()).Where(n => n.ID != 0))
                     DrawNode(buffer, node, 0, false);
+            }
+
+            else if (Model.ViewLayout == LayoutType.Timeline)
+            {
+                Model.DrawTimeline(buffer);
+
+                foreach (var node in Model.TimelineNodes)
+                    DrawNode(buffer, node.Node, node.Area, node.LabelArea, 0, false, node.ShowHit);
             }
 
             // draw ignored over nodes ignored may contain
@@ -375,7 +383,7 @@ namespace XLibrary
             }
 
             // draw call graph
-            if (XRay.FlowTracking)
+            if (XRay.FlowTracking && Model.ViewLayout != LayoutType.Timeline)
             {
                 foreach (var source in Model.PositionMap.Values)
                 {
@@ -474,10 +482,15 @@ namespace XLibrary
 
         private void DrawNode(Graphics buffer, XNodeIn node, int depth, bool drawChildren)
         {
+            DrawNode(buffer, node, node.AreaF, node.LabelRect, depth, drawChildren, true);
+        }
+
+        private void DrawNode(Graphics buffer, XNodeIn node, RectangleF area, RectangleF labelArea, int depth, bool drawChildren, bool showHit)
+        {
             if (!node.Show)
                 return;
 
-            bool pointBorder = node.AreaF.Width < 3.0f || node.AreaF.Height < 3.0f;
+            bool pointBorder = area.Width < 3.0f || area.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
             bool ellipse = Model.ViewLayout == LayoutType.CallGraph && node.External;
@@ -486,9 +499,9 @@ namespace XLibrary
             Action<Brush> fillFunction = (b) =>
                 {
                     if (ellipse)
-                         buffer.FillEllipse(b, node.AreaF);
+                         buffer.FillEllipse(b, area);
                     else
-                        buffer.FillRectangle(b, node.AreaF);
+                        buffer.FillRectangle(b, area);
 
                     needBorder = false;
                 };
@@ -506,43 +519,46 @@ namespace XLibrary
             else
                 fillFunction(OutsideBrush);
 
-            // check if function is an entry point or holding
-            if (XRay.FlowTracking && node.StillInside > 0)
+            if (showHit)
             {
-                if (node.EntryPoint > 0)
+                // check if function is an entry point or holding
+                if (XRay.FlowTracking && node.StillInside > 0)
+                {
+                    if (node.EntryPoint > 0)
+                    {
+                        if (XRay.ThreadTracking && node.ConflictHit > 0)
+                            fillFunction(MultiEntryBrush);
+                        else
+                            fillFunction(EntryBrush);
+                    }
+                    else
+                    {
+                        if (XRay.ThreadTracking && node.ConflictHit > 0)
+                            fillFunction(MultiHoldingBrush);
+                        else
+                            fillFunction(HoldingBrush);
+                    }
+                }
+
+                // not an else if, draw over holding or entry
+                if (node.ExceptionHit > 0)
+                    fillFunction(ExceptionBrush[node.FunctionHit]);
+
+                else if (node.FunctionHit > 0)
                 {
                     if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        fillFunction(MultiEntryBrush);
-                    else
-                        fillFunction(EntryBrush);
-                }
-                else
-                {
-                    if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        fillFunction(MultiHoldingBrush);
-                    else
-                        fillFunction(HoldingBrush);
-                }
-            }
+                        fillFunction(MultiHitBrush[node.FunctionHit]);
 
-            // not an else if, draw over holding or entry
-            if (node.ExceptionHit > 0)
-                fillFunction(ExceptionBrush[node.FunctionHit]);
-
-            else if (node.FunctionHit > 0)
-            {
-                if (XRay.ThreadTracking && node.ConflictHit > 0)
-                    fillFunction(MultiHitBrush[node.FunctionHit]);
-
-                else if (node.ObjType == XObjType.Field)
-                {
-                    if (node.LastFieldOp == FieldOp.Set)
-                        fillFunction(FieldSetBrush[node.FunctionHit]);
+                    else if (node.ObjType == XObjType.Field)
+                    {
+                        if (node.LastFieldOp == FieldOp.Set)
+                            fillFunction(FieldSetBrush[node.FunctionHit]);
+                        else
+                            fillFunction(FieldGetBrush[node.FunctionHit]);
+                    }
                     else
-                        fillFunction(FieldGetBrush[node.FunctionHit]);
+                        fillFunction(HitBrush[node.FunctionHit]);
                 }
-                else
-                    fillFunction(HitBrush[node.FunctionHit]);
             }
 
             if (Model.FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -591,13 +607,13 @@ namespace XLibrary
                 try
                 {
                     if(ellipse)
-                         buffer.DrawEllipse(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);
+                         buffer.DrawEllipse(pen, area.X, area.Y, area.Width, area.Height);
                     else
-                        buffer.DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height);    
+                        buffer.DrawRectangle(pen, area.X, area.Y, area.Width, area.Height);    
                 }
                 catch (Exception ex)
                 {
-                    File.WriteAllText("debug.txt", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}\r\n", ex, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height));
+                    File.WriteAllText("debug.txt", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}\r\n", ex, area.X, area.Y, area.Width, area.Height));
                 }
             }
 
@@ -605,15 +621,15 @@ namespace XLibrary
             //buffer.FillRectangle(SearchMatchBrush, node.DebugRect);
             if (Model.ShowLabels && node.RoomForLabel)
             {
-                buffer.FillRectangle(LabelBgBrush, node.LabelRect);
-                buffer.DrawString(node.Name, Model.TextFont, ObjBrushes[(int)node.ObjType], node.LabelRect, LabelFormat);
+                buffer.FillRectangle(LabelBgBrush, labelArea);
+                buffer.DrawString(node.Name, Model.TextFont, ObjBrushes[(int)node.ObjType], labelArea, LabelFormat);
             }
 
 
             if (Model.MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
                 drawChildren = false;
 
-            if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
+            if (drawChildren && area.Width > 1 && area.Height > 1)
                 foreach (XNodeIn sub in node.Nodes)
                     DrawNode(buffer, sub, depth + 1, drawChildren);
 
@@ -652,10 +668,13 @@ namespace XLibrary
 
         void TreePanelGdiPlus_MouseWheel(object sender, MouseEventArgs e)
         {
+            if (Model.ViewLayout == LayoutType.Timeline)
+                return;
+
             // get fractional position in model
             var modelPos = new PointF();
-            modelPos.X = (e.Location.X - Model.Offset.X) / Model.Size.Width;
-            modelPos.Y = (e.Location.Y - Model.Offset.Y) / Model.Size.Height; 
+            modelPos.X = (e.Location.X - Model.ScreenOffset.X) / Model.ScreenSize.Width;
+            modelPos.Y = (e.Location.Y - Model.ScreenOffset.Y) / Model.ScreenSize.Height; 
 
             // get fractional position in window
             var winPos = new SizeF();
@@ -707,8 +726,11 @@ namespace XLibrary
         {
             if (MouseDownPoint != Point.Empty)
             {
-                Model.PanOffset.X = PanStart.X + (e.Location.X - MouseDownPoint.X) / Model.Size.Width;
-                Model.PanOffset.Y = PanStart.Y + (e.Location.Y - MouseDownPoint.Y) / Model.Size.Height;
+                Model.PanOffset.X = PanStart.X + (e.Location.X - MouseDownPoint.X) / Model.ScreenSize.Width;
+                Model.PanOffset.Y = PanStart.Y + (e.Location.Y - MouseDownPoint.Y) / Model.ScreenSize.Height;
+
+                if (Model.ViewLayout == LayoutType.Timeline && Model.PanOffset.Y < 0)
+                    Model.PanOffset.Y = 0;
 
                 // to make faster resizing should keep things in scale value
                 // so we just have to call redraw() which is faster and would apply perspective correction at draw time
@@ -734,21 +756,15 @@ namespace XLibrary
             }
             else if (Model.ViewLayout == LayoutType.CallGraph)
             {
-                foreach (var node in Model.PositionMap.Values)
-                    if (node.AreaF.Contains(loc.X, loc.Y))
-                    {
-                        GuiHovered.Add(node);
-                        XNodeIn parent = node.Parent as XNodeIn;
-
-                        while (parent != null)
-                        {
-                            GuiHovered.Add(parent);
-                            parent = parent.Parent as XNodeIn;
-                        }
-
-                        GuiHovered.Reverse();
-                        break;
-                    }
+                var hovered = Model.PositionMap.Values.FirstOrDefault(n => n.AreaF.Contains(loc.X, loc.Y));
+                if (hovered != null)
+                    AddNodeToHovered(hovered);
+            }
+            else if (Model.ViewLayout == LayoutType.Timeline)
+            {
+                var hovered = Model.TimelineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y));
+                if(hovered != null)
+                    AddNodeToHovered(hovered.Node);
             }
 
             int hash = 0;
@@ -772,6 +788,20 @@ namespace XLibrary
 
                 Redraw();
             }
+        }
+
+        private void AddNodeToHovered(XNodeIn node)
+        {
+            GuiHovered.Add(node);
+            XNodeIn parent = node.Parent as XNodeIn;
+
+            while (parent != null)
+            {
+                GuiHovered.Add(parent);
+                parent = parent.Parent as XNodeIn;
+            }
+
+            GuiHovered.Reverse();
         }
 
         private void TestHovered(XNodeIn node, Point loc)

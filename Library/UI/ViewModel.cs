@@ -9,7 +9,7 @@ namespace XLibrary
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
     public enum ShowNodes { All, Hit, Unhit, Instances }
 
-    public enum LayoutType { TreeMap, CallGraph, ThreeD }
+    public enum LayoutType { TreeMap, CallGraph, ThreeD, Timeline }
     public enum TreeMapMode { Normal, Dependencies }
     public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init }
 
@@ -55,9 +55,9 @@ namespace XLibrary
         public bool SearchStrobe;
         public long MaxSecondaryValue;
 
-        public SizeF Size; // in screen coords
-        public PointF Offset; // in model coords 0-1
-        public PointF PanOffset; // in model coords
+        public SizeF ScreenSize; // in screen dimensions, different from the view size which is constant
+        public PointF ScreenOffset; // in screen dimensions
+        public PointF PanOffset; // in model dimensions
 
         public HashSet<int> DependentClasses = new HashSet<int>();
         public HashSet<int> IndependentClasses = new HashSet<int>();

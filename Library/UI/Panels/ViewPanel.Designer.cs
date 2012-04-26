@@ -72,6 +72,7 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
+            this.TimelineButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -308,6 +309,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.TimelineButton);
             this.panel1.Controls.Add(this.LayoutInitGraphButton);
             this.panel1.Controls.Add(this.ShowAllDependenciesCheckBox);
             this.panel1.Controls.Add(this.Layout3dButton);
@@ -581,6 +583,18 @@
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
             // 
+            // TimelineButton
+            // 
+            this.TimelineButton.AutoSize = true;
+            this.TimelineButton.Location = new System.Drawing.Point(94, 94);
+            this.TimelineButton.Name = "TimelineButton";
+            this.TimelineButton.Size = new System.Drawing.Size(64, 17);
+            this.TimelineButton.TabIndex = 34;
+            this.TimelineButton.TabStop = true;
+            this.TimelineButton.Text = "Timeline";
+            this.TimelineButton.UseVisualStyleBackColor = true;
+            this.TimelineButton.CheckedChanged += new System.EventHandler(this.TimelineButton_CheckedChanged);
+            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -664,5 +678,6 @@
         public System.Windows.Forms.CheckBox IncludeAnon;
         private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
         public System.Windows.Forms.RadioButton LayoutInitGraphButton;
+        public System.Windows.Forms.RadioButton TimelineButton;
     }
 }

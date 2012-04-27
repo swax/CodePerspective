@@ -49,6 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.TimelineButton = new System.Windows.Forms.RadioButton();
             this.LayoutInitGraphButton = new System.Windows.Forms.RadioButton();
             this.ShowAllDependenciesCheckBox = new System.Windows.Forms.CheckBox();
             this.Layout3dButton = new System.Windows.Forms.RadioButton();
@@ -72,7 +73,6 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
-            this.TimelineButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -324,6 +324,18 @@
             this.panel1.Size = new System.Drawing.Size(192, 125);
             this.panel1.TabIndex = 21;
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
+            // 
+            // TimelineButton
+            // 
+            this.TimelineButton.AutoSize = true;
+            this.TimelineButton.Location = new System.Drawing.Point(94, 94);
+            this.TimelineButton.Name = "TimelineButton";
+            this.TimelineButton.Size = new System.Drawing.Size(80, 17);
+            this.TimelineButton.TabIndex = 34;
+            this.TimelineButton.TabStop = true;
+            this.TimelineButton.Text = "Threadlines";
+            this.TimelineButton.UseVisualStyleBackColor = true;
+            this.TimelineButton.CheckedChanged += new System.EventHandler(this.TimelineButton_CheckedChanged);
             // 
             // LayoutInitGraphButton
             // 
@@ -582,18 +594,6 @@
             this.FpsLabel.Size = new System.Drawing.Size(47, 13);
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
-            // 
-            // TimelineButton
-            // 
-            this.TimelineButton.AutoSize = true;
-            this.TimelineButton.Location = new System.Drawing.Point(94, 94);
-            this.TimelineButton.Name = "TimelineButton";
-            this.TimelineButton.Size = new System.Drawing.Size(64, 17);
-            this.TimelineButton.TabIndex = 34;
-            this.TimelineButton.TabStop = true;
-            this.TimelineButton.Text = "Timeline";
-            this.TimelineButton.UseVisualStyleBackColor = true;
-            this.TimelineButton.CheckedChanged += new System.EventHandler(this.TimelineButton_CheckedChanged);
             // 
             // ViewPanel
             // 

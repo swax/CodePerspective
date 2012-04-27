@@ -130,6 +130,7 @@ namespace XLibrary
             Model.CurrentRoot = Model.InternalRoot;
 
             LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
+            LabelFormat.FormatFlags |= StringFormatFlags.NoWrap;
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
@@ -329,9 +330,9 @@ namespace XLibrary
 
             else if (Model.ViewLayout == LayoutType.Timeline)
             {
-                Model.DrawTimeline(buffer);
+                Model.DrawTheadline(buffer);
 
-                foreach (var node in Model.TimelineNodes)
+                foreach (var node in Model.ThreadlineNodes)
                     DrawNode(buffer, node.Node, node.Area, node.LabelArea, 0, false, node.ShowHit);
             }
 
@@ -514,7 +515,9 @@ namespace XLibrary
 
                 fillFunction(OverBrushes[depth]);
             }
-            else if (Model.ViewLayout == LayoutType.TreeMap || Model.CenterMap.ContainsKey(node.ID))
+            else if (Model.ViewLayout == LayoutType.TreeMap ||
+                     Model.ViewLayout == LayoutType.Timeline || 
+                     Model.CenterMap.ContainsKey(node.ID))
                 fillFunction(NothingBrush);
             else
                 fillFunction(OutsideBrush);
@@ -669,7 +672,15 @@ namespace XLibrary
         void TreePanelGdiPlus_MouseWheel(object sender, MouseEventArgs e)
         {
             if (Model.ViewLayout == LayoutType.Timeline)
+            {
+                // move screen up/down 50%
+                Model.PanOffset.Y += (float)e.Delta / 120.0f * 0.50f;
+
+                if (Model.PanOffset.Y < 0)
+                    Model.PanOffset.Y = 0;
+
                 return;
+            }
 
             // get fractional position in model
             var modelPos = new PointF();
@@ -762,7 +773,7 @@ namespace XLibrary
             }
             else if (Model.ViewLayout == LayoutType.Timeline)
             {
-                var hovered = Model.TimelineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y));
+                var hovered = Model.ThreadlineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y));
                 if(hovered != null)
                     AddNodeToHovered(hovered.Node);
             }

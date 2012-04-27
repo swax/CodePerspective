@@ -169,7 +169,7 @@
     <Compile Include="UI\GdiPanel.Designer.cs">
       <DependentUpon>GdiPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ViewModel.Timeline.cs" />
+    <Compile Include="UI\ViewModel.Threadline.cs" />
     <Compile Include="UI\ViewModel.TreeMap.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="UI\ViewModel.cs" />

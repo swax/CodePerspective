@@ -10,25 +10,25 @@ namespace XLibrary
     public partial class ViewModel
     {
         int ThreadOrder = 0;
-        public Dictionary<int, ThreadTimeline> ThreadTimelines = new Dictionary<int, ThreadTimeline>();
-        public List<TimelineNode> TimelineNodes = new List<TimelineNode>();
+        public Dictionary<int, Threadline> Threadlines = new Dictionary<int, Threadline>();
+        public List<ThreadlineNode> ThreadlineNodes = new List<ThreadlineNode>();
         public HashSet<int> AddedNodes = new HashSet<int>();
         public List<StackItem> UnfinishedItems = new List<StackItem>();
 
-        public void DrawTimeline(Graphics buffer)
+        public void DrawTheadline(Graphics buffer)
         {
             PositionMap.Clear();
 
             // clear thread map so order of items is kept and we dont get threads switching around
-            foreach (var timeline in ThreadTimelines.Values)
+            foreach (var timeline in Threadlines.Values)
                 timeline.Sequence.Clear();
 
-            TimelineNodes.Clear();
+            ThreadlineNodes.Clear();
             AddedNodes.Clear();
             UnfinishedItems.Clear();
 
             // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
-            int startPos= XRay.TimelinePos; // start with the newest position
+            int startPos= XRay.ThreadlinePos; // start with the newest position
             if (startPos == -1)// havent started, or disabled
                 return;
 
@@ -40,7 +40,7 @@ namespace XLibrary
             while (true)
             {
                 // iterate to next node
-                var item = XRay.Timeline[i];
+                var item = XRay.Threadline[i];
                 if (item == null)
                     break;
 
@@ -55,14 +55,14 @@ namespace XLibrary
 
 
                 // do stuff with item
-                ThreadTimeline timeline = null;
-                if (!ThreadTimelines.ContainsKey(item.ThreadID))
+                Threadline timeline = null;
+                if (!Threadlines.ContainsKey(item.ThreadID))
                 {
-                    timeline = new ThreadTimeline(item.ThreadID, ThreadOrder++);
-                    ThreadTimelines[item.ThreadID] = timeline;
+                    timeline = new Threadline(item.ThreadID, ThreadOrder++);
+                    Threadlines[item.ThreadID] = timeline;
                 }
                 else
-                    timeline = ThreadTimelines[item.ThreadID];
+                    timeline = Threadlines[item.ThreadID];
 
                 if (item.EndTick == 0)
                     UnfinishedItems.Add(item);
@@ -75,7 +75,7 @@ namespace XLibrary
                 // iterate to previous item in time
                 i--;
                 if (i < 0)
-                    i = XRay.Timeline.Length - 1;
+                    i = XRay.Threadline.Length - 1;
 
                 if (i == startPos)
                     break;
@@ -83,23 +83,27 @@ namespace XLibrary
 
             // add unfinshed items, we do this separetly because they are out of time order in xray
             foreach (var item in UnfinishedItems.OrderByDescending(ui => ui.StartTick))
-                ThreadTimelines[item.ThreadID].Sequence.Add(item);
+                Threadlines[item.ThreadID].Sequence.Add(item);
 
             // remove empty threads
-            var removeTimelines = ThreadTimelines.Values.Where(t => t.Sequence.Count == 0).ToArray();
+            var removeTimelines = Threadlines.Values.Where(t => t.Sequence.Count == 0).ToArray();
             foreach (var timeline in removeTimelines)
-                ThreadTimelines.Remove(timeline.ThreadID);
+                Threadlines.Remove(timeline.ThreadID);
 
             // go through each thread object and position nodes
             float xOffset = 0;
             float nodeHeight = 18;
             float nodeWidth = 18;
 
-            foreach(var timeline in ThreadTimelines.Values.OrderBy(t => t.Order))
+            foreach(var timeline in Threadlines.Values.OrderBy(t => t.ThreadID))
             {
-                timeline.NodeDepths = new TimelineNode[timeline.Deepest + 2]; // an extra level to prevent outside bounds exc when checking lower level
+                timeline.NodeDepths = new ThreadlineNode[timeline.Deepest + 2]; // an extra level to prevent outside bounds exc when checking lower level
 
-                float yPos = ScreenSize.Height - nodeHeight;
+                float yPos = ScreenSize.Height - nodeHeight - 16;
+
+                buffer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, new SolidBrush(Color.Black), new PointF(ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2));
+
+                float colWidth = timeline.Deepest * nodeWidth + 100;
 
                 foreach(var item in timeline.Sequence)
                 {
@@ -122,10 +126,14 @@ namespace XLibrary
                     }
 
                     // extend this node down to the previous nodes (future node) depth
+                    bool foundPrev = false;
                     for (i = item.Depth + 1; i < timeline.NodeDepths.Length; i++)
                     {
-                        if (timeline.NodeDepths[i] != null)
+                        if (!foundPrev && timeline.NodeDepths[i] != null)
+                        {
                             area.Height = timeline.NodeDepths[i].Area.Bottom - area.Top;
+                            foundPrev = true;
+                        }
 
                         timeline.NodeDepths[i] = null;
                     }
@@ -134,40 +142,42 @@ namespace XLibrary
                     if (item.EndTick == 0 || Xtensions.TicksToSeconds(currentTick - item.StartTick) < 1.0) // of started in last second
                         showHit = true;
 
-                    var labelArea = new RectangleF(ScreenOffset.X + xPos + nodeWidth + 3, ScreenOffset.Y + yPos + 1, 125, nodeHeight);
-                    var entry = new TimelineNode() { Node = node, Area = area, LabelArea = labelArea, ShowHit = showHit };
+                    float labelX = ScreenOffset.X + xPos + nodeWidth + 3;
+                    float labelWidth = colWidth - nodeWidth * (item.Depth + 1) - 3;
+                    var labelArea = new RectangleF(labelX, ScreenOffset.Y + yPos + 1, labelWidth, nodeHeight);
+                    var entry = new ThreadlineNode() { Node = node, Area = area, LabelArea = labelArea, ShowHit = showHit };
 
                     if(timeline.NodeDepths[item.Depth] == null)             
                         timeline.NodeDepths[item.Depth] = entry;
 
-                    TimelineNodes.Add(entry);
+                    ThreadlineNodes.Add(entry);
 
                     yPos -= nodeHeight;
                 }
 
-                xOffset += timeline.Deepest * (nodeWidth + 1) + 150;
+                xOffset += colWidth;
             }
         }
     }
 
-    public class ThreadTimeline
+    public class Threadline
     {
         public int ThreadID;
         public int Order;
         public int Deepest; // dont reset, if we do columns start moving around whenever it changes
 
         public List<StackItem> Sequence = new List<StackItem>();
-        public TimelineNode[] NodeDepths;
+        public ThreadlineNode[] NodeDepths;
 
 
-        public ThreadTimeline(int threadID, int order)
+        public Threadline(int threadID, int order)
         {
             ThreadID = threadID;
             Order = order;
         }
     }
 
-    public class TimelineNode
+    public class ThreadlineNode
     {
         public XNodeIn Node;
         public RectangleF Area;

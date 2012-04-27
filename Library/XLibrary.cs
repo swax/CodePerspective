@@ -50,9 +50,9 @@ namespace XLibrary
         internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
         internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
-        internal static bool TimelineEnabled = true;
-        internal static int TimelinePos = -1;
-        internal static StackItem[] Timeline = new StackItem[2000]; // if vert res is 1200, then 16px entrys would be like 75 timeline lines, across 5 threads would be 500
+        internal static bool ThreadlineEnabled = true;
+        internal static int ThreadlinePos = -1;
+        internal static StackItem[] Threadline = new StackItem[2000]; // if vert res is 1200, then 16px entrys would be like 75 timeline lines, across 5 threads would be 500
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -127,8 +127,8 @@ namespace XLibrary
 
         public static void StartGui()
         {
-            if (Gui != null)
-                return;
+            //if (Gui != null)
+            //    return;
 
             Gui = new Thread(() =>
             {
@@ -420,21 +420,21 @@ namespace XLibrary
 
             flow.Stack[flow.Pos] = newItem;
 
-            if (!TimelineEnabled)
+            if (!ThreadlineEnabled)
                 return;
 
             // dont over write items in timeline that haven't ended yet
             while(true)
             {
-                TimelinePos++;
-                if (TimelinePos >= Timeline.Length)
-                    TimelinePos = 0;
+                ThreadlinePos++;
+                if (ThreadlinePos >= Threadline.Length)
+                    ThreadlinePos = 0;
 
-                var overwrite = Timeline[TimelinePos];
+                var overwrite = Threadline[ThreadlinePos];
 
                 if (overwrite == null || overwrite.EndTick != 0)
                 {
-                    Timeline[TimelinePos] = newItem;
+                    Threadline[ThreadlinePos] = newItem;
                     break;
                 }
             }

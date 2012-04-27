@@ -1,20 +1,23 @@
 ﻿
 now	
-	break out color profile for GL. put color profiles in their own file, commit
+	Seperate NodeModel so we can run multiple guis
 
-	timeline
-		thread order?
-		show fields
-		filter zoomed nodes
-		ellipses text
-		hang onto dead threads a bit longer?, put thread # at bottom so i can see how stuff is jumping
-		optimize so big apps look good
+	show fields in timeline
+	combine instance and method view
+	add time node so stuff constantly being purged
+	add pause button
+	profile auto refresh
+	filter zoomed nodes
+
+	3d thread lines - cylinder with threadlines spread around edge, lines go up/down off the screen, mouse rotates cylinder
 
 	Top level thread filter in crumbs - works in all views?
 
 	filter call graph by selected thread
 
-	profile auto refresh
+
+	break out color profile for GL. put color profiles in their own file, commit
+
 
 	blend colors so i can see outside calls bettter
 	search option to search file/namespace path, see diff components interacting
@@ -39,8 +42,6 @@ now
 	msil view - lots of dupe items in list`1 class
 	track internal msil graph
 	
-	3d play
-
 	post-build command line to introspex a build in debug mode so dev at any time can start introspex monitor
 	
 call graph, filtered by thread

@@ -1,6 +1,7 @@
 ﻿
 now	
 	Seperate NodeModel so we can run multiple guis
+		on UI startup copy nodes
 
 	show fields in timeline
 	combine instance and method view
@@ -9,12 +10,11 @@ now
 	profile auto refresh
 	filter zoomed nodes
 
-	3d thread lines - cylinder with threadlines spread around edge, lines go up/down off the screen, mouse rotates cylinder
-
 	Top level thread filter in crumbs - works in all views?
-
-	filter call graph by selected thread
-
+		filter call graph by selected thread
+		a way to filter by thread intersections
+		way to show what FIELDS are accessed by multiple threads
+		3d thread lines - cylinder with threadlines spread around edge, lines go up/down off the screen, mouse rotates cylinder
 
 	break out color profile for GL. put color profiles in their own file, commit
 

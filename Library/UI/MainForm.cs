@@ -35,13 +35,11 @@ namespace XLibrary
             ConsoleTab.Init(this);
 
             TreeView.SetRoot(Model.CurrentRoot); // init first node in history
-
-            FormClosed += (s, e) => { XRay.Gui = null; };
         }
 
-        void GLView_Load(object sender, EventArgs e)
+        void ResetTimer_Tick(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            RefreshView(true, false);
         }
 
         public void UpdateBreadCrumbs()
@@ -98,52 +96,6 @@ namespace XLibrary
 
             BackButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Previous != null);
             ForwardButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Next != null);
-        }
-
-        private void ResetTimer_Tick(object sender, EventArgs e)
-        {
-            if (XRay.Nodes == null)
-                return;
-
-            for (int i = 0; i < XRay.Nodes.Length; i++)
-            {
-                XNodeIn node = XRay.Nodes[i];
-
-                if (node != null)
-                {
-                    if (node.FunctionHit > 0)
-                        node.FunctionHit--;
-
-                    if (XRay.ThreadTracking &&
-                        node.ConflictHit > 0)
-                        node.ConflictHit--;
-                }
-            }
-
-            // reset
-            if (XRay.FlowTracking)
-            {
-                // time out function calls
-                TimeoutFunctinCalls(XRay.CallMap);
-                TimeoutFunctinCalls(XRay.ClassCallMap);
-            }
-
-            RefreshView(true, false);
-        }
-
-        void TimeoutFunctinCalls(SharedDictionary<FunctionCall> callMap)
-        {
-            foreach (FunctionCall call in callMap)
-            {
-                if (call == null || call.Hit <= 0)
-                    continue;
-                
-                call.Hit--;
-
-                call.DashOffset -= FunctionCall.DashSize;
-                if (call.DashOffset < 0)
-                    call.DashOffset = FunctionCall.DashSpace;
-            }
         }
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
@@ -235,11 +187,6 @@ namespace XLibrary
         {
             if (!string.IsNullOrEmpty(TreeView.SearchString))
                 Model.SearchStrobe = !Model.SearchStrobe;
-        }
-
-        private void DisplayTab_Load(object sender, EventArgs e)
-        {
-
         }
     }
 

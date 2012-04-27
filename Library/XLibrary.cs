@@ -19,7 +19,7 @@ namespace XLibrary
     {
         static MainForm MainForm;
 
-        internal static Thread Gui;
+        internal static Dictionary<int, Thread> UIs = new Dictionary<int, Thread>();
 
         internal static XNodeIn RootNode;
         internal static XNodeIn[] Nodes;
@@ -35,8 +35,9 @@ namespace XLibrary
         internal static BitArray CoveredNodes;
         internal static bool ShowAllCalls;
 
-        internal const int HitFrames = 15;
+        internal const int HitFrames = 10;
         internal const int ShowTicks = HitFrames - 1; // first index
+        static System.Threading.Timer ResetTimer;
 
         internal static bool InstanceTracking = false; // must be compiled in, can be ignored later
        
@@ -70,6 +71,8 @@ namespace XLibrary
         public static DateTime StartTime;
         //public static double BytesSent;
 
+        public static Random RndGen = new Random();
+
         // opens xray from the builder exe to analyze the dat
         public static void Analyze(string path)
         {
@@ -90,29 +93,30 @@ namespace XLibrary
                 LogError("Init already called");
                 return;
             }
+            InitComplete = true;
 
             StartTime = DateTime.Now;
 
+            Watch.Start();
+              
+            // read compiled settings
+            if (trackFlow)
+            {
+                FlowTracking = true;
+                ThreadTracking = true;
+                ClassTracking = true;
+            }
+            InstanceTracking = trackInstances;
+
             try
             {
-                Watch.Start();
-              
-                // read compiled settings
-                if (trackFlow)
-                {
-                    FlowTracking = true;
-                    ThreadTracking = true;
-                    ClassTracking = true;
-                }
-                InstanceTracking = trackInstances;
-
                 // data file with node info should be along side ext
                 LoadNodeMap(datPath);
 
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);
 
-                InitComplete = true;
+                StartResetThread();
 
                 StartIpcServer();
 
@@ -125,12 +129,60 @@ namespace XLibrary
             }
         }
 
+        static void StartResetThread()
+        {
+            int period = 1000 / HitFrames;
+            ResetTimer = new System.Threading.Timer(ResetFunctionHits, null, period, period);
+        }
+
+        static void  ResetFunctionHits(object state)
+        {
+            // save cpu when no UIs active
+            if (UIs.Count == 0)
+                return;
+
+            foreach (var node in Nodes)
+            {
+                if (node.FunctionHit > 0)
+                    node.FunctionHit--;
+
+                if (ThreadTracking &&
+                    node.ConflictHit > 0)
+                    node.ConflictHit--;
+            }
+
+            // reset
+            if (FlowTracking)
+            {
+                // time out function calls
+                ResetCallHits(CallMap);
+                ResetCallHits(ClassCallMap);
+            }
+        }
+
+        static void ResetCallHits(SharedDictionary<FunctionCall> callMap)
+        {
+            foreach (var call in callMap)
+            {
+                if (call == null || call.Hit <= 0)
+                    continue;
+
+                call.Hit--;
+
+                call.DashOffset -= FunctionCall.DashSize;
+                if (call.DashOffset < 0)
+                    call.DashOffset = FunctionCall.DashSpace;
+            }
+        }
+
         public static void StartGui()
         {
             //if (Gui != null)
             //    return;
 
-            Gui = new Thread(() =>
+            int id = RndGen.Next();
+
+            var uiThread = new Thread(() =>
             {
                 try
                 {
@@ -145,10 +197,12 @@ namespace XLibrary
                     LogError("Gui Error: " + ex.Message);
                 }
 
-                Gui = null;
+                UIs.Remove(id);
             });
-            Gui.SetApartmentState(ApartmentState.STA);
-            Gui.Start();
+            uiThread.SetApartmentState(ApartmentState.STA);
+            uiThread.Start();
+
+            UIs[id] = uiThread;
         }
 
         static IpcServerChannel XRayChannel;
@@ -159,7 +213,7 @@ namespace XLibrary
             // url - ipc://xray_1/query
             try
             {
-                string unique = new Random().Next().ToString();
+                string unique = RndGen.Next().ToString();
                 string host = "xray_" + unique;
                 string queryUri = "query";
                 string url = "ipc://" + host + "/" + queryUri;
@@ -905,7 +959,7 @@ namespace XLibrary
         {
             get
             {
-                return (XRay.Gui != null);
+                return XRay.UIs.Any();
             }
             set
             {

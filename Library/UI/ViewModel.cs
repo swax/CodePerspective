@@ -16,6 +16,8 @@ namespace XLibrary
 
     public partial class ViewModel
     {
+        public NodeUI[] NodeUIs; // used so each XRay UI can keep separate views for each node
+
         public bool DoRedraw = true;
         public bool DoResize = true;
         public bool DoRevalue = true;
@@ -73,6 +75,11 @@ namespace XLibrary
 
         public long RecalcCover(XNodeIn root)
         {
+            NodeUIs = new NodeUI[XRay.Nodes.Length];
+            for(int i = 0; i < XRay.Nodes.Length; i++)
+                NodeUIs[i] = new NodeUI(XRay.Nodes[i]);
+
+
             root.Value = 0;
 
             // only leaves have usable value

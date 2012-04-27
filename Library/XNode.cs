@@ -159,9 +159,9 @@ namespace XLibrary
         internal RectangleF AreaF { get; private set; }
         internal PointF CenterF { get; private set; }
 
-        internal int FunctionHit;
+        internal int FunctionHit; 
         internal int LastCallingThread;
-        internal int ConflictHit;
+        internal int ConflictHit; 
         internal int ExceptionHit;
         internal uint HitSequence;
 

@@ -1,8 +1,6 @@
 ﻿
 now	
-	Seperate NodeModel so we can run multiple guis
-		on UI startup copy nodes
-
+	show totals in profile view
 	show fields in timeline
 	combine instance and method view
 	add time node so stuff constantly being purged

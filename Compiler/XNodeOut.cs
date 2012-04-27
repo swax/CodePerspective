@@ -77,7 +77,7 @@ namespace XBuilder
             foreach (XNodeOut node in Nodes.Cast<XNodeOut>().Where(n => !n.Exclude))
                 sum += node.ComputeSums();
 
-            Value = sum;
+            Lines = sum;
 
             return sum;
         }

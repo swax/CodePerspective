@@ -91,16 +91,16 @@ namespace XLibrary
         Pen[] CallPenFocused;
 
         int HoverHash;
-        List<XNodeIn> GuiHovered = new List<XNodeIn>();
-        XNodeIn[] NodesHovered = new XNodeIn[] { };
+        List<NodeModel> GuiHovered = new List<NodeModel>();
+        NodeModel[] NodesHovered = new NodeModel[] { };
 
         Pen FilteredPen;
         SolidBrush FilteredBrush;
-        Dictionary<int, XNodeIn> FilteredNodes = new Dictionary<int, XNodeIn>();
+        Dictionary<int, NodeModel> FilteredNodes = new Dictionary<int, NodeModel>();
 
         Pen IgnoredPen;
         SolidBrush IgnoredBrush;
-        Dictionary<int, XNodeIn> IgnoredNodes = new Dictionary<int, XNodeIn>();
+        Dictionary<int, NodeModel> IgnoredNodes = new Dictionary<int, NodeModel>();
 
         // dependencies
         SolidBrush DependentBrush;
@@ -124,9 +124,9 @@ namespace XLibrary
             MainForm = main;
             Model = main.Model;
 
-            Model.TopRoot = XRay.RootNode;
-            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
-            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
+            Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
+            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);
+            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External);
             Model.CurrentRoot = Model.InternalRoot;
 
             LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
@@ -270,7 +270,7 @@ namespace XLibrary
             Debug.Assert(Model.CurrentRoot != Model.TopRoot); // current root should be intenalRoot in this case
 
             ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
-            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
+            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.XNode.External;
 
             // clear and pre-process marked depencies
             Model.RecalcDependencies();
@@ -281,17 +281,8 @@ namespace XLibrary
                 LastSearch = SearchString;
                 bool empty = string.IsNullOrEmpty(SearchString);
 
-                Utilities.RecurseTree<XNodeIn>(
-                        tree: XRay.RootNode.Nodes.Cast<XNodeIn>(),
-                        evaluate: n =>
-                        {
-                            n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
-                        },
-                        recurse: n =>
-                        {
-                            return n.Nodes.Cast<XNodeIn>();
-                        }
-                    );
+                foreach(var node in Model.TopRoot.Nodes)
+                    node.SearchMatch = !empty && node.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
             }
 
             // draw layout
@@ -337,7 +328,7 @@ namespace XLibrary
             }
 
             // draw ignored over nodes ignored may contain
-            foreach (XNodeIn ignored in IgnoredNodes.Values)
+            foreach (var ignored in IgnoredNodes.Values)
                 if (Model.PositionMap.ContainsKey(ignored.ID))
                 {
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperLeftCorner(), ignored.AreaF.LowerRightCorner() );
@@ -370,7 +361,7 @@ namespace XLibrary
                         if (!Model.PositionMap.ContainsKey(to))
                             continue;
 
-                        XNodeIn destination = Model.PositionMap[to];
+                        var destination = Model.PositionMap[to];
 
                         bool focused = (source.Focused || destination.Focused);
 
@@ -388,18 +379,18 @@ namespace XLibrary
             {
                 foreach (var source in Model.PositionMap.Values)
                 {
-                    if (source.CallsOut == null)
+                    if (source.XNode.CallsOut == null)
                         continue;
 
                     if (Model.ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class)
                         continue;
 
-                    foreach (var call in source.CallsOut)
+                    foreach (var call in source.XNode.CallsOut)
                     {
                         if (!Model.PositionMap.ContainsKey(call.Destination))
                             continue;
 
-                        XNodeIn destination = Model.PositionMap[call.Destination];
+                        var destination = Model.PositionMap[call.Destination];
 
                         // if there are items we're filtering on then only show calls to those nodes
                         if (FilteredNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
@@ -470,31 +461,33 @@ namespace XLibrary
             Model.RedrawCount++;
         }
 
-        private bool IsNodeFiltered(bool select, XNodeIn node)
+        private bool IsNodeFiltered(bool select, NodeModel node)
         {
-            Dictionary<int, XNodeIn> map = select ? FilteredNodes : IgnoredNodes;
+            var map = select ? FilteredNodes : IgnoredNodes;
 
-            foreach (XNodeIn parent in node.GetParents())
+            foreach (var parent in node.GetParents())
                 if (map.ContainsKey(parent.ID))
                     return true;
 
             return false;
         }
 
-        private void DrawNode(Graphics buffer, XNodeIn node, int depth, bool drawChildren)
+        private void DrawNode(Graphics buffer, NodeModel node, int depth, bool drawChildren)
         {
             DrawNode(buffer, node, node.AreaF, node.LabelRect, depth, drawChildren, true);
         }
 
-        private void DrawNode(Graphics buffer, XNodeIn node, RectangleF area, RectangleF labelArea, int depth, bool drawChildren, bool showHit)
+        private void DrawNode(Graphics buffer, NodeModel node, RectangleF area, RectangleF labelArea, int depth, bool drawChildren, bool showHit)
         {
             if (!node.Show)
                 return;
 
+            var xNode = node.XNode;
+
             bool pointBorder = area.Width < 3.0f || area.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool ellipse = Model.ViewLayout == LayoutType.CallGraph && node.External;
+            bool ellipse = Model.ViewLayout == LayoutType.CallGraph && node.XNode.External;
             bool needBorder = true;
 
             Action<Brush> fillFunction = (b) =>
@@ -525,18 +518,18 @@ namespace XLibrary
             if (showHit)
             {
                 // check if function is an entry point or holding
-                if (XRay.FlowTracking && node.StillInside > 0)
+                if (XRay.FlowTracking && xNode.StillInside > 0)
                 {
-                    if (node.EntryPoint > 0)
+                    if (xNode.EntryPoint > 0)
                     {
-                        if (XRay.ThreadTracking && node.ConflictHit > 0)
+                        if (XRay.ThreadTracking && xNode.ConflictHit > 0)
                             fillFunction(MultiEntryBrush);
                         else
                             fillFunction(EntryBrush);
                     }
                     else
                     {
-                        if (XRay.ThreadTracking && node.ConflictHit > 0)
+                        if (XRay.ThreadTracking && xNode.ConflictHit > 0)
                             fillFunction(MultiHoldingBrush);
                         else
                             fillFunction(HoldingBrush);
@@ -544,23 +537,23 @@ namespace XLibrary
                 }
 
                 // not an else if, draw over holding or entry
-                if (node.ExceptionHit > 0)
-                    fillFunction(ExceptionBrush[node.FunctionHit]);
+                if (xNode.ExceptionHit > 0)
+                    fillFunction(ExceptionBrush[xNode.FunctionHit]);
 
-                else if (node.FunctionHit > 0)
+                else if (xNode.FunctionHit > 0)
                 {
-                    if (XRay.ThreadTracking && node.ConflictHit > 0)
-                        fillFunction(MultiHitBrush[node.FunctionHit]);
+                    if (XRay.ThreadTracking && xNode.ConflictHit > 0)
+                        fillFunction(MultiHitBrush[xNode.FunctionHit]);
 
                     else if (node.ObjType == XObjType.Field)
                     {
-                        if (node.LastFieldOp == FieldOp.Set)
-                            fillFunction(FieldSetBrush[node.FunctionHit]);
+                        if (xNode.LastFieldOp == FieldOp.Set)
+                            fillFunction(FieldSetBrush[xNode.FunctionHit]);
                         else
-                            fillFunction(FieldGetBrush[node.FunctionHit]);
+                            fillFunction(FieldGetBrush[xNode.FunctionHit]);
                     }
                     else
-                        fillFunction(HitBrush[node.FunctionHit]);
+                        fillFunction(HitBrush[xNode.FunctionHit]);
                 }
             }
 
@@ -633,7 +626,7 @@ namespace XLibrary
                 drawChildren = false;
 
             if (drawChildren && area.Width > 1 && area.Height > 1)
-                foreach (XNodeIn sub in node.Nodes)
+                foreach (var sub in node.Nodes)
                     DrawNode(buffer, sub, depth + 1, drawChildren);
 
 
@@ -788,12 +781,12 @@ namespace XLibrary
 
                 if (GuiHovered.Count > 0)
                 {
-                    NodesHovered = GuiHovered.Last().GetParents().Cast<XNodeIn>().ToArray();
+                    NodesHovered = GuiHovered.Last().GetParents().ToArray();
                     //MainForm.SelectedLabel.Text = GuiHovered.Last().FullName();
                 }
                 else
                 {
-                    NodesHovered = new XNodeIn[] { };
+                    NodesHovered = new NodeModel[] { };
                     //MainForm.SelectedLabel.Text = "";
                 }
 
@@ -801,21 +794,21 @@ namespace XLibrary
             }
         }
 
-        private void AddNodeToHovered(XNodeIn node)
+        private void AddNodeToHovered(NodeModel node)
         {
             GuiHovered.Add(node);
-            XNodeIn parent = node.Parent as XNodeIn;
+            var parent = node.Parent;
 
             while (parent != null)
             {
                 GuiHovered.Add(parent);
-                parent = parent.Parent as XNodeIn;
+                parent = parent.Parent;
             }
 
             GuiHovered.Reverse();
         }
 
-        private void TestHovered(XNodeIn node, Point loc)
+        private void TestHovered(NodeModel node, Point loc)
         {
             if (!node.Show || !node.AreaF.Contains(loc.X, loc.Y))
                 return;
@@ -823,7 +816,7 @@ namespace XLibrary
             node.Hovered = true;
             GuiHovered.Add(node);
 
-            foreach (XNodeIn sub in node.Nodes)
+            foreach (var sub in node.Nodes)
                 TestHovered(sub, loc);
         }
 
@@ -847,7 +840,7 @@ namespace XLibrary
             Invalidate();
         }
 
-        void ToggleNode(Dictionary<int, XNodeIn> map, XNodeIn node)
+        void ToggleNode(Dictionary<int, NodeModel> map, NodeModel node)
         {
             // make sure a node cant be selected and ignored simultaneously
             if (map != IgnoredNodes && IgnoredNodes.ContainsKey(node.ID))
@@ -867,7 +860,7 @@ namespace XLibrary
 
         private void TreePanelGdiPlus_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            XNodeIn node = GuiHovered.LastOrDefault();
+            var node = GuiHovered.LastOrDefault();
             if (node != null)
                 SetRoot(node);
         }
@@ -929,7 +922,7 @@ namespace XLibrary
 
                     MainForm.InstanceTab.NavigateTo(node);
                     MainForm.CodeTab.NavigateTo(node);
-                    MainForm.TimingPanel.NavigateTo(node);
+                    MainForm.TimingTab.NavigateTo(node);
                 }
 
                 Redraw();
@@ -939,7 +932,7 @@ namespace XLibrary
                 ContextMenu menu = new ContextMenu();
 
 
-                XNodeIn node = GuiHovered.LastOrDefault();
+                var node = GuiHovered.LastOrDefault();
                 if (node != null)
                 {
                     menu.MenuItems.Add(node.ObjType.ToString() + " " + node.Name);
@@ -994,11 +987,11 @@ namespace XLibrary
                 if (Model.CurrentRoot.Parent == null)
                     return;
 
-                SetRoot(Model.CurrentRoot.Parent as XNodeIn);
+                SetRoot(Model.CurrentRoot.Parent);
             }
 
             // put cursor in the same block after the view changes
-            XNodeIn last = NodesHovered.LastOrDefault() as XNodeIn;
+            var last = NodesHovered.LastOrDefault();
 
             if(last != null)
                 Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
@@ -1010,10 +1003,10 @@ namespace XLibrary
             ZoomFactor = 1;
         }
 
-        public LinkedList<XNodeIn> HistoryList = new LinkedList<XNodeIn>();
-        public LinkedListNode<XNodeIn> CurrentHistory;
+        public LinkedList<NodeModel> HistoryList = new LinkedList<NodeModel>();
+        public LinkedListNode<NodeModel> CurrentHistory;
 
-        public void SetRoot(XNodeIn node, bool logHistory=true)
+        public void SetRoot(NodeModel node, bool logHistory=true)
         {
             // setting internal root will auto show properly sized external root area if showing it is enabled
             ResetZoom();
@@ -1091,7 +1084,7 @@ namespace XLibrary
             float x = 0;
             var lastNode = NodesHovered.Last();
 
-            foreach (XNodeIn node in NodesHovered)
+            foreach (var node in NodesHovered)
             {
                 DrawFooterPart(buffer, node.Name, ObjBrushes[(int)node.ObjType], ref x);
 
@@ -1163,9 +1156,9 @@ namespace XLibrary
             {
                 int staticCount = 0;
                 int instCount = 0;
-                if (lastNode != null && lastNode.Record != null && lastNode.Record.Active.Count > 0)
+                if (lastNode != null && lastNode.XNode.Record != null && lastNode.XNode.Record.Active.Count > 0)
                 {
-                    var record = lastNode.Record;
+                    var record = lastNode.XNode.Record;
 
                     lock (record.Active)
                     {
@@ -1193,22 +1186,22 @@ namespace XLibrary
 
             else if (lastNode.ObjType == XObjType.Method)
             {
-                labels.Add(new Tuple<string, SolidBrush>(lastNode.GetMethodName(false), TextBrush));
+                labels.Add(new Tuple<string, SolidBrush>(lastNode.XNode.GetMethodName(false), TextBrush));
             }
 
             else if (lastNode.ObjType == XObjType.Namespace)
             {
                 labels.Clear();
-                labels.Add(new Tuple<string, SolidBrush>(lastNode.FullName(true), ObjBrushes[(int)lastNode.ObjType]));
+                labels.Add(new Tuple<string, SolidBrush>(lastNode.XNode.FullName(true), ObjBrushes[(int)lastNode.ObjType]));
             }
 
             else if (lastNode.ObjType == XObjType.Field)
             {
-                var classNode = lastNode.GetParentClass(false) as XNodeIn;
+                var classNode = lastNode.GetParentClass(false);
 
-                if (classNode != null && classNode.Record != null && classNode.Record.Active.Count > 0)
+                if (classNode != null && classNode.XNode.Record != null && classNode.XNode.Record.Active.Count > 0)
                 {
-                    var record = classNode.Record;
+                    var record = classNode.XNode.Record;
 
                     lock (record.Active)
                     {
@@ -1218,7 +1211,7 @@ namespace XLibrary
                         {                        
                             var instance = record.Active[i];
 
-                            field = instance.GetField(lastNode.UnformattedName);
+                            field = instance.GetField(lastNode.XNode.UnformattedName);
 
                             object target = null;
                             if (instance != null && instance.Ref != null)
@@ -1367,7 +1360,7 @@ namespace XLibrary
             buffer.DrawString(debugString, TextFont, ObjBrushes[(int)debugNode.ObjType], pos.X, pos.Y);*/
         }
 
-        public string GetMetricForNode(XNodeIn node)
+        public string GetMetricForNode(NodeModel node)
         {
             switch (Model.SizeLayout)
             {
@@ -1375,7 +1368,7 @@ namespace XLibrary
                     return node.Value.ToString() + " elements";
 
                 case SizeLayouts.MethodSize:
-                    return node.Value.ToString() + " lines";
+                    return node.XNode.Lines.ToString() + " lines";
 
                 case SizeLayouts.TimeInMethod:
                     return Xtensions.TicksToString(node.Value);
@@ -1390,7 +1383,7 @@ namespace XLibrary
             return "";
         }
 
-        private void DrawGraphEdge(Graphics buffer, Pen pen, XNodeIn source, XNodeIn destination)
+        private void DrawGraphEdge(Graphics buffer, Pen pen, NodeModel source, NodeModel destination)
         {
             if (source.Intermediates == null || !source.Intermediates.ContainsKey(destination.ID))
                 buffer.DrawLine(pen, source.CenterF, destination.CenterF);

@@ -16,20 +16,20 @@ namespace XLibrary
 
     public partial class ViewModel
     {
-        public NodeUI[] NodeUIs; // used so each XRay UI can keep separate views for each node
+        public NodeModel[] NodeModels; // used so each XRay UI can keep separate views for each node
 
         public bool DoRedraw = true;
         public bool DoResize = true;
         public bool DoRevalue = true;
 
-        public Dictionary<int, XNodeIn> PositionMap = new Dictionary<int, XNodeIn>();
-        public Dictionary<int, XNodeIn> CenterMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center
-        public Dictionary<int, XNodeIn> OutsideMap = new Dictionary<int, XNodeIn>(); // used to filter calls into and out of center     
+        public Dictionary<int, NodeModel> PositionMap = new Dictionary<int, NodeModel>();
+        public Dictionary<int, NodeModel> CenterMap = new Dictionary<int, NodeModel>(); // used to filter calls into and out of center
+        public Dictionary<int, NodeModel> OutsideMap = new Dictionary<int, NodeModel>(); // used to filter calls into and out of center     
 
-        public XNodeIn CurrentRoot;
-        public XNodeIn InternalRoot;
-        public XNodeIn ExternalRoot;
-        public XNodeIn TopRoot;
+        public NodeModel CurrentRoot;
+        public NodeModel InternalRoot;
+        public NodeModel ExternalRoot;
+        public NodeModel TopRoot;
 
         public bool ShowOutside;
         public bool ShowExternal;
@@ -50,9 +50,9 @@ namespace XLibrary
         public bool ShowLabels = true;
 
         public bool ShowAllDependencies = false;
-        public Dictionary<int, XNodeIn> InterDependencies = new Dictionary<int, XNodeIn>();
+        public Dictionary<int, NodeModel> InterDependencies = new Dictionary<int, NodeModel>();
 
-        public List<XNodeIn> FocusedNodes = new List<XNodeIn>();
+        public List<NodeModel> FocusedNodes = new List<NodeModel>();
 
         public bool SearchStrobe;
         public long MaxSecondaryValue;
@@ -72,14 +72,24 @@ namespace XLibrary
         public int ResizeCount;
         public int RedrawCount;
 
-
-        public long RecalcCover(XNodeIn root)
+        public ViewModel()
         {
-            NodeUIs = new NodeUI[XRay.Nodes.Length];
-            for(int i = 0; i < XRay.Nodes.Length; i++)
-                NodeUIs[i] = new NodeUI(XRay.Nodes[i]);
+            NodeModels = new NodeModel[XRay.Nodes.Length];
+            foreach (var node in XRay.Nodes)
+                NodeModels[node.ID] = new NodeModel(this, XRay.Nodes[node.ID]);
 
+            foreach (var uiNode in NodeModels)
+            {
+                if(uiNode.XNode.Parent != null)
+                    uiNode.Parent = NodeModels[uiNode.XNode.Parent.ID];
 
+                foreach (var subnode in uiNode.XNode.Nodes)
+                    uiNode.Nodes.Add(NodeModels[subnode.ID]);
+            }
+        }
+
+        public long RecalcCover(NodeModel root)
+        {
             root.Value = 0;
 
             // only leaves have usable value
@@ -97,11 +107,11 @@ namespace XLibrary
                     root.Value = GetValueForLayout(root, SizeLayout);
             }
 
-            foreach (XNodeIn node in root.Nodes)
+            foreach (var node in root.Nodes)
             {
                 if ((node.ObjType == XObjType.Field && !ShowFields) ||
                      (node.ObjType == XObjType.Method && !ShowMethods) ||
-                     (node.IsAnon && !ShowAnon)
+                     (node.XNode.IsAnon && !ShowAnon)
                    )
                 {
                     node.Show = false;
@@ -112,7 +122,7 @@ namespace XLibrary
                     ShowLayout == ShowNodes.All ||
                     (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
                     (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
-                    (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.Record != null && node.Record.Active.Count > 0)));
+                    (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Active.Count > 0)));
 
                 if (node.Show)
                     root.Value += RecalcCover(node);
@@ -126,7 +136,7 @@ namespace XLibrary
             return root.Value;
         }
 
-        private long GetValueForLayout(XNodeIn root, SizeLayouts layout)
+        private long GetValueForLayout(NodeModel root, SizeLayouts layout)
         {
             long value = 0;
 
@@ -136,25 +146,25 @@ namespace XLibrary
                     value = 1;
                     break;
                 case SizeLayouts.MethodSize:
-                    value = root.Lines;
+                    value = root.XNode.Lines;
                     break;
                 case SizeLayouts.TimeInMethod:
                     // why is this negetive?? HAVENT RETURNED YET, property should return 0 i think if  neg, or detect still inside and return that
-                    if (root.CalledIn != null)
-                        foreach (FunctionCall call in root.CalledIn)
+                    if (root.XNode.CalledIn != null)
+                        foreach (FunctionCall call in root.XNode.CalledIn)
                             value += call.TotalTimeInsideDest;
                     break;
                 case SizeLayouts.Hits:
-                    if (root.CalledIn != null)
-                        foreach (FunctionCall call in root.CalledIn)
+                    if (root.XNode.CalledIn != null)
+                        foreach (FunctionCall call in root.XNode.CalledIn)
                             value += call.TotalHits;
                     break;
                 case SizeLayouts.TimePerHit:
-                    if (root.CalledIn != null)
+                    if (root.XNode.CalledIn != null)
                     {
                         int count = 0;
 
-                        foreach (FunctionCall call in root.CalledIn)
+                        foreach (FunctionCall call in root.XNode.CalledIn)
                             if (call.TotalHits > 0)
                             {
                                 count++;
@@ -171,9 +181,9 @@ namespace XLibrary
             return value;
         }
 
-        public Dictionary<int, XNodeIn> GetClassesFromFocusedNodes()
+        public Dictionary<int, NodeModel> GetClassesFromFocusedNodes()
         {
-            Dictionary<int, XNodeIn> classes = new Dictionary<int, XNodeIn>();
+            Dictionary<int, NodeModel> classes = new Dictionary<int, NodeModel>();
 
             foreach (var node in FocusedNodes)
             {
@@ -181,11 +191,11 @@ namespace XLibrary
                     node.ObjType == XObjType.Method ||
                     node.ObjType == XObjType.Field)
                 {
-                    classes[node.ID] = node.GetParentClass(true) as XNodeIn;
+                    classes[node.ID] = node.GetParentClass(true);
                 }
                 else
-                    Utilities.RecurseTree<XNodeIn>(
-                        node.Nodes.Cast<XNodeIn>(),
+                    Utilities.RecurseTree<NodeModel>(
+                        node.Nodes,
                         evaluate: n =>
                         {
                             if (n.ObjType == XObjType.Class)
@@ -193,7 +203,7 @@ namespace XLibrary
                         },
                         recurse: n =>
                         {
-                            return (n.ObjType != XObjType.Class) ? n.Nodes.Cast<XNodeIn>() : null;
+                            return (n.ObjType != XObjType.Class) ? n.Nodes : null;
                         }
                     );
             }
@@ -214,13 +224,13 @@ namespace XLibrary
                     return;
 
                 // find dependencies for selected classes
-                Dictionary<int, XNodeIn> classes = GetClassesFromFocusedNodes();
+                var classes = GetClassesFromFocusedNodes();
 
                 bool doRecurse = ShowAllDependencies;
                 bool idFound = false;
 
-                foreach (var dependenciesTo in classes.Values.Where(c => c.Dependencies != null)
-                                                             .Select(c => c.Dependencies))
+                foreach (var dependenciesTo in classes.Values.Where(c => c.XNode.Dependencies != null)
+                                                             .Select(c => c.XNode.Dependencies))
                 {
                     Utilities.RecurseTree<int>(
                         dependenciesTo,
@@ -237,8 +247,8 @@ namespace XLibrary
                 }
 
                 // find all dependencies from
-                foreach (var dependenciesFrom in classes.Values.Where(c => c.Independencies != null)
-                                            .Select(c => c.Independencies))
+                foreach (var dependenciesFrom in classes.Values.Where(c => c.XNode.Independencies != null)
+                                                               .Select(c => c.XNode.Independencies))
                 {
                     Utilities.RecurseTree<int>(
                         dependenciesFrom,

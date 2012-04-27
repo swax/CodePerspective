@@ -25,19 +25,20 @@ namespace XLibrary
             TreeView = new TreePanelGdiPlus(this, new BrightColorProfile()) { Dock = DockStyle.Fill };
             ViewHostPanel.Controls.Add(TreeView);
 
-            ResetTimer.Interval = 1000 / XRay.HitFrames;
-            ResetTimer.Enabled = true;
+            RedrawTimer.Interval = 1000 / XRay.HitFrames;
+            RedrawTimer.Enabled = true;
 
             RevalueTimer.Interval = 1000;
             RevalueTimer.Enabled = true;
 
+            TimingTab.Init(this);
             DisplayTab.Init(this);
             ConsoleTab.Init(this);
 
             TreeView.SetRoot(Model.CurrentRoot); // init first node in history
         }
 
-        void ResetTimer_Tick(object sender, EventArgs e)
+        void RedrawTimer_Tick(object sender, EventArgs e)
         {
             RefreshView(true, false);
         }
@@ -54,7 +55,7 @@ namespace XLibrary
             List<XNodeIn> crumbs = new List<XNodeIn>();
 
             // iterate up tree
-            var node = Model.CurrentRoot;
+            var node = Model.CurrentRoot.XNode;
 
             while (node != null)
             {
@@ -66,20 +67,20 @@ namespace XLibrary
             // add crumbs
             foreach (var crumb in crumbs)
             {
-                var crumbCopy = crumb;
+                var uiNode = Model.NodeModels[crumb.ID];
                 var crumbName = (crumb.ObjType == XObjType.Root) ? "View" : crumb.Name;
 
                 var button = new ToolStripSplitButton(crumbName);
-                button.ButtonClick += (s, e) => TreeView.SetRoot(crumbCopy);
+                button.ButtonClick += (s, e) => TreeView.SetRoot(uiNode);
                 button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                 button.ForeColor = TreePanelGdiPlus.ObjColors[(int)crumb.ObjType];
                 MainToolStrip.Items.Add(button);
 
                 button.DropDownOpening += (s1, e1) =>
                     {
-                        foreach (var sub in crumbCopy.Nodes.OrderBy(n => n, new CompareNodes()))
+                        foreach (var sub in uiNode.Nodes.OrderBy(n => n, new CompareNodes()))
                         {
-                            var subCopy = sub as XNodeIn;
+                            var subCopy = sub;
 
                             var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => TreeView.SetRoot(subCopy));
                             item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
@@ -190,9 +191,9 @@ namespace XLibrary
         }
     }
 
-    public class CompareNodes : IComparer<XNode>
+    public class CompareNodes : IComparer<NodeModel>
     {
-        public int Compare(XNode s1, XNode s2)
+        public int Compare(NodeModel s1, NodeModel s2)
         {
             if (s1.ObjType != s2.ObjType)
                 return ((int)s1.ObjType).CompareTo((int)s2.ObjType);

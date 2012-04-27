@@ -23,25 +23,12 @@ namespace XLibrary
         Method 
     }
 
-    public class InputValue
+    public class XNode
     {
-        public string Name;
-        public long Value;
-
-        public InputValue() { }
-
-        public InputValue(string name, long value)
-        {
-            Name = name;
-            Value = value;
-        }
-    }
-
-    public class XNode : InputValue
-    {
-        public XObjType ObjType;
-
         public int ID;
+        public string Name;
+        public long Lines;
+        public XObjType ObjType;
 
         public XNode Parent;
         public List<XNode> Nodes = new List<XNode>();
@@ -71,35 +58,6 @@ namespace XLibrary
                 myName = "(" + Name + ")";
 
             return (parent == "") ? myName : parent + "." + myName;
-        }
-
-        internal string AppendClassName()
-        {
-            if (Parent != null && ObjType == XObjType.Method)
-                return Parent.Name + "." + Name;
-            else
-                return Name;
-        }
-
-        internal XNode[] GetParents()
-        {
-            return GetParents(0, false);
-        }
-
-        private XNode[] GetParents(int count, bool includeRoot)
-        {
-            count++; // count is also the index position of this node from the back
-
-            XNode[] result = null;
-
-            if (Parent == null || (!includeRoot && Parent.ObjType == XObjType.Root))
-                result = new XNode[count];
-            else
-                result = Parent.GetParents(count, includeRoot);
-
-            result[result.Length - count] = this;
-
-            return result;
         }
 
         public XNode GetParentClass(bool rootClass)
@@ -150,14 +108,10 @@ namespace XLibrary
     [DebuggerDisplay("{Name}")]
     public class XNodeIn : XNode
     {
+        public string UnformattedName; 
+        
         internal int ParentID;
         internal int Lines; // save here so final value can be manipulated
-
-        internal bool Hovered;
-        internal bool Show = true;
-
-        internal RectangleF AreaF { get; private set; }
-        internal PointF CenterF { get; private set; }
 
         internal int FunctionHit; 
         internal int LastCallingThread;
@@ -168,42 +122,18 @@ namespace XLibrary
         internal int EntryPoint;
         internal int StillInside;
 
-        internal bool RoomForLabel;
-        internal bool LabelClipped;
-        internal RectangleF LabelRect;
-
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
 
         internal SharedDictionary<FunctionCall> InitsOf;
         internal SharedDictionary<FunctionCall> InitsBy;
 
-        internal int[] EdgesIn;
-        internal int[] EdgesOut;
-        internal Dictionary<int, List<XNodeIn>> Intermediates;
-
         internal FieldOp LastFieldOp;
-
-        // call graph view
-        internal int? Rank;
-        internal List<XNodeIn> Adjacents;
-        internal PointF ScaledLocation;
-        internal float ScaledSize; // width and height
-        internal float VelocityY;
 
         public InstanceRecord Record;
 
         internal int[] Dependencies;
         internal int[] Independencies;
-
-        public Dictionary<int, XNodeIn> DependencyChainOut;
-        public Dictionary<int, XNodeIn> DependencyChainIn;
-
-        public bool Focused;
-        public string UnformattedName;
-        public bool SearchMatch;
-
-        public long SecondaryValue; // used for showing 3d height
 
         public long CodePos;
         public int CodeLines;
@@ -234,7 +164,6 @@ namespace XLibrary
 
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
             node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
-            node.Value = node.Lines; // default
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.IsAnon = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);
@@ -304,13 +233,6 @@ namespace XLibrary
             return UTF8Encoding.UTF8.GetString(stream.Read(strlen));
         }
 
-        internal void SetArea(RectangleF area)
-        {
-            AreaF = area;
-            CenterF = new PointF(area.X + area.Width / 2.0f,
-                                 area.Y + area.Height / 2.0f);
-        }
-
         internal void AddFunctionCall(ref SharedDictionary<FunctionCall> map, int nodeId, FunctionCall call)
         {
             if (map == null)
@@ -319,18 +241,6 @@ namespace XLibrary
             if (!map.Contains(nodeId))
                 map.Add(nodeId, call);
         }
-
-        internal void AddIntermediateDependency(XNodeIn sub)
-        {
-            if (DependencyChainOut == null)
-                DependencyChainOut = new Dictionary<int, XNodeIn>();
-            DependencyChainOut[sub.ID] = sub;
-
-            if (sub.DependencyChainIn == null)
-                sub.DependencyChainIn = new Dictionary<int, XNodeIn>();
-            sub.DependencyChainIn[ID] = this;
-        }
-
 
         public string GetMethodName(bool includeClass)
         {

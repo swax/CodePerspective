@@ -32,7 +32,7 @@ namespace XLibrary
                 // iternate nodes at this zoom level
                 if (GraphMode == CallGraphMode.Intermediates)
                 {
-                    foreach (var n in XRay.Nodes)
+                    foreach (var n in NodeModels)
                     {
                         n.Intermediates = null;
                         n.DependencyChainIn = null;
@@ -51,7 +51,7 @@ namespace XLibrary
                         //FindIntermediatesFrom(n); // creates too many interdependent links, gets confusing
                     }
 
-                    foreach (var n in XRay.Nodes)
+                    foreach (var n in NodeModels)
                     {
                         if (n.DependencyChainIn != null)
                             n.EdgesIn = n.DependencyChainIn.Keys.ToArray();
@@ -280,7 +280,7 @@ namespace XLibrary
                     //float maxSize = rank.Column.Max(n => n.ScaledSize);
 
                     // a good first guess at how nodes should be ordered to min crossing
-                    rank.Column = rank.Column.OrderBy(n => n.HitSequence).ToList();
+                    rank.Column = rank.Column.OrderBy(n => n.XNode.HitSequence).ToList();
 
                     PositionRank(graph, rank, xOffset);// + maxSize / 2);
 
@@ -316,16 +316,16 @@ namespace XLibrary
         private void BuildGraphs()
         {
             // group nodes in position map into graphs
-            foreach (XNodeIn node in PositionMap.Values)
+            foreach (var node in PositionMap.Values)
                 node.Rank = null;
 
             do
             {
                 // group nodes into connected graphs
-                Dictionary<int, XNodeIn> graph = new Dictionary<int, XNodeIn>();
+                var graph = new Dictionary<int, NodeModel>();
 
                 // add first unranked node to a graph
-                XNodeIn unrankedNode = PositionMap.Values.First(n => n.Rank == null);
+                var unrankedNode = PositionMap.Values.First(n => n.Rank == null);
 
                 LayoutGraph(graph, unrankedNode, 0, new List<int>());
 
@@ -341,7 +341,7 @@ namespace XLibrary
                     {
                         if (PositionMap.ContainsKey(dest))
                         {
-                            XNodeIn destNode = PositionMap[dest];
+                            var destNode = PositionMap[dest];
                             if (destNode.Rank.HasValue)
                                 return destNode.Rank.Value;
                         }
@@ -400,7 +400,7 @@ namespace XLibrary
                         if (!graph.ContainsKey(destId))
                             continue;
 
-                        XNodeIn destination = graph[destId];
+                        var destination = graph[destId];
 
                         // ranks are equal if nodes are outside zoom
                         if (source.ID == destination.ID || destination.Rank == source.Rank)
@@ -414,22 +414,22 @@ namespace XLibrary
                             source.Rank != destination.Rank - 1)
                         {
                             if (source.Intermediates == null)
-                                source.Intermediates = new Dictionary<int, List<XNodeIn>>();
+                                source.Intermediates = new Dictionary<int, List<NodeModel>>();
 
-                            source.Intermediates[destId] = new List<XNodeIn>();
+                            source.Intermediates[destId] = new List<NodeModel>();
 
                             bool increase = destination.Rank > source.Rank;
                             int nextRank = increase ? source.Rank.Value + 1 : source.Rank.Value - 1;
-                            XNodeIn lastNode = source;
+                            var lastNode = source;
 
                             while (nextRank != destination.Rank)
                             {
 
                                 // create new node
-                                XNodeIn intermediate = new XNodeIn();
+                                var intermediate = new NodeModel(this);
                                 intermediate.Rank = nextRank;
                                 intermediate.Value = 10; // todo make smarter - 
-                                intermediate.Adjacents = new List<XNodeIn>();
+                                intermediate.Adjacents = new List<NodeModel>();
 
                                 // add forward node to prev
                                 if (lastNode != source)
@@ -486,7 +486,7 @@ namespace XLibrary
             }
         }
 
-        private float AvgPos(XNodeIn node)
+        private float AvgPos(NodeModel node)
         {
             float sum = 0;
             float count = 0;
@@ -619,7 +619,7 @@ namespace XLibrary
 
         }
 
-        private float GetDistanceY(XNodeIn other_node, XNodeIn node)
+        private float GetDistanceY(NodeModel other_node, NodeModel node)
         {
             return Math.Abs(other_node.ScaledLocation.Y - node.ScaledLocation.Y);
         }
@@ -706,7 +706,7 @@ namespace XLibrary
 	        this way we start with first (entry) node, run through linearly from that, and tack on alternate parents later
 		        works great for application call graph, and for general graphs as well
          */
-        private void LayoutGraph(Dictionary<int, XNodeIn> graph, XNodeIn node, int minRank, List<int> parents)
+        private void LayoutGraph(Dictionary<int, NodeModel> graph, NodeModel node, int minRank, List<int> parents)
         {
             //debugLog.Add(string.Format("Entered Node ID {0} rank {1}", ID, Rank));
 
@@ -762,21 +762,23 @@ namespace XLibrary
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(XNodeIn node, bool center)
+        private void AddCalledNodes(NodeModel node, bool center)
         {
             if (!node.Show)
                 return;
 
             node.Intermediates = null;
 
-            if (node.IsAnon && !ShowAnon)
+            var xNode = node.XNode;
+
+            if (node.XNode.IsAnon && !ShowAnon)
             {
                 // ignore node
             }
 
-            else if (GraphMode == CallGraphMode.Dependencies && 
-                     ((node.Independencies != null && node.Independencies.Length > 0) ||
-                      (node.Dependencies != null && node.Dependencies.Length > 0)))
+            else if (GraphMode == CallGraphMode.Dependencies &&
+                     ((xNode.Independencies != null && xNode.Independencies.Length > 0) ||
+                      (xNode.Dependencies != null && xNode.Dependencies.Length > 0)))
             {
                 if (center)
                     CenterMap[node.ID] = node;
@@ -788,30 +790,30 @@ namespace XLibrary
 
                     if (!CenterMap.ContainsKey(node.ID))
                         OutsideMap[node.ID] = node;
-  
-                    if (node.Independencies != null)
-                        node.EdgesIn = node.Independencies;
 
-                    if (node.Dependencies != null)
-                        node.EdgesOut = node.Dependencies;
+                    if (xNode.Independencies != null)
+                        node.EdgesIn = xNode.Independencies;
+
+                    if (xNode.Dependencies != null)
+                        node.EdgesOut = xNode.Dependencies;
                 }
             }
             else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class)
             {
-                AddEdges(node, center, node.InitsBy, node.InitsOf);
+                AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
             }
             else if ((GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
                      (GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
             {
-                AddEdges(node, center, node.CalledIn, node.CallsOut);
+                AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
             }
 
-            foreach (XNodeIn sub in node.Nodes)
+            foreach (var sub in node.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
                     AddCalledNodes(sub, center);
         }
 
-        private void AddEdges(XNodeIn node, bool center, SharedDictionary<FunctionCall> callsIn, SharedDictionary<FunctionCall> callsOut)
+        private void AddEdges(NodeModel node, bool center, SharedDictionary<FunctionCall> callsIn, SharedDictionary<FunctionCall> callsOut)
         {
             if ((callsIn == null || callsIn.Length == 0) &&
                 (callsOut == null || callsOut.Length == 0))
@@ -838,7 +840,7 @@ namespace XLibrary
             }
         }
 
-        public bool FindChainTo(XNodeIn n, List<int> find, HashSet<int> traversed = null)
+        public bool FindChainTo(NodeModel n, List<int> find, HashSet<int> traversed = null)
         {
             if (traversed == null)
                 traversed = new HashSet<int>();
@@ -850,12 +852,12 @@ namespace XLibrary
 
             bool pathFound = false;
 
-            if (n.Dependencies == null)
+            if (n.XNode.Dependencies == null)
                 return false;
 
-            foreach (var d in n.Dependencies)
+            foreach (var d in n.XNode.Dependencies)
             {
-                var sub = XRay.Nodes[d];
+                var sub = NodeModels[d];
                 bool addLink = false;
 
                 if (find.Contains(d))
@@ -881,7 +883,7 @@ namespace XLibrary
             return pathFound;
         }
 
-        public bool FindChainFrom(XNodeIn n, List<int> find, HashSet<int> traversed = null)
+        public bool FindChainFrom(NodeModel n, List<int> find, HashSet<int> traversed = null)
         {
             if (traversed == null)
                 traversed = new HashSet<int>();
@@ -893,12 +895,12 @@ namespace XLibrary
 
             bool pathFound = false;
 
-            if (n.Independencies == null)
+            if (n.XNode.Independencies == null)
                 return false;
 
-            foreach (var d in n.Independencies)
+            foreach (var d in n.XNode.Independencies)
             {
-                var parent = XRay.Nodes[d];
+                var parent = NodeModels[d];
                 bool addLink = false;
 
                 if (find.Contains(d))
@@ -934,7 +936,7 @@ namespace XLibrary
         internal float ScaledHeight;
         internal float ScaledOffset;
 
-        internal IEnumerable<XNodeIn> Nodes()
+        internal IEnumerable<NodeModel> Nodes()
         {
             foreach (var r in Ranks)
                 foreach (var n in r.Column)
@@ -944,7 +946,7 @@ namespace XLibrary
 
     public class Rank
     {
-        internal List<XNodeIn> Column = new List<XNodeIn>();
+        internal List<NodeModel> Column = new List<NodeModel>();
 
         internal float MinHeightSpace;
     }

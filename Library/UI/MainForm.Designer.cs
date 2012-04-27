@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.ResetTimer = new System.Windows.Forms.Timer(this.components);
+            this.RedrawTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.OnOffButton = new System.Windows.Forms.ToolStripButton();
@@ -47,7 +47,7 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.TimingPanel = new XLibrary.TimingPanel();
+            this.TimingTab = new XLibrary.TimingPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.debugPanel1 = new XLibrary.Panels.DebugPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
@@ -70,10 +70,10 @@
             this.tabPage6.SuspendLayout();
             this.SuspendLayout();
             // 
-            // ResetTimer
+            // RedrawTimer
             // 
-            this.ResetTimer.Interval = 30;
-            this.ResetTimer.Tick += new System.EventHandler(this.ResetTimer_Tick);
+            this.RedrawTimer.Interval = 30;
+            this.RedrawTimer.Tick += new System.EventHandler(this.RedrawTimer_Tick);
             // 
             // splitContainer1
             // 
@@ -236,7 +236,7 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.TimingPanel);
+            this.tabPage3.Controls.Add(this.TimingTab);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Size = new System.Drawing.Size(542, 194);
@@ -244,13 +244,13 @@
             this.tabPage3.Text = "Profile";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // TimingPanel
+            // TimingTab
             // 
-            this.TimingPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.TimingPanel.Location = new System.Drawing.Point(0, 0);
-            this.TimingPanel.Name = "TimingPanel";
-            this.TimingPanel.Size = new System.Drawing.Size(542, 194);
-            this.TimingPanel.TabIndex = 0;
+            this.TimingTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.TimingTab.Location = new System.Drawing.Point(0, 0);
+            this.TimingTab.Name = "TimingTab";
+            this.TimingTab.Size = new System.Drawing.Size(542, 194);
+            this.TimingTab.TabIndex = 0;
             // 
             // tabPage4
             // 
@@ -349,7 +349,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer ResetTimer;
+        private System.Windows.Forms.Timer RedrawTimer;
         private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TabPage tabPage1;
@@ -357,7 +357,7 @@
         private System.Windows.Forms.TabPage tabPage3;
         public System.Windows.Forms.TabControl TabPanel;
         public InstancePanel InstanceTab;
-        public TimingPanel TimingPanel;
+        public TimingPanel TimingTab;
         private Panels.ViewPanel DisplayTab;
         private System.Windows.Forms.TabPage tabPage4;
         private Panels.DebugPanel debugPanel1;

@@ -22,15 +22,17 @@ namespace XLibrary.Panels
             InitializeComponent();
         }
 
-        public void NavigateTo(XNodeIn node)
+        public void NavigateTo(NodeModel node)
         {
             if (node.ObjType != XObjType.Method)
                 return;
 
-            if (node == SelectedNode)
+            var xNode = node.XNode;
+
+            if (xNode == SelectedNode)
                 return;
 
-            SelectedNode = node;
+            SelectedNode = xNode;
 
             RefreshTree();
         }

@@ -22,11 +22,11 @@ namespace XLibrary
         bool DrawingVertically;
 
 
-        public TreeMap(XNodeIn root, XNodeIn exclude, SizeF size)
+        public TreeMap(NodeModel root, NodeModel exclude, SizeF size)
         {
-            var values = from n in root.Nodes.Cast<XNodeIn>()
+            var values = from n in root.Nodes
                         where n.Show && n != exclude
-                        select n as InputValue;
+                        select n;
 
             WorkArea = size;
             OriginalArea = size;
@@ -188,11 +188,11 @@ namespace XLibrary
 
     public class Sector
     {
-        public InputValue OriginalValue;
+        public NodeModel OriginalValue;
         public float Area;
         public RectangleF Rect;
 
-        public Sector(InputValue value, float area)
+        public Sector(NodeModel value, float area)
         {
             OriginalValue = value;
             Area = area;

@@ -11,8 +11,9 @@ namespace XLibrary
 {
     public partial class TimingPanel : UserControl
     {
-        LinkedListNode<XNode> Current;
-        LinkedList<XNode> History = new LinkedList<XNode>();
+        public ViewModel Model;
+        LinkedListNode<NodeModel> Current;
+        LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
         bool ShowPerCall = false;
 
@@ -21,7 +22,12 @@ namespace XLibrary
             InitializeComponent();
         }
 
-        public void NavigateTo(XNode node)
+        public void Init(MainForm main)
+        {
+            Model = main.Model;
+        }
+
+        public void NavigateTo(NodeModel node)
         {
             // remove anything after current node, add this node to top
             while (Current != null && Current.Next != null)
@@ -33,7 +39,7 @@ namespace XLibrary
         
         private void Reload()
         {
-            XNode node = Current.Value;
+            var node = Current.Value;
 
             SelectedNameLabel.Text = node.AppendClassName();
 
@@ -57,7 +63,7 @@ namespace XLibrary
 
                 foreach (FunctionCall call in XRay.CallMap.Where(v => v.Destination == id))
                 {
-                    XNode caller = XRay.Nodes[call.Source];
+                    var caller = Model.NodeModels[call.Source];
                     CalledByList.Items.Add( new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
@@ -66,7 +72,7 @@ namespace XLibrary
                 count = 0;
                 foreach (FunctionCall call in XRay.CallMap.Where(v => v.Source == id))
                 {
-                    XNode called = XRay.Nodes[call.Destination];
+                    var called = Model.NodeModels[call.Destination];
                     CalledToList.Items.Add(new CallItem(call, called, ShowPerCall));
                     count++;
                 }
@@ -89,10 +95,8 @@ namespace XLibrary
                 // need refresh button, or time the update and if update takes longer than 100ms, then use refresh link
                 
 
-                foreach (XNode child in node.Nodes)
-                {
+                foreach (var child in node.Nodes)
                     CalledByList.Items.Add(new CallItem(null, child, ShowPerCall));
-                }
             }
 
             CalledByList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
@@ -104,9 +108,9 @@ namespace XLibrary
             ContextMenu menu = new ContextMenu();
 
             string indent = "";
-            foreach (XNode parent in Current.Value.GetParents())
+            foreach (var parent in Current.Value.GetParents())
             {
-                XNode copy = parent;
+                var copy = parent;
                 menu.MenuItems.Add(new MenuItem(indent + copy.Name, (s, a) => NavigateTo(copy)));
                 indent += "  ";
             }
@@ -118,9 +122,9 @@ namespace XLibrary
         {
             ContextMenu menu = new ContextMenu();
 
-            foreach (XNode child in Current.Value.Nodes)
+            foreach (var child in Current.Value.Nodes)
             {
-                XNode copy = child;
+                var copy = child;
                 menu.MenuItems.Add(copy.Name, (s, a) => NavigateTo(copy));
             }
 
@@ -183,10 +187,10 @@ namespace XLibrary
     class CallItem : ListViewItem
     {
         FunctionCall Call;
-        internal XNode Node;
+        internal NodeModel Node;
         internal long Total;
 
-        public CallItem(FunctionCall call, XNode node, bool perCall)
+        public CallItem(FunctionCall call, NodeModel node, bool perCall)
         {
             Call = call;
             Node = node;

@@ -104,9 +104,9 @@ namespace XLibrary
             MainForm = main;
             Model = main.Model;
 
-            Model.TopRoot = XRay.RootNode;
-            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal) as XNodeIn;
-            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External) as XNodeIn;
+            Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
+            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);
+            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External);
             Model.CurrentRoot = Model.InternalRoot;
 
             InitColors();
@@ -379,7 +379,7 @@ namespace XLibrary
             MapHeight = FlatMode ? GLView.Height : 1000;
 
             ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
-            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.External;
+            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.XNode.External;
 
             if (Model.DoRevalue ||
                 (Model.ShowLayout != ShowNodes.All && XRay.CoverChange) ||
@@ -598,7 +598,7 @@ namespace XLibrary
             Elements[ElementCount++] = firstVertexID + 3;*/
         }
 
-        private void SizeNode(XNodeIn root, XNodeIn exclude, bool center)
+        private void SizeNode(NodeModel root, NodeModel exclude, bool center)
         {
             if (!root.Show)
                 return;
@@ -629,7 +629,7 @@ namespace XLibrary
 
             foreach (Sector sector in sectors)
             {
-                XNodeIn node = sector.OriginalValue as XNodeIn;
+                var node = sector.OriginalValue;
 
                 sector.Rect = RectangleExtensions.Contract(sector.Rect, NodeBorderWidth);
 
@@ -655,7 +655,7 @@ namespace XLibrary
         }
 
 
-        private void DrawNode(XNodeIn node, int depth, bool drawChildren, float z)
+        private void DrawNode(NodeModel node, int depth, bool drawChildren, float z)
         {
             if (!node.Show)
                 return;
@@ -668,7 +668,8 @@ namespace XLibrary
             float zheight = PlatformHeight;
             if (node.ObjType == XObjType.Method)
                 zheight = Math.Max(250f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, 1);
-            
+
+            var xNode = node.XNode;
 
             Color pen;
 
@@ -695,18 +696,18 @@ namespace XLibrary
             //    FillRectangle(NothingBrush, node.AreaF, z);
 
             // check if function is an entry point or holding
-            if (XRay.FlowTracking && node.StillInside > 0)
+            if (XRay.FlowTracking && xNode.StillInside > 0)
             {
-                if (node.EntryPoint > 0)
+                if (xNode.EntryPoint > 0)
                 {
-                    if (XRay.ThreadTracking && node.ConflictHit > 0)
+                    if (XRay.ThreadTracking && xNode.ConflictHit > 0)
                         BlendColors(MultiEntryBrush, ref pen);
                     else
                         BlendColors(EntryBrush, ref pen);
                 }
                 else
                 {
-                    if (XRay.ThreadTracking && node.ConflictHit > 0)
+                    if (XRay.ThreadTracking && xNode.ConflictHit > 0)
                         BlendColors(MultiHoldingBrush, ref pen);
                     else
                         BlendColors(HoldingBrush, ref pen);
@@ -714,23 +715,23 @@ namespace XLibrary
             }
 
             // not an else if, draw over holding or entry
-            if (node.ExceptionHit > 0)
-                BlendColors(ExceptionBrush[node.FunctionHit], ref pen);
+            if (xNode.ExceptionHit > 0)
+                BlendColors(ExceptionBrush[xNode.FunctionHit], ref pen);
 
-            else if (node.FunctionHit > 0)
+            else if (xNode.FunctionHit > 0)
             {
-                if (XRay.ThreadTracking && node.ConflictHit > 0)
-                    BlendColors(MultiHitBrush[node.FunctionHit], ref pen);
+                if (XRay.ThreadTracking && xNode.ConflictHit > 0)
+                    BlendColors(MultiHitBrush[xNode.FunctionHit], ref pen);
 
                 else if (node.ObjType == XObjType.Field)
                 {
-                    if (node.LastFieldOp == FieldOp.Set)
-                        BlendColors(FieldSetBrush[node.FunctionHit], ref pen);
+                    if (xNode.LastFieldOp == FieldOp.Set)
+                        BlendColors(FieldSetBrush[xNode.FunctionHit], ref pen);
                     else
-                        BlendColors(FieldGetBrush[node.FunctionHit], ref pen);
+                        BlendColors(FieldGetBrush[xNode.FunctionHit], ref pen);
                 }
                 else
-                    BlendColors(HitBrush[node.FunctionHit], ref pen);
+                    BlendColors(HitBrush[xNode.FunctionHit], ref pen);
             }
 
             if (Model.FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -800,7 +801,7 @@ namespace XLibrary
                 drawChildren = false;
 
             if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
-                foreach (XNodeIn sub in node.Nodes)
+                foreach (var sub in node.Nodes)
                     DrawNode(sub, depth + 1, drawChildren, z + zheight);
             
 

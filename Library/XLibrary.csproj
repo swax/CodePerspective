@@ -109,7 +109,7 @@
     <Compile Include="UI\GLPanel.Designer.cs">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\NodeUI.cs" />
+    <Compile Include="UI\NodeModel.cs" />
     <Compile Include="UI\Panels\CodePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>

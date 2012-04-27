@@ -29,17 +29,19 @@ namespace XLibrary
             //NavigateTo(node);
         }
 
-        public void NavigateTo(XNodeIn node)
+        public void NavigateTo(NodeModel node)
         {
+            var xNode = node.XNode;
+
             if (node.ObjType == XObjType.Class)
             {
-                SelectedNode = node;
+                SelectedNode = xNode;
                 FieldFilter = null;
             }
             else if (node.ObjType == XObjType.Field)
             {
-                SelectedNode = node.GetParentClass(false) as XNodeIn;
-                FieldFilter = node.UnformattedName;
+                SelectedNode = node.GetParentClass(false).XNode;
+                FieldFilter = SelectedNode.UnformattedName;
             }
             else
                 return;

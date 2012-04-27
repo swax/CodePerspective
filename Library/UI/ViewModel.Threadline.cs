@@ -110,10 +110,10 @@ namespace XLibrary
                     float xPos = xOffset + nodeWidth * item.Depth;
 
                     // draw
-                    var node = XRay.Nodes[item.NodeID];
+                    var node = NodeModels[item.NodeID];
                     PositionMap[node.ID] = node;
 
-                    if (node.External && !ShowExternal)
+                    if (node.XNode.External && !ShowExternal)
                         continue;
 
                     var area = new RectangleF(ScreenOffset.X + xPos, ScreenOffset.Y + yPos, nodeHeight, nodeWidth);
@@ -179,7 +179,7 @@ namespace XLibrary
 
     public class ThreadlineNode
     {
-        public XNodeIn Node;
+        public NodeModel Node;
         public RectangleF Area;
         public RectangleF LabelArea;
         public bool ShowHit;

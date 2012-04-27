@@ -71,7 +71,7 @@ namespace XLibrary
             }
         }
 
-        private void SizeNode(Graphics buffer, XNodeIn root, XNodeIn exclude, bool center)
+        private void SizeNode(Graphics buffer, NodeModel root, NodeModel exclude, bool center)
         {
             if (!root.Show)
                 return;
@@ -111,7 +111,7 @@ namespace XLibrary
 
             foreach (Sector sector in sectors)
             {
-                XNodeIn node = sector.OriginalValue as XNodeIn;
+                var node = sector.OriginalValue;
 
                 sector.Rect = RectangleExtensions.Contract(sector.Rect, NodeBorderWidth);
 

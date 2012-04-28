@@ -58,7 +58,7 @@ namespace XLibrary
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
         internal static string DatPath;
-        internal static bool CallLogging;
+        //internal static bool CallLogging;
         internal static HashSet<int> ErrorDupes = new HashSet<int>();
         internal static List<string> ErrorLog = new List<string>();
 
@@ -349,8 +349,8 @@ namespace XLibrary
             if (ThreadTracking)
                 thread = Thread.CurrentThread.ManagedThreadId;
 
-            if (CallLogging)
-                LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
+            //if (CallLogging)
+            //    LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
 
             // mark covered, should probably check if show covered is checked
             if (!CoveredNodes[nodeID])
@@ -555,8 +555,8 @@ namespace XLibrary
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
-            if (CallLogging)
-                LogError("Thread {0}, Func {1}, Exit\r\n", thread, nodeID);
+            //if (CallLogging)
+            //    LogError("Thread {0}, Func {1}, Exit\r\n", thread, nodeID);
 
 
             // only should be called if flow tracking is enabled
@@ -611,8 +611,8 @@ namespace XLibrary
 
             int thread = Thread.CurrentThread.ManagedThreadId;
 
-            if (CallLogging)
-                LogError("Thread {0}, Func {1}, Catch\r\n", thread, nodeID);
+            //if (CallLogging)
+            //    LogError("Thread {0}, Func {1}, Catch\r\n", thread, nodeID);
            
             long ticks = Watch.ElapsedTicks;
 

@@ -40,7 +40,7 @@ namespace XBuilder
             {
                 // mark current list items to remove
                 foreach (var item in ProcessListView.Items.Cast<ProcessItem>())
-                    item.Remove = true;
+                    item.Purge = true;
 
                 string pipePath = @"\\.\pipe\";
                 String[] pipes = Directory.GetFiles(pipePath)
@@ -62,10 +62,10 @@ namespace XBuilder
 
                     item.Update();
 
-                    item.Remove = false;
+                    item.Purge = false;
                 }
 
-                var removeItems = ProcessListView.Items.Cast<ProcessItem>().Where(p => p.Remove).ToArray();
+                var removeItems = ProcessListView.Items.Cast<ProcessItem>().Where(p => p.Purge).ToArray();
                 foreach (var item in removeItems)
                     ProcessListView.Items.Remove(item);
 
@@ -111,7 +111,7 @@ namespace XBuilder
     class ProcessItem : ListViewItem
     {
         public string Url;
-        public bool Remove;
+        public bool Purge;
 
         public ProcessItem(string url)
         {
@@ -140,7 +140,7 @@ namespace XBuilder
             }
             catch (Exception ex)
             {
-                SetItem(0, "Error querying " + Url);
+                SetItem(0, "Error querying " + Url + " " + ex.Message);
             }
         }
 

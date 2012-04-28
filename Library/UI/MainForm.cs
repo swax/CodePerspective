@@ -35,6 +35,9 @@ namespace XLibrary
             DisplayTab.Init(this);
             ConsoleTab.Init(this);
 
+            CodeTab.Visible = false;
+            InstanceTab.Visible = false;
+
             TreeView.SetRoot(Model.CurrentRoot); // init first node in history
         }
 
@@ -192,6 +195,9 @@ namespace XLibrary
 
         internal void NavigateTo(NodeModel node)
         {
+            CodeTab.Visible = false;
+            InstanceTab.Visible = false;
+
             if (node.ObjType == XObjType.Method)
             {
                 InstanceTab.Visible = false;

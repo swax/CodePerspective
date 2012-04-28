@@ -204,7 +204,7 @@ namespace XLibrary
             Reload();
         }
 
-        bool AutoRefreshOn = true;
+        //bool AutoRefreshOn = true;
 
         private void AutoRefresh_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {

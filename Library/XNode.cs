@@ -111,7 +111,6 @@ namespace XLibrary
         public string UnformattedName; 
         
         internal int ParentID;
-        internal int Lines; // save here so final value can be manipulated
 
         internal int FunctionHit; 
         internal int LastCallingThread;
@@ -163,7 +162,7 @@ namespace XLibrary
             node.Name = ReadString(stream);
 
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
-            node.Lines = BitConverter.ToInt32(stream.Read(4), 0);
+            node.Lines = BitConverter.ToInt64(stream.Read(8), 0);
             node.External = BitConverter.ToBoolean(stream.Read(1), 0);
             node.IsAnon = BitConverter.ToBoolean(stream.Read(1), 0);
             node.ID = BitConverter.ToInt32(stream.Read(4), 0);

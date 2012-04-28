@@ -28,10 +28,10 @@ namespace AdvancedDataGridView
     Docking(DockingBehavior.Ask)]
 	public class TreeGridView : DataGridView
 	{		
-		private int _indentWidth;
+		//private int _indentWidth;
 		private TreeGridNode _root;
 		private TreeGridColumn _expandableColumn;
-		private bool _disposing = false;
+		//private bool _disposing = false;
 		internal ImageList _imageList;
 		private bool _inExpandCollapse = false;
         internal bool _inExpandCollapseMouseCapture = false;
@@ -496,7 +496,7 @@ namespace AdvancedDataGridView
         #region Helper methods
         protected override void Dispose(bool disposing)
         {
-            this._disposing = true;
+            //this._disposing = true;
             base.Dispose(Disposing);
             this.UnSiteAll();
         }

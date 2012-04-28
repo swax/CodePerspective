@@ -49,8 +49,6 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.TimingTab = new XLibrary.TimingPanel();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.debugPanel1 = new XLibrary.Panels.DebugPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
@@ -64,7 +62,6 @@
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            this.tabPage4.SuspendLayout();
             this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -183,7 +180,6 @@
             this.TabPanel.Controls.Add(this.tabPage1);
             this.TabPanel.Controls.Add(this.tabPage2);
             this.TabPanel.Controls.Add(this.tabPage3);
-            this.TabPanel.Controls.Add(this.tabPage4);
             this.TabPanel.Controls.Add(this.tabPage5);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
@@ -259,25 +255,6 @@
             this.TimingTab.Size = new System.Drawing.Size(542, 194);
             this.TimingTab.TabIndex = 0;
             // 
-            // tabPage4
-            // 
-            this.tabPage4.Controls.Add(this.debugPanel1);
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(542, 194);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Debug";
-            this.tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // debugPanel1
-            // 
-            this.debugPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.debugPanel1.Location = new System.Drawing.Point(3, 3);
-            this.debugPanel1.Name = "debugPanel1";
-            this.debugPanel1.Size = new System.Drawing.Size(536, 188);
-            this.debugPanel1.TabIndex = 0;
-            // 
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.ConsoleTab);
@@ -326,7 +303,6 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
-            this.tabPage4.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -344,8 +320,6 @@
         public InstancePanel InstanceTab;
         public TimingPanel TimingTab;
         private Panels.ViewPanel DisplayTab;
-        private System.Windows.Forms.TabPage tabPage4;
-        private Panels.DebugPanel debugPanel1;
         private System.Windows.Forms.ToolStrip MainToolStrip;
         private System.Windows.Forms.TabPage tabPage5;
         private Panels.ConsolePanel ConsoleTab;

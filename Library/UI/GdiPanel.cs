@@ -1129,8 +1129,6 @@ namespace XLibrary
             float bgWidth = 0;
             float bgHeight = 0;
             float lineHeight = 0;
-
-            const float indent = 5;
             float indentAmount = 0;
 
             var labels = new List<Tuple<string, SolidBrush>>();

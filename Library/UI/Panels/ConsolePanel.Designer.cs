@@ -34,8 +34,8 @@
             // 
             // InputBox
             // 
-            this.InputBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.InputBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.InputBox.Location = new System.Drawing.Point(3, 166);
             this.InputBox.Name = "InputBox";
             this.InputBox.Size = new System.Drawing.Size(418, 20);
@@ -44,9 +44,9 @@
             // 
             // ConsoleBox
             // 
-            this.ConsoleBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.ConsoleBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.ConsoleBox.BackColor = System.Drawing.Color.White;
             this.ConsoleBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ConsoleBox.ForeColor = System.Drawing.Color.Black;
@@ -54,6 +54,7 @@
             this.ConsoleBox.Multiline = true;
             this.ConsoleBox.Name = "ConsoleBox";
             this.ConsoleBox.ReadOnly = true;
+            this.ConsoleBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.ConsoleBox.Size = new System.Drawing.Size(418, 157);
             this.ConsoleBox.TabIndex = 1;
             // 

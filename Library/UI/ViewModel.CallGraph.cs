@@ -541,7 +541,6 @@ namespace XLibrary
             float spring_const = -1;
             float damping = 0.8f; // between 0 and 1
             float timestep = 0.1f;
-            float mass = 1f;
 
             do
             {

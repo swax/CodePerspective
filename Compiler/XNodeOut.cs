@@ -17,7 +17,6 @@ namespace XBuilder
         public static int NextID = 1;
 
         public bool Exclude;
-        public int Lines;
         public int Indent;
         public string IndentString = "    "; // 2 for class, 2 for method
         public int InitCount = 1;
@@ -70,9 +69,9 @@ namespace XBuilder
             return node;
         }
 
-        public int ComputeSums()
+        public long ComputeSums()
         {
-            int sum = Lines;
+            long sum = Lines;
 
             foreach (XNodeOut node in Nodes.Cast<XNodeOut>().Where(n => !n.Exclude))
                 sum += node.ComputeSums();

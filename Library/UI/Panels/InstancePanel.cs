@@ -25,8 +25,6 @@ namespace XLibrary
         public InstancePanel()
         {
             InitializeComponent();
-
-            //NavigateTo(node);
         }
 
         public void NavigateTo(NodeModel node)
@@ -590,7 +588,6 @@ namespace XLibrary
             // *xlib cant find deops namespace
 
             // rename instance name if it is a know type
-            int pos = 0;
             int end = fullname.IndexOf('[');
             if (end == -1)
                 end = fullname.Length;

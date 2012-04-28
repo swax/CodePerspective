@@ -27,7 +27,7 @@ namespace XLibrary
         bool ShowingOutside;
         bool ShowingExternal;
 
-        bool ShowLabels = true;
+        //bool ShowLabels = true;
 
         // colors
         Color BorderBrush = Color.Silver;

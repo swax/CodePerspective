@@ -14,7 +14,10 @@ namespace XLibrary.Panels
 {
     public partial class ConsolePanel : UserControl
     {
-        public MainForm MainView;
+        public MainForm Main;
+        public XNodeIn[] Nodes = XRay.Nodes;
+        public TreePanelGdiPlus Tree;
+
 
         public ConsolePanel()
         {
@@ -23,23 +26,38 @@ namespace XLibrary.Panels
 
         public void Init(MainForm mainView)
         {
-            MainView = mainView;
+            Main = mainView;
+            Tree = Main.TreeView;
+
+            ProcessInput("help");
         }
 
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Return && InputBox.Text != "")
             {
-                string result = StringEval(InputBox.Text);
-
-                ConsoleBox.AppendText("\r\n> " + InputBox.Text + "\r\n" + result);
-                ConsoleBox.SelectionStart = ConsoleBox.Text.Length;
-                ConsoleBox.ScrollToCaret();
-
-
+                ProcessInput(InputBox.Text);
                 InputBox.Text = "";
                 e.Handled = true;
             }
+        }
+
+        private void ProcessInput(string input)
+        {
+            string result = "";
+            input = input.Trim();
+            try
+            {
+                result = RunCommand(input);
+            }
+            catch (Exception ex)
+            {
+                result = "Exception: " + ex.Message;
+            }
+
+            ConsoleBox.AppendText("\r\n> " + input + "\r\n" + result);
+            ConsoleBox.SelectionStart = ConsoleBox.Text.Length;
+            ConsoleBox.ScrollToCaret();
         }
 
         string EvalBody = @"
@@ -72,7 +90,110 @@ namespace XLibrary.Panels
                 }
             }";
 
-        string StringEval(string expr)
+        string RunCommand(string input)
+        {
+            StringBuilder output = new StringBuilder();
+
+            if(string.Compare(input, "help", true) == 0)
+            {
+                return
+@"Commands: 
+calls
+datpath
+eval Nodes, Main, Tree
+help
+id <#>
+inits
+log
+settings
+stacks";
+            }
+
+            else if(input.StartsWith("eval "))
+            {
+                string exp = input.Replace("eval ", "");
+                return Eval(exp);
+            }
+
+            else if (string.Compare(input, "datpath", true) == 0)
+            {
+                return XRay.DatPath;
+            }
+
+            else if (string.Compare(input, "settings", true) == 0)
+            {
+                output.AppendLine("InstanceTracking: " + XRay.InstanceTracking);
+                output.AppendLine("ThreadTracking: " + XRay.ThreadTracking);
+                output.AppendLine("FlowTracking: " + XRay.FlowTracking);
+
+                return output.ToString();
+            }
+
+            else if (string.Compare(input, "stacks", true) == 0)
+            {
+                foreach (ThreadFlow flow in XRay.FlowMap)
+                {
+                    if (flow == null)
+                        continue;
+
+                    output.AppendFormat("Thread: {0}\r\n", flow.ThreadID);
+
+                    for (int x = 0; x <= flow.Pos; x++)
+                    {
+                        XNodeIn node = XRay.Nodes[flow.Stack[x].NodeID];
+                        if (node != null)
+                            output.AppendFormat("{0}: ID: {1}, Inside: {2}\r\n", x, node.ID, node.StillInside);//, (XRay.NodeMap[flow.Stack[x]].StillInside > 0));
+                    }
+                }
+
+                return output.ToString();
+            }
+            else if (string.Compare(input, "calls", true) == 0)
+            {
+
+                // function calls
+                output.AppendLine("Method Call Map:");
+                foreach (var call in XRay.CallMap)
+                    output.AppendFormat("{0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
+
+                output.AppendLine("");
+                output.AppendLine("Class Call Map:");
+                foreach (var call in XRay.ClassCallMap)
+                    output.AppendFormat("{0} -> {1}: Hit: {2}, Inside: {3}\r\n", call.Source, call.Destination, call.Hit, call.StillInside);
+
+                return output.ToString();
+            }
+
+            else if (string.Compare(input, "inits", true) == 0)
+            {
+                foreach (var init in XRay.InitMap)
+                    output.AppendFormat("{0} -> {1}\r\n", init.Source, init.Destination);
+
+                return output.ToString();
+            }
+
+            else if (string.Compare(input, "log", true) == 0)
+            {
+                foreach (string error in XRay.ErrorLog)
+                    output.AppendLine(error);
+
+                return output.ToString();
+            }
+
+            else if (input.StartsWith("id "))
+            {
+                int id = int.Parse(input.Replace("id ", ""));
+
+                return XRay.Nodes[id].FullName();
+            }
+
+            else
+            {
+                return "Unrecognized commands, try help";
+            }     
+        }
+
+        string Eval(string expr)
         {
             string program = EvalBody.Replace("{0}", expr);
 
@@ -88,7 +209,7 @@ namespace XLibrary.Panels
             if (results.Errors.HasErrors)
             {
                 if (results.Errors[0].ErrorNumber == "CS0029")
-                    return StringEval("Invoke(delegate { " + expr + "; })");
+                    return Eval("Invoke(delegate { " + expr + "; })");
 
                 return results.Errors[0].ErrorText;
             }
@@ -100,9 +221,7 @@ namespace XLibrary.Panels
 
                 try
                 {
-                    var x = new CommandPackage(this);
-
-                    object result = method.Invoke(null, new object[] { x });
+                    object result = method.Invoke(null, new object[] { this });
 
                     return result == null ? "null" : result.ToString();
                 }
@@ -113,25 +232,4 @@ namespace XLibrary.Panels
             }
         }
     }
-
-    public class CommandPackage
-    {
-        public XNodeIn[] Nodes = XRay.Nodes;
-        public MainForm  Main;
-        public TreePanelGdiPlus Tree;
-
-        public CommandPackage(ConsolePanel panel)
-        {
-            Main = panel.MainView;
-            Tree = Main.TreeView;
-        }
-
-        /*public object GetTestBps()
-        {
-            return XRay.GetSimBps();
-        }*/
-
-        public string Help = "Available Commands: Nodes, Main, Tree";
-    }
-
 }

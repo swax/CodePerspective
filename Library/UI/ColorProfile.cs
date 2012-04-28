@@ -65,7 +65,7 @@ namespace XLibrary
 
     public class BrightColorProfile : IColorProfile
     {
-        public Color BackgroundColor { get { return Color.White; } }
+        public Color BackgroundColor { get { return Color.WhiteSmoke; } }
 
         public Color UnknownColor { get { return Color.Black; } }
         public Color FileColor { get { return Color.Black; } }
@@ -74,7 +74,7 @@ namespace XLibrary
         public Color MethodColor { get { return Color.DarkRed; } }
         public Color FieldColor { get { return Color.Goldenrod; } }
 
-        public Color EmptyColor { get { return Color.White; } }
+        public Color EmptyColor { get { return Color.WhiteSmoke; } }
         public Color OutsideColor { get { return Color.LightGray; } }
 
         public Color EntryColor { get { return Color.LightGreen; } }

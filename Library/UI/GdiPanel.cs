@@ -16,7 +16,7 @@ namespace XLibrary
 {
     public partial class TreePanelGdiPlus : UserControl
     {
-        public MainForm MainForm;
+        public MainForm MainWin;
         public ViewModel Model;
 
         Bitmap DisplayBuffer;
@@ -121,7 +121,7 @@ namespace XLibrary
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
-            MainForm = main;
+            MainWin = main;
             Model = main.Model;
 
             Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
@@ -920,9 +920,7 @@ namespace XLibrary
 
                     Model.FocusedNodes.Add(node);
 
-                    MainForm.InstanceTab.NavigateTo(node);
-                    MainForm.CodeTab.NavigateTo(node);
-                    MainForm.TimingTab.NavigateTo(node);
+                    MainWin.NavigateTo(node);
                 }
 
                 Redraw();
@@ -1027,7 +1025,7 @@ namespace XLibrary
                 }
             }
 
-            MainForm.UpdateBreadCrumbs();
+            MainWin.UpdateBreadCrumbs();
 
             Model.DoRevalue = true;
             Refresh();

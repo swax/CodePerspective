@@ -39,6 +39,9 @@ namespace XLibrary
         
         private void Reload()
         {
+            if (Current == null)
+                return;
+
             var node = Current.Value;
 
             SelectedNameLabel.Text = node.AppendClassName();
@@ -51,6 +54,8 @@ namespace XLibrary
             BackLink.Enabled = Current.Previous != null;
             ForwardLink.Enabled = Current.Next != null;*/
 
+            //CalledByList.SelectedItems.
+
             CalledByList.Items.Clear();
             CalledToList.Items.Clear();
 
@@ -61,29 +66,34 @@ namespace XLibrary
                 int id = node.ID;
                 int count = 0;
 
-                foreach (FunctionCall call in XRay.CallMap.Where(v => v.Destination == id))
+                // called from
+                foreach (var call in XRay.CallMap.Where(v => v.Destination == id))
                 {
                     var caller = Model.NodeModels[call.Source];
-                    CalledByList.Items.Add( new CallItem(call, caller, ShowPerCall));
+                    CalledByList.Items.Add(new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
                 CallersLabel.Text = count.ToString() + " methods called " + node.Name;
 
+                if (count > 1)
+                    AddTotalRow(CalledByList);
+
+                // called to
                 count = 0;
-                foreach (FunctionCall call in XRay.CallMap.Where(v => v.Source == id))
+                foreach (var call in XRay.CallMap.Where(v => v.Source == id))
                 {
                     var called = Model.NodeModels[call.Destination];
+                    if (called.ObjType != XObjType.Method)
+                        continue;
+
                     CalledToList.Items.Add(new CallItem(call, called, ShowPerCall));
                     count++;
                 }
 
                 CalledLabel.Text = node.Name + " called " + count.ToString() + " methods";
 
-
-                long totalOutside = CalledToList.Items.Cast<CallItem>().Sum(i => i.Total);
-                var totalItem = new ListViewItem(new string[] {"Total outside", "", Xtensions.TicksToString(totalOutside)});
-                CalledToList.Items.Add(new ListViewItem());
-                CalledToList.Items.Add(totalItem);
+                if(count > 1)
+                    AddTotalRow(CalledToList);
             }
             else
             {
@@ -93,7 +103,7 @@ namespace XLibrary
                 // when namespace selected, show children and total time inside / hits, summed for all children
 
                 // need refresh button, or time the update and if update takes longer than 100ms, then use refresh link
-                
+
 
                 foreach (var child in node.Nodes)
                     CalledByList.Items.Add(new CallItem(null, child, ShowPerCall));
@@ -101,6 +111,17 @@ namespace XLibrary
 
             CalledByList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
             CalledToList.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+        }
+
+        private void AddTotalRow(ListView list)
+        {
+            long hits = list.Items.Cast<CallItem>().Sum(i => i.Hits);
+            long inside = list.Items.Cast<CallItem>().Sum(i => i.Inside);
+            long outside = list.Items.Cast<CallItem>().Sum(i => i.Outside);
+
+            list.Items.Add(new ListViewItem());
+            list.Items.Add(new ListViewItem(new string[] { "Total", hits.ToString(), Xtensions.TicksToString(inside), Xtensions.TicksToString(outside) }));
+          
         }
 
         private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -182,12 +203,33 @@ namespace XLibrary
             ShowPerCall = true;
             Reload();
         }
+
+        bool AutoRefreshOn = true;
+
+        private void AutoRefresh_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Reload();
+
+            /*AutoRefreshOn = !AutoRefreshOn;
+
+            RefreshTimer.Enabled = AutoRefreshOn;
+
+            AutoRefresh.Text = AutoRefreshOn ? "Turn off auto refresh" : "Turn on auto refresh";*/
+        }
+
+        private void RefreshTimer_Tick(object sender, EventArgs e)
+        {
+            //Reload();
+        }
     }
 
     class CallItem : ListViewItem
     {
         FunctionCall Call;
         internal NodeModel Node;
+        internal int Hits;
+        internal long Inside;
+        internal long Outside;
         internal long Total;
 
         public CallItem(FunctionCall call, NodeModel node, bool perCall)
@@ -204,22 +246,23 @@ namespace XLibrary
 
             SubItems.Add(call.TotalHits.ToString());
 
-            if (call.TotalHits == 0)
+            Hits = call.TotalHits;
+            Inside = call.TotalTimeInsideDest;
+            Outside = call.TotalTimeOutsideDest;
+
+            if (Hits == 0)
                 return;
 
-            long inside = call.TotalTimeInsideDest;
-            long outside = call.TotalTimeOutsideDest;
-           
             if (perCall)
             {
-                inside /= call.TotalHits;
-                outside /= call.TotalHits;
+                Inside /= Hits;
+                Outside /= Hits;
             }
 
-            SubItems.Add(Xtensions.TicksToString(inside));
-            SubItems.Add(Xtensions.TicksToString(outside));
+            SubItems.Add(Xtensions.TicksToString(Inside));
+            SubItems.Add(Xtensions.TicksToString(Outside));
 
-            Total = inside + outside;
+            Total = Inside + Outside;
         }
     }
 }

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.CallersLabel = new System.Windows.Forms.Label();
             this.CumulativeRadio = new System.Windows.Forms.RadioButton();
             this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -47,6 +48,8 @@
             this.CalledLabel = new System.Windows.Forms.Label();
             this.FunctionPanel = new System.Windows.Forms.SplitContainer();
             this.SelectedNameLabel = new System.Windows.Forms.Label();
+            this.AutoRefresh = new System.Windows.Forms.LinkLabel();
+            this.RefreshTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.FunctionPanel)).BeginInit();
             this.FunctionPanel.Panel1.SuspendLayout();
             this.FunctionPanel.Panel2.SuspendLayout();
@@ -68,7 +71,7 @@
             this.CumulativeRadio.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.CumulativeRadio.AutoSize = true;
             this.CumulativeRadio.Checked = true;
-            this.CumulativeRadio.Location = new System.Drawing.Point(458, 0);
+            this.CumulativeRadio.Location = new System.Drawing.Point(410, 3);
             this.CumulativeRadio.Name = "CumulativeRadio";
             this.CumulativeRadio.Size = new System.Drawing.Size(76, 17);
             this.CumulativeRadio.TabIndex = 29;
@@ -87,7 +90,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(396, 2);
+            this.label1.Location = new System.Drawing.Point(348, 5);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(56, 13);
             this.label1.TabIndex = 28;
@@ -140,6 +143,7 @@
             this.columnHeader9});
             this.CalledByList.FullRowSelect = true;
             this.CalledByList.Location = new System.Drawing.Point(6, 16);
+            this.CalledByList.MultiSelect = false;
             this.CalledByList.Name = "CalledByList";
             this.CalledByList.Size = new System.Drawing.Size(289, 166);
             this.CalledByList.TabIndex = 11;
@@ -161,7 +165,7 @@
             // 
             this.PerCallRadio.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.PerCallRadio.AutoSize = true;
-            this.PerCallRadio.Location = new System.Drawing.Point(541, 0);
+            this.PerCallRadio.Location = new System.Drawing.Point(493, 3);
             this.PerCallRadio.Name = "PerCallRadio";
             this.PerCallRadio.Size = new System.Drawing.Size(59, 17);
             this.PerCallRadio.TabIndex = 30;
@@ -182,6 +186,7 @@
             this.columnHeader10});
             this.CalledToList.FullRowSelect = true;
             this.CalledToList.Location = new System.Drawing.Point(6, 16);
+            this.CalledToList.MultiSelect = false;
             this.CalledToList.Name = "CalledToList";
             this.CalledToList.Size = new System.Drawing.Size(292, 166);
             this.CalledToList.TabIndex = 12;
@@ -234,10 +239,29 @@
             this.SelectedNameLabel.TabIndex = 13;
             this.SelectedNameLabel.Text = "Name";
             // 
+            // AutoRefresh
+            // 
+            this.AutoRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.AutoRefresh.AutoSize = true;
+            this.AutoRefresh.Location = new System.Drawing.Point(553, 5);
+            this.AutoRefresh.Name = "AutoRefresh";
+            this.AutoRefresh.Size = new System.Drawing.Size(44, 13);
+            this.AutoRefresh.TabIndex = 31;
+            this.AutoRefresh.TabStop = true;
+            this.AutoRefresh.Text = "Refresh";
+            this.AutoRefresh.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.AutoRefresh_LinkClicked);
+            // 
+            // RefreshTimer
+            // 
+            this.RefreshTimer.Enabled = true;
+            this.RefreshTimer.Interval = 1000;
+            this.RefreshTimer.Tick += new System.EventHandler(this.RefreshTimer_Tick);
+            // 
             // TimingPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.AutoRefresh);
             this.Controls.Add(this.SelectedNameLabel);
             this.Controls.Add(this.CumulativeRadio);
             this.Controls.Add(this.label1);
@@ -277,5 +301,7 @@
         private System.Windows.Forms.ColumnHeader columnHeader9;
         private System.Windows.Forms.ColumnHeader columnHeader10;
         private System.Windows.Forms.Label SelectedNameLabel;
+        private System.Windows.Forms.LinkLabel AutoRefresh;
+        private System.Windows.Forms.Timer RefreshTimer;
     }
 }

@@ -753,7 +753,7 @@ namespace XBuilder
                 // if method is ctor/cctor rename
                 if (node.Name == ".ctor" || node.Name == ".cctor")
                 {
-                    node.Name = parent.Name + ((node.Name == ".ctor") ? ".init" : ".static_init");
+                    node.Name = parent.Name + ((node.Name == ".ctor") ? ".ctor" : ".static_ctor");
                     if (parent.InitCount > 1)
                         node.Name += parent.InitCount.ToString();
 

@@ -189,6 +189,29 @@ namespace XLibrary
             if (!string.IsNullOrEmpty(TreeView.SearchString))
                 Model.SearchStrobe = !Model.SearchStrobe;
         }
+
+        internal void NavigateTo(NodeModel node)
+        {
+            if (node.ObjType == XObjType.Method)
+            {
+                InstanceTab.Visible = false;
+
+                CodeTab.NavigateTo(node);
+                CodeTab.Dock = DockStyle.Fill;
+                CodeTab.Visible = true;
+            }
+
+            else if (node.ObjType == XObjType.Class)
+            {
+                CodeTab.Visible = false;
+
+                InstanceTab.NavigateTo(node);
+                InstanceTab.Dock = DockStyle.Fill;
+                InstanceTab.Visible = true;
+            }
+
+            TimingTab.NavigateTo(node);
+        }
     }
 
     public class CompareNodes : IComparer<NodeModel>

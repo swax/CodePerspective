@@ -1,12 +1,10 @@
 ﻿
-now	
-	show totals in profile view
-	show fields in timeline
-	combine instance and method view
+now		
 	add time node so stuff constantly being purged
 	add pause button
-	profile auto refresh
-	filter zoomed nodes
+	combine profile view into details, split out namespace details
+	combine debug and console - refresh as /refresh or something
+	only refresh instance view when clicked or visible
 
 	Top level thread filter in crumbs - works in all views?
 		filter call graph by selected thread
@@ -26,8 +24,7 @@ now
 	decompile c# code option - ICSharpCode.ILSpy.CSharpLanguage.DecompileMethod(MethodDefinition method
 
 	better browsing - double click on class to see internal methods (or zoom in on class)
-		
-	only show instance view when clicked or visible
+	
 	on click method/node, show that instance view, and select the line with that field
 
 	field value in code view
@@ -142,8 +139,8 @@ search box
 Graph Direct -> Method map, does not re-add call dashed lines
 
 profile tab
-	reset timing button
 	draw out new visualization
+	profile auto refresh
 
 details tab
 	clicking on namespace - gives child classes with instance count for each

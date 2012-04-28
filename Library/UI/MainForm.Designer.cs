@@ -45,6 +45,7 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.CodeTab = new XLibrary.Panels.CodePanel();
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.TimingTab = new XLibrary.TimingPanel();
@@ -52,8 +53,6 @@
             this.debugPanel1 = new XLibrary.Panels.DebugPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.tabPage6 = new System.Windows.Forms.TabPage();
-            this.CodeTab = new XLibrary.Panels.CodePanel();
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
             this.SearchTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -67,7 +66,6 @@
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.tabPage5.SuspendLayout();
-            this.tabPage6.SuspendLayout();
             this.SuspendLayout();
             // 
             // RedrawTimer
@@ -187,7 +185,6 @@
             this.TabPanel.Controls.Add(this.tabPage3);
             this.TabPanel.Controls.Add(this.tabPage4);
             this.TabPanel.Controls.Add(this.tabPage5);
-            this.TabPanel.Controls.Add(this.tabPage6);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
             this.TabPanel.Name = "TabPanel";
@@ -217,21 +214,31 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.CodeTab);
             this.tabPage2.Controls.Add(this.InstanceTab);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(542, 194);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Instance";
+            this.tabPage2.Text = "Details";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // CodeTab
+            // 
+            this.CodeTab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.CodeTab.Location = new System.Drawing.Point(282, 11);
+            this.CodeTab.Name = "CodeTab";
+            this.CodeTab.Size = new System.Drawing.Size(254, 177);
+            this.CodeTab.TabIndex = 1;
             // 
             // InstanceTab
             // 
-            this.InstanceTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.InstanceTab.Location = new System.Drawing.Point(3, 3);
+            this.InstanceTab.Location = new System.Drawing.Point(8, 14);
             this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(536, 188);
+            this.InstanceTab.Size = new System.Drawing.Size(268, 172);
             this.InstanceTab.TabIndex = 0;
             // 
             // tabPage3
@@ -289,27 +296,6 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
-            // tabPage6
-            // 
-            this.tabPage6.Controls.Add(this.CodeTab);
-            this.tabPage6.Location = new System.Drawing.Point(4, 22);
-            this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(542, 194);
-            this.tabPage6.TabIndex = 5;
-            this.tabPage6.Text = "Code";
-            this.tabPage6.UseVisualStyleBackColor = true;
-            // 
-            // CodeTab
-            // 
-            this.CodeTab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.CodeTab.Location = new System.Drawing.Point(3, 3);
-            this.CodeTab.Name = "CodeTab";
-            this.CodeTab.Size = new System.Drawing.Size(536, 188);
-            this.CodeTab.TabIndex = 0;
-            // 
             // RevalueTimer
             // 
             this.RevalueTimer.Interval = 1000;
@@ -342,7 +328,6 @@
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
-            this.tabPage6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -373,7 +358,6 @@
         private System.Windows.Forms.ToolStripTextBox SearchTextBox;
         private System.Windows.Forms.Timer SearchTimer;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
-        private System.Windows.Forms.TabPage tabPage6;
         public Panels.CodePanel CodeTab;
     }
 }

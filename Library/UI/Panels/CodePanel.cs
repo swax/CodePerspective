@@ -121,7 +121,7 @@ namespace XLibrary.Panels
 
         private void CodePanel_VisibleChanged(object sender, EventArgs e)
         {
-            if (SelectedNode != CurrentDisplay)
+            if (Visible && SelectedNode != CurrentDisplay)
                 RefreshTree();
         }
 

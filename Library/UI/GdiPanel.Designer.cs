@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class TreePanelGdiPlus
+    partial class GdiPanel
     {
         /// <summary> 
         /// Required designer variable.

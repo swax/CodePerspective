@@ -16,7 +16,7 @@ namespace XLibrary.Panels
     {
         public MainForm Main;
         public XNodeIn[] Nodes = XRay.Nodes;
-        public TreePanelGdiPlus Tree;
+        public GdiPanel Tree;
 
 
         public ConsolePanel()
@@ -27,7 +27,7 @@ namespace XLibrary.Panels
         public void Init(MainForm mainView)
         {
             Main = mainView;
-            Tree = Main.TreeView;
+            Tree = Main.GdiView;
 
             ProcessInput("help");
         }
@@ -101,6 +101,7 @@ namespace XLibrary.Panels
 calls
 datpath
 eval Nodes, Main, Tree
+findid <name>
 help
 id <#>
 inits
@@ -185,6 +186,15 @@ stacks";
                 int id = int.Parse(input.Replace("id ", ""));
 
                 return XRay.Nodes[id].FullName();
+            }
+
+            else if (input.StartsWith("findid "))
+            {
+                string find = input.Replace("findid ", "");
+
+                var results = XRay.Nodes.Where(n => n.Name.Contains(find)).Select(n => n.ID + ": " + n.Name);
+
+                return string.Join("\r\n", results);
             }
 
             else

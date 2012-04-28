@@ -280,7 +280,7 @@ namespace XLibrary
                     //float maxSize = rank.Column.Max(n => n.ScaledSize);
 
                     // a good first guess at how nodes should be ordered to min crossing
-                    rank.Column = rank.Column.OrderBy(n => n.XNode.HitSequence).ToList();
+                    //rank.Column = rank.Column.OrderBy(n => n.XNode.HitSequence).ToList();
 
                     PositionRank(graph, rank, xOffset);// + maxSize / 2);
 

@@ -188,7 +188,7 @@ namespace XLibrary
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-
+                    
                     MainForm = new MainForm();
                     Application.Run(MainForm);
                 }
@@ -352,7 +352,7 @@ namespace XLibrary
             //if (CallLogging)
             //    LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
 
-            // mark covered, should probably check if show covered is checked
+            // mark covered
             if (!CoveredNodes[nodeID])
             {
                 node.HitSequence = CurrentSequence++;

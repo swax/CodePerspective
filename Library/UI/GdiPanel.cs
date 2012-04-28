@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace XLibrary
 {
-    public partial class TreePanelGdiPlus : UserControl
+    public partial class GdiPanel : UserControl
     {
         public MainForm MainWin;
         public ViewModel Model;
@@ -111,7 +111,7 @@ namespace XLibrary
         public string LastSearch;
 
 
-        public TreePanelGdiPlus(MainForm main, IColorProfile profile)
+        public GdiPanel(MainForm main, IColorProfile profile)
         {
             InitializeComponent();
 
@@ -281,8 +281,12 @@ namespace XLibrary
                 LastSearch = SearchString;
                 bool empty = string.IsNullOrEmpty(SearchString);
 
-                foreach(var node in Model.TopRoot.Nodes)
-                    node.SearchMatch = !empty && node.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
+                Utilities.RecurseTree<NodeModel>(
+                    tree: Model.TopRoot.Nodes,
+                    evaluate: n => n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1,
+                    recurse: n => n.Nodes
+                );
+
             }
 
             // draw layout

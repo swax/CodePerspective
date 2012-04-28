@@ -17,6 +17,7 @@ namespace XLibrary
     public partial class InstancePanel : UserControl
     {
         public XNodeIn SelectedNode;
+        public XNodeIn CurrentDisplay;
         public string FieldFilter = "";
 
         Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
@@ -39,7 +40,7 @@ namespace XLibrary
             else if (node.ObjType == XObjType.Field)
             {
                 SelectedNode = node.GetParentClass(false).XNode;
-                FieldFilter = SelectedNode.UnformattedName;
+                FieldFilter = node.XNode.UnformattedName;
             }
             else
                 return;
@@ -49,6 +50,11 @@ namespace XLibrary
 
         void RefreshTree(bool clear)
         {
+            if (!Visible)
+                return;
+
+            CurrentDisplay = SelectedNode;
+
             if (clear)
             {
                 FieldGrid.Nodes.Clear();
@@ -149,7 +155,7 @@ namespace XLibrary
             foreach (var recordInstance in GenericMap)
             {
                 FieldRow row = FieldGrid.Nodes.OfType<FieldRow>().FirstOrDefault(r => r.GenericName == recordInstance.Key);
-
+               
                 if (row != null)
                 {
                     row.RefreshField();
@@ -160,6 +166,9 @@ namespace XLibrary
                 row.GenericName = recordInstance.Key;
                 row.FieldType = recordInstance.Value.Item1; // instance type that matches selected node
                 row.Instances = recordInstance.Value.Item2; // list of instances
+
+                if (row.Instances.Count > 0 && row.Instances[0].IsStatic)
+                    FieldGrid.Columns[2].HeaderText = "Static";
 
                 FieldGrid.Nodes.Add(row);
                 row.Init();
@@ -223,6 +232,12 @@ namespace XLibrary
 
             // start next refrseh a second after the time it took to do the actual refresh
             RefreshTimer.Enabled = AutoRefreshOn;
+        }
+
+        private void InstancePanel_VisibleChanged(object sender, EventArgs e)
+        {
+            if (Visible && SelectedNode != CurrentDisplay)
+                RefreshTree(true);
         }
 
        
@@ -360,10 +375,14 @@ namespace XLibrary
                     var field = FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(f => f.Name == fieldFilter);
                     if (field != null)
                     {
+                        XRay.LogError("Field " + fieldFilter + " found on " + FieldType.ToString());
+
                         var row = new FieldRow(this, RowTypes.Field, field);
                         AddRow(row);
                         row.ExpandField();
                     }
+                    else
+                        XRay.LogError("Field " + fieldFilter + " not found on " + FieldType.ToString());
                 }
             }
 
@@ -498,7 +517,7 @@ namespace XLibrary
                 else if (link.RowType == RowTypes.Field)
                 {
                     if (!link.TypeInfo.IsStatic && current == null)
-                        return "<not static>";
+                        return ""; // "<not static>";
                     
                     current = link.TypeInfo.GetValue(current);
 

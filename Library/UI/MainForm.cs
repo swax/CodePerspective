@@ -13,7 +13,7 @@ namespace XLibrary
 {
     public partial class MainForm : Form
     {
-        public TreePanelGdiPlus TreeView;
+        public GdiPanel GdiView;
         public GLPanel GLView;
         public ViewModel Model = new ViewModel();
 
@@ -22,8 +22,8 @@ namespace XLibrary
         {
             InitializeComponent();
 
-            TreeView = new TreePanelGdiPlus(this, new BrightColorProfile()) { Dock = DockStyle.Fill };
-            ViewHostPanel.Controls.Add(TreeView);
+            GdiView = new GdiPanel(this, new BrightColorProfile()) { Dock = DockStyle.Fill };
+            ViewHostPanel.Controls.Add(GdiView);
 
             RedrawTimer.Interval = 1000 / XRay.HitFrames;
             RedrawTimer.Enabled = true;
@@ -38,7 +38,7 @@ namespace XLibrary
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
 
-            TreeView.SetRoot(Model.CurrentRoot); // init first node in history
+            GdiView.SetRoot(Model.CurrentRoot); // init first node in history
         }
 
         void RedrawTimer_Tick(object sender, EventArgs e)
@@ -74,9 +74,9 @@ namespace XLibrary
                 var crumbName = (crumb.ObjType == XObjType.Root) ? "View" : crumb.Name;
 
                 var button = new ToolStripSplitButton(crumbName);
-                button.ButtonClick += (s, e) => TreeView.SetRoot(uiNode);
+                button.ButtonClick += (s, e) => GdiView.SetRoot(uiNode);
                 button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-                button.ForeColor = TreePanelGdiPlus.ObjColors[(int)crumb.ObjType];
+                button.ForeColor = GdiPanel.ObjColors[(int)crumb.ObjType];
                 MainToolStrip.Items.Add(button);
 
                 button.DropDownOpening += (s1, e1) =>
@@ -85,9 +85,9 @@ namespace XLibrary
                         {
                             var subCopy = sub;
 
-                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => TreeView.SetRoot(subCopy));
+                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => GdiView.SetRoot(subCopy));
                             item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-                            item.ForeColor = TreePanelGdiPlus.ObjColors[(int)sub.ObjType];
+                            item.ForeColor = GdiPanel.ObjColors[(int)sub.ObjType];
 
                             // freezing with more than 100 items..
                             //if (button.DropDownItems.Count > 100)
@@ -98,8 +98,8 @@ namespace XLibrary
                     };
             }
 
-            BackButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Previous != null);
-            ForwardButton.Enabled = (TreeView.CurrentHistory != null && TreeView.CurrentHistory.Next != null);
+            BackButton.Enabled = (GdiView.CurrentHistory != null && GdiView.CurrentHistory.Previous != null);
+            ForwardButton.Enabled = (GdiView.CurrentHistory != null && GdiView.CurrentHistory.Next != null);
         }
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
@@ -124,7 +124,7 @@ namespace XLibrary
         {
             if (Model.ViewLayout == LayoutType.ThreeD)
             {
-                TreeView.Visible = false;
+                GdiView.Visible = false;
 
                 if (GLView == null)
                 {
@@ -141,27 +141,29 @@ namespace XLibrary
                 if(GLView != null)
                     GLView.Visible = false;
 
-                TreeView.Visible = true;
+                GdiView.Visible = true;
 
                 if (resetZoom)
-                    TreeView.ResetZoom();
+                    GdiView.ResetZoom();
 
                 // check if view exists
                 if (redrawOnly)
-                    TreeView.Redraw();
+                    GdiView.Redraw();
                 else
-                    TreeView.RecalcValues();
+                    GdiView.RecalcValues();
+
+                PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
             }
         }
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            TreeView.NavBack();
+            GdiView.NavBack();
         }
 
         private void ForwardButton_Click(object sender, EventArgs e)
         {
-            TreeView.NavForward();
+            GdiView.NavForward();
         }
 
         private void OnOffButton_Click(object sender, EventArgs e)
@@ -182,14 +184,14 @@ namespace XLibrary
 
         private void SearchTextBox_TextChanged(object sender, EventArgs e)
         {
-            TreeView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
+            GdiView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
             Model.SearchStrobe = false; // so matches are shown immediately
             RefreshView(true, false);
         }
 
         private void SearchTimer_Tick(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(TreeView.SearchString))
+            if (!string.IsNullOrEmpty(GdiView.SearchString))
                 Model.SearchStrobe = !Model.SearchStrobe;
         }
 
@@ -200,23 +202,28 @@ namespace XLibrary
 
             if (node.ObjType == XObjType.Method)
             {
-                InstanceTab.Visible = false;
-
                 CodeTab.NavigateTo(node);
                 CodeTab.Dock = DockStyle.Fill;
                 CodeTab.Visible = true;
             }
 
-            else if (node.ObjType == XObjType.Class)
+            else if (node.ObjType == XObjType.Class ||
+                node.ObjType == XObjType.Field)
             {
-                CodeTab.Visible = false;
-
                 InstanceTab.NavigateTo(node);
                 InstanceTab.Dock = DockStyle.Fill;
                 InstanceTab.Visible = true;
             }
 
             TimingTab.NavigateTo(node);
+        }
+
+        private void PauseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            if (Model.TogglePause())
+                PauseLink.Text = "Resume";
+            else
+                PauseLink.Text = "Pause";
         }
     }
 

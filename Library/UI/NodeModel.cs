@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
+using System.Collections;
 
 namespace XLibrary
 {
@@ -57,7 +58,7 @@ namespace XLibrary
             XNode = xNode;
             Name = XNode.Name;
             ID = XNode.ID;
-            ObjType = XNode.ObjType;
+            ObjType = XNode.ObjType;    
         }
 
         public NodeModel(ViewModel model)

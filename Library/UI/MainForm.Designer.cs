@@ -41,6 +41,7 @@
             this.SearchTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
+            this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
@@ -58,6 +59,7 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.MainToolStrip.SuspendLayout();
+            this.ViewHostPanel.SuspendLayout();
             this.TabPanel.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -170,10 +172,25 @@
             this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.ViewHostPanel.Controls.Add(this.PauseLink);
             this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
             this.ViewHostPanel.Name = "ViewHostPanel";
             this.ViewHostPanel.Size = new System.Drawing.Size(550, 332);
             this.ViewHostPanel.TabIndex = 3;
+            // 
+            // PauseLink
+            // 
+            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.PauseLink.AutoSize = true;
+            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PauseLink.Location = new System.Drawing.Point(473, 9);
+            this.PauseLink.Name = "PauseLink";
+            this.PauseLink.Size = new System.Drawing.Size(52, 16);
+            this.PauseLink.TabIndex = 0;
+            this.PauseLink.TabStop = true;
+            this.PauseLink.Text = "Pause";
+            this.PauseLink.Visible = false;
+            this.PauseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PauseLink_LinkClicked);
             // 
             // TabPanel
             // 
@@ -299,6 +316,8 @@
             this.splitContainer1.ResumeLayout(false);
             this.MainToolStrip.ResumeLayout(false);
             this.MainToolStrip.PerformLayout();
+            this.ViewHostPanel.ResumeLayout(false);
+            this.ViewHostPanel.PerformLayout();
             this.TabPanel.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -333,5 +352,6 @@
         private System.Windows.Forms.Timer SearchTimer;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         public Panels.CodePanel CodeTab;
+        private System.Windows.Forms.LinkLabel PauseLink;
     }
 }

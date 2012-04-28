@@ -54,9 +54,9 @@
             this.FieldGrid.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.FieldGrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            this.FieldGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.FieldGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FieldGrid.BackgroundColor = System.Drawing.Color.White;
             this.FieldGrid.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.FieldGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -99,6 +99,7 @@
             this.Controls.Add(this.SummaryLabel);
             this.Name = "InstancePanel";
             this.Size = new System.Drawing.Size(430, 146);
+            this.VisibleChanged += new System.EventHandler(this.InstancePanel_VisibleChanged);
             ((System.ComponentModel.ISupportInitialize)(this.FieldGrid)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -1,5 +1,11 @@
 ﻿
-now		
+now	
+	functions getting double wrapped at entry points
+	double click on method in treeview, show containing class
+	double click on class in class/init graph, show connected
+	switch to class graph from method graph, and move zoom up to class level
+	create an obsidian color theme, on the boat?
+	
 	add last run time to mouse over in threadline
 	combine profile view into details, split out namespace details
 	flash class green/red when constructd/deconstructed
@@ -16,7 +22,7 @@ now
 			add to function call class an int[] for each thread id that used the call
 			drop down combo of threads tracked, name is name of entry point
 
-	break out color profile for GL. put color profiles in their own file, commit
+	break out color profile for GL
 
 	blend colors so i can see outside calls bettter
 	search option to search file/namespace path, see diff components interacting

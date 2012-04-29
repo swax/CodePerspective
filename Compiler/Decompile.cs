@@ -459,16 +459,17 @@ namespace XBuilder
 
                         var classRef = GetClassRef(call.DeclaringType);
 
-                        if( TrackExternal &&
+                        var calledNode = classRef.AddMethod(call);
+
+                        /*if( TrackExternal && 
                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
-                            (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )
+                            (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
+                        if (TrackExternal && calledNode.External)
                         {
                             if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
                                 continue; // call added to cctor by xray
 
-                            var methodRef = classRef.AddMethod(call);
-
-                            methodRef.Lines = 1;
+                            calledNode.Lines = 1;
 
                             // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
                             int offset = 0;
@@ -483,13 +484,13 @@ namespace XBuilder
                             // wrap the call with enter and exit, because enter to an external method may cause
                             // an xrayed method to be called, we want to track the flow of that process
                             int pos = i;
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodRef.ID));
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
                             AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
                         
                             // method
                             pos += 1 + offset;
 
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodRef.ID));
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
                             AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
 
                             var newPos = method.Body.Instructions[i];

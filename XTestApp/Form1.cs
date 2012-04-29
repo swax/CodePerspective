@@ -139,5 +139,42 @@ namespace XTestApp
         {
             TestTimer.Enabled = !TestTimer.Enabled;
         }
+
+        private void ProfileTestButton_Click(object sender, EventArgs e)
+        {
+            ms100();
+        }
+
+        private void ms100()
+        {
+            System.Threading.Thread.Sleep(100);
+            ms200();
+        }
+
+        private void ms200()
+        {
+            System.Threading.Thread.Sleep(200);
+            ms300();
+        }
+
+        private void ms300()
+        {
+            System.Threading.Thread.Sleep(300);
+            ms400();
+        }
+
+        private void ms400()
+        {
+            System.Threading.Thread.Sleep(400);
+            ms101();
+            ms101();
+        }
+
+        private void ms101()
+        {
+            System.Threading.Thread.Sleep(101);
+            System.Threading.Thread.Sleep(101);
+        }
+        
     }
 }

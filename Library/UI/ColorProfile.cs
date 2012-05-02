@@ -63,9 +63,32 @@ namespace XLibrary
         Color InterdependentColor { get; }
     }
 
+    public static class IColorExtensions
+    {
+         public static Color GetColorForType(this IColorProfile profile, XObjType type)
+         {
+             switch(type)
+             {
+                 case XObjType.Class:
+                     return profile.ClassColor;
+                 case XObjType.Field:
+                     return profile.FieldColor;
+                 case XObjType.File:
+                     return profile.FileColor;
+                 case XObjType.Method:
+                     return profile.MethodColor;
+                 case XObjType.Namespace:
+                     return profile.NamespaceColor;
+                 default:
+                     return profile.UnknownColor;
+             }
+         }
+    }
+   
+
     public class BrightColorProfile : IColorProfile
     {
-        public Color BackgroundColor { get { return Color.WhiteSmoke; } }
+        public Color BackgroundColor { get { return Color.White; } }
 
         public Color UnknownColor { get { return Color.Black; } }
         public Color FileColor { get { return Color.Black; } }
@@ -74,7 +97,7 @@ namespace XLibrary
         public Color MethodColor { get { return Color.DarkRed; } }
         public Color FieldColor { get { return Color.Goldenrod; } }
 
-        public Color EmptyColor { get { return Color.WhiteSmoke; } }
+        public Color EmptyColor { get { return Color.White; } }
         public Color OutsideColor { get { return Color.LightGray; } }
 
         public Color EntryColor { get { return Color.LightGreen; } }

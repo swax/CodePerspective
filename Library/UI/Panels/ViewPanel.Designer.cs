@@ -588,8 +588,9 @@
             // 
             // FpsLabel
             // 
+            this.FpsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.FpsLabel.AutoSize = true;
-            this.FpsLabel.Location = new System.Drawing.Point(6, 155);
+            this.FpsLabel.Location = new System.Drawing.Point(3, 164);
             this.FpsLabel.Name = "FpsLabel";
             this.FpsLabel.Size = new System.Drawing.Size(47, 13);
             this.FpsLabel.TabIndex = 29;

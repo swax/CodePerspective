@@ -33,12 +33,12 @@ namespace XLibrary
                 }
         }
 
-        public static void Write(this FileStream stream, byte[] buffer)
+        public static void Write(this Stream stream, byte[] buffer)
         {
             stream.Write(buffer, 0, buffer.Length);
         }
 
-        public static byte[] Read(this FileStream stream, int size)
+        public static byte[] Read(this Stream stream, int size)
         {
             byte[] buffer = new byte[size];
             stream.Read(buffer, 0, size);

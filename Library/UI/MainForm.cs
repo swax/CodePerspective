@@ -17,6 +17,9 @@ namespace XLibrary
         public GLPanel GLView;
         public ViewModel Model = new ViewModel();
 
+        LinkedListNode<NodeModel> Current;
+        LinkedList<NodeModel> History = new LinkedList<NodeModel>();
+
 
         public MainForm()
         {
@@ -31,12 +34,15 @@ namespace XLibrary
             RevalueTimer.Interval = 1000;
             RevalueTimer.Enabled = true;
 
-            TimingTab.Init(this);
+            InstanceTab.Init(this);
             DisplayTab.Init(this);
             ConsoleTab.Init(this);
+            CodeTab.Init(this);
+            NamespaceTab.Init(this);
 
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
+            NamespaceTab.Visible = false;
 
             GdiView.SetRoot(Model.CurrentRoot); // init first node in history
         }
@@ -195,27 +201,63 @@ namespace XLibrary
                 Model.SearchStrobe = !Model.SearchStrobe;
         }
 
-        internal void NavigateTo(NodeModel node)
+        internal void NavigatePanelTo(NodeModel node, bool supressHistory=false)
         {
-            CodeTab.Visible = false;
-            InstanceTab.Visible = false;
+            if (!supressHistory)
+            {
+                // remove anything after current node, add this node to top
+                while (Current != null && Current.Next != null)
+                    History.RemoveLast();
+
+                Current = History.AddLast(node);
+            }
 
             if (node.ObjType == XObjType.Method)
             {
                 CodeTab.NavigateTo(node);
-                CodeTab.Dock = DockStyle.Fill;
-                CodeTab.Visible = true;
+                ShowDetailsPanel(CodeTab);
             }
 
             else if (node.ObjType == XObjType.Class ||
                 node.ObjType == XObjType.Field)
             {
                 InstanceTab.NavigateTo(node);
-                InstanceTab.Dock = DockStyle.Fill;
-                InstanceTab.Visible = true;
+                ShowDetailsPanel(InstanceTab);
             }
 
-            TimingTab.NavigateTo(node);
+            else
+            {
+                NamespaceTab.NavigateTo(node);
+                ShowDetailsPanel(NamespaceTab);
+            }
+        }
+
+        public void NavigatePanel(bool back)
+        {
+            if (Current == null)
+                return;
+
+            var nextPos = back ? Current.Previous : Current.Next;
+
+            if (nextPos == null || nextPos.Value == null)
+                return;
+
+            Current = nextPos;
+
+            NavigatePanelTo(Current.Value, true);
+        }
+
+        // do this so we dont change state if we dont have to and avoid ui flicker
+        void ShowDetailsPanel(UserControl showPanel)
+        {
+            if (showPanel.Visible)
+                return;
+
+            showPanel.Dock = DockStyle.Fill;
+
+            CodeTab.Visible = (showPanel == CodeTab);
+            InstanceTab.Visible = (showPanel == InstanceTab);
+            NamespaceTab.Visible = (showPanel == NamespaceTab);
         }
 
         private void PauseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -224,6 +266,23 @@ namespace XLibrary
                 PauseLink.Text = "Resume";
             else
                 PauseLink.Text = "Pause";
+        }
+
+        private void ChangeSplitterOrientation_Click(object sender, EventArgs e)
+        {
+            if(splitContainer1.Orientation == Orientation.Vertical)
+                splitContainer1.Orientation = Orientation.Horizontal;
+            else
+                splitContainer1.Orientation = Orientation.Vertical;
+        }
+
+        internal void NavigatePanelUp()
+        {
+            if (Current == null || Current.Value == null)
+                return;
+
+            if(Current.Value.Parent != null)
+                NavigatePanelTo(Current.Value.Parent);
         }
     }
 

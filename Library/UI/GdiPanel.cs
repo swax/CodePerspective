@@ -924,7 +924,7 @@ namespace XLibrary
 
                     Model.FocusedNodes.Add(node);
 
-                    MainWin.NavigateTo(node);
+                    MainWin.NavigatePanelTo(node);
                 }
 
                 Redraw();

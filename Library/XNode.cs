@@ -40,7 +40,8 @@ namespace XLibrary
         public int[] ParamIDs;
         public string[] ParamNames;
 
-        public List<XInstruction> Instructions;
+        public List<XInstruction> Msil;
+        public byte[] CSharp;
 
 
         public string FullName(bool excludeFile=false)
@@ -134,8 +135,11 @@ namespace XLibrary
         internal int[] Dependencies;
         internal int[] Independencies;
 
-        public long CodePos;
-        public int CodeLines;
+        public long MsilPos;
+        public int MsilLines;
+
+        public long CSharpPos;
+        public int CSharpLength;
 
 
         internal static XNodeIn Read(FileStream stream)
@@ -206,16 +210,15 @@ namespace XLibrary
                     node.Dependencies[i] = BitConverter.ToInt32(stream.Read(4), 0);
             }
 
-            node.CodeLines = BitConverter.ToInt32(stream.Read(4), 0);
-            if (node.CodeLines > 0)
-            {
-                node.CodePos = stream.Position;
-                /*node.Code = new List<string>();
+            node.CSharpLength = BitConverter.ToInt32(stream.Read(4), 0);
+            node.CSharpPos = stream.Position;
+            stream.Position += node.CSharpLength;
 
-                for (int i = 0; i < CodeLines; i++)
-                    node.Code.Add(ReadString(stream));
-                }*/
-            }
+            node.MsilLines = BitConverter.ToInt32(stream.Read(4), 0);
+            if (node.MsilLines > 0)
+                node.MsilPos = stream.Position;
+            
+            //stream.Position += node.MsilLines; // lines dont translate into bytes
 
             stream.Position = startPos + totalSize;
 

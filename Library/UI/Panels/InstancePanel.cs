@@ -16,16 +16,28 @@ namespace XLibrary
 {
     public partial class InstancePanel : UserControl
     {
+        MainForm Main;
         public XNodeIn SelectedNode;
         public XNodeIn CurrentDisplay;
         public string FieldFilter = "";
 
         Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
 
+        public int MaxCols = 20;
+
+        IColorProfile ColorProfile = new BrightColorProfile();
+
 
         public InstancePanel()
         {
             InitializeComponent();
+        }
+
+        public void Init(MainForm main)
+        {
+            Main = main;
+
+            NavButtons.Init(main);
         }
 
         public void NavigateTo(NodeModel node)
@@ -36,14 +48,21 @@ namespace XLibrary
             {
                 SelectedNode = xNode;
                 FieldFilter = null;
+                SummaryLabel.Text = xNode.Name;
+                SummaryLabel.ForeColor = ColorProfile.ClassColor;
             }
             else if (node.ObjType == XObjType.Field)
             {
                 SelectedNode = node.GetParentClass(false).XNode;
                 FieldFilter = node.XNode.UnformattedName;
+                SummaryLabel.Text = xNode.Name;
+                SummaryLabel.ForeColor = ColorProfile.FieldColor;
             }
             else
+            {
+                SummaryLabel.Text = "";
                 return;
+            }
 
             RefreshTree(true);
         }
@@ -68,22 +87,17 @@ namespace XLibrary
             }
 
             if (SelectedNode == null)
-            {
-                SummaryLabel.Text = "";
                 return;
-            }
 
             var nodeTypeName = SelectedNode.UnformattedName;
             var record = SelectedNode.Record;
 
             if (record == null)
             {
-                SummaryLabel.Text = "No record of instance of " + SelectedNode.Name + " type being created";
+                DetailsLabel.Text = "No record of being created";
                 return;
             }
-
-            string isStatic = "";// record.StaticClass ? "static " : "";
-            SummaryLabel.Text = isStatic + String.Format("{0} - Created: {1}, Deleted: {2}, Active: {3}", SelectedNode.Name, record.Created, record.Deleted, record.Active.Count);
+            DetailsLabel.Text = String.Format("Active: {0}, Created: {1}, Deleted: {2}", record.Active.Count, record.Created, record.Deleted );
 
             // rebuild each list cause instances may be added or removed
             foreach (var recordList in GenericMap.Values)
@@ -96,7 +110,7 @@ namespace XLibrary
                     // traverse up the record's base types until we match the type for the class node selected in the UI
                     // (cant show a debug matrix for types with different properties)
                     // for example we click on the TreeView class, but the record type is of BuddyTreeView
-                    for (int i = 0; i < record.Active.Count; i++)
+                    for (int i = 0; i < record.Active.Count && i < MaxCols; i++)
                     {
                         var instance = record.Active[i];
 
@@ -240,7 +254,20 @@ namespace XLibrary
                 RefreshTree(true);
         }
 
-       
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            Main.NavigatePanel(true);
+        }
+
+        private void ForwardButton_Click(object sender, EventArgs e)
+        {
+            Main.NavigatePanel(false);
+        }
+
+        private void SummaryLabel_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public enum RowTypes { Root, Number, Age, Base, Declared, Selected, Enumerate, Element, Field }

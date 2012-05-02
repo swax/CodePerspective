@@ -102,6 +102,12 @@
   <ItemGroup>
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
+    <Compile Include="UI\DetailsNav.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\DetailsNav.Designer.cs">
+      <DependentUpon>DetailsNav.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\GLPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -109,11 +115,11 @@
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\NodeModel.cs" />
-    <Compile Include="UI\Panels\CodePanel.cs">
+    <Compile Include="UI\Panels\MethodPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\Panels\CodePanel.Designer.cs">
-      <DependentUpon>CodePanel.cs</DependentUpon>
+    <Compile Include="UI\Panels\MethodPanel.Designer.cs">
+      <DependentUpon>MethodPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Panels\ConsolePanel.cs">
       <SubType>UserControl</SubType>
@@ -134,11 +140,17 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\Panels\TimingPanel.cs">
+    <Compile Include="UI\Panels\NamespacePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\Panels\TimingPanel.Designer.cs">
-      <DependentUpon>TimingPanel.cs</DependentUpon>
+    <Compile Include="UI\Panels\NamespacePanel.Designer.cs">
+      <DependentUpon>NamespacePanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Panels\ProfilePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Panels\ProfilePanel.Designer.cs">
+      <DependentUpon>ProfilePanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Panels\ViewPanel.cs">
       <SubType>UserControl</SubType>
@@ -165,6 +177,9 @@
     </Compile>
     <Compile Include="UI\ViewModel.Threadline.cs" />
     <Compile Include="UI\ViewModel.TreeMap.cs" />
+    <Compile Include="UI\WebBrowserEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Utilities.cs" />
     <Compile Include="UI\ViewModel.cs" />
     <Compile Include="Win32.cs" />
@@ -173,11 +188,14 @@
     <Compile Include="XNode.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="UI\DetailsNav.resx">
+      <DependentUpon>DetailsNav.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\GLPanel.resx">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Panels\CodePanel.resx">
-      <DependentUpon>CodePanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Panels\MethodPanel.resx">
+      <DependentUpon>MethodPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\ConsolePanel.resx">
       <DependentUpon>ConsolePanel.cs</DependentUpon>
@@ -189,8 +207,11 @@
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\Panels\TimingPanel.resx">
-      <DependentUpon>TimingPanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\Panels\NamespacePanel.resx">
+      <DependentUpon>NamespacePanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Panels\ProfilePanel.resx">
+      <DependentUpon>ProfilePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\ViewPanel.resx">
       <DependentUpon>ViewPanel.cs</DependentUpon>

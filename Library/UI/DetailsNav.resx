@@ -118,20 +118,29 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="BackButton" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="BackButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABMAAAAQCAYAAAD0xERiAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABjSURBVDhPY2DAA4yNjd+DMD41RMkBDfmPhMk3EM0gkKHk
-        GYbFoP9EeQVd0dAwCJsr8Yi9NzIySmCARj9yzJHLfk9dw0CRQKKXsLkc4k0YoFpMDmkDyctOOLxMmWHQ
-        WCapCAIAR/3GrRlsXewAAAAASUVORK5CYII=
+        iVBORw0KGgoAAAANSUhEUgAAAA4AAAAMCAYAAABSgIzaAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRy
+        oQAAAGFJREFUKFOdUkEOwCAIK/z/zxiWgEzByQ5EQZpSC0QEawAQjezNaiWoBTSmFuMK+sx15thERI++
+        i5hNEWR3PbP6xlY07eBsVGb2UStmt+NC01t3NPmXHb4R4UdbmxM1n4ADpMA3C+iEengAAAAASUVORK5C
+        YII=
 </value>
   </data>
-  <data name="ForwardButton" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="ForwardButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABMAAAAQCAYAAAD0xERiAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABmSURBVDhPY2AgEhgbG78HYSKV41YGNeg/kAZjigxEN4wa
-        BsJdRi0X0tFAIyOjBGxhAvMKsTQ4UqhhENTC99Q1jKreJDUBYgtDUs2AhS91kgY1XQTK5CiuIstr2JIP
-        2QbBNBJTBAEA7mXGrbAB+3AAAAAASUVORK5CYII=
+        iVBORw0KGgoAAAANSUhEUgAAAA4AAAAMCAYAAABSgIzaAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRy
+        oQAAAF9JREFUKFOdkuEKADAEhI/3f2fLlmK5kh/KZh9nwMzADIC5dXEK+eMAO3gM/nDJmiswP2SPQBG5
+        veaeL5gD7sf5vy8qWJAlS/CTwCqpalEUnzTqsRvLfhyTzVkvQJf8ACZUNwts4KDuAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="UpButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAsAAAAMCAYAAAC0qUeeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAACxEAAAsRAX9kX5EAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRy
+        oQAAAEtJREFUKFNj+P//PwM6ZmAACWERx6YQpBibBhRTYYqQaWTD4IqxKUS3AawYn0JkDUQphBtGtgfR
+        nYRhEH1MxhW+MNuxhjO2qAaJAQDYdx7waAnORgAAAABJRU5ErkJggg==
 </value>
   </data>
 </root>

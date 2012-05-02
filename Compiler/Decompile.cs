@@ -255,11 +255,13 @@ namespace XBuilder
                 {
                     XNodeOut methodNode = classNode.AddMethod(method);
 
+                    methodNode.CSharp = DecompileMethod(method);
+
                     if (method.Body == null)
                         continue;
 
-                    // record method instructions
-                    methodNode.Instructions = new List<XInstruction>();
+                    // record MSIL
+                    methodNode.Msil = new List<XInstruction>();
                     foreach (var inst in method.Body.Instructions)
                     {
                         var xInst = new XInstruction();
@@ -303,7 +305,7 @@ namespace XBuilder
                             }
                         }
 
-                        methodNode.Instructions.Add(xInst);
+                        methodNode.Msil.Add(xInst);
                     }
                 }
 
@@ -457,9 +459,9 @@ namespace XBuilder
                         foreach(var p in call.Parameters)
                             SetClassDependency(classNode, p.ParameterType);
 
-                        var classRef = GetClassRef(call.DeclaringType);
+                        var calledRef = GetClassRef(call.DeclaringType);
 
-                        var calledNode = classRef.AddMethod(call);
+                        var calledNode = calledRef.AddMethod(call);
 
                         /*if( TrackExternal && 
                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&

@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.RedrawTimer = new System.Windows.Forms.Timer(this.components);
+            this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
+            this.SearchTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.OnOffButton = new System.Windows.Forms.ToolStripButton();
@@ -48,12 +50,9 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.CodeTab = new XLibrary.Panels.CodePanel();
             this.InstanceTab = new XLibrary.InstancePanel();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.TimingTab = new XLibrary.TimingPanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
-            this.SearchTimer = new System.Windows.Forms.Timer(this.components);
+            this.NamespaceTab = new XLibrary.UI.Panels.NamespacePanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -63,7 +62,6 @@
             this.TabPanel.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            this.tabPage3.SuspendLayout();
             this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -71,6 +69,17 @@
             // 
             this.RedrawTimer.Interval = 30;
             this.RedrawTimer.Tick += new System.EventHandler(this.RedrawTimer_Tick);
+            // 
+            // RevalueTimer
+            // 
+            this.RevalueTimer.Interval = 1000;
+            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
+            // 
+            // SearchTimer
+            // 
+            this.SearchTimer.Enabled = true;
+            this.SearchTimer.Interval = 300;
+            this.SearchTimer.Tick += new System.EventHandler(this.SearchTimer_Tick);
             // 
             // splitContainer1
             // 
@@ -196,7 +205,6 @@
             // 
             this.TabPanel.Controls.Add(this.tabPage1);
             this.TabPanel.Controls.Add(this.tabPage2);
-            this.TabPanel.Controls.Add(this.tabPage3);
             this.TabPanel.Controls.Add(this.tabPage5);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
@@ -227,6 +235,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.NamespaceTab);
             this.tabPage2.Controls.Add(this.CodeTab);
             this.tabPage2.Controls.Add(this.InstanceTab);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
@@ -242,35 +251,18 @@
             this.CodeTab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.CodeTab.Location = new System.Drawing.Point(282, 11);
+            this.CodeTab.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.CodeTab.Location = new System.Drawing.Point(209, 14);
             this.CodeTab.Name = "CodeTab";
-            this.CodeTab.Size = new System.Drawing.Size(254, 177);
+            this.CodeTab.Size = new System.Drawing.Size(177, 174);
             this.CodeTab.TabIndex = 1;
             // 
             // InstanceTab
             // 
             this.InstanceTab.Location = new System.Drawing.Point(8, 14);
             this.InstanceTab.Name = "InstanceTab";
-            this.InstanceTab.Size = new System.Drawing.Size(268, 172);
+            this.InstanceTab.Size = new System.Drawing.Size(195, 172);
             this.InstanceTab.TabIndex = 0;
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.TimingTab);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(542, 194);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Profile";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // TimingTab
-            // 
-            this.TimingTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.TimingTab.Location = new System.Drawing.Point(0, 0);
-            this.TimingTab.Name = "TimingTab";
-            this.TimingTab.Size = new System.Drawing.Size(542, 194);
-            this.TimingTab.TabIndex = 0;
             // 
             // tabPage5
             // 
@@ -290,16 +282,12 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
-            // RevalueTimer
+            // NamespaceTab
             // 
-            this.RevalueTimer.Interval = 1000;
-            this.RevalueTimer.Tick += new System.EventHandler(this.RevalueTimer_Tick);
-            // 
-            // SearchTimer
-            // 
-            this.SearchTimer.Enabled = true;
-            this.SearchTimer.Interval = 300;
-            this.SearchTimer.Tick += new System.EventHandler(this.SearchTimer_Tick);
+            this.NamespaceTab.Location = new System.Drawing.Point(392, 14);
+            this.NamespaceTab.Name = "NamespaceTab";
+            this.NamespaceTab.Size = new System.Drawing.Size(142, 174);
+            this.NamespaceTab.TabIndex = 2;
             // 
             // MainForm
             // 
@@ -321,7 +309,6 @@
             this.TabPanel.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
-            this.tabPage3.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -334,10 +321,8 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
         public System.Windows.Forms.TabControl TabPanel;
         public InstancePanel InstanceTab;
-        public TimingPanel TimingTab;
         private Panels.ViewPanel DisplayTab;
         private System.Windows.Forms.ToolStrip MainToolStrip;
         private System.Windows.Forms.TabPage tabPage5;
@@ -353,5 +338,6 @@
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         public Panels.CodePanel CodeTab;
         private System.Windows.Forms.LinkLabel PauseLink;
+        private UI.Panels.NamespacePanel NamespaceTab;
     }
 }

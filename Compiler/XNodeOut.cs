@@ -165,13 +165,19 @@ namespace XBuilder
                 foreach (int dependentId in ClassDependencies)
                     stream.Write(BitConverter.GetBytes(dependentId));
 
-            int codeLines = 0;
-            if (Instructions != null)
-                codeLines = Instructions.Count;
+            // write C#
+            int csharpLength = (CSharp != null) ? CSharp.Length : 0;
+            stream.Write(BitConverter.GetBytes(csharpLength));
+
+            if (csharpLength > 0)
+                stream.Write(CSharp);
+
+            // write MSIL
+            int codeLines = (Msil != null) ? Msil.Count : 0;
             stream.Write(BitConverter.GetBytes(codeLines));
 
             if (codeLines > 0)
-                foreach (var inst in Instructions)
+                foreach (var inst in Msil)
                 {
                     stream.Write(BitConverter.GetBytes(inst.Offset));
                     WriteString(stream, inst.OpCode);

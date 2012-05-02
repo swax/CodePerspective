@@ -9,42 +9,37 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class TimingPanel : UserControl
+    public partial class ProfilePanel : UserControl
     {
         public ViewModel Model;
-        LinkedListNode<NodeModel> Current;
-        LinkedList<NodeModel> History = new LinkedList<NodeModel>();
+        MainForm Main;
+        NodeModel SelectedNode;
+
 
         bool ShowPerCall = false;
 
-        public TimingPanel()
+
+        public ProfilePanel()
         {
             InitializeComponent();
         }
 
         public void Init(MainForm main)
         {
+            Main = main;
             Model = main.Model;
         }
 
         public void NavigateTo(NodeModel node)
         {
-            // remove anything after current node, add this node to top
-            while (Current != null && Current.Next != null)
-                History.RemoveLast();
+            SelectedNode = node;
 
-            Current = History.AddLast(node);
             Reload();
         }
-        
+
         private void Reload()
         {
-            if (Current == null)
-                return;
-
-            var node = Current.Value;
-
-            SelectedNameLabel.Text = node.AppendClassName();
+            var node = SelectedNode;
 
             Text = "Details for (" + node.ObjType.ToString() + ") " + node.Name;
 
@@ -73,7 +68,6 @@ namespace XLibrary
                     CalledByList.Items.Add(new CallItem(call, caller, ShowPerCall));
                     count++;
                 }
-                CallersLabel.Text = count.ToString() + " methods called " + node.Name;
 
                 if (count > 1)
                     AddTotalRow(CalledByList);
@@ -90,15 +84,11 @@ namespace XLibrary
                     count++;
                 }
 
-                CalledLabel.Text = node.Name + " called " + count.ToString() + " methods";
-
                 if(count > 1)
                     AddTotalRow(CalledToList);
             }
             else
             {
-                CallersLabel.Text = node.Name + " has " + node.Nodes.Count.ToString() + " children";
-
                 FunctionPanel.Panel2Collapsed = true;
                 // when namespace selected, show children and total time inside / hits, summed for all children
 
@@ -124,7 +114,7 @@ namespace XLibrary
           
         }
 
-        private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        /*private void ParentsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             ContextMenu menu = new ContextMenu();
 
@@ -151,18 +141,7 @@ namespace XLibrary
 
             menu.Show(this, this.PointToClient(Cursor.Position));
         }
-
-        private void BackLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Current = Current.Previous;
-            Reload();
-        }
-
-        private void ForwardLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            Current = Current.Next;
-            Reload();
-        }
+        */
 
         private void CallersList_MouseDoubleClick(object sender, MouseEventArgs e)
         {
@@ -172,7 +151,7 @@ namespace XLibrary
             CallItem item = CalledByList.SelectedItems[0] as CallItem;
 
             if(item != null)
-                NavigateTo(item.Node);
+                Main.NavigatePanelTo(item.Node);
         }
 
         private void CalledList_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -183,7 +162,7 @@ namespace XLibrary
             CallItem item = CalledToList.SelectedItems[0] as CallItem;
 
             if (item != null)
-                NavigateTo(item.Node);
+                Main.NavigatePanelTo(item.Node);
         }
 
         private void CumulativeRadio_CheckedChanged(object sender, EventArgs e)

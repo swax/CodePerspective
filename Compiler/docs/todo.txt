@@ -1,7 +1,8 @@
 ﻿
 now	
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
-	msil view links
+	
+	gl renderer
 
 	autosize instance cols working	
 

@@ -247,7 +247,7 @@ namespace XBuilder
 
                     SetClassDependency(classNode, fieldDef.DeclaringType);
 
-                    fieldNode.ReturnID = GetClassRef(fieldDef.DeclaringType).ID;
+                    fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
                 }
 
             if(TrackCode)

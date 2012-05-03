@@ -35,10 +35,10 @@
             this.CSharpRadioButton = new System.Windows.Forms.RadioButton();
             this.MsilRadioButton = new System.Windows.Forms.RadioButton();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.ProfileRadioButton = new System.Windows.Forms.RadioButton();
-            this.NavButtons = new XLibrary.UI.DetailsNav();
             this.ProfileView = new XLibrary.ProfilePanel();
             this.CSharpView = new DeOps.Interface.Views.WebBrowserEx();
+            this.ProfileRadioButton = new System.Windows.Forms.RadioButton();
+            this.NavButtons = new XLibrary.UI.DetailsNav();
             this.DetailsLabel = new System.Windows.Forms.Label();
             this.SummaryLabel = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -63,6 +63,7 @@
             this.MsilView.UseCompatibleStateImageBehavior = false;
             this.MsilView.View = System.Windows.Forms.View.Details;
             this.MsilView.Visible = false;
+            this.MsilView.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.MsilView_MouseDoubleClick);
             // 
             // columnHeader1
             // 
@@ -117,6 +118,24 @@
             this.panel1.Size = new System.Drawing.Size(890, 295);
             this.panel1.TabIndex = 20;
             // 
+            // ProfileView
+            // 
+            this.ProfileView.Location = new System.Drawing.Point(515, 6);
+            this.ProfileView.Name = "ProfileView";
+            this.ProfileView.Size = new System.Drawing.Size(370, 286);
+            this.ProfileView.TabIndex = 17;
+            this.ProfileView.Visible = false;
+            // 
+            // CSharpView
+            // 
+            this.CSharpView.Location = new System.Drawing.Point(274, 6);
+            this.CSharpView.MinimumSize = new System.Drawing.Size(20, 20);
+            this.CSharpView.Name = "CSharpView";
+            this.CSharpView.Size = new System.Drawing.Size(217, 278);
+            this.CSharpView.TabIndex = 16;
+            this.CSharpView.Visible = false;
+            this.CSharpView.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.CSharpView_Navigating);
+            // 
             // ProfileRadioButton
             // 
             this.ProfileRadioButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -135,24 +154,6 @@
             this.NavButtons.Name = "NavButtons";
             this.NavButtons.Size = new System.Drawing.Size(56, 16);
             this.NavButtons.TabIndex = 32;
-            // 
-            // ProfileView
-            // 
-            this.ProfileView.Location = new System.Drawing.Point(515, 6);
-            this.ProfileView.Name = "ProfileView";
-            this.ProfileView.Size = new System.Drawing.Size(370, 286);
-            this.ProfileView.TabIndex = 17;
-            this.ProfileView.Visible = false;
-            // 
-            // CSharpView
-            // 
-            this.CSharpView.Location = new System.Drawing.Point(274, 6);
-            this.CSharpView.MinimumSize = new System.Drawing.Size(20, 20);
-            this.CSharpView.Name = "CSharpView";
-            this.CSharpView.Size = new System.Drawing.Size(217, 278);
-            this.CSharpView.TabIndex = 16;
-            this.CSharpView.Visible = false;
-            this.CSharpView.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.CSharpView_Navigating);
             // 
             // DetailsLabel
             // 

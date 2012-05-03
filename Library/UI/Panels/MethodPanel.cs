@@ -198,7 +198,7 @@ namespace XLibrary.Panels
                 return;
 
             panel.Dock = DockStyle.Fill;
-
+            
             MsilView.Visible = (MsilView == panel);
             CSharpView.Visible = (CSharpView == panel);
             ProfileView.Visible = (ProfileView == panel);
@@ -315,19 +315,40 @@ namespace XLibrary.Panels
         {
 
         }
+
+        private void MsilView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (MsilView.SelectedItems.Count == 0)
+                return;
+
+            var item = MsilView.SelectedItems[0] as CodeRow;
+
+            if (item.Inst.RefId == 0)
+                return;
+
+            var refNode = Model.NodeModels[item.Inst.RefId];
+
+            Main.NavigatePanelTo(refNode);
+        }
     }
 
     public class CodeRow : ListViewItem
     {
-        XInstruction Inst;
+        public XInstruction Inst;
    
         public CodeRow(XInstruction inst, string line)
         {
+            UseItemStyleForSubItems = false;
+
             Inst = inst;
 
             Text = Inst.Offset.ToString("X");
             SubItems.Add(Inst.OpCode);
-            SubItems.Add(line);
+            
+            var lineItem = SubItems.Add(line);
+      
+            if (inst.RefId != 0)
+                lineItem.ForeColor = Color.Blue;
         }
     }
 }

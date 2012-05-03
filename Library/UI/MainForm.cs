@@ -284,6 +284,24 @@ namespace XLibrary
             if(Current.Value.Parent != null)
                 NavigatePanelTo(Current.Value.Parent);
         }
+
+        private void SearchToolButton_ButtonClick(object sender, EventArgs e)
+        {
+
+        }
+
+        private void ClearSearchMenuItem_Click(object sender, EventArgs e)
+        {
+            SearchTextBox.Text = "";
+            RefreshView(true, false);
+        }
+
+        private void SubsSearchMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.SearchHighlightSubs = SubsSearchMenuItem.Checked;
+            GdiView.LastSearch = ""; // forces search to re-run
+            RefreshView(true, false);
+        }
     }
 
     public class CompareNodes : IComparer<NodeModel>

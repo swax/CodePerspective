@@ -41,18 +41,20 @@
             this.ForwardButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.SearchTextBox = new System.Windows.Forms.ToolStripTextBox();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.SearchToolButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.ClearSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SubsSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DisplayTab = new XLibrary.Panels.ViewPanel();
+            this.NamespaceTab = new XLibrary.UI.Panels.NamespacePanel();
             this.CodeTab = new XLibrary.Panels.CodePanel();
             this.InstanceTab = new XLibrary.InstancePanel();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.NamespaceTab = new XLibrary.UI.Panels.NamespacePanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -112,7 +114,7 @@
             this.ForwardButton,
             this.toolStripSeparator1,
             this.SearchTextBox,
-            this.toolStripLabel1});
+            this.SearchToolButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
@@ -166,16 +168,6 @@
             this.SearchTextBox.Size = new System.Drawing.Size(100, 25);
             this.SearchTextBox.TextChanged += new System.EventHandler(this.SearchTextBox_TextChanged);
             // 
-            // toolStripLabel1
-            // 
-            this.toolStripLabel1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.toolStripLabel1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripLabel1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripLabel1.Image")));
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Padding = new System.Windows.Forms.Padding(0, 0, 6, 0);
-            this.toolStripLabel1.Size = new System.Drawing.Size(22, 22);
-            this.toolStripLabel1.Text = "toolStripLabel1";
-            // 
             // ViewHostPanel
             // 
             this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -224,15 +216,6 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // DisplayTab
-            // 
-            this.DisplayTab.AutoScroll = true;
-            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
-            this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
-            this.DisplayTab.TabIndex = 0;
-            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.NamespaceTab);
@@ -245,6 +228,60 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Details";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.ConsoleTab);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(542, 194);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Console";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // SearchToolButton
+            // 
+            this.SearchToolButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.SearchToolButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.SearchToolButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ClearSearchMenuItem,
+            this.SubsSearchMenuItem});
+            this.SearchToolButton.Image = ((System.Drawing.Image)(resources.GetObject("SearchToolButton.Image")));
+            this.SearchToolButton.Name = "SearchToolButton";
+            this.SearchToolButton.Padding = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            this.SearchToolButton.Size = new System.Drawing.Size(35, 22);
+            this.SearchToolButton.Text = "toolStripLabel1";
+            // 
+            // ClearSearchMenuItem
+            // 
+            this.ClearSearchMenuItem.Name = "ClearSearchMenuItem";
+            this.ClearSearchMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ClearSearchMenuItem.Text = "Clear";
+            this.ClearSearchMenuItem.Click += new System.EventHandler(this.ClearSearchMenuItem_Click);
+            // 
+            // SubsSearchMenuItem
+            // 
+            this.SubsSearchMenuItem.CheckOnClick = true;
+            this.SubsSearchMenuItem.Name = "SubsSearchMenuItem";
+            this.SubsSearchMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.SubsSearchMenuItem.Text = "Highlight Subs";
+            this.SubsSearchMenuItem.CheckedChanged += new System.EventHandler(this.SubsSearchMenuItem_CheckedChanged);
+            // 
+            // DisplayTab
+            // 
+            this.DisplayTab.AutoScroll = true;
+            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
+            this.DisplayTab.Name = "DisplayTab";
+            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
+            this.DisplayTab.TabIndex = 0;
+            // 
+            // NamespaceTab
+            // 
+            this.NamespaceTab.Location = new System.Drawing.Point(392, 14);
+            this.NamespaceTab.Name = "NamespaceTab";
+            this.NamespaceTab.Size = new System.Drawing.Size(142, 174);
+            this.NamespaceTab.TabIndex = 2;
             // 
             // CodeTab
             // 
@@ -264,16 +301,6 @@
             this.InstanceTab.Size = new System.Drawing.Size(195, 172);
             this.InstanceTab.TabIndex = 0;
             // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.ConsoleTab);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(542, 194);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Console";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
             // ConsoleTab
             // 
             this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -281,13 +308,6 @@
             this.ConsoleTab.Name = "ConsoleTab";
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
-            // 
-            // NamespaceTab
-            // 
-            this.NamespaceTab.Location = new System.Drawing.Point(392, 14);
-            this.NamespaceTab.Name = "NamespaceTab";
-            this.NamespaceTab.Size = new System.Drawing.Size(142, 174);
-            this.NamespaceTab.TabIndex = 2;
             // 
             // MainForm
             // 
@@ -335,9 +355,11 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripTextBox SearchTextBox;
         private System.Windows.Forms.Timer SearchTimer;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         public Panels.CodePanel CodeTab;
         private System.Windows.Forms.LinkLabel PauseLink;
         private UI.Panels.NamespacePanel NamespaceTab;
+        private System.Windows.Forms.ToolStripDropDownButton SearchToolButton;
+        private System.Windows.Forms.ToolStripMenuItem ClearSearchMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
     }
 }

@@ -117,6 +117,9 @@ namespace XLibrary
         internal int LastCallingThread;
         internal int ConflictHit; 
         internal int ExceptionHit;
+        internal int ConstructedHit;
+        internal int DisposeHit;
+
         internal uint HitSequence;
 
         internal int EntryPoint;
@@ -282,6 +285,24 @@ namespace XLibrary
             }
 
             return name;
+        }
+
+        internal void DecrementHits()
+        {
+            if (FunctionHit > 0)
+                FunctionHit--;
+
+            if (ExceptionHit > 0)
+                ExceptionHit--;
+
+            if (ConflictHit > 0)
+                ConflictHit--;
+
+            if (ConstructedHit > 0)
+                ConstructedHit--;
+
+            if (DisposeHit > 0)
+                DisposeHit--;
         }
     }
 

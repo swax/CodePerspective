@@ -55,6 +55,7 @@ namespace XLibrary
         public List<NodeModel> FocusedNodes = new List<NodeModel>();
 
         public bool SearchStrobe;
+        public bool SearchHighlightSubs;
         public long MaxSecondaryValue;
 
         public SizeF ScreenSize; // in screen dimensions, different from the view size which is constant

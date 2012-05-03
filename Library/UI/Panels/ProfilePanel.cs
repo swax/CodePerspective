@@ -110,7 +110,7 @@ namespace XLibrary
             long outside = list.Items.Cast<CallItem>().Sum(i => i.Outside);
 
             list.Items.Add(new ListViewItem());
-            list.Items.Add(new ListViewItem(new string[] { "Total", hits.ToString(), Xtensions.TicksToString(inside), Xtensions.TicksToString(outside) }));
+            list.Items.Add(new ListViewItem(new string[] { "Total", hits.ToString(), Utilities.TicksToString(inside), Utilities.TicksToString(outside) }));
           
         }
 
@@ -238,8 +238,8 @@ namespace XLibrary
                 Outside /= Hits;
             }
 
-            SubItems.Add(Xtensions.TicksToString(Inside));
-            SubItems.Add(Xtensions.TicksToString(Outside));
+            SubItems.Add(Utilities.TicksToString(Inside));
+            SubItems.Add(Utilities.TicksToString(Outside));
 
             Total = Inside + Outside;
         }

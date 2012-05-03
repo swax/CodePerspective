@@ -103,7 +103,7 @@ namespace XLibrary
                     }
 
                     bool showHit = false;
-                    if (item.EndTick == 0 || Xtensions.TicksToSeconds(currentTick - item.StartTick) < 1.0) // of started in last second
+                    if (item.EndTick == 0 || Utilities.TicksToSeconds(currentTick - item.StartTick) < 1.0) // of started in last second
                         showHit = true;
 
                     float labelX = ScreenOffset.X + xPos + nodeWidth + 3;

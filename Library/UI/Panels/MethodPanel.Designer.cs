@@ -32,15 +32,18 @@
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.MethodNameLabel = new System.Windows.Forms.Label();
             this.CSharpRadioButton = new System.Windows.Forms.RadioButton();
             this.MsilRadioButton = new System.Windows.Forms.RadioButton();
             this.panel1 = new System.Windows.Forms.Panel();
             this.ProfileRadioButton = new System.Windows.Forms.RadioButton();
+            this.NavButtons = new XLibrary.UI.DetailsNav();
             this.ProfileView = new XLibrary.ProfilePanel();
             this.CSharpView = new DeOps.Interface.Views.WebBrowserEx();
-            this.NavButtons = new XLibrary.UI.DetailsNav();
+            this.DetailsLabel = new System.Windows.Forms.Label();
+            this.SummaryLabel = new System.Windows.Forms.Label();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.panel1.SuspendLayout();
+            this.flowLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // MsilView
@@ -75,23 +78,12 @@
             this.columnHeader3.Text = "Operand";
             this.columnHeader3.Width = 174;
             // 
-            // MethodNameLabel
-            // 
-            this.MethodNameLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.MethodNameLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MethodNameLabel.Location = new System.Drawing.Point(65, 8);
-            this.MethodNameLabel.Name = "MethodNameLabel";
-            this.MethodNameLabel.Size = new System.Drawing.Size(662, 13);
-            this.MethodNameLabel.TabIndex = 17;
-            this.MethodNameLabel.Text = "Method";
-            // 
             // CSharpRadioButton
             // 
             this.CSharpRadioButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.CSharpRadioButton.AutoSize = true;
             this.CSharpRadioButton.Checked = true;
-            this.CSharpRadioButton.Location = new System.Drawing.Point(733, 6);
+            this.CSharpRadioButton.Location = new System.Drawing.Point(735, 6);
             this.CSharpRadioButton.Name = "CSharpRadioButton";
             this.CSharpRadioButton.Size = new System.Drawing.Size(39, 17);
             this.CSharpRadioButton.TabIndex = 18;
@@ -104,7 +96,7 @@
             // 
             this.MsilRadioButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.MsilRadioButton.AutoSize = true;
-            this.MsilRadioButton.Location = new System.Drawing.Point(778, 6);
+            this.MsilRadioButton.Location = new System.Drawing.Point(780, 6);
             this.MsilRadioButton.Name = "MsilRadioButton";
             this.MsilRadioButton.Size = new System.Drawing.Size(50, 17);
             this.MsilRadioButton.TabIndex = 19;
@@ -122,20 +114,27 @@
             this.panel1.Controls.Add(this.MsilView);
             this.panel1.Location = new System.Drawing.Point(3, 27);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(888, 295);
+            this.panel1.Size = new System.Drawing.Size(890, 295);
             this.panel1.TabIndex = 20;
             // 
             // ProfileRadioButton
             // 
             this.ProfileRadioButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ProfileRadioButton.AutoSize = true;
-            this.ProfileRadioButton.Location = new System.Drawing.Point(834, 6);
+            this.ProfileRadioButton.Location = new System.Drawing.Point(836, 6);
             this.ProfileRadioButton.Name = "ProfileRadioButton";
             this.ProfileRadioButton.Size = new System.Drawing.Size(54, 17);
             this.ProfileRadioButton.TabIndex = 21;
             this.ProfileRadioButton.Text = "Profile";
             this.ProfileRadioButton.UseVisualStyleBackColor = true;
             this.ProfileRadioButton.CheckedChanged += new System.EventHandler(this.ProfileRadioButton_CheckedChanged);
+            // 
+            // NavButtons
+            // 
+            this.NavButtons.Location = new System.Drawing.Point(3, 8);
+            this.NavButtons.Name = "NavButtons";
+            this.NavButtons.Size = new System.Drawing.Size(56, 16);
+            this.NavButtons.TabIndex = 32;
             // 
             // ProfileView
             // 
@@ -155,28 +154,54 @@
             this.CSharpView.Visible = false;
             this.CSharpView.Navigating += new System.Windows.Forms.WebBrowserNavigatingEventHandler(this.CSharpView_Navigating);
             // 
-            // NavButtons
+            // DetailsLabel
             // 
-            this.NavButtons.Location = new System.Drawing.Point(3, 8);
-            this.NavButtons.Name = "NavButtons";
-            this.NavButtons.Size = new System.Drawing.Size(56, 16);
-            this.NavButtons.TabIndex = 32;
+            this.DetailsLabel.AutoSize = true;
+            this.DetailsLabel.Location = new System.Drawing.Point(58, 0);
+            this.DetailsLabel.Name = "DetailsLabel";
+            this.DetailsLabel.Size = new System.Drawing.Size(37, 13);
+            this.DetailsLabel.TabIndex = 1;
+            this.DetailsLabel.Text = "details";
+            // 
+            // SummaryLabel
+            // 
+            this.SummaryLabel.AutoSize = true;
+            this.SummaryLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.SummaryLabel.Location = new System.Drawing.Point(3, 0);
+            this.SummaryLabel.Name = "SummaryLabel";
+            this.SummaryLabel.Size = new System.Drawing.Size(49, 13);
+            this.SummaryLabel.TabIndex = 0;
+            this.SummaryLabel.Text = "Method";
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanel1.Controls.Add(this.SummaryLabel);
+            this.flowLayoutPanel1.Controls.Add(this.DetailsLabel);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(65, 8);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(664, 15);
+            this.flowLayoutPanel1.TabIndex = 33;
             // 
             // CodePanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.Controls.Add(this.NavButtons);
             this.Controls.Add(this.ProfileRadioButton);
-            this.Controls.Add(this.panel1);
             this.Controls.Add(this.MsilRadioButton);
             this.Controls.Add(this.CSharpRadioButton);
-            this.Controls.Add(this.MethodNameLabel);
+            this.Controls.Add(this.flowLayoutPanel1);
+            this.Controls.Add(this.NavButtons);
+            this.Controls.Add(this.panel1);
             this.Name = "CodePanel";
-            this.Size = new System.Drawing.Size(894, 322);
+            this.Size = new System.Drawing.Size(896, 322);
+            this.Load += new System.EventHandler(this.CodePanel_Load);
             this.VisibleChanged += new System.EventHandler(this.CodePanel_VisibleChanged);
             this.panel1.ResumeLayout(false);
+            this.flowLayoutPanel1.ResumeLayout(false);
+            this.flowLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -188,7 +213,6 @@
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
-        private System.Windows.Forms.Label MethodNameLabel;
         private System.Windows.Forms.RadioButton CSharpRadioButton;
         private System.Windows.Forms.RadioButton MsilRadioButton;
         private System.Windows.Forms.Panel panel1;
@@ -196,5 +220,8 @@
         private ProfilePanel ProfileView;
         private System.Windows.Forms.RadioButton ProfileRadioButton;
         private UI.DetailsNav NavButtons;
+        private System.Windows.Forms.Label DetailsLabel;
+        private System.Windows.Forms.Label SummaryLabel;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
     }
 }

@@ -142,14 +142,7 @@ namespace XLibrary
                 return;
 
             foreach (var node in Nodes)
-            {
-                if (node.FunctionHit > 0)
-                    node.FunctionHit--;
-
-                if (ThreadTracking &&
-                    node.ConflictHit > 0)
-                    node.ConflictHit--;
-            }
+                node.DecrementHits();
 
             // reset
             if (FlowTracking)
@@ -658,6 +651,8 @@ namespace XLibrary
             if (node == null)
                 return;
 
+            node.ConstructedHit = ShowTicks;
+
             // of obj is system.runtimeType thats the flag that this is a static class's constructor running
 
             if (node.Record == null)
@@ -757,6 +752,8 @@ namespace XLibrary
                 LogError("Deconstructed instance not found of type " + obj.GetType().ToString());
                 return;
             }
+
+            node.DisposeHit = ShowTicks;
 
             if (node.Record.Remove(obj))
                 InstanceChange = true;

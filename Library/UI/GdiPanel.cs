@@ -35,7 +35,6 @@ namespace XLibrary
 
         public static Dictionary<int, Color> ObjColors = new Dictionary<int, Color>();
 
-
         SolidBrush NothingBrush;
         SolidBrush OutsideBrush;
 
@@ -49,7 +48,6 @@ namespace XLibrary
 
         SolidBrush BorderBrush;
 
-        Color CallColor;
         Pen ShowCallPen;
         Pen CallOutPen;
         Pen CallInPen;
@@ -58,15 +56,6 @@ namespace XLibrary
         Pen HoldingCallPen;
 
         Pen CallDividerPen;
-
-        Color HitColor;
-        Color MultiHitColor;
-
-        Color ExceptionColor;
-        Color MultiExceptionColor;
-
-        Color FieldSetColor;
-        Color FieldGetColor;
 
         SolidBrush TextBrush;
         SolidBrush TextBgBrush;
@@ -80,6 +69,9 @@ namespace XLibrary
 
         SolidBrush[] HitBrush;
         SolidBrush[] MultiHitBrush;
+
+        SolidBrush[] ConstructedBrush;
+        SolidBrush[] DisposedBrush;
 
         SolidBrush[] FieldSetBrush;
         SolidBrush[] FieldGetBrush;
@@ -134,9 +126,12 @@ namespace XLibrary
 
             HitBrush = new SolidBrush[XRay.HitFrames];
             MultiHitBrush = new SolidBrush[XRay.HitFrames];
+
             ExceptionBrush = new SolidBrush[XRay.HitFrames];
             FieldSetBrush = new SolidBrush[XRay.HitFrames];
             FieldGetBrush = new SolidBrush[XRay.HitFrames];
+            ConstructedBrush = new SolidBrush[XRay.HitFrames];
+            DisposedBrush = new SolidBrush[XRay.HitFrames];
 
             CallPen = new Pen[XRay.HitFrames];
             CallPenFocused = new Pen[XRay.HitFrames];
@@ -159,7 +154,6 @@ namespace XLibrary
 
             SearchMatchBrush = new SolidBrush(profile.SearchMatchColor);
 
-            CallColor = profile.CallColor;
             ShowCallPen = new Pen(profile.ShowCallColor);// { EndCap = LineCap.ArrowAnchor };
             CallOutPen = new Pen(profile.CallOutColor);
             CallInPen = new Pen(profile.CallInColor);
@@ -169,15 +163,6 @@ namespace XLibrary
 
             BorderBrush = new SolidBrush(profile.BorderColor);
             CallDividerPen = new Pen(profile.CallDividerColor);
-
-            HitColor = profile.HitColor;
-            MultiHitColor = profile.MultiHitColor;
-
-            ExceptionColor = profile.ExceptionColor;
-            MultiExceptionColor = profile.MultiExceptionColor;
-
-            FieldSetColor = profile.FieldSetColor;
-            FieldGetColor = profile.FieldGetColor;
 
             TextBrush = new SolidBrush(profile.TextColor);
             TextBgBrush = new SolidBrush(profile.TextBgColor);
@@ -212,17 +197,21 @@ namespace XLibrary
             {
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
-                HitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, HitColor));
-                MultiHitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, MultiHitColor));
-                ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, ExceptionColor));
-                FieldSetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, FieldSetColor));
-                FieldGetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, FieldGetColor));
+                HitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.HitColor));
+                MultiHitBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.MultiHitColor));
+                ExceptionBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.ExceptionColor));
 
-                CallPen[i] = new Pen(Color.FromArgb(255 - brightness, CallColor));
+                ConstructedBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.ConstructedColor));
+                DisposedBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.DisposedColor));
+
+                FieldSetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.FieldSetColor));
+                FieldGetBrush[i] = new SolidBrush(Color.FromArgb(255 - brightness, profile.FieldGetColor));
+
+                CallPen[i] = new Pen(Color.FromArgb(255 - brightness, profile.CallColor));
                 CallPen[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
                 CallPen[i].EndCap = LineCap.ArrowAnchor;
 
-                CallPenFocused[i] = new Pen(Color.FromArgb(255 - (brightness / 2), CallColor), 2);
+                CallPenFocused[i] = new Pen(Color.FromArgb(255 - (brightness / 2), profile.CallColor), 2);
                 CallPenFocused[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
                 CallPenFocused[i].EndCap = LineCap.ArrowAnchor;
             }
@@ -275,19 +264,7 @@ namespace XLibrary
             // clear and pre-process marked depencies
             Model.RecalcDependencies();
 
-            // figure out if we need to do a search
-            if (SearchString != LastSearch)
-            {
-                LastSearch = SearchString;
-                bool empty = string.IsNullOrEmpty(SearchString);
-
-                Utilities.RecurseTree<NodeModel>(
-                    tree: Model.TopRoot.Nodes,
-                    evaluate: n => n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1,
-                    recurse: n => n.Nodes
-                );
-
-            }
+            DoSearch();
 
             // draw layout
             Model.ScreenSize.Width = Width * ZoomFactor;
@@ -465,6 +442,53 @@ namespace XLibrary
             Model.RedrawCount++;
         }
 
+        private void DoSearch()
+        {
+            // figure out if we need to do a search
+            if (SearchString == LastSearch)
+                return;
+            
+            LastSearch = SearchString;
+            bool empty = string.IsNullOrEmpty(SearchString);
+
+            if (Model.SearchHighlightSubs)
+            {
+                // reset all
+                Utilities.RecurseTree<NodeModel>(
+                    tree: Model.TopRoot.Nodes,
+                    evaluate: n => n.SearchMatch = false,
+                    recurse: n => n.Nodes
+                );
+
+                // look for match
+                Utilities.RecurseTree<NodeModel>(
+                    tree: Model.TopRoot.Nodes,
+                    evaluate: n =>
+                    {
+                        // set all nodes under match to also matched
+                        n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
+                        if (n.SearchMatch)
+                            Utilities.RecurseTree<NodeModel>(
+                                tree: n.Nodes,
+                                evaluate: n2 => n2.SearchMatch = true,
+                                recurse: n2 => n2.Nodes
+                            );
+                    },
+                    recurse: n => n.Nodes.Where(n2 => !n2.SearchMatch)
+                );
+            }
+            // only highlight specific node matches
+            else
+            {
+                Utilities.RecurseTree<NodeModel>(
+                    tree: Model.TopRoot.Nodes,
+                    evaluate: n => n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1,
+                    recurse: n => n.Nodes
+                );
+            }
+            
+        }
+
         private bool IsNodeFiltered(bool select, NodeModel node)
         {
             var map = select ? FilteredNodes : IgnoredNodes;
@@ -542,7 +566,7 @@ namespace XLibrary
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
-                    fillFunction(ExceptionBrush[xNode.FunctionHit]);
+                    fillFunction(ExceptionBrush[xNode.ExceptionHit]);
 
                 else if (xNode.FunctionHit > 0)
                 {
@@ -558,6 +582,16 @@ namespace XLibrary
                     }
                     else
                         fillFunction(HitBrush[xNode.FunctionHit]);
+                }
+
+                else if (xNode.ConstructedHit > 0)
+                {
+                    fillFunction(ConstructedBrush[xNode.ConstructedHit]);
+                }
+
+                else if (xNode.DisposeHit > 0)
+                {
+                    fillFunction(DisposedBrush[xNode.DisposeHit]);
                 }
             }
 
@@ -764,13 +798,13 @@ namespace XLibrary
             }
             else if (Model.ViewLayout == LayoutType.CallGraph)
             {
-                var hovered = Model.PositionMap.Values.FirstOrDefault(n => n.AreaF.Contains(loc.X, loc.Y));
+                var hovered = Model.PositionMap.Values.FirstOrDefault(n => n.AreaF.Contains(loc.X, loc.Y) || n.LabelRect.Contains(loc.X, loc.Y));
                 if (hovered != null)
                     AddNodeToHovered(hovered);
             }
             else if (Model.ViewLayout == LayoutType.Timeline)
             {
-                var hovered = Model.ThreadlineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y));
+                var hovered = Model.ThreadlineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y) || n.LabelArea.Contains(loc.X, loc.Y));
                 if(hovered != null)
                     AddNodeToHovered(hovered.Node);
             }
@@ -1371,13 +1405,13 @@ namespace XLibrary
                     return node.XNode.Lines.ToString() + " lines";
 
                 case SizeLayouts.TimeInMethod:
-                    return Xtensions.TicksToString(node.Value);
+                    return Utilities.TicksToString(node.Value);
 
                 case SizeLayouts.Hits:
                     return node.Value.ToString() + " calls";
 
                 case SizeLayouts.TimePerHit:
-                    return Xtensions.TicksToString(node.Value);
+                    return Utilities.TicksToString(node.Value);
             }
 
             return "";

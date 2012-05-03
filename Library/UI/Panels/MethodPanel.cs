@@ -65,11 +65,18 @@ namespace XLibrary.Panels
 
             CurrentDisplay = SelectedNode;
 
-            MethodNameLabel.Text = "";
-            MethodNameLabel.ForeColor = ColorProfile.MethodColor;
+            SummaryLabel.Text = "";
+            SummaryLabel.ForeColor = ColorProfile.MethodColor;
 
-            if(SelectedNode != null)
-                MethodNameLabel.Text = GetMethodName(SelectedNode.ID);
+            if (SelectedNode != null)
+            {
+                SummaryLabel.Text = GetMethodName(SelectedNode.ID);
+
+                if (SelectedNode.External)
+                    DetailsLabel.Text = "Not XRayed";
+                else
+                    DetailsLabel.Text = "";
+            }
 
             RefreshMsilView();
             RefreshCSharpView();
@@ -304,14 +311,9 @@ namespace XLibrary.Panels
             Main.NavigatePanelTo(node);   
         }
 
-        private void BackButton_Click(object sender, EventArgs e)
+        private void CodePanel_Load(object sender, EventArgs e)
         {
-            Main.NavigatePanel(true);
-        }
 
-        private void ForwardButton_Click(object sender, EventArgs e)
-        {
-            Main.NavigatePanel(false);
         }
     }
 

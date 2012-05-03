@@ -42,6 +42,9 @@ namespace XLibrary
         Color HitColor { get; }
         Color MultiHitColor { get; }
 
+        Color ConstructedColor { get; }
+        Color DisposedColor { get; }
+
         Color ExceptionColor { get; }
         Color MultiExceptionColor { get; }
 
@@ -122,6 +125,9 @@ namespace XLibrary
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
         public Color MultiHitColor { get { return Color.Orange; } }
 
+        public Color ConstructedColor { get { return Color.Green; } }
+        public Color DisposedColor { get { return Color.Red; } }
+
         public Color ExceptionColor { get { return Color.Red; } }
         public Color MultiExceptionColor { get { return Color.DarkRed; } }
 
@@ -178,6 +184,9 @@ namespace XLibrary
 
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
         public Color MultiHitColor { get { return Color.Orange; } }
+
+        public Color ConstructedColor { get { return Color.White; } }
+        public Color DisposedColor { get { return Color.Red; } }
 
         public Color ExceptionColor { get { return Color.Red; } }
         public Color MultiExceptionColor { get { return Color.DarkRed; } }

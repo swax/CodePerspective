@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace XLibrary
 {
@@ -93,6 +94,38 @@ namespace XLibrary
 
                 parent = traverseUp(parent);
             }
+        }
+
+        public static string TicksToString(long ticks)
+        {
+            if (ticks == 0)
+                return "0";
+
+            double seconds = TicksToSeconds(ticks);
+
+            if (seconds >= 60)
+            {
+                double minutes = seconds / 60.0;
+                return ((int)minutes).ToString("0 m");
+            }
+            else if (seconds >= 1.0)
+                return ((int)seconds).ToString("0 s");
+
+            else if (seconds >= 0.001)
+            {
+                double ms = seconds * 1000;
+                return ((int)ms).ToString("0 ms");
+            }
+            else
+            {
+                double us = seconds * 1000 * 1000;
+                return ((int)us).ToString("0 µs");
+            }
+        }
+
+        public static double TicksToSeconds(long ticks)
+        {
+            return (double)ticks / (double)Stopwatch.Frequency;
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using AdvancedDataGridView;
 using System.Reflection;
 using System.Collections;
+using XLibrary.UI.Panels;
 
 
 namespace XLibrary
@@ -17,8 +18,8 @@ namespace XLibrary
     public partial class InstancePanel : UserControl
     {
         MainForm Main;
-        public XNodeIn SelectedNode;
-        public XNodeIn CurrentDisplay;
+        public NodeModel SelectedNode;
+        public NodeModel CurrentDisplay;
         public string FieldFilter = "";
 
         Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
@@ -38,25 +39,30 @@ namespace XLibrary
             Main = main;
 
             NavButtons.Init(main);
+
+            FieldsRadioButton_CheckedChanged(this, null);
         }
 
         public void NavigateTo(NodeModel node)
         {
-            var xNode = node.XNode;
-
             if (node.ObjType == XObjType.Class)
             {
-                SelectedNode = xNode;
+                SelectedNode = node;
                 FieldFilter = null;
-                SummaryLabel.Text = xNode.Name;
+                SummaryLabel.Text = node.Name;
                 SummaryLabel.ForeColor = ColorProfile.ClassColor;
+                FieldsRadioButton.Visible = true;
+                MethodsRadioButton.Visible = true;
             }
             else if (node.ObjType == XObjType.Field)
             {
-                SelectedNode = node.GetParentClass(false).XNode;
+                SelectedNode = node.GetParentClass(false);
                 FieldFilter = node.XNode.UnformattedName;
-                SummaryLabel.Text = xNode.Name;
+                SummaryLabel.Text = node.Name;
                 SummaryLabel.ForeColor = ColorProfile.FieldColor;
+                FieldsRadioButton.Visible = false;
+                MethodsRadioButton.Visible = false;
+                FieldsRadioButton.Checked = true;
             }
             else
             {
@@ -65,6 +71,7 @@ namespace XLibrary
             }
 
             RefreshTree(true);
+            RefreshSubnodes();
         }
 
         void RefreshTree(bool clear)
@@ -89,12 +96,15 @@ namespace XLibrary
             if (SelectedNode == null)
                 return;
 
-            var nodeTypeName = SelectedNode.UnformattedName;
-            var record = SelectedNode.Record;
+            var nodeTypeName = SelectedNode.XNode.UnformattedName;
+            var record = SelectedNode.XNode.Record;
 
             if (record == null)
             {
-                DetailsLabel.Text = "No record of being created";
+                if(SelectedNode.XNode.External)
+                    DetailsLabel.Text = "Not XRayed";
+                else
+                    DetailsLabel.Text = "No record of being created";
                 return;
             }
             DetailsLabel.Text = String.Format("Active: {0}, Created: {1}, Deleted: {2}", record.Active.Count, record.Created, record.Deleted );
@@ -227,17 +237,6 @@ namespace XLibrary
             AutoSizeColumns();
         }
 
-        bool AutoRefreshOn = true;
-
-        private void AutoRefresh_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            AutoRefreshOn = !AutoRefreshOn;
-
-            RefreshTimer.Enabled = AutoRefreshOn;
-
-            AutoRefresh.Text = AutoRefreshOn ? "Turn off auto refresh" : "Turn on auto refresh";
-        }
-
         private void RefreshTimer_Tick(object sender, EventArgs e)
         {
             RefreshTimer.Enabled = false;
@@ -254,19 +253,70 @@ namespace XLibrary
                 RefreshTree(true);
         }
 
-        private void BackButton_Click(object sender, EventArgs e)
-        {
-            Main.NavigatePanel(true);
-        }
-
-        private void ForwardButton_Click(object sender, EventArgs e)
-        {
-            Main.NavigatePanel(false);
-        }
-
         private void SummaryLabel_Click(object sender, EventArgs e)
         {
 
+        }
+
+        bool AutoRefreshOn = true;
+
+        private void PauseButton_Click(object sender, EventArgs e)
+        {
+            AutoRefreshOn = false;
+            RefreshTimer.Enabled = false;
+            PauseButton.Visible = false;
+            PlayButton.Visible = true;
+        }
+
+        private void PlayButton_Click(object sender, EventArgs e)
+        {
+            AutoRefreshOn = true;
+            RefreshTimer.Enabled = true;
+            PauseButton.Visible = true;
+            PlayButton.Visible = false;
+        }
+
+        private void FieldsRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!FieldsRadioButton.Checked)
+                return;
+
+            FieldGrid.Dock = DockStyle.Fill;
+            SubnodesView.Visible = false;
+            FieldGrid.Visible = true;
+        }
+
+        private void MethodsRadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!MethodsRadioButton.Checked)
+                return;
+
+            SubnodesView.Dock = DockStyle.Fill;
+            FieldGrid.Visible = false;
+            SubnodesView.Visible = true;
+        }
+
+        void RefreshSubnodes()
+        {
+            SubnodesView.Items.Clear();
+
+            foreach (var subnode in SelectedNode.Nodes
+                                        .Where(n => n.ObjType != XObjType.Field)
+                                        .OrderBy(n => n.Name)
+                                        .OrderBy(n => (int)n.ObjType))
+                SubnodesView.Items.Add(new SubnodeItem(subnode));
+
+            SubnodesView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+        }
+
+        private void SubnodesView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (SubnodesView.SelectedItems.Count == 0)
+                return;
+
+            var selected = SubnodesView.SelectedItems[0] as SubnodeItem;
+
+            Main.NavigatePanelTo(selected.Node);
         }
     }
 

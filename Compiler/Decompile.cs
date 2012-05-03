@@ -463,10 +463,14 @@ namespace XBuilder
 
                         var calledNode = calledRef.AddMethod(call);
 
+
                         /*if( TrackExternal && 
                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
                             (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
-                        if (TrackExternal && calledNode.External)
+                        if (TrackExternal && 
+                            calledNode.External &&
+                            calledRef.Name != "XRay")
+                           // !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System"))
                         {
                             if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
                                 continue; // call added to cctor by xray

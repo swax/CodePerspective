@@ -1,14 +1,16 @@
 ﻿
 now	
 	ViewPanel
+		add back dashes and endcaps
+		
 		GdiRenderer
 		GLRenderer
 		rename, start moving rendering into GdiRenderer
-			have a renderer interface
+			have a Renderer interface
 				attach(host panel)
 				draw rect, draw text, do render
 
-				copy GLpanel and rename 2dGLrenderer or something like that
+				copy GLpanel and rename 2dGLRenderer or something like that
 
 		ViewHost panel class override
 			
@@ -17,7 +19,7 @@ now
 			create gl host, make the ability to switch
 
 			start piping mouse commands up to ViewHost
-			bring main renderer out
+			bring main Renderer out
 
 			create gl host from scratch
 

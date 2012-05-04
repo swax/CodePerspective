@@ -114,6 +114,7 @@
     <Compile Include="UI\GLPanel.Designer.cs">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\IRenderer.cs" />
     <Compile Include="UI\NodeModel.cs" />
     <Compile Include="UI\Panels\MethodPanel.cs">
       <SubType>UserControl</SubType>
@@ -181,8 +182,10 @@
     <Compile Include="UI\ViewHost.Designer.cs">
       <DependentUpon>ViewHost.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\ViewModel.Render.cs" />
     <Compile Include="UI\ViewModel.Threadline.cs" />
     <Compile Include="UI\ViewModel.TreeMap.cs" />
+    <Compile Include="UI\ViewModel.View.cs" />
     <Compile Include="UI\WebBrowserEx.cs">
       <SubType>Component</SubType>
     </Compile>

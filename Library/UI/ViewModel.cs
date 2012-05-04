@@ -83,8 +83,11 @@ namespace XLibrary
         public bool ShowingExternal { get { return ShowExternal && !CurrentRoot.XNode.External; } }
 
 
-        public ViewModel()
+        public ViewModel(IMainUI mainUI, IColorProfile xColors)
         {
+            MainUI = mainUI;
+            XColors = xColors;
+
             NodeModels = new NodeModel[XRay.Nodes.Length];
             foreach (var node in XRay.Nodes)
                 NodeModels[node.ID] = new NodeModel(this, XRay.Nodes[node.ID]);

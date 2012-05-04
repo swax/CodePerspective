@@ -11,9 +11,9 @@ using System.Windows.Forms;
 
 namespace XLibrary
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form, IMainUI
     {
-        public ViewModel Model = new ViewModel();
+        public ViewModel Model;
 
         LinkedListNode<NodeModel> Current;
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
@@ -22,6 +22,8 @@ namespace XLibrary
         public MainForm()
         {
             InitializeComponent();
+
+            Model = new ViewModel(this, new BrightColorProfile());
 
             ViewHostPanel.Init(this);
 
@@ -75,9 +77,9 @@ namespace XLibrary
                 var crumbName = (crumb.ObjType == XObjType.Root) ? "View" : crumb.Name;
 
                 var button = new ToolStripSplitButton(crumbName);
-                button.ButtonClick += (s, e) => ViewHostPanel.SetRoot(uiNode);
+                button.ButtonClick += (s, e) => Model.SetRoot(uiNode);
                 button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-                button.ForeColor = GdiPanel.ObjColors[(int)crumb.ObjType];
+                button.ForeColor = Model.XColors.ObjColors[(int)crumb.ObjType];
                 MainToolStrip.Items.Add(button);
 
                 button.DropDownOpening += (s1, e1) =>
@@ -86,9 +88,9 @@ namespace XLibrary
                         {
                             var subCopy = sub;
 
-                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => ViewHostPanel.SetRoot(subCopy));
+                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => Model.SetRoot(subCopy));
                             item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-                            item.ForeColor = GdiPanel.ObjColors[(int)sub.ObjType];
+                            item.ForeColor = Model.XColors.ObjColors[(int)sub.ObjType];
 
                             // freezing with more than 100 items..
                             //if (button.DropDownItems.Count > 100)
@@ -99,8 +101,8 @@ namespace XLibrary
                     };
             }
 
-            BackButton.Enabled = (ViewHostPanel.CurrentHistory != null && ViewHostPanel.CurrentHistory.Previous != null);
-            ForwardButton.Enabled = (ViewHostPanel.CurrentHistory != null && ViewHostPanel.CurrentHistory.Next != null);
+            BackButton.Enabled = (Model.CurrentHistory != null && Model.CurrentHistory.Previous != null);
+            ForwardButton.Enabled = (Model.CurrentHistory != null && Model.CurrentHistory.Next != null);
         }
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
@@ -123,12 +125,12 @@ namespace XLibrary
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            ViewHostPanel.NavBack();
+            Model.NavBack();
         }
 
         private void ForwardButton_Click(object sender, EventArgs e)
         {
-            ViewHostPanel.NavForward();
+            Model.NavForward();
         }
 
         private void OnOffButton_Click(object sender, EventArgs e)

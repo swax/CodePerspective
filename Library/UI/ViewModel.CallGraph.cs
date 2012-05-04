@@ -14,7 +14,7 @@ namespace XLibrary
         const int MinCallNodeSize = 5;
 
 
-        public void DrawCallGraph(Graphics buffer)
+        public void DrawCallGraph()
         {
             if (DoRevalue ||
                 XRay.CallChange ||
@@ -93,14 +93,14 @@ namespace XLibrary
 
             if (DoResize)
             {
-                ScaleGraph(buffer);
+                ScaleGraph(Renderer);
 
                 DoResize = false;
                 ResizeCount++;
             }
         }
 
-        private void ScaleGraph(Graphics buffer)
+        private void ScaleGraph(IRenderer Renderer)
         {
             float fullSize = (float)Math.Min(ScreenSize.Width, ScreenSize.Height) / 2;
 
@@ -161,7 +161,7 @@ namespace XLibrary
                             node.LabelClipped = false;
 
 
-                            SizeF textSize = buffer.MeasureString(node.Name, TextFont);
+                            SizeF textSize = Renderer.MeasureString(node.Name, TextFont);
 
                             //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
                             float left = node.AreaF.Right;

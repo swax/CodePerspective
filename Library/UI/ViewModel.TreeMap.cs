@@ -15,7 +15,7 @@ namespace XLibrary
         public float LabelPadding = 2;
 
 
-        public void DrawTreeMap(Graphics buffer)
+        public void DrawTreeMap(IRenderer Renderer)
         {
             if (DoRevalue ||
                 (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
@@ -50,7 +50,7 @@ namespace XLibrary
 
                     InternalRoot.SetArea(new RectangleF(ScreenOffset.X, ScreenOffset.Y, offset - PanelBorderWidth, drawArea.Height));
                     PositionMap[InternalRoot.ID] = InternalRoot;
-                    SizeNode(buffer, InternalRoot, CurrentRoot, false);
+                    SizeNode(Renderer, InternalRoot, CurrentRoot, false);
                 }
                 if (ShowingExternal)
                 {
@@ -59,19 +59,19 @@ namespace XLibrary
 
                     ExternalRoot.SetArea(new RectangleF(ScreenOffset.X + offset + centerWidth + PanelBorderWidth, ScreenOffset.Y, extWidth - PanelBorderWidth, drawArea.Height));
                     PositionMap[ExternalRoot.ID] = ExternalRoot;
-                    SizeNode(buffer, ExternalRoot, null, false);
+                    SizeNode(Renderer, ExternalRoot, null, false);
                 }
 
                 CurrentRoot.SetArea(new RectangleF(ScreenOffset.X + offset, ScreenOffset.Y, centerWidth, drawArea.Height));
                 PositionMap[CurrentRoot.ID] = CurrentRoot;
-                SizeNode(buffer, CurrentRoot, null, true);
+                SizeNode(Renderer, CurrentRoot, null, true);
 
                 DoResize = false;
                 ResizeCount++;
             }
         }
 
-        private void SizeNode(Graphics buffer, NodeModel root, NodeModel exclude, bool center)
+        private void SizeNode(IRenderer Renderer, NodeModel root, NodeModel exclude, bool center)
         {
             if (!root.Show)
                 return;
@@ -85,7 +85,7 @@ namespace XLibrary
                 labelSpace.Width -= LabelPadding * 2.0f;
                 labelSpace.Height -= LabelPadding * 2.0f;
 
-                var labelSize = new RectangleF(root.AreaF.Location, buffer.MeasureString(root.Name, TextFont));
+                var labelSize = new RectangleF(root.AreaF.Location, Renderer.MeasureString(root.Name, TextFont));
                 float minHeight = (root.Nodes.Count > 0) ? labelSize.Height * 2.0f : labelSize.Height;
 
                 if (minHeight < labelSpace.Height && labelSize.Width / 3f < labelSpace.Width)
@@ -133,7 +133,7 @@ namespace XLibrary
                     CenterMap[node.ID] = node;
 
                 if (sector.Rect.Width > 1.0f && sector.Rect.Height > 1.0f)
-                    SizeNode(buffer, node, exclude, center);
+                    SizeNode(Renderer, node, exclude, center);
             }
         }
     }

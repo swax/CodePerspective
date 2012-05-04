@@ -19,7 +19,7 @@ namespace XLibrary
         public HashSet<int> AllowedNodes = new HashSet<int>();
         public bool Paused;
 
-        public void DrawTheadline(Graphics buffer)
+        public void DrawTheadline()
         {
             long currentTick = XRay.Watch.ElapsedTicks;
 
@@ -64,7 +64,7 @@ namespace XLibrary
 
                 float yPos = ScreenSize.Height - nodeHeight - 16;
 
-                buffer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, new SolidBrush(Color.Black), new PointF(ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2));
+                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, new PointF(ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2));
 
                 float colWidth = timeline.Deepest * nodeWidth + 100;
 

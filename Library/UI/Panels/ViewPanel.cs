@@ -12,6 +12,7 @@ namespace XLibrary.Panels
     public partial class ViewPanel : UserControl
     {
         MainForm Main;
+        ViewHost Host;
         ViewModel Model;
 
         public ViewPanel()
@@ -36,6 +37,7 @@ namespace XLibrary.Panels
         public void Init(MainForm main)
         {
             Main = main;
+            Host = main.ViewHostPanel;
             Model = main.Model;
 
             CallsAllButton.Checked = XRay.ShowAllCalls;
@@ -83,7 +85,7 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.TreeMap;
             Model.MapMode = TreeMapMode.Normal;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void LayoutCallGraphButton_CheckedChanged(object sender, EventArgs e)
@@ -93,7 +95,7 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Method;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void LayoutInitGraphButton_CheckedChanged(object sender, EventArgs e)
@@ -103,14 +105,14 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Init;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
 
         private void LayoutInOrder_CheckedChanged(object sender, EventArgs e)
         {
             Model.SequenceOrder = LayoutInOrder.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void LayoutClassCallsButton_CheckedChanged(object sender, EventArgs e)
@@ -120,7 +122,7 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Class;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void TimelineButton_CheckedChanged(object sender, EventArgs e)
@@ -129,7 +131,7 @@ namespace XLibrary.Panels
                 return;
 
             Model.ViewLayout = LayoutType.Timeline;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void Layout3dButton_CheckedChanged(object sender, EventArgs e)
@@ -140,7 +142,7 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.ThreeD;
             Model.MapMode = TreeMapMode.Normal;
 
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)
@@ -151,7 +153,7 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.TreeMap;
             Model.MapMode = TreeMapMode.Dependencies;
             Model.ShowAllDependencies = true;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void GraphAllDependencies_CheckedChanged(object sender, EventArgs e)
@@ -162,7 +164,7 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Dependencies;
             Model.ShowAllDependencies = true;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void GraphIntermediateDependencies_CheckedChanged(object sender, EventArgs e)
@@ -173,37 +175,37 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Intermediates;
             Model.InterDependencies = Model.GetClassesFromFocusedNodes();
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ShowAllDependenciesCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowAllDependencies = ShowAllDependenciesCheckBox.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ShowAllButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowLayout = ShowNodes.All;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ShowHitButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowLayout = ShowNodes.Hit;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ShowNotHitButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowLayout = ShowNodes.Unhit;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ShowInstancesButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowLayout = ShowNodes.Instances;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ResetHitLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -223,7 +225,7 @@ namespace XLibrary.Panels
             foreach (var id in stillCovered)
                 XRay.CoveredNodes[id] = true;
 
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void ResetProfilingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -242,67 +244,67 @@ namespace XLibrary.Panels
                 call.TotalTimeOutsideDest = 0;
             }
 
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void CallsAllButton_CheckedChanged(object sender, EventArgs e)
         {
             XRay.ShowAllCalls = CallsAllButton.Checked;
-            Main.RefreshView(true, false);
+            Host.RefreshView(true, false);
         }
 
         private void CallsRealTimeButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowCalls = CallsRealTimeButton.Checked;
-            Main.RefreshView(true, false);
+            Host.RefreshView(true, false);
         }
 
         private void IncludeOutsideZoomButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowOutside = IncludeOutsideZoomButton.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
         
         private void IncludeNotXRayedButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowExternal = IncludeNotXRayedButton.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void IncludeFields_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowFields = IncludeFields.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void SizeConstantButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.SizeLayout = SizeLayouts.Constant;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void SizeLinesButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.SizeLayout = SizeLayouts.MethodSize;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void SizeTimeInMethodButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.SizeLayout = SizeLayouts.TimeInMethod;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void SizeCallsButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.SizeLayout = SizeLayouts.Hits;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void SizeTimePerCallButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.SizeLayout = SizeLayouts.TimePerHit;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void TrackingMethodCalls_CheckedChanged(object sender, EventArgs e)
@@ -323,22 +325,22 @@ namespace XLibrary.Panels
         private void IncludeMethods_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowMethods = IncludeMethods.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void OpenGLFlatCheck_CheckedChanged(object sender, EventArgs e)
         {
-            if (Main.GLView != null)
+            if (Host.GLView != null)
             {
                 //Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
-                Main.GLView.SetupViewport();
+                Host.GLView.SetupViewport();
             }
         }
 
         private void IncludeAnon_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowAnon = IncludeAnon.Checked;
-            Main.RefreshView();
+            Host.RefreshView();
         }
 
         private void panel1_Paint(object sender, PaintEventArgs e)

@@ -38,7 +38,6 @@
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.TreePanel_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyDown);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyUp);
-            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseClick);
             this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDoubleClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDown);
             this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);

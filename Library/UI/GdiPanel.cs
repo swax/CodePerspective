@@ -17,12 +17,10 @@ namespace XLibrary
     public partial class GdiPanel : UserControl
     {
         public MainForm MainWin;
+        public ViewHost Host;
         public ViewModel Model;
 
         Bitmap DisplayBuffer;
-
-        bool ShowingOutside;
-        bool ShowingExternal;
 
         StringFormat LabelFormat = new StringFormat();
 
@@ -82,28 +80,19 @@ namespace XLibrary
         Pen[] CallPen;
         Pen[] CallPenFocused;
 
-        int HoverHash;
-        List<NodeModel> GuiHovered = new List<NodeModel>();
-        NodeModel[] NodesHovered = new NodeModel[] { };
-
         Pen FilteredPen;
         SolidBrush FilteredBrush;
-        Dictionary<int, NodeModel> FilteredNodes = new Dictionary<int, NodeModel>();
 
         Pen IgnoredPen;
         SolidBrush IgnoredBrush;
-        Dictionary<int, NodeModel> IgnoredNodes = new Dictionary<int, NodeModel>();
-
+       
         // dependencies
         SolidBrush DependentBrush;
         SolidBrush IndependentBrush;
         SolidBrush InterdependentBrush;
 
-        public string SearchString;
-        public string LastSearch;
 
-
-        public GdiPanel(MainForm main, IColorProfile profile)
+        public GdiPanel(ViewHost host, IColorProfile profile)
         {
             InitializeComponent();
 
@@ -113,13 +102,9 @@ namespace XLibrary
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
-            MainWin = main;
-            Model = main.Model;
-
-            Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
-            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);
-            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External);
-            Model.CurrentRoot = Model.InternalRoot;
+            Host = host;
+            MainWin = host.Main;
+            Model = host.Model;
 
             LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
             LabelFormat.FormatFlags |= StringFormatFlags.NoWrap;
@@ -258,9 +243,6 @@ namespace XLibrary
 
             Debug.Assert(Model.CurrentRoot != Model.TopRoot); // current root should be intenalRoot in this case
 
-            ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
-            ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.XNode.External;
-
             // clear and pre-process marked depencies
             Model.RecalcDependencies();
 
@@ -274,15 +256,15 @@ namespace XLibrary
 
             if (Model.ViewLayout == LayoutType.TreeMap)
             {
-                Model.DrawTreeMap(buffer, ShowingOutside, ShowingExternal);
+                Model.DrawTreeMap(buffer);
 
-                if (ShowingOutside)
+                if (Model.ShowingOutside)
                 {
                     buffer.FillRectangle(BorderBrush, Model.InternalRoot.AreaF.Width, 0, Model.PanelBorderWidth, Model.InternalRoot.AreaF.Height);
                     DrawNode(buffer, Model.InternalRoot, 0, true);
                 }
 
-                if (ShowingExternal)
+                if (Model.ShowingExternal)
                 {
                     buffer.FillRectangle(BorderBrush, Model.ExternalRoot.AreaF.X - Model.PanelBorderWidth, 0, Model.PanelBorderWidth, Model.ExternalRoot.AreaF.Height);
                     DrawNode(buffer, Model.ExternalRoot, 0, true);
@@ -309,7 +291,7 @@ namespace XLibrary
             }
 
             // draw ignored over nodes ignored may contain
-            foreach (var ignored in IgnoredNodes.Values)
+            foreach (var ignored in Model.IgnoredNodes.Values)
                 if (Model.PositionMap.ContainsKey(ignored.ID))
                 {
                     buffer.DrawLine(IgnoredPen, ignored.AreaF.UpperLeftCorner(), ignored.AreaF.LowerRightCorner() );
@@ -374,11 +356,11 @@ namespace XLibrary
                         var destination = Model.PositionMap[call.Destination];
 
                         // if there are items we're filtering on then only show calls to those nodes
-                        if (FilteredNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
+                        if (Model.FilteredNodes.Count > 0 && !IsNodeFiltered(true, source) && !IsNodeFiltered(true, destination))
                             continue;
 
                         // do after select filter so we can have ignored nodes inside selected, but not the otherway around
-                        if (IgnoredNodes.Count > 0 && IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
+                        if (Model.IgnoredNodes.Count > 0 && IsNodeFiltered(false, source) || IsNodeFiltered(false, destination))
                             continue;
 
                         bool focused = (source.Focused || destination.Focused);
@@ -445,11 +427,11 @@ namespace XLibrary
         private void DoSearch()
         {
             // figure out if we need to do a search
-            if (SearchString == LastSearch)
+            if (Model.SearchString == Model.LastSearch)
                 return;
-            
-            LastSearch = SearchString;
-            bool empty = string.IsNullOrEmpty(SearchString);
+
+            Model.LastSearch = Model.SearchString;
+            bool empty = string.IsNullOrEmpty(Model.SearchString);
 
             if (Model.SearchHighlightSubs)
             {
@@ -466,7 +448,7 @@ namespace XLibrary
                     evaluate: n =>
                     {
                         // set all nodes under match to also matched
-                        n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1;
+                        n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(Model.SearchString) != -1;
                         if (n.SearchMatch)
                             Utilities.RecurseTree<NodeModel>(
                                 tree: n.Nodes,
@@ -482,7 +464,7 @@ namespace XLibrary
             {
                 Utilities.RecurseTree<NodeModel>(
                     tree: Model.TopRoot.Nodes,
-                    evaluate: n => n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(SearchString) != -1,
+                    evaluate: n => n.SearchMatch = !empty && n.Name.ToLowerInvariant().IndexOf(Model.SearchString) != -1,
                     recurse: n => n.Nodes
                 );
             }
@@ -491,7 +473,7 @@ namespace XLibrary
 
         private bool IsNodeFiltered(bool select, NodeModel node)
         {
-            var map = select ? FilteredNodes : IgnoredNodes;
+            var map = select ? Model.FilteredNodes : Model.IgnoredNodes;
 
             foreach (var parent in node.GetParents())
                 if (map.ContainsKey(parent.ID))
@@ -616,9 +598,9 @@ namespace XLibrary
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
-                if (FilteredNodes.ContainsKey(node.ID))
+                if (Model.FilteredNodes.ContainsKey(node.ID))
                     fillFunction(FilteredBrush);
-                else if (IgnoredNodes.ContainsKey(node.ID))
+                else if (Model.IgnoredNodes.ContainsKey(node.ID))
                     fillFunction(IgnoredBrush);
 
                 else if (needBorder) // dont draw the point if already lit up
@@ -628,9 +610,9 @@ namespace XLibrary
             {
                 Pen pen = null;
 
-                if (FilteredNodes.ContainsKey(node.ID))
+                if (Model.FilteredNodes.ContainsKey(node.ID))
                     pen = FilteredPen;
-                else if (IgnoredNodes.ContainsKey(node.ID))
+                else if (Model.IgnoredNodes.ContainsKey(node.ID))
                     pen = IgnoredPen;
 
                 else if (Model.FocusedNodes.Contains(node))
@@ -758,7 +740,7 @@ namespace XLibrary
         private void TreePanelGdiPlus_MouseUp(object sender, MouseEventArgs e)
         {
             if (MouseDownPoint == e.Location)
-                ManualMouseClick(e);
+                Host.ManualMouseClick(e);
 
             MouseDownPoint = Point.Empty;
             PanStart = Point.Empty;
@@ -780,82 +762,7 @@ namespace XLibrary
                 RecalcSizes(); 
             }
             else
-                RefreshHovered(e.Location);
-        }
-
-        private void RefreshHovered(Point loc)
-        {
-            ClearHovered();
-
-            if (Model.ViewLayout == LayoutType.TreeMap)
-            {
-                if (ShowingOutside)
-                    TestHovered(Model.InternalRoot, loc);
-                if (ShowingExternal)
-                    TestHovered(Model.ExternalRoot, loc);
-
-                TestHovered(Model.CurrentRoot, loc);
-            }
-            else if (Model.ViewLayout == LayoutType.CallGraph)
-            {
-                var hovered = Model.PositionMap.Values.FirstOrDefault(n => n.AreaF.Contains(loc.X, loc.Y) || n.LabelRect.Contains(loc.X, loc.Y));
-                if (hovered != null)
-                    AddNodeToHovered(hovered);
-            }
-            else if (Model.ViewLayout == LayoutType.Timeline)
-            {
-                var hovered = Model.ThreadlineNodes.FirstOrDefault(n => n.Area.Contains(loc.X, loc.Y) || n.LabelArea.Contains(loc.X, loc.Y));
-                if(hovered != null)
-                    AddNodeToHovered(hovered.Node);
-            }
-
-            int hash = 0;
-            GuiHovered.ForEach(n => hash = n.ID ^ hash);
-
-            // only continuously redraw label if hover is different than before
-            if (hash != HoverHash)
-            {
-                HoverHash = hash;
-
-                if (GuiHovered.Count > 0)
-                {
-                    NodesHovered = GuiHovered.Last().GetParents().ToArray();
-                    //MainForm.SelectedLabel.Text = GuiHovered.Last().FullName();
-                }
-                else
-                {
-                    NodesHovered = new NodeModel[] { };
-                    //MainForm.SelectedLabel.Text = "";
-                }
-
-                Redraw();
-            }
-        }
-
-        private void AddNodeToHovered(NodeModel node)
-        {
-            GuiHovered.Add(node);
-            var parent = node.Parent;
-
-            while (parent != null)
-            {
-                GuiHovered.Add(parent);
-                parent = parent.Parent;
-            }
-
-            GuiHovered.Reverse();
-        }
-
-        private void TestHovered(NodeModel node, Point loc)
-        {
-            if (!node.Show || !node.AreaF.Contains(loc.X, loc.Y))
-                return;
-
-            node.Hovered = true;
-            GuiHovered.Add(node);
-
-            foreach (var sub in node.Nodes)
-                TestHovered(sub, loc);
+                Host.RefreshHovered(e.Location);
         }
 
         public void Redraw()
@@ -878,159 +785,19 @@ namespace XLibrary
             Invalidate();
         }
 
-        void ToggleNode(Dictionary<int, NodeModel> map, NodeModel node)
-        {
-            // make sure a node cant be selected and ignored simultaneously
-            if (map != IgnoredNodes && IgnoredNodes.ContainsKey(node.ID))
-                IgnoredNodes.Remove(node.ID);
-
-            if (map != FilteredNodes && FilteredNodes.ContainsKey(node.ID))
-                FilteredNodes.Remove(node.ID);
-
-            // toggle the setting of the node in the map
-            if (map.ContainsKey(node.ID))
-                map.Remove(node.ID);
-            else
-                map[node.ID] = node;
-
-            Redraw();
-        }
-
         private void TreePanelGdiPlus_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            var node = GuiHovered.LastOrDefault();
-            if (node != null)
-                SetRoot(node);
+            Host.View_MouseDoubleClick(e.Location);
         }
-
-        bool CtrlDown;
 
         void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.ControlKey)
-                CtrlDown = true;
-
-            /*if (e.KeyCode == Keys.Right)
-                Zoom(true);
-            else if (e.KeyCode == Keys.Right)
-                Zoom(false);
-            else if (e.KeyCode == Keys.Space)
-                SetRoot(XRay.RootNode);*/
+            Host.View_KeyDown(e);
         }
 
         private void TreePanel_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.ControlKey)
-                CtrlDown = false;
-        }
-
-
-        private void TreePanel_MouseClick(object sender, MouseEventArgs e)
-        {
-            //ManualMouseClick();
-        }
-
-        private void ManualMouseClick(MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                if (!CtrlDown)
-                {
-                    Model.FocusedNodes.ForEach(n => n.Focused = false);
-                    Model.FocusedNodes.Clear();
-                }
-
-                var node = GuiHovered.LastOrDefault();
-
-                if (node == null)
-                    return;
-
-                else if (node.Focused && CtrlDown)
-                {
-                    node.Focused = false;
-
-                    Model.FocusedNodes.Remove(node);
-                }
-
-                else
-                {
-                    node.Focused = true;
-
-                    Model.FocusedNodes.Add(node);
-
-                    MainWin.NavigatePanelTo(node);
-                }
-
-                Redraw();
-            }
-            else if (e.Button == MouseButtons.Right)
-            {
-                ContextMenu menu = new ContextMenu();
-
-
-                var node = GuiHovered.LastOrDefault();
-                if (node != null)
-                {
-                    menu.MenuItems.Add(node.ObjType.ToString() + " " + node.Name);
-                    menu.MenuItems.Add("-");
-
-                    bool selected = FilteredNodes.ContainsKey(node.ID);
-                    bool ignored = IgnoredNodes.ContainsKey(node.ID);
-
-                    menu.MenuItems.Add(new MenuItem("Zoom", (s, a) => SetRoot(node)));
-
-                    menu.MenuItems.Add(new MenuItem("Filter", (s, a) => ToggleNode(FilteredNodes, node)) { Checked = selected });
-
-                    menu.MenuItems.Add(new MenuItem("Ignore", (s, a) => ToggleNode(IgnoredNodes, node)) { Checked = ignored });
-                }
-
-                if (FilteredNodes.Count > 0 || IgnoredNodes.Count > 0)
-                {
-                    menu.MenuItems.Add("-");
-
-                    menu.MenuItems.Add(new MenuItem("Clear Filtering", (s, a) =>
-                    {
-                        FilteredNodes.Clear();
-                        IgnoredNodes.Clear();
-                        Redraw();
-                    }));
-                }
-
-                menu.Show(this, e.Location);
-            }
-
-            // back button zoom out
-            else if (e.Button == MouseButtons.XButton1)
-                NavBack();
-
-            // forward button zoom in
-            else if (e.Button == MouseButtons.XButton2)
-                NavForward();
-        }
-
-        private void Zoom(bool inward)
-        {
-            if (inward)
-            {
-                if (GuiHovered.Count < 2)
-                    return;
-
-                if (GuiHovered[1].Nodes.Count > 0)
-                    SetRoot(GuiHovered[1]);
-            }
-            else
-            {
-                if (Model.CurrentRoot.Parent == null)
-                    return;
-
-                SetRoot(Model.CurrentRoot.Parent);
-            }
-
-            // put cursor in the same block after the view changes
-            var last = NodesHovered.LastOrDefault();
-
-            if(last != null)
-                Cursor.Position = PointToScreen(new Point((int)last.CenterF.X, (int)last.CenterF.Y));
+            Host.View_KeyUp(e);
         }
 
         public void ResetZoom()
@@ -1039,78 +806,14 @@ namespace XLibrary
             ZoomFactor = 1;
         }
 
-        public LinkedList<NodeModel> HistoryList = new LinkedList<NodeModel>();
-        public LinkedListNode<NodeModel> CurrentHistory;
-
-        public void SetRoot(NodeModel node, bool logHistory=true)
-        {
-            // setting internal root will auto show properly sized external root area if showing it is enabled
-            ResetZoom();
-            Model.CurrentRoot = (node == Model.TopRoot) ? Model.InternalRoot : node;
-           
-            if (logHistory)
-            {
-                // re-write forward log with new node
-                while(CurrentHistory != HistoryList.Last)
-                    HistoryList.RemoveLast();
-
-                // dont set node if last node is already this
-                var last = HistoryList.LastOrDefault();
-                if (Model.CurrentRoot != last)
-                {
-                    HistoryList.AddLast(Model.CurrentRoot);
-                    CurrentHistory = HistoryList.Last;
-                }
-            }
-
-            MainWin.UpdateBreadCrumbs();
-
-            Model.DoRevalue = true;
-            Refresh();
-        }
-
-        public void NavBack()
-        {
-            if (CurrentHistory != null && CurrentHistory.Previous != null)
-            {
-                // update current history before calling so breadcrumbs are updated properly
-                var prev = CurrentHistory.Previous;
-
-                CurrentHistory = CurrentHistory.Previous;
-
-                SetRoot(prev.Value, false);
-            }
-        }
-
-        public void NavForward()
-        {
-            if (CurrentHistory != null && CurrentHistory.Next != null)
-            {
-                // update current history before calling so breadcrumbs are updated properly
-                var next = CurrentHistory.Next;
-
-                CurrentHistory = CurrentHistory.Next;
-
-                SetRoot(next.Value, false);
-            }
-        }
-
         private void TreePanel_MouseLeave(object sender, EventArgs e)
         {
-            ClearHovered();
-
-            Redraw();
-        }
-
-        private void ClearHovered()
-        {
-            GuiHovered.ForEach(n => n.Hovered = false);
-            GuiHovered.Clear(); 
+            Host.View_MouseLeave();
         }
 
         public void DrawFooterLabel(Graphics buffer)
         {
-            if (NodesHovered.Length == 0)
+            if (Host.NodesHovered.Length == 0)
                 return;
 
             PointF pos = PointToClient(Cursor.Position);
@@ -1118,9 +821,9 @@ namespace XLibrary
                 return;
 
             float x = 0;
-            var lastNode = NodesHovered.Last();
+            var lastNode = Host.NodesHovered.Last();
 
-            foreach (var node in NodesHovered)
+            foreach (var node in Host.NodesHovered)
             {
                 DrawFooterPart(buffer, node.Name, ObjBrushes[(int)node.ObjType], ref x);
 
@@ -1144,7 +847,7 @@ namespace XLibrary
 
         public void DrawToolTip(Graphics buffer)
         {
-            if (NodesHovered.Length == 0)
+            if (Host.NodesHovered.Length == 0)
                 return;
 
             PointF pos = PointToClient(Cursor.Position);
@@ -1175,8 +878,8 @@ namespace XLibrary
             // show all labels if showing just graph nodes, or show labels isnt on, or the label isnt displayed cause there's not enough room
             //foreach(var node in NodesHovered)//.Where(n => !ShowLabels || !n.RoomForLabel || n.LabelClipped))
             //{    
-            var n = NodesHovered.Last();
-            SolidBrush color = GuiHovered.Contains(n) ? ObjBrushes[(int)n.ObjType] : ObjDitheredBrushes[(int)n.ObjType];
+            var n = Host.NodesHovered.Last();
+            SolidBrush color = Host.GuiHovered.Contains(n) ? ObjBrushes[(int)n.ObjType] : ObjDitheredBrushes[(int)n.ObjType];
             labels.Add(new Tuple<string, SolidBrush>(indentStr + n.Name, color));
             indentStr += " ";
             //}
@@ -1184,7 +887,7 @@ namespace XLibrary
             if (labels.Count == 0)
                 return;
 
-            var lastNode = NodesHovered.Last();
+            var lastNode = Host.NodesHovered.Last();
 
             if (lastNode.ObjType == XObjType.Class)
             {

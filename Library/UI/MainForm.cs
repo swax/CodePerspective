@@ -13,8 +13,6 @@ namespace XLibrary
 {
     public partial class MainForm : Form
     {
-        public GdiPanel GdiView;
-        public GLPanel GLView;
         public ViewModel Model = new ViewModel();
 
         LinkedListNode<NodeModel> Current;
@@ -25,8 +23,7 @@ namespace XLibrary
         {
             InitializeComponent();
 
-            GdiView = new GdiPanel(this, new BrightColorProfile()) { Dock = DockStyle.Fill };
-            ViewHostPanel.Controls.Add(GdiView);
+            ViewHostPanel.Init(this);
 
             RedrawTimer.Interval = 1000 / XRay.HitFrames;
             RedrawTimer.Enabled = true;
@@ -43,13 +40,11 @@ namespace XLibrary
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
             NamespaceTab.Visible = false;
-
-            GdiView.SetRoot(Model.CurrentRoot); // init first node in history
         }
 
         void RedrawTimer_Tick(object sender, EventArgs e)
         {
-            RefreshView(true, false);
+            ViewHostPanel.RefreshView(true, false);
         }
 
         public void UpdateBreadCrumbs()
@@ -80,7 +75,7 @@ namespace XLibrary
                 var crumbName = (crumb.ObjType == XObjType.Root) ? "View" : crumb.Name;
 
                 var button = new ToolStripSplitButton(crumbName);
-                button.ButtonClick += (s, e) => GdiView.SetRoot(uiNode);
+                button.ButtonClick += (s, e) => ViewHostPanel.SetRoot(uiNode);
                 button.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                 button.ForeColor = GdiPanel.ObjColors[(int)crumb.ObjType];
                 MainToolStrip.Items.Add(button);
@@ -91,7 +86,7 @@ namespace XLibrary
                         {
                             var subCopy = sub;
 
-                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => GdiView.SetRoot(subCopy));
+                            var item = new ToolStripMenuItem(sub.Name, null, (s2, e2) => ViewHostPanel.SetRoot(subCopy));
                             item.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
                             item.ForeColor = GdiPanel.ObjColors[(int)sub.ObjType];
 
@@ -104,8 +99,8 @@ namespace XLibrary
                     };
             }
 
-            BackButton.Enabled = (GdiView.CurrentHistory != null && GdiView.CurrentHistory.Previous != null);
-            ForwardButton.Enabled = (GdiView.CurrentHistory != null && GdiView.CurrentHistory.Next != null);
+            BackButton.Enabled = (ViewHostPanel.CurrentHistory != null && ViewHostPanel.CurrentHistory.Previous != null);
+            ForwardButton.Enabled = (ViewHostPanel.CurrentHistory != null && ViewHostPanel.CurrentHistory.Next != null);
         }
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
@@ -122,54 +117,18 @@ namespace XLibrary
                 Model.SizeLayout == SizeLayouts.Hits ||
                 Model.SizeLayout == SizeLayouts.TimePerHit)
             {
-                RefreshView(false, false);
-            }
-        }
-
-        public void RefreshView(bool redrawOnly=false, bool resetZoom=true)
-        {
-            if (Model.ViewLayout == LayoutType.ThreeD)
-            {
-                GdiView.Visible = false;
-
-                if (GLView == null)
-                {
-                    GLView = new GLPanel(this) { Dock = DockStyle.Fill };
-                    ViewHostPanel.Controls.Add(GLView);
-                }
-
-                GLView.Visible = true;
-                Model.DoRevalue = !redrawOnly;
-                GLView.Redraw();
-            }
-            else
-            {
-                if(GLView != null)
-                    GLView.Visible = false;
-
-                GdiView.Visible = true;
-
-                if (resetZoom)
-                    GdiView.ResetZoom();
-
-                // check if view exists
-                if (redrawOnly)
-                    GdiView.Redraw();
-                else
-                    GdiView.RecalcValues();
-
-                PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
+                ViewHostPanel.RefreshView(false, false);
             }
         }
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            GdiView.NavBack();
+            ViewHostPanel.NavBack();
         }
 
         private void ForwardButton_Click(object sender, EventArgs e)
         {
-            GdiView.NavForward();
+            ViewHostPanel.NavForward();
         }
 
         private void OnOffButton_Click(object sender, EventArgs e)
@@ -190,14 +149,14 @@ namespace XLibrary
 
         private void SearchTextBox_TextChanged(object sender, EventArgs e)
         {
-            GdiView.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
+            Model.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
             Model.SearchStrobe = false; // so matches are shown immediately
-            RefreshView(true, false);
+            ViewHostPanel.RefreshView(true, false);
         }
 
         private void SearchTimer_Tick(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(GdiView.SearchString))
+            if (!string.IsNullOrEmpty(Model.SearchString))
                 Model.SearchStrobe = !Model.SearchStrobe;
         }
 
@@ -293,14 +252,14 @@ namespace XLibrary
         private void ClearSearchMenuItem_Click(object sender, EventArgs e)
         {
             SearchTextBox.Text = "";
-            RefreshView(true, false);
+            ViewHostPanel.RefreshView(true, false);
         }
 
         private void SubsSearchMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             Model.SearchHighlightSubs = SubsSearchMenuItem.Checked;
-            GdiView.LastSearch = ""; // forces search to re-run
-            RefreshView(true, false);
+            Model.LastSearch = ""; // forces search to re-run
+            ViewHostPanel.RefreshView(true, false);
         }
     }
 

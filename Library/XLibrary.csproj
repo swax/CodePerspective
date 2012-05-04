@@ -175,6 +175,12 @@
     <Compile Include="UI\GdiPanel.Designer.cs">
       <DependentUpon>GdiPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\ViewHost.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\ViewHost.Designer.cs">
+      <DependentUpon>ViewHost.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\ViewModel.Threadline.cs" />
     <Compile Include="UI\ViewModel.TreeMap.cs" />
     <Compile Include="UI\WebBrowserEx.cs">

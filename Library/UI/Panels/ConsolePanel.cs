@@ -24,10 +24,10 @@ namespace XLibrary.Panels
             InitializeComponent();
         }
 
-        public void Init(MainForm mainView)
+        public void Init(MainForm main)
         {
-            Main = mainView;
-            Tree = Main.GdiView;
+            Main = main;
+            Tree = main.ViewHostPanel.GdiView;
 
             ProcessInput("help");
         }

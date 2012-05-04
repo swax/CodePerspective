@@ -41,15 +41,15 @@
             this.ForwardButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.SearchTextBox = new System.Windows.Forms.ToolStripTextBox();
-            this.ViewHostPanel = new System.Windows.Forms.Panel();
-            this.PauseLink = new System.Windows.Forms.LinkLabel();
+            this.SearchToolButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.ClearSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SubsSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.SearchToolButton = new System.Windows.Forms.ToolStripDropDownButton();
-            this.ClearSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SubsSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PauseLink = new System.Windows.Forms.LinkLabel();
+            this.ViewHostPanel = new XLibrary.ViewHost();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
             this.NamespaceTab = new XLibrary.UI.Panels.NamespacePanel();
             this.CodeTab = new XLibrary.Panels.CodePanel();
@@ -60,7 +60,6 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.MainToolStrip.SuspendLayout();
-            this.ViewHostPanel.SuspendLayout();
             this.TabPanel.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -93,8 +92,9 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.MainToolStrip);
+            this.splitContainer1.Panel1.Controls.Add(this.PauseLink);
             this.splitContainer1.Panel1.Controls.Add(this.ViewHostPanel);
+            this.splitContainer1.Panel1.Controls.Add(this.MainToolStrip);
             // 
             // splitContainer1.Panel2
             // 
@@ -168,30 +168,33 @@
             this.SearchTextBox.Size = new System.Drawing.Size(100, 25);
             this.SearchTextBox.TextChanged += new System.EventHandler(this.SearchTextBox_TextChanged);
             // 
-            // ViewHostPanel
+            // SearchToolButton
             // 
-            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ViewHostPanel.Controls.Add(this.PauseLink);
-            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
-            this.ViewHostPanel.Name = "ViewHostPanel";
-            this.ViewHostPanel.Size = new System.Drawing.Size(550, 332);
-            this.ViewHostPanel.TabIndex = 3;
+            this.SearchToolButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.SearchToolButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.SearchToolButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ClearSearchMenuItem,
+            this.SubsSearchMenuItem});
+            this.SearchToolButton.Image = ((System.Drawing.Image)(resources.GetObject("SearchToolButton.Image")));
+            this.SearchToolButton.Name = "SearchToolButton";
+            this.SearchToolButton.Padding = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            this.SearchToolButton.Size = new System.Drawing.Size(35, 22);
+            this.SearchToolButton.Text = "toolStripLabel1";
             // 
-            // PauseLink
+            // ClearSearchMenuItem
             // 
-            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.PauseLink.AutoSize = true;
-            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PauseLink.Location = new System.Drawing.Point(473, 9);
-            this.PauseLink.Name = "PauseLink";
-            this.PauseLink.Size = new System.Drawing.Size(52, 16);
-            this.PauseLink.TabIndex = 0;
-            this.PauseLink.TabStop = true;
-            this.PauseLink.Text = "Pause";
-            this.PauseLink.Visible = false;
-            this.PauseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PauseLink_LinkClicked);
+            this.ClearSearchMenuItem.Name = "ClearSearchMenuItem";
+            this.ClearSearchMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ClearSearchMenuItem.Text = "Clear";
+            this.ClearSearchMenuItem.Click += new System.EventHandler(this.ClearSearchMenuItem_Click);
+            // 
+            // SubsSearchMenuItem
+            // 
+            this.SubsSearchMenuItem.CheckOnClick = true;
+            this.SubsSearchMenuItem.Name = "SubsSearchMenuItem";
+            this.SubsSearchMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.SubsSearchMenuItem.Text = "Highlight Subs";
+            this.SubsSearchMenuItem.CheckedChanged += new System.EventHandler(this.SubsSearchMenuItem_CheckedChanged);
             // 
             // TabPanel
             // 
@@ -239,33 +242,29 @@
             this.tabPage5.Text = "Console";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
-            // SearchToolButton
+            // PauseLink
             // 
-            this.SearchToolButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.SearchToolButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.SearchToolButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ClearSearchMenuItem,
-            this.SubsSearchMenuItem});
-            this.SearchToolButton.Image = ((System.Drawing.Image)(resources.GetObject("SearchToolButton.Image")));
-            this.SearchToolButton.Name = "SearchToolButton";
-            this.SearchToolButton.Padding = new System.Windows.Forms.Padding(0, 0, 6, 0);
-            this.SearchToolButton.Size = new System.Drawing.Size(35, 22);
-            this.SearchToolButton.Text = "toolStripLabel1";
+            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.PauseLink.AutoSize = true;
+            this.PauseLink.BackColor = System.Drawing.Color.Transparent;
+            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PauseLink.Location = new System.Drawing.Point(486, 37);
+            this.PauseLink.Name = "PauseLink";
+            this.PauseLink.Size = new System.Drawing.Size(52, 16);
+            this.PauseLink.TabIndex = 6;
+            this.PauseLink.TabStop = true;
+            this.PauseLink.Text = "Pause";
+            this.PauseLink.Visible = false;
             // 
-            // ClearSearchMenuItem
+            // ViewHostPanel
             // 
-            this.ClearSearchMenuItem.Name = "ClearSearchMenuItem";
-            this.ClearSearchMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.ClearSearchMenuItem.Text = "Clear";
-            this.ClearSearchMenuItem.Click += new System.EventHandler(this.ClearSearchMenuItem_Click);
-            // 
-            // SubsSearchMenuItem
-            // 
-            this.SubsSearchMenuItem.CheckOnClick = true;
-            this.SubsSearchMenuItem.Name = "SubsSearchMenuItem";
-            this.SubsSearchMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.SubsSearchMenuItem.Text = "Highlight Subs";
-            this.SubsSearchMenuItem.CheckedChanged += new System.EventHandler(this.SubsSearchMenuItem_CheckedChanged);
+            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
+            this.ViewHostPanel.Name = "ViewHostPanel";
+            this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
+            this.ViewHostPanel.TabIndex = 5;
             // 
             // DisplayTab
             // 
@@ -324,8 +323,6 @@
             this.splitContainer1.ResumeLayout(false);
             this.MainToolStrip.ResumeLayout(false);
             this.MainToolStrip.PerformLayout();
-            this.ViewHostPanel.ResumeLayout(false);
-            this.ViewHostPanel.PerformLayout();
             this.TabPanel.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
@@ -337,7 +334,6 @@
         #endregion
 
         private System.Windows.Forms.Timer RedrawTimer;
-        private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -356,10 +352,11 @@
         private System.Windows.Forms.ToolStripTextBox SearchTextBox;
         private System.Windows.Forms.Timer SearchTimer;
         public Panels.CodePanel CodeTab;
-        private System.Windows.Forms.LinkLabel PauseLink;
         private UI.Panels.NamespacePanel NamespaceTab;
         private System.Windows.Forms.ToolStripDropDownButton SearchToolButton;
         private System.Windows.Forms.ToolStripMenuItem ClearSearchMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
+        public ViewHost ViewHostPanel;
+        private System.Windows.Forms.LinkLabel PauseLink;
     }
 }

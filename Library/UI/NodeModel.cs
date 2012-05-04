@@ -58,7 +58,7 @@ namespace XLibrary
             XNode = xNode;
             Name = XNode.Name;
             ID = XNode.ID;
-            ObjType = XNode.ObjType;    
+            ObjType = XNode.ObjType;
         }
 
         public NodeModel(ViewModel model)

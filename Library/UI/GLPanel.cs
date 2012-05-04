@@ -85,7 +85,7 @@ namespace XLibrary
 
         public float PlatformHeight = 5.0f;
        
-        public bool FlatMode = false;
+        public bool FlatMode = true;
         int FontTexture;
         int FontList;
  

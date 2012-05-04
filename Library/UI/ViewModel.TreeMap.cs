@@ -15,7 +15,7 @@ namespace XLibrary
         public float LabelPadding = 2;
 
 
-        public void DrawTreeMap(Graphics buffer, bool showingOutside, bool showingExternal)
+        public void DrawTreeMap(Graphics buffer)
         {
             if (DoRevalue ||
                 (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
@@ -43,7 +43,7 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
-                if (showingOutside)
+                if (ShowingOutside)
                 {
                     offset = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= offset;
@@ -52,7 +52,7 @@ namespace XLibrary
                     PositionMap[InternalRoot.ID] = InternalRoot;
                     SizeNode(buffer, InternalRoot, CurrentRoot, false);
                 }
-                if (showingExternal)
+                if (ShowingExternal)
                 {
                     float extWidth = drawArea.Width * 1.0f / 4.0f;
                     centerWidth -= extWidth;

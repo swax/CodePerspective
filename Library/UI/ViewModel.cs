@@ -67,11 +67,21 @@ namespace XLibrary
 
         public Font TextFont = new Font("tahoma", 8, FontStyle.Bold);
 
+        public string SearchString;
+        public string LastSearch;
+
+        public Dictionary<int, NodeModel> FilteredNodes = new Dictionary<int, NodeModel>();
+        public Dictionary<int, NodeModel> IgnoredNodes = new Dictionary<int, NodeModel>();
+
         // performance
         public int FpsCount;
         public int RevalueCount;
         public int ResizeCount;
         public int RedrawCount;
+
+        public bool ShowingOutside { get { return ShowOutside && CurrentRoot != InternalRoot; } }
+        public bool ShowingExternal { get { return ShowExternal && !CurrentRoot.XNode.External; } }
+
 
         public ViewModel()
         {
@@ -87,6 +97,11 @@ namespace XLibrary
                 foreach (var subnode in uiNode.XNode.Nodes)
                     uiNode.Nodes.Add(NodeModels[subnode.ID]);
             }
+
+            TopRoot =      NodeModels[XRay.RootNode.ID];
+            InternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);
+            ExternalRoot = TopRoot.Nodes.First(n => n.ObjType == XObjType.External);
+            CurrentRoot =  InternalRoot;
         }
 
         public long RecalcCover(NodeModel root)

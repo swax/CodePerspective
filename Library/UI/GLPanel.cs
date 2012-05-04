@@ -19,7 +19,6 @@ namespace XLibrary
 {
     public partial class GLPanel : UserControl
     {
-        public MainForm MainForm;
         public ViewModel Model;
 
         bool GLLoaded = false;
@@ -99,10 +98,9 @@ namespace XLibrary
         Vbo TreeMapVbo = new Vbo();
 
 
-        public GLPanel(MainForm main)
+        public GLPanel(ViewModel model)
         {
-            MainForm = main;
-            Model = main.Model;
+            Model = model;
 
             Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
             Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);

@@ -81,29 +81,6 @@ namespace XLibrary
         Color[] ObjDitheredColors { get; }
     }
 
-    public static class IColorExtensions
-    {
-         public static Color GetColorForType(this IColorProfile profile, XObjType type)
-         {
-             switch(type)
-             {
-                 case XObjType.Class:
-                     return profile.ClassColor;
-                 case XObjType.Field:
-                     return profile.FieldColor;
-                 case XObjType.File:
-                     return profile.FileColor;
-                 case XObjType.Method:
-                     return profile.MethodColor;
-                 case XObjType.Namespace:
-                     return profile.NamespaceColor;
-                 default:
-                     return profile.UnknownColor;
-             }
-         }
-    }
-   
-
     public class BrightColorProfile : IColorProfile
     {
         public Color BackgroundColor { get { return Color.White; } }
@@ -230,12 +207,6 @@ namespace XLibrary
                 _FieldGetColors[i] = Color.FromArgb(255 - brightness, FieldGetColor);
 
                 _CallPenColors[i] = Color.FromArgb(255 - brightness, CallColor);
-                //CallPen[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
-                //CallPen[i].EndCap = LineCap.ArrowAnchor;
-
-                _CallPenColors[i] = Color.FromArgb(255 - (brightness / 2), CallColor); // , 2);
-                //CallPenFocused[i].DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
-                //CallPenFocused[i].EndCap = LineCap.ArrowAnchor;
             }
 
             var objTypes = Enum.GetValues(typeof(XObjType));

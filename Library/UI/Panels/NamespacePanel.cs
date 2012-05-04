@@ -36,7 +36,7 @@ namespace XLibrary.UI.Panels
             SelectedNode = node;
 
             SummaryLabel.Text = node.Name;
-            SummaryLabel.ForeColor = ColorProfile.GetColorForType(node.ObjType);
+            SummaryLabel.ForeColor = ColorProfile.ObjColors[(int)node.ObjType];
 
             if (SelectedNode.XNode.External)
                 DetailsLabel.Text = "Not XRayed";

@@ -46,15 +46,15 @@
             this.SubsSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.PauseLink = new System.Windows.Forms.LinkLabel();
-            this.ViewHostPanel = new XLibrary.ViewHost();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.NamespaceTab = new XLibrary.UI.Panels.NamespacePanel();
             this.CodeTab = new XLibrary.Panels.CodePanel();
             this.InstanceTab = new XLibrary.InstancePanel();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.ViewHostPanel = new System.Windows.Forms.Panel();
+            this.PauseLink = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -64,6 +64,7 @@
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.ViewHostPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // RedrawTimer
@@ -92,7 +93,6 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.PauseLink);
             this.splitContainer1.Panel1.Controls.Add(this.ViewHostPanel);
             this.splitContainer1.Panel1.Controls.Add(this.MainToolStrip);
             // 
@@ -219,6 +219,15 @@
             this.tabPage1.Text = "Display";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // DisplayTab
+            // 
+            this.DisplayTab.AutoScroll = true;
+            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
+            this.DisplayTab.Name = "DisplayTab";
+            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
+            this.DisplayTab.TabIndex = 0;
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.NamespaceTab);
@@ -231,49 +240,6 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Details";
             this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // tabPage5
-            // 
-            this.tabPage5.Controls.Add(this.ConsoleTab);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(542, 194);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Console";
-            this.tabPage5.UseVisualStyleBackColor = true;
-            // 
-            // PauseLink
-            // 
-            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.PauseLink.AutoSize = true;
-            this.PauseLink.BackColor = System.Drawing.Color.Transparent;
-            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PauseLink.Location = new System.Drawing.Point(486, 37);
-            this.PauseLink.Name = "PauseLink";
-            this.PauseLink.Size = new System.Drawing.Size(52, 16);
-            this.PauseLink.TabIndex = 6;
-            this.PauseLink.TabStop = true;
-            this.PauseLink.Text = "Pause";
-            this.PauseLink.Visible = false;
-            // 
-            // ViewHostPanel
-            // 
-            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
-            this.ViewHostPanel.Name = "ViewHostPanel";
-            this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
-            this.ViewHostPanel.TabIndex = 5;
-            // 
-            // DisplayTab
-            // 
-            this.DisplayTab.AutoScroll = true;
-            this.DisplayTab.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DisplayTab.Location = new System.Drawing.Point(3, 3);
-            this.DisplayTab.Name = "DisplayTab";
-            this.DisplayTab.Size = new System.Drawing.Size(536, 188);
-            this.DisplayTab.TabIndex = 0;
             // 
             // NamespaceTab
             // 
@@ -300,6 +266,16 @@
             this.InstanceTab.Size = new System.Drawing.Size(195, 172);
             this.InstanceTab.TabIndex = 0;
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.ConsoleTab);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(542, 194);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Console";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
             // ConsoleTab
             // 
             this.ConsoleTab.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -307,6 +283,31 @@
             this.ConsoleTab.Name = "ConsoleTab";
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
+            // 
+            // ViewHostPanel
+            // 
+            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ViewHostPanel.Controls.Add(this.PauseLink);
+            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
+            this.ViewHostPanel.Name = "ViewHostPanel";
+            this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
+            this.ViewHostPanel.TabIndex = 7;
+            // 
+            // PauseLink
+            // 
+            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.PauseLink.AutoSize = true;
+            this.PauseLink.BackColor = System.Drawing.Color.Transparent;
+            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.PauseLink.Location = new System.Drawing.Point(486, 11);
+            this.PauseLink.Name = "PauseLink";
+            this.PauseLink.Size = new System.Drawing.Size(52, 16);
+            this.PauseLink.TabIndex = 6;
+            this.PauseLink.TabStop = true;
+            this.PauseLink.Text = "Pause";
+            this.PauseLink.Visible = false;
             // 
             // MainForm
             // 
@@ -327,6 +328,8 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
+            this.ViewHostPanel.ResumeLayout(false);
+            this.ViewHostPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -356,7 +359,7 @@
         private System.Windows.Forms.ToolStripDropDownButton SearchToolButton;
         private System.Windows.Forms.ToolStripMenuItem ClearSearchMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
-        public ViewHost ViewHostPanel;
+        private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.LinkLabel PauseLink;
     }
 }

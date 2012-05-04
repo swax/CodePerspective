@@ -1,5 +1,7 @@
 ﻿
 now	
+	mttq message dispose not being detected in facebook chat?
+
 	ViewPanel
 		add back dashes and endcaps
 		

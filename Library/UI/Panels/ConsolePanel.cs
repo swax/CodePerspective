@@ -16,7 +16,7 @@ namespace XLibrary.Panels
     {
         public MainForm Main;
         public XNodeIn[] Nodes = XRay.Nodes;
-        public GdiPanel Tree;
+        public GdiRenderer Tree;
 
 
         public ConsolePanel()
@@ -27,7 +27,7 @@ namespace XLibrary.Panels
         public void Init(MainForm main)
         {
             Main = main;
-            Tree = main.ViewHostPanel.GdiView;
+            Tree = main.GdiView;
 
             ProcessInput("help");
         }

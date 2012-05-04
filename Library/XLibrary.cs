@@ -155,6 +155,8 @@ namespace XLibrary
 
         static void ResetCallHits(SharedDictionary<FunctionCall> callMap)
         {
+            FunctionCall.DashOffset -= FunctionCall.DashSize;
+
             foreach (var call in callMap)
             {
                 if (call == null || call.Hit <= 0)
@@ -162,9 +164,9 @@ namespace XLibrary
 
                 call.Hit--;
 
-                call.DashOffset -= FunctionCall.DashSize;
-                if (call.DashOffset < 0)
-                    call.DashOffset = FunctionCall.DashSpace;
+                //call.DashOffset -= FunctionCall.DashSize;
+                //if (call.DashOffset < 0)
+                //    call.DashOffset = FunctionCall.DashSpace;
             }
         }
 
@@ -916,7 +918,7 @@ namespace XLibrary
 
         internal const int DashSize = 3;
         internal const int DashSpace = 6;
-        internal int DashOffset;
+        internal static int DashOffset;
 
         internal int StillInside;
 

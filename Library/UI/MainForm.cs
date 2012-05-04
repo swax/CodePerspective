@@ -18,6 +18,9 @@ namespace XLibrary
         LinkedListNode<NodeModel> Current;
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
+        public GdiRenderer GdiView;
+        public GLPanel GLView;
+
 
         public MainForm()
         {
@@ -25,7 +28,14 @@ namespace XLibrary
 
             Model = new ViewModel(this, new BrightColorProfile());
 
-            ViewHostPanel.Init(this);
+            GdiView = new GdiRenderer(Model) { Dock = DockStyle.Fill };
+
+            ViewHostPanel.Controls.Add(GdiView);
+
+            Model.Renderer = GdiView;
+
+            Model.SetRoot(Model.CurrentRoot); // init first node in history
+
 
             RedrawTimer.Interval = 1000 / XRay.HitFrames;
             RedrawTimer.Enabled = true;
@@ -46,7 +56,50 @@ namespace XLibrary
 
         void RedrawTimer_Tick(object sender, EventArgs e)
         {
-            ViewHostPanel.RefreshView(true, false);
+            RefreshView(true, false);
+        }
+
+
+        public void RefreshView(bool redrawOnly = false, bool resetZoom = true)
+        {
+            if (Model.ViewLayout == LayoutType.ThreeD)
+            {
+                GdiView.Visible = false;
+
+                if (GLView == null)
+                {
+                    GLView = new GLPanel(Model) { Dock = DockStyle.Fill };
+                    ViewHostPanel.Controls.Add(GLView);
+                }
+
+                GLView.Visible = true;
+                Model.DoRevalue = !redrawOnly;
+                GLView.Redraw();
+            }
+            else
+            {
+                if (GLView != null)
+                    GLView.Visible = false;
+
+                GdiView.Visible = true;
+
+                if (resetZoom)
+                    Model.ResetZoom();
+
+                // check if view exists
+                if (redrawOnly)
+                {
+                    Model.DoRedraw = true;
+                    GdiView.Invalidate();
+                }
+                else
+                {
+                    Model.DoRevalue = true;
+                    GdiView.Invalidate();
+                }
+
+                //PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
+            }
         }
 
         public void UpdateBreadCrumbs()
@@ -119,7 +172,7 @@ namespace XLibrary
                 Model.SizeLayout == SizeLayouts.Hits ||
                 Model.SizeLayout == SizeLayouts.TimePerHit)
             {
-                ViewHostPanel.RefreshView(false, false);
+                RefreshView(false, false);
             }
         }
 
@@ -153,7 +206,7 @@ namespace XLibrary
         {
             Model.SearchString = SearchTextBox.Text.Trim().ToLowerInvariant();
             Model.SearchStrobe = false; // so matches are shown immediately
-            ViewHostPanel.RefreshView(true, false);
+            RefreshView(true, false);
         }
 
         private void SearchTimer_Tick(object sender, EventArgs e)
@@ -162,7 +215,12 @@ namespace XLibrary
                 Model.SearchStrobe = !Model.SearchStrobe;
         }
 
-        internal void NavigatePanelTo(NodeModel node, bool supressHistory=false)
+        public void NavigatePanelTo(NodeModel node)
+        {
+            NavigatePanelTo(node, false);
+        }
+
+        public void NavigatePanelTo(NodeModel node, bool supressHistory)
         {
             if (!supressHistory)
             {
@@ -254,14 +312,14 @@ namespace XLibrary
         private void ClearSearchMenuItem_Click(object sender, EventArgs e)
         {
             SearchTextBox.Text = "";
-            ViewHostPanel.RefreshView(true, false);
+            RefreshView(true, false);
         }
 
         private void SubsSearchMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             Model.SearchHighlightSubs = SubsSearchMenuItem.Checked;
             Model.LastSearch = ""; // forces search to re-run
-            ViewHostPanel.RefreshView(true, false);
+            RefreshView(true, false);
         }
     }
 

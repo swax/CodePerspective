@@ -170,27 +170,21 @@
     <Compile Include="UI\TreeGrid\TreeGridNodeCollection.cs" />
     <Compile Include="UI\TreeGrid\TreeGridView.cs" />
     <Compile Include="UI\CalcTreeMap.cs" />
-    <Compile Include="UI\GdiPanel.cs">
+    <Compile Include="UI\GdiRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\GdiPanel.Designer.cs">
-      <DependentUpon>GdiPanel.cs</DependentUpon>
+    <Compile Include="UI\GdiRenderer.Designer.cs">
+      <DependentUpon>GdiRenderer.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ViewHost.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\ViewHost.Designer.cs">
-      <DependentUpon>ViewHost.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\ViewModel.Render.cs" />
-    <Compile Include="UI\ViewModel.Threadline.cs" />
-    <Compile Include="UI\ViewModel.TreeMap.cs" />
-    <Compile Include="UI\ViewModel.View.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.Render.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.Threadline.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.TreeMap.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.View.cs" />
     <Compile Include="UI\WebBrowserEx.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Utilities.cs" />
-    <Compile Include="UI\ViewModel.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.cs" />
     <Compile Include="Win32.cs" />
     <Compile Include="XLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -229,8 +223,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\GdiPanel.resx">
-      <DependentUpon>GdiPanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\GdiRenderer.resx">
+      <DependentUpon>GdiRenderer.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
@@ -258,7 +252,7 @@
     <EmbeddedResource Include="UI\Resources\Font2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UI\ViewModel.CallGraph.cs" />
+    <Compile Include="UI\ViewModel\ViewModel.CallGraph.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

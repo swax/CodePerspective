@@ -14,17 +14,13 @@ using System.Reflection;
 
 namespace XLibrary
 {
-    public partial class GdiPanel : UserControl, IRenderer
+    public partial class GdiRenderer : UserControl, IRenderer
     {
-        public MainForm MainWin;
-        public ViewHost Host;
         public ViewModel Model;
 
         Bitmap DisplayBuffer;
 
         StringFormat LabelFormat = new StringFormat();
-
-        public IColorProfile ColorProfile;
 
         Graphics CurrentBuffer;
 
@@ -33,31 +29,27 @@ namespace XLibrary
 
 
 
-        public GdiPanel(ViewHost host, IColorProfile profile)
+        public GdiRenderer(ViewModel model)
         {
             InitializeComponent();
 
-            MouseWheel += new MouseEventHandler(TreePanelGdiPlus_MouseWheel);
+            MouseWheel += new MouseEventHandler(GdiRenderer_MouseWheel);
 
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
-            Host = host;
-            MainWin = host.Main;
-            Model = host.Model;
+            Model = model;
 
             LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
             LabelFormat.FormatFlags |= StringFormatFlags.NoWrap;
-
-            ColorProfile = profile;
         }
 
         public float ViewWidth { get { return Width; } }
 
         public float ViewHeight { get { return Height; } }
 
-        private void TreePanel_Paint(object sender, PaintEventArgs e)
+        private void GdiRenderer_Paint(object sender, PaintEventArgs e)
         {
             if (DisplayBuffer == null)
                 DisplayBuffer = new Bitmap(Width, Height);
@@ -73,7 +65,7 @@ namespace XLibrary
             Graphics buffer = Graphics.FromImage(DisplayBuffer);
             buffer.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed; // todo option to turn this off
 
-            buffer.Clear(ColorProfile.BackgroundColor);
+            buffer.Clear(Model.XColors.BackgroundColor);
 
             Debug.Assert(Model.CurrentRoot != Model.TopRoot); // current root should be intenalRoot in this case
 
@@ -89,7 +81,7 @@ namespace XLibrary
             Model.RedrawCount++;
         }
 
-        private void TreePanel_Resize(object sender, EventArgs e)
+        private void GdiRenderer_Resize(object sender, EventArgs e)
         {
             if (Width > 0 && Height > 0)
             {
@@ -100,22 +92,22 @@ namespace XLibrary
             }
         }
 
-        void TreePanelGdiPlus_MouseWheel(object sender, MouseEventArgs e)
+        void GdiRenderer_MouseWheel(object sender, MouseEventArgs e)
         {
             Model.View_MouseWheel(e);
         }
 
-        private void TreePanelGdiPlus_MouseDown(object sender, MouseEventArgs e)
+        private void GdiRenderer_MouseDown(object sender, MouseEventArgs e)
         {
             Model.View_MouseDown(e);
         }
 
-        private void TreePanelGdiPlus_MouseUp(object sender, MouseEventArgs e)
+        private void GdiRenderer_MouseUp(object sender, MouseEventArgs e)
         {
             Model.View_MouseUp(e);
         }
 
-        private void TreePanel_MouseMove(object sender, MouseEventArgs e)
+        private void GdiRenderer_MouseMove(object sender, MouseEventArgs e)
         {
             Model.View_MouseMove(e);
         }
@@ -125,27 +117,27 @@ namespace XLibrary
             Invalidate();
         }
 
-        public void ViewInvalidate()
+        public void ViewRefresh()
         {
             Refresh();
         }
 
-        private void TreePanelGdiPlus_MouseDoubleClick(object sender, MouseEventArgs e)
+        private void GdiRenderer_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             Model.View_MouseDoubleClick(e.Location);
         }
 
-        void TreePanel_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
+        void GdiRenderer_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e)
         {
             Model.View_KeyDown(e);
         }
 
-        private void TreePanel_KeyUp(object sender, KeyEventArgs e)
+        private void GdiRenderer_KeyUp(object sender, KeyEventArgs e)
         {
             Model.View_KeyUp(e);
         }
 
-        private void TreePanel_MouseLeave(object sender, EventArgs e)
+        private void GdiRenderer_MouseLeave(object sender, EventArgs e)
         {
             Model.View_MouseLeave();
         }
@@ -187,17 +179,22 @@ namespace XLibrary
 
         public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
         {
-            CurrentBuffer.DrawEllipse(GetPen(color, lineWidth), x, y, width, height);
+            CurrentBuffer.DrawEllipse(GetPen(color, lineWidth, false), x, y, width, height);
         }
 
         public void DrawRectangle(Color color, int lineWidth, float x, float y, float width, float height)
         {
-            CurrentBuffer.DrawRectangle(GetPen(color, lineWidth), x, y, width, height);
+            CurrentBuffer.DrawRectangle(GetPen(color, lineWidth, false), x, y, width, height);
         }
 
-        public void DrawLine(Color color, int lineWidth, PointF start, PointF end)
-        {
-            CurrentBuffer.DrawLine(GetPen(color, lineWidth), start, end);
+        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        {             
+            var pen = GetPen(color, lineWidth, dashed);
+
+            if(dashed)
+                pen.DashOffset = FunctionCall.DashOffset;
+
+            CurrentBuffer.DrawLine(pen, start, end);
         }
 
         SolidBrush GetBrush(Color color)
@@ -212,14 +209,23 @@ namespace XLibrary
             return brush;
         }
 
-        Pen GetPen(Color color, int width)
+        Pen GetPen(Color color, int width, bool dashed)
         {
-            int hash = color.GetHashCode() ^ width.GetHashCode();
+            int hash = color.GetHashCode() ^ width.GetHashCode() ^ dashed.GetHashCode();
+
+            int debug1 = color.GetHashCode();
+            int debug2 = width.GetHashCode();
+            int debug3 = dashed.GetHashCode();
+
 
             Pen pen;
             if (!PenCache.TryGetValue(hash, out pen))
             {
                 pen = new Pen(color, width);
+
+                if (dashed)
+                    pen.DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
+
                 PenCache[hash] = pen;
             }
 

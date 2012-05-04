@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class GdiPanel
+    partial class GdiRenderer
     {
         /// <summary> 
         /// Required designer variable.
@@ -35,15 +35,15 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "TreePanelGdiPlus";
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.TreePanel_Paint);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyDown);
-            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.TreePanel_KeyUp);
-            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDoubleClick);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseDown);
-            this.MouseLeave += new System.EventHandler(this.TreePanel_MouseLeave);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TreePanel_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TreePanelGdiPlus_MouseUp);
-            this.Resize += new System.EventHandler(this.TreePanel_Resize);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.GdiRenderer_Paint);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GdiRenderer_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.GdiRenderer_KeyUp);
+            this.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.GdiRenderer_MouseDoubleClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GdiRenderer_MouseDown);
+            this.MouseLeave += new System.EventHandler(this.GdiRenderer_MouseLeave);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GdiRenderer_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.GdiRenderer_MouseUp);
+            this.Resize += new System.EventHandler(this.GdiRenderer_Resize);
             this.ResumeLayout(false);
 
         }

@@ -1,38 +1,8 @@
 ﻿
 now	
 	mttq message dispose not being detected in facebook chat?
-
-	ViewPanel
-		add back dashes and endcaps
-		
-		GdiRenderer
-		GLRenderer
-		rename, start moving rendering into GdiRenderer
-			have a Renderer interface
-				attach(host panel)
-				draw rect, draw text, do render
-
-				copy GLpanel and rename 2dGLRenderer or something like that
-
-		ViewHost panel class override
-			
-			have init, init gdiRenderer inside
-
-			create gl host, make the ability to switch
-
-			start piping mouse commands up to ViewHost
-			bring main Renderer out
-
-			create gl host from scratch
-
-		IRenderer
-			OnBeginRender hooks in
-			EndRender
-			OnMouseMove/down
-			DrawRect 
-			DrawString
-			MeasureString
-
+	combine refresh/invalidate?
+	Start a GL renderer
 
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
 	

@@ -328,10 +328,10 @@ namespace XLibrary.Panels
 
         private void OpenGLFlatCheck_CheckedChanged(object sender, EventArgs e)
         {
-            if (Main.GLView != null)
+            if (Main.Test3dView != null)
             {
                 //Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
-                Main.GLView.SetupViewport();
+                Main.Test3dView.SetupViewport();
             }
         }
 
@@ -341,9 +341,10 @@ namespace XLibrary.Panels
             Main.RefreshView();
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void OpenGLCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-
+            Main.Set2dRenderer(OpenGLCheckBox.Checked);
+            Main.RefreshView();
         }
     }
 }

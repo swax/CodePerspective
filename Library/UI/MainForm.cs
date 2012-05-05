@@ -19,7 +19,8 @@ namespace XLibrary
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
         public GdiRenderer GdiView;
-        public GLPanel GLView;
+        public GLRenderer GLView;
+        public GLPanel Test3dView;
 
 
         public MainForm()
@@ -28,11 +29,7 @@ namespace XLibrary
 
             Model = new ViewModel(this, new BrightColorProfile());
 
-            GdiView = new GdiRenderer(Model) { Dock = DockStyle.Fill };
-
-            ViewHostPanel.Controls.Add(GdiView);
-
-            Model.Renderer = GdiView;
+            Set2dRenderer(false);
 
             Model.SetRoot(Model.CurrentRoot); // init first node in history
 
@@ -59,46 +56,79 @@ namespace XLibrary
             RefreshView(true, false);
         }
 
-
         public void RefreshView(bool redrawOnly = false, bool resetZoom = true)
         {
             if (Model.ViewLayout == LayoutType.ThreeD)
             {
-                GdiView.Visible = false;
-
-                if (GLView == null)
-                {
-                    GLView = new GLPanel(Model) { Dock = DockStyle.Fill };
-                    ViewHostPanel.Controls.Add(GLView);
-                }
-
-                GLView.Visible = true;
-                Model.DoRevalue = !redrawOnly;
-                GLView.Redraw();
-            }
-            else
-            {
+                if(GdiView != null)
+                    GdiView.Visible = false;
                 if (GLView != null)
                     GLView.Visible = false;
 
-                GdiView.Visible = true;
+                if (Test3dView == null)
+                {
+                    Test3dView = new GLPanel(Model) { Dock = DockStyle.Fill };
+                    ViewHostPanel.Controls.Add(Test3dView);
+                }
+
+                Test3dView.Visible = true;
+                Model.DoRevalue = !redrawOnly;
+                Test3dView.Redraw();
+            }
+            else
+            {
+                if (Test3dView != null)
+                    Test3dView.Visible = false;
+
+                if (Model.Renderer is GdiRenderer)
+                    GdiView.Visible = true;
+                else
+                    GLView.Visible = true;
 
                 if (resetZoom)
                     Model.ResetZoom();
 
                 // check if view exists
                 if (redrawOnly)
-                {
                     Model.DoRedraw = true;
-                    GdiView.Invalidate();
-                }
                 else
-                {
                     Model.DoRevalue = true;
-                    GdiView.Invalidate();
-                }
+
+                Model.Renderer.ViewInvalidate();
 
                 //PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
+            }
+        }
+
+        public void Set2dRenderer(bool useGL)
+        {
+            if (!useGL)
+            {
+                if (GdiView == null)
+                {
+                    GdiView = new GdiRenderer(Model) { Dock = DockStyle.Fill };
+                    ViewHostPanel.Controls.Add(GdiView);
+                }
+
+                if (GLView != null)
+                    GLView.Visible = false;
+
+                GdiView.Visible = true;
+                Model.Renderer = GdiView;
+            }
+            else
+            {
+                if (GLView == null)
+                {
+                    GLView = new GLRenderer(Model) { Dock = DockStyle.Fill };
+                    ViewHostPanel.Controls.Add(GLView);
+                }
+
+                if (GdiView != null)
+                    GdiView.Visible = false;
+
+                GLView.Visible = true;
+                Model.Renderer = GLView;
             }
         }
 

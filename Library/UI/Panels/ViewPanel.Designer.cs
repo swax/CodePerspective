@@ -73,6 +73,7 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
+            this.OpenGLCheckBox = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -309,6 +310,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.OpenGLCheckBox);
             this.panel1.Controls.Add(this.TimelineButton);
             this.panel1.Controls.Add(this.LayoutInitGraphButton);
             this.panel1.Controls.Add(this.ShowAllDependenciesCheckBox);
@@ -321,9 +323,8 @@
             this.panel1.Controls.Add(this.LayoutCallGraphButton);
             this.panel1.Location = new System.Drawing.Point(6, 17);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(192, 125);
+            this.panel1.Size = new System.Drawing.Size(192, 137);
             this.panel1.TabIndex = 21;
-            this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
             // TimelineButton
             // 
@@ -363,12 +364,12 @@
             // Layout3dButton
             // 
             this.Layout3dButton.AutoSize = true;
-            this.Layout3dButton.Location = new System.Drawing.Point(3, 94);
+            this.Layout3dButton.Location = new System.Drawing.Point(3, 117);
             this.Layout3dButton.Name = "Layout3dButton";
             this.Layout3dButton.Size = new System.Drawing.Size(63, 17);
             this.Layout3dButton.TabIndex = 31;
             this.Layout3dButton.TabStop = true;
-            this.Layout3dButton.Text = "3D Map";
+            this.Layout3dButton.Text = "3D Test";
             this.Layout3dButton.UseVisualStyleBackColor = true;
             this.Layout3dButton.CheckedChanged += new System.EventHandler(this.Layout3dButton_CheckedChanged);
             // 
@@ -596,6 +597,17 @@
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
             // 
+            // OpenGLCheckBox
+            // 
+            this.OpenGLCheckBox.AutoSize = true;
+            this.OpenGLCheckBox.Location = new System.Drawing.Point(3, 94);
+            this.OpenGLCheckBox.Name = "OpenGLCheckBox";
+            this.OpenGLCheckBox.Size = new System.Drawing.Size(66, 17);
+            this.OpenGLCheckBox.TabIndex = 35;
+            this.OpenGLCheckBox.Text = "OpenGL";
+            this.OpenGLCheckBox.UseVisualStyleBackColor = true;
+            this.OpenGLCheckBox.CheckedChanged += new System.EventHandler(this.OpenGLCheckBox_CheckedChanged);
+            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -680,5 +692,6 @@
         private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
         public System.Windows.Forms.RadioButton LayoutInitGraphButton;
         public System.Windows.Forms.RadioButton TimelineButton;
+        private System.Windows.Forms.CheckBox OpenGLCheckBox;
     }
 }

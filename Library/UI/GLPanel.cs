@@ -84,7 +84,7 @@ namespace XLibrary
 
         public float PlatformHeight = 5.0f;
        
-        public bool FlatMode = true;
+        public bool FlatMode = false;
         int FontTexture;
         int FontList;
  
@@ -101,11 +101,6 @@ namespace XLibrary
         public GLPanel(ViewModel model)
         {
             Model = model;
-
-            Model.TopRoot = Model.NodeModels[XRay.RootNode.ID];
-            Model.InternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.Internal);
-            Model.ExternalRoot = Model.TopRoot.Nodes.First(n => n.ObjType == XObjType.External);
-            Model.CurrentRoot = Model.InternalRoot;
 
             InitColors();
 

@@ -114,6 +114,9 @@
     <Compile Include="UI\GLPanel.Designer.cs">
       <DependentUpon>GLPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="UI\GLRenderer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\IRenderer.cs" />
     <Compile Include="UI\NodeModel.cs" />
     <Compile Include="UI\Panels\MethodPanel.cs">

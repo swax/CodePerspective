@@ -73,6 +73,9 @@ namespace XLibrary
 
         public static Random RndGen = new Random();
 
+        public static int DashOffset;
+
+
         // opens xray from the builder exe to analyze the dat
         public static void Analyze(string path)
         {
@@ -155,7 +158,7 @@ namespace XLibrary
 
         static void ResetCallHits(SharedDictionary<FunctionCall> callMap)
         {
-            FunctionCall.DashOffset -= FunctionCall.DashSize;
+            DashOffset = (DashOffset == 2) ? 0 : DashOffset + 1;
 
             foreach (var call in callMap)
             {
@@ -915,11 +918,6 @@ namespace XLibrary
         internal int Destination;
 
         internal int Hit;
-
-        internal const int DashSize = 3;
-        internal const int DashSpace = 6;
-        internal static int DashOffset;
-
         internal int StillInside;
 
         internal int TotalHits;

@@ -102,6 +102,9 @@
   <ItemGroup>
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
+    <Compile Include="UI\GLImmediateRenderer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\DetailsNav.cs">
       <SubType>UserControl</SubType>
     </Compile>

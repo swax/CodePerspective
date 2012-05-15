@@ -1,12 +1,17 @@
 ﻿
 now	
 	mttq message dispose not being detected in facebook chat?
+	
+	opengl fonts
 	combine refresh/invalidate?
-	Start a GL renderer
 
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
 	
+	paint.net photshop.dll recompile/view not working..
+
 	autosize instance cols working	
+
+	shade bg of alternate threads
 
 	build stats - time, dat size
 	double click on method in treeview, show containing class

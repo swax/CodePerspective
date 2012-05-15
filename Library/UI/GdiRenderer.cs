@@ -33,7 +33,7 @@ namespace XLibrary
         {
             InitializeComponent();
 
-            MouseWheel += new MouseEventHandler(GdiRenderer_MouseWheel);
+            MouseWheel += GdiRenderer_MouseWheel;
 
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -192,7 +192,7 @@ namespace XLibrary
             var pen = GetPen(color, lineWidth, dashed);
 
             if(dashed)
-                pen.DashOffset = FunctionCall.DashOffset;
+                pen.DashOffset = XRay.DashOffset * 3;
 
             CurrentBuffer.DrawLine(pen, start, end);
         }
@@ -224,7 +224,7 @@ namespace XLibrary
                 pen = new Pen(color, width);
 
                 if (dashed)
-                    pen.DashPattern = new float[] { FunctionCall.DashSize, FunctionCall.DashSpace };
+                    pen.DashPattern = new float[] { 3, 6 };
 
                 PenCache[hash] = pen;
             }

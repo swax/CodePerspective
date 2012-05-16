@@ -797,6 +797,7 @@ namespace XBuilder
             CopyLocalToOutputDir("XLibrary.dll", destPath);
             CopyLocalToOutputDir("OpenTK.dll", destPath);
             CopyLocalToOutputDir("OpenTK.GLControl.dll", destPath);
+            CopyLocalToOutputDir("QuickFont.dll", destPath);
         }
 
         private static void CopyLocalToOutputDir(string filename, string destPath)

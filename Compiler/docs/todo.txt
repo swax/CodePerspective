@@ -1,8 +1,6 @@
 ﻿
 now	
-	mttq message dispose not being detected in facebook chat?
-	
-	opengl fonts
+
 	combine refresh/invalidate?
 
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible

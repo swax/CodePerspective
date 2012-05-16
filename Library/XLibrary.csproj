@@ -260,6 +260,12 @@
   <ItemGroup>
     <Compile Include="UI\ViewModel\ViewModel.CallGraph.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\QuickFont\QuickFont\QuickFont.csproj">
+      <Project>{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}</Project>
+      <Name>QuickFont</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

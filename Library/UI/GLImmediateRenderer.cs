@@ -6,6 +6,8 @@ using System.Text;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using QuickFont;
+using OpenTK.Graphics;
 
 
 namespace XLibrary
@@ -39,9 +41,6 @@ namespace XLibrary
             SetupViewport();
 
             GL.ClearColor(Model.XColors.BackgroundColor);
-
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.Blend);
 
             GLLoaded = true;
         }
@@ -97,31 +96,62 @@ namespace XLibrary
 
         public SizeF MeasureString(string text, Font font)
         {
-            return new Size();//13, 50);
+            QFont qfont = GetQFont(font);
+
+            return qfont.Measure(text);
+        }
+
+        Dictionary<Font, QFont> FontMap = new Dictionary<Font, QFont>();
+
+        public QFont GetQFont(Font font)
+        {
+            QFont qfont;
+            if(FontMap.TryGetValue(font, out qfont))
+                return qfont;
+
+            var config = new QFontBuilderConfiguration() { TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault };
+
+            qfont = new QFont(font, config);
+            qfont.Options.TransformToViewport = null;
+            qfont.Options.WordWrap = false;
+
+            FontMap[font] = qfont;
+            return qfont;
         }
 
         public void DrawString(string text, Font font, Color color, PointF point)
         {
-
+            DrawString(text, font, color, point.X, point.Y);
         }
 
         public void DrawString(string text, Font font, Color color, float x, float y)
         {
-            
+            QFont qfont = GetQFont(font);
+
+            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+
+            qfont.Print(text, new Vector2(x, y));
         }
 
         public void DrawString(string text, Font font, Color color, RectangleF rect)
         {
-            
+            QFont qfont = GetQFont(font);
+
+            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+
+            qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
         }
 
         public void FillEllipse(Color color, RectangleF area)
         {
-            SafeGLBegin(BeginMode.Polygon, () =>
+            SafeGLBlend(() =>
             {
-                GL.Color4(color);
+                SafeGLBegin(BeginMode.Polygon, () =>
+                {
+                    GL.Color4(color);
 
-                DrawEllipseVerticies(area.X, area.Y, area.Width, area.Height);
+                    DrawEllipseVerticies(area.X, area.Y, area.Width, area.Height);
+                });
             });
         }
 
@@ -132,14 +162,17 @@ namespace XLibrary
 
         public void FillRectangle(Color color, float x, float y, float width, float height)
         {
-            SafeGLBegin(BeginMode.Quads, () =>
+            SafeGLBlend(() =>
             {
-                GL.Color4(color);
+                SafeGLBegin(BeginMode.Quads, () =>
+                {
+                    GL.Color4(color);
 
-                GL.Vertex2(x, y);
-                GL.Vertex2(x + width, y);
-                GL.Vertex2(x + width, y + height);
-                GL.Vertex2(x, y + height);
+                    GL.Vertex2(x, y);
+                    GL.Vertex2(x + width, y);
+                    GL.Vertex2(x + width, y + height);
+                    GL.Vertex2(x, y + height);
+                });
             });
         }
 
@@ -147,11 +180,14 @@ namespace XLibrary
         {
             GL.LineWidth(lineWidth);
 
-            SafeGLBegin(BeginMode.LineLoop, () =>
+            SafeGLBlend(() =>
             {
-                GL.Color4(color);
+                SafeGLBegin(BeginMode.LineLoop, () =>
+                {
+                    GL.Color4(color);
 
-                DrawEllipseVerticies(x, y, width, height);
+                    DrawEllipseVerticies(x, y, width, height);
+                });
             });
         }
 
@@ -187,14 +223,17 @@ namespace XLibrary
         {
             GL.LineWidth(lineWidth);
 
-            SafeGLBegin(BeginMode.LineLoop, () =>
+            SafeGLBlend(() =>
             {
-                GL.Color4(color);
+                SafeGLBegin(BeginMode.LineLoop, () =>
+                {
+                    GL.Color4(color);
 
-                GL.Vertex2(x, y);
-                GL.Vertex2(x + width, y);
-                GL.Vertex2(x + width, y + height);
-                GL.Vertex2(x, y + height);
+                    GL.Vertex2(x, y);
+                    GL.Vertex2(x + width, y);
+                    GL.Vertex2(x + width, y + height);
+                    GL.Vertex2(x, y + height);
+                });
             });
         }
 
@@ -202,16 +241,19 @@ namespace XLibrary
         {
             GL.LineWidth(lineWidth);
 
-            if (!dashed)
-                RenderLine(color, start, end);
-            else
-                SafeGLEnable(EnableCap.LineStipple, () =>
-                {
-                    //1111 1000 0000 0000
-                    short pattern =(short) (0xF800 >> (XRay.DashOffset * 5));
-                    GL.LineStipple(1, pattern); 
+            SafeGLBlend(() =>
+            {
+                if (!dashed)
                     RenderLine(color, start, end);
-                });
+                else
+                    SafeGLEnable(EnableCap.LineStipple, () =>
+                    {
+                        //1111 1000 0000 0000
+                        short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
+                        GL.LineStipple(1, pattern);
+                        RenderLine(color, start, end);
+                    });
+            });
         }
 
         private void RenderLine(Color color, PointF start, PointF end)
@@ -301,5 +343,14 @@ namespace XLibrary
             GL.Disable(cap);
         }
 
+        public void SafeGLBlend(Action code)
+        {
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
+
+            code();
+
+            GL.Disable(EnableCap.Blend);
+        }
     }
 }

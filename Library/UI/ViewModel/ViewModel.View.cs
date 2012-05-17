@@ -393,7 +393,8 @@ namespace XLibrary
 
         public void View_MouseMove(MouseEventArgs e)
         {
-            if (MouseDownPoint != Point.Empty)
+            // if moving with left button on, pan
+            if (MouseDownPoint != Point.Empty && e.Button == MouseButtons.Left)
             {
                 PanOffset.X = PanStart.X + (e.Location.X - MouseDownPoint.X) / ScreenSize.Width;
                 PanOffset.Y = PanStart.Y + (e.Location.Y - MouseDownPoint.Y) / ScreenSize.Height;

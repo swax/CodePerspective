@@ -1,4 +1,12 @@
 ﻿
+simultaneous monitoring windows
+
+xray dlls and start monitory on demand
+
+openGL renderer that uses no cpu compared to gdi plus renderer
+
+infer the running of not xrayed components
+
 pan/zoom node graph view
 	dont draw elements not in view
 	z key to drag outline and zoom on that

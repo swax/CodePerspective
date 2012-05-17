@@ -144,7 +144,7 @@
             this.ShowOnStartCheckBox.Name = "ShowOnStartCheckBox";
             this.ShowOnStartCheckBox.Size = new System.Drawing.Size(177, 17);
             this.ShowOnStartCheckBox.TabIndex = 24;
-            this.ShowOnStartCheckBox.Text = "Show Introspex when app starts";
+            this.ShowOnStartCheckBox.Text = "Show Ghost Viewer when app starts";
             this.ShowOnStartCheckBox.UseVisualStyleBackColor = true;
             // 
             // OutputLink

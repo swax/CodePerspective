@@ -316,7 +316,7 @@
             this.ClientSize = new System.Drawing.Size(550, 584);
             this.Controls.Add(this.splitContainer1);
             this.Name = "MainForm";
-            this.Text = "Introspex Viewer";
+            this.Text = "Ghost Viewer";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);

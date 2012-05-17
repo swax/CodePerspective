@@ -108,7 +108,7 @@
             this.ShowViewerLink.Size = new System.Drawing.Size(115, 13);
             this.ShowViewerLink.TabIndex = 0;
             this.ShowViewerLink.TabStop = true;
-            this.ShowViewerLink.Text = "Show Introspex Viewer";
+            this.ShowViewerLink.Text = "Show Ghost Viewer";
             this.ShowViewerLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ShowViewerLink_LinkClicked);
             // 
             // label1
@@ -119,7 +119,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(172, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Running Introspex Processes";
+            this.label1.Text = "Running Ghost Viewable Processes";
             // 
             // RefreshTimer
             // 

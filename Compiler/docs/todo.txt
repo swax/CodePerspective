@@ -1,15 +1,24 @@
 ﻿
 now	
+	shade bg of alternate threads
+
+	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
 
 	combine refresh/invalidate?
 
-	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
-	
-	paint.net photshop.dll recompile/view not working..
+	3d 
+		towers translucent blue
+		light up white when hit - light up the code
+			maybe not light up but light floors bottom to tip
+		communication as dot archs between towers
+		fps controls
+		texture sides of blocks with C#, MSIL, Timing, and Instance info
+		click on block multiple times rotates it
+		create city as a vbo that should rarely have to be changed
+		label function / field name on top of tower
 
-	autosize instance cols working	
+	zoom on class show method graph
 
-	shade bg of alternate threads
 
 	build stats - time, dat size
 	double click on method in treeview, show containing class
@@ -17,6 +26,8 @@ now
 	switch to class graph from method graph, and move zoom up to class level
 	create an obsidian color them
 	about tab - code used, licenses, put about panel in builder and viewer
+
+	paint.net photshop.dll recompile/view not working..
 
 	add last run time to mouse over in threadline
 
@@ -64,7 +75,7 @@ now
 	msil view - lots of dupe items in list`1 class
 	track internal msil graph
 	
-	post-build command line to introspex a build in debug mode so dev at any time can start introspex monitor
+	post-build command line to xray a build in debug mode so dev at any time can start introspex monitor
 
 code paths as a tree
 	clickin on node in tree shows subset

@@ -95,7 +95,7 @@
             this.ClientSize = new System.Drawing.Size(385, 393);
             this.Controls.Add(this.tabControl1);
             this.Name = "MainForm";
-            this.Text = "Introspex";
+            this.Text = "Ghost in the Code";
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);

@@ -161,6 +161,10 @@ namespace XLibrary
                 }
             }
 
+            // auto size type/name columns
+            FieldGrid.AutoResizeColumn(0);
+            FieldGrid.AutoResizeColumn(1);
+
             // add columns for each intance
             int mostInstances = 0;
             if(GenericMap.Count > 0)
@@ -203,11 +207,11 @@ namespace XLibrary
                 generic.Expand();
 
             foreach (var col in newColumns)
-                AutoSizeColumn(col);
-            
+                FieldGrid.AutoResizeColumn(col.Index);
+                //AutoSizeColumn(col);
         }
 
-        private void AutoSizeColumn(DataGridViewColumn col)
+        /*private void AutoSizeColumn(DataGridViewColumn col)
         {
             col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
@@ -216,14 +220,7 @@ namespace XLibrary
             col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
 
             col.Width = Math.Min(width, 200);
-        }
-
-        private void AutoSizeColumns()
-        {
-            // set autosize mode to cells
-            foreach (DataGridViewColumn col in FieldGrid.Columns)
-                AutoSizeColumn(col);
-        }
+        }*/
 
         private void FieldGrid_NodeExpanding(object sender, ExpandingEventArgs e)
         {
@@ -234,7 +231,8 @@ namespace XLibrary
 
             row.ExpandField();
 
-            AutoSizeColumns();
+            for (int i = 0; i < FieldGrid.Columns.Count; i++)
+                FieldGrid.AutoResizeColumn(i);
         }
 
         private void RefreshTimer_Tick(object sender, EventArgs e)

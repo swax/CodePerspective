@@ -19,8 +19,8 @@ namespace XLibrary
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
         public GdiRenderer GdiView;
-        public GLImmediateRenderer GLView;
-        public GLPanel Test3dView;
+        public GLRenderer GLView;
+        public MatrixView Test3dView;
 
 
         public MainForm()
@@ -67,7 +67,7 @@ namespace XLibrary
 
                 if (Test3dView == null)
                 {
-                    Test3dView = new GLPanel(Model) { Dock = DockStyle.Fill };
+                    Test3dView = new MatrixView(Model) { Dock = DockStyle.Fill };
                     ViewHostPanel.Controls.Add(Test3dView);
                 }
 
@@ -120,7 +120,7 @@ namespace XLibrary
             {
                 if (GLView == null)
                 {
-                    GLView = new GLImmediateRenderer(Model) { Dock = DockStyle.Fill };
+                    GLView = new GLRenderer(Model) { Dock = DockStyle.Fill };
                     ViewHostPanel.Controls.Add(GLView);
                 }
 

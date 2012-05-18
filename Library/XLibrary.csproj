@@ -102,7 +102,7 @@
   <ItemGroup>
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
-    <Compile Include="UI\GLImmediateRenderer.cs">
+    <Compile Include="UI\GLRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\DetailsNav.cs">
@@ -111,14 +111,11 @@
     <Compile Include="UI\DetailsNav.Designer.cs">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\GLPanel.cs">
+    <Compile Include="UI\MatrixView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\GLPanel.Designer.cs">
-      <DependentUpon>GLPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\GLRenderer.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="UI\MatrixView.Designer.cs">
+      <DependentUpon>MatrixView.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\IRenderer.cs" />
     <Compile Include="UI\ListViewHelper.cs" />
@@ -201,8 +198,8 @@
     <EmbeddedResource Include="UI\DetailsNav.resx">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\GLPanel.resx">
-      <DependentUpon>GLPanel.cs</DependentUpon>
+    <EmbeddedResource Include="UI\MatrixView.resx">
+      <DependentUpon>MatrixView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\MethodPanel.resx">
       <DependentUpon>MethodPanel.cs</DependentUpon>

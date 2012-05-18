@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class GLPanel
+    partial class MatrixView
     {
         /// <summary> 
         /// Required designer variable.

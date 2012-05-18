@@ -17,7 +17,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace XLibrary
 {
-    public partial class GLPanel : UserControl
+    public partial class MatrixView : UserControl
     {
         public ViewModel Model;
 
@@ -98,7 +98,7 @@ namespace XLibrary
         Vbo TreeMapVbo = new Vbo();
 
 
-        public GLPanel(ViewModel model)
+        public MatrixView(ViewModel model)
         {
             Model = model;
 

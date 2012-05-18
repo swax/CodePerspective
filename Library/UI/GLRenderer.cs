@@ -6,19 +6,21 @@ using System.Text;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using QuickFont;
+using OpenTK.Graphics;
 
 
 namespace XLibrary
 {
+    /* Originally implemented with vbo's but because the rendering interface
+     * calls in order of drawing bottom to top this makes it difficult to use vbo's for
+     * 2d while keeping the right order of layers or draw calls of all the rectangles and lines.
+     */
+
     public class GLRenderer : GLControl, IRenderer
     {
         ViewModel Model;
         bool GLLoaded;
-
-        VertexBuffer LineVertexBuffer = new VertexBuffer(); // continually changes
-        VertexBuffer RectVertexBuffer = new VertexBuffer(); // continually changes
-
-        int z = 0; // hopefully this works, if not need to increase each time by a small fraction
 
 
         public GLRenderer(ViewModel model)
@@ -44,28 +46,6 @@ namespace XLibrary
             SetupViewport();
 
             GL.ClearColor(Model.XColors.BackgroundColor);
-            GL.ShadeModel(ShadingModel.Smooth);
-
-            GL.Enable(EnableCap.ColorMaterial);
-            GL.Enable(EnableCap.CullFace);
-            GL.Enable(EnableCap.Lighting);
-            GL.Enable(EnableCap.Light0);
-
-            GL.Disable(EnableCap.DepthTest);
-            GL.CullFace(CullFaceMode.Back);
-
-            float[] mat_emissive = { 0f, 0f, 0f, 1f };
-            float[] mat_specular = { 1f, 1f, 1f, 1.0f };
-
-            float[] light_diffuse = { .7f, .7f, .7f, .7f };
-            float[] light_specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-            float[] light_position = { 1f, 1f, 1f, 0f };
-            float[] light_ambient = { .5f, .5f, .35f, .5f };
-
-            GL.Light(LightName.Light0, LightParameter.Diffuse, light_diffuse);
-            GL.Light(LightName.Light0, LightParameter.Ambient, light_ambient);
-            GL.Light(LightName.Light0, LightParameter.Specular, light_specular);
-            GL.Light(LightName.Light0, LightParameter.Position, light_position);
 
             GLLoaded = true;
         }
@@ -110,23 +90,7 @@ namespace XLibrary
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            if ((!Model.DoRedraw && !Model.DoRevalue && !Model.DoResize) || Model.CurrentRoot == null)
-            {
-                // do nothing to vbo
-            }
-            else //if(TreeMapVbo.NumElements == 0)
-            {
-                RectVertexBuffer.Reset();
-                LineVertexBuffer.Reset();
-
-                Model.Render();
-
-                RectVertexBuffer.Render();
-                LineVertexBuffer.Render();
-            }
-
-            RectVertexBuffer.DrawRectangles();
-            LineVertexBuffer.DrawLines();
+            Model.Render();
 
             //glPrint(10, 10, "HELLOOOOOOOO");
 
@@ -137,27 +101,63 @@ namespace XLibrary
 
         public SizeF MeasureString(string text, Font font)
         {
-            return new Size();//13, 50);
+            QFont qfont = GetQFont(font);
+
+            return qfont.Measure(text);
+        }
+
+        Dictionary<Font, QFont> FontMap = new Dictionary<Font, QFont>();
+
+        public QFont GetQFont(Font font)
+        {
+            QFont qfont;
+            if(FontMap.TryGetValue(font, out qfont))
+                return qfont;
+
+            var config = new QFontBuilderConfiguration() { TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault };
+
+            qfont = new QFont(font, config);
+            qfont.Options.TransformToViewport = null;
+            qfont.Options.WordWrap = false;
+
+            FontMap[font] = qfont;
+            return qfont;
         }
 
         public void DrawString(string text, Font font, Color color, PointF point)
         {
-
+            DrawString(text, font, color, point.X, point.Y);
         }
 
         public void DrawString(string text, Font font, Color color, float x, float y)
         {
-            
+            QFont qfont = GetQFont(font);
+
+            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+
+            qfont.Print(text, new Vector2(x, y));
         }
 
         public void DrawString(string text, Font font, Color color, RectangleF rect)
         {
-            
+            QFont qfont = GetQFont(font);
+
+            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+
+            qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
         }
 
         public void FillEllipse(Color color, RectangleF area)
         {
+            SafeGLBlend(() =>
+            {
+                SafeGLBegin(BeginMode.Polygon, () =>
+                {
+                    GL.Color4(color);
 
+                    DrawEllipseVerticies(area.X, area.Y, area.Width, area.Height);
+                });
+            });
         }
 
         public void FillRectangle(Color color, RectangleF area)
@@ -167,59 +167,112 @@ namespace XLibrary
 
         public void FillRectangle(Color color, float x, float y, float width, float height)
         {
-            var southWestBottom = new Vector3(x, y, z);
-            var southEastBottom = new Vector3(x + width, y, z);
-            var northEastBottom = new Vector3(x + width, y + height, z);
-            var northWestBottom = new Vector3(x, y + height, z);
+            SafeGLBlend(() =>
+            {
+                SafeGLBegin(BeginMode.Quads, () =>
+                {
+                    GL.Color4(color);
 
-            var normal = new Vector3(0, 0, 1);
-            RectVertexBuffer.AddVertex(northWestBottom, color, normal);
-            RectVertexBuffer.AddVertex(northEastBottom, color, normal);
-
-            RectVertexBuffer.AddVertex(northEastBottom, color, normal);
-            RectVertexBuffer.AddVertex(southEastBottom, color, normal);
-
-            RectVertexBuffer.AddVertex(southEastBottom, color, normal);
-            RectVertexBuffer.AddVertex(southWestBottom, color, normal);
-
-            RectVertexBuffer.AddVertex(southWestBottom, color, normal);
-            RectVertexBuffer.AddVertex(northWestBottom, color, normal);
+                    GL.Vertex2(x, y);
+                    GL.Vertex2(x + width, y);
+                    GL.Vertex2(x + width, y + height);
+                    GL.Vertex2(x, y + height);
+                });
+            });
         }
 
         public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
         {
+            GL.LineWidth(lineWidth);
 
+            SafeGLBlend(() =>
+            {
+                SafeGLBegin(BeginMode.LineLoop, () =>
+                {
+                    GL.Color4(color);
+
+                    DrawEllipseVerticies(x, y, width, height);
+                });
+            });
+        }
+
+        private static void DrawEllipseVerticies(float x, float y, float width, float height)
+        {
+            double segments = 8.0;
+
+            // http://stackoverflow.com/questions/5886628/effecient-way-to-draw-ellipse-with-opengl-or-d3d
+
+            double cx = x + width / 2.0;
+            double cy = y + height / 2.0;
+
+            double theta = 2.0 * 3.1415926 / segments;
+            double c = Math.Cos(theta); //precalculate the sine and cosine
+            double s = Math.Sin(theta);
+            double t = 0;
+
+            double xPos = width / 2.0; //we start at angle = 0 
+            double yPos = 0;
+
+            for (int ii = 0; ii < segments; ii++)
+            {
+                GL.Vertex2(xPos + cx, yPos + cy);//output vertex 
+
+                //apply the rotation matrix
+                t = xPos;
+                xPos = c * xPos - s * yPos;
+                yPos = s * t + c * yPos;
+            }
         }
 
         public void DrawRectangle(Color color, int lineWidth, float x, float y, float width, float height)
         {
-            var southWestBottom = new Vector3(x, y, z);
-            var southEastBottom = new Vector3(x + width, y, z);
-            var northEastBottom = new Vector3(x + width, y + height, z);
-            var northWestBottom = new Vector3(x, y + height, z);
+            GL.LineWidth(lineWidth);
 
-            var normal = new Vector3(0, 0, 1);
-            LineVertexBuffer.AddVertex(northWestBottom, color, normal);
-            LineVertexBuffer.AddVertex(northEastBottom, color, normal);
+            SafeGLBlend(() =>
+            {
+                SafeGLBegin(BeginMode.LineLoop, () =>
+                {
+                    GL.Color4(color);
 
-            LineVertexBuffer.AddVertex(northEastBottom, color, normal);
-            LineVertexBuffer.AddVertex(southEastBottom, color, normal);
-
-            LineVertexBuffer.AddVertex(southEastBottom, color, normal);
-            LineVertexBuffer.AddVertex(southWestBottom, color, normal);
-
-            LineVertexBuffer.AddVertex(southWestBottom, color, normal);
-            LineVertexBuffer.AddVertex(northWestBottom, color, normal);
+                    GL.Vertex2(x, y);
+                    GL.Vertex2(x + width, y);
+                    GL.Vertex2(x + width, y + height);
+                    GL.Vertex2(x, y + height);
+                });
+            });
         }
 
         public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
         {
-            var startPos = new Vector3(start.X, start.Y, z);
-            var endPos = new Vector3(end.X, end.Y, z);
+            GL.LineWidth(lineWidth);
 
-            var normal = new Vector3(0, 0, 1);
-            LineVertexBuffer.AddVertex(startPos, color, normal);
-            LineVertexBuffer.AddVertex(endPos, color, normal);
+            SafeGLBlend(() =>
+            {
+                if (!dashed)
+                    RenderLine(color, start, end);
+                else
+                    SafeGLEnable(EnableCap.LineStipple, () =>
+                    {
+                        //1111 1000 0000 0000
+                        short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
+                        GL.LineStipple(1, pattern);
+                        RenderLine(color, start, end);
+                    });
+            });
+        }
+
+        private void RenderLine(Color color, PointF start, PointF end)
+        {
+            SafeGLEnable(EnableCap.LineSmooth, () =>
+            {
+                SafeGLBegin(BeginMode.Lines, () =>
+                {
+                    GL.Color4(color);
+
+                    GL.Vertex2(start.X, start.Y);
+                    GL.Vertex2(end.X, end.Y);
+                });
+            });
         }
 
         public void ViewInvalidate()
@@ -277,127 +330,32 @@ namespace XLibrary
             Model.View_MouseWheel(e);
         }
 
-    }
-
-    public struct Vbo
-    {
-        public int VboID;
-        public int EboID;
-        public int NumElements;
-    }
-
-    public class VertexBuffer
-    {
-        int VertexCount = 0;
-        VertexPositionColor[] Vertices = new VertexPositionColor[1000];
-
-        int ElementCount = 0;
-        int[] Elements = new int[1000];
-
-        Vbo RenderVbo = new Vbo();
-
-
-        public void Reset()
+        public void SafeGLBegin(BeginMode mode, Action code)
         {
-            VertexCount = 0;
-            ElementCount = 0;
+            GL.Begin(mode);
+
+            code();
+
+            GL.End();
         }
 
-        public void Render()
+        public void SafeGLEnable(EnableCap cap, Action code)
         {
-            RenderVbo = LoadVBO(Vertices, VertexCount, Elements, ElementCount);
+            GL.Enable(cap);
+
+            code();
+
+            GL.Disable(cap);
         }
 
-        public Vbo LoadVBO<TVertex>(TVertex[] vertices, int verticesLength, int[] elements, int elementsLength) where TVertex : struct
+        public void SafeGLBlend(Action code)
         {
-            Vbo handle = new Vbo();
-            int size;
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
 
-            // To create a VBO:
-            // 1) Generate the buffer handles for the vertex and element buffers.
-            // 2) Bind the vertex buffer handle and upload your vertex data. Check that the buffer was uploaded correctly.
-            // 3) Bind the element buffer handle and upload your element data. Check that the buffer was uploaded correctly.
+            code();
 
-            GL.GenBuffers(1, out handle.VboID);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, handle.VboID);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verticesLength * BlittableValueType.StrideOf(vertices)), vertices, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out size);
-            if (verticesLength * BlittableValueType.StrideOf(vertices) != size)
-                throw new ApplicationException("Vertex data not uploaded correctly");
-
-            GL.GenBuffers(1, out handle.EboID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, handle.EboID);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elementsLength * sizeof(int)), elements, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out size);
-            if (elementsLength * sizeof(int) != size)
-                throw new ApplicationException("Element data not uploaded correctly");
-
-            handle.NumElements = elementsLength;
-            return handle;
-        }
-
-        public void InitDraw()
-        {
-            // To draw a VBO:
-            // 1) Ensure that the VertexArray client state is enabled.
-            // 2) Bind the vertex and element buffer handles.
-            // 3) Set up the data pointers (vertex, normal, color) according to your vertex format.
-            // 4) Call DrawElements. (Note: the last parameter is an offset into the element buffer
-            //    and will usually be IntPtr.Zero).
-
-            //GL.Enable(EnableCap.Blend);
-            //GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
-            //GL.Enable(EnableCap.Blend);
-            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
-
-            GL.EnableClientState(ArrayCap.ColorArray);
-            GL.EnableClientState(ArrayCap.VertexArray);
-            GL.EnableClientState(ArrayCap.NormalArray);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, RenderVbo.VboID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, RenderVbo.EboID);
-
-            GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
-            GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
-            GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
-        }
-
-        public void DrawLines()
-        {
-            InitDraw();
-
-            GL.DrawElements(BeginMode.Lines, RenderVbo.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
-        }
-
-        public void DrawRectangles()
-        {
-            InitDraw();
-
-            GL.DrawElements(BeginMode.Quads, RenderVbo.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
-        }
-
-        internal void AddVertex(Vector3 point, Color color, Vector3 normal)
-        {
-            // increase size of vertex buffer if needed
-            if (VertexCount + 1 >= Vertices.Length)
-            {
-                var newArray = new VertexPositionColor[Vertices.Length * 2];
-                Array.Copy(Vertices, newArray, VertexCount);
-                Vertices = newArray;
-            }
-
-            // increase size of element buffer if needed
-            if (ElementCount + 1 >= Elements.Length)
-            {
-                var newArray = new int[Elements.Length * 2];
-                Array.Copy(Elements, newArray, ElementCount);
-                Elements = newArray;
-            }
-
-            // set element and vertex buffers
-            Elements[ElementCount++] = VertexCount;
-
-            Vertices[VertexCount++].Set(point, color, normal);
+            GL.Disable(EnableCap.Blend);
         }
     }
 }

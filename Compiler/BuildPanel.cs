@@ -26,12 +26,12 @@ namespace XBuilder
         {
             InitializeComponent();
 
-            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(TrackFlowCheckBox,
+           TrackFlowCheckBox.AttachToolTip(
 @"Checked: Calls between functions are traced
 
 Unchecked: Slightly less overhead.");
 
-            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(ReplaceOriginalCheckBox,
+            ReplaceOriginalCheckBox.AttachToolTip(
 @"Unchecked: XRay copies and re-compiles the selected files then runs them side by side the originals.
            This case maintains the relative paths the original files had for configuration, etc...
 

@@ -21,6 +21,8 @@ namespace XBuilder
         {
             InitializeComponent();
 
+            ListViewHelper.EnableDoubleBuffer(ProcessListView);
+
             SelectedGroupBox.Visible = false;
 
             try

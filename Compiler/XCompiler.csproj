@@ -118,6 +118,12 @@
     <Compile Include="MonitorPanel.Designer.cs">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="ScannerPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ScannerPanel.Designer.cs">
+      <DependentUpon>ScannerPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -136,6 +142,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MonitorPanel.resx">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ScannerPanel.resx">
+      <DependentUpon>ScannerPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TestForm.resx">
       <DependentUpon>TestForm.cs</DependentUpon>

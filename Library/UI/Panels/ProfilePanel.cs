@@ -22,6 +22,9 @@ namespace XLibrary
         public ProfilePanel()
         {
             InitializeComponent();
+
+            ListViewHelper.EnableDoubleBuffer(CalledByList);
+            ListViewHelper.EnableDoubleBuffer(CalledToList);
         }
 
         public void Init(MainForm main)

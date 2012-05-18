@@ -18,18 +18,18 @@ namespace XLibrary.Panels
         {
             InitializeComponent();
 
-            new ToolTip().SetToolTip(LayoutInitGraphButton,  "A graph showing which class created which class");
+            LayoutInitGraphButton.AttachToolTip("A graph showing which class created which class");
 
-            new ToolTip().SetToolTip(MapDependencies, "Select a class node to show dependencies in a treemap\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
-            new ToolTip().SetToolTip(GraphDependencies, "Select a class node to show dependencies in a dependecy graph\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
-            new ToolTip().SetToolTip(ShowAllDependenciesCheckBox, "Show dependencies of dependencies");
-            new ToolTip().SetToolTip(GraphIntermediateDependencies, "Given 2 selected class nodes, show how they depend on each other");
+            MapDependencies.AttachToolTip("Select a class node to show dependencies in a treemap\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
+            GraphDependencies.AttachToolTip("Select a class node to show dependencies in a dependecy graph\r\nBlue - independent of, red - dependent on, purple - inter-dependent");
+            ShowAllDependenciesCheckBox.AttachToolTip("Show dependencies of dependencies");
+            GraphIntermediateDependencies.AttachToolTip("Given 2 selected class nodes, show how they depend on each other");
 
-            new ToolTip().SetToolTip(IncludeOutsideZoomButton, "Show methods outside current zoom level\r\nIn call graph view these methods are gray");
-            new ToolTip().SetToolTip(IncludeNotXRayedButton, "Shows methods outside what was xrayed\r\nIn call graph view these methods are circles");
-            new ToolTip().SetToolTip(LayoutInOrder, "In the call graph methods are shown in the order that they were first called top to bottom");
+            IncludeOutsideZoomButton.AttachToolTip("Show methods outside current zoom level\r\nIn call graph view these methods are gray");
+            IncludeNotXRayedButton.AttachToolTip("Shows methods outside what was xrayed\r\nIn call graph view these methods are circles");
+            LayoutInOrder.AttachToolTip("In the call graph methods are shown in the order that they were first called top to bottom");
 
-            new ToolTip().SetToolTip(ShowAllButton, "Show all calls ever made.\r\nIn graph mode, red lines are calls LtR, blue lines are RtL and purple is both.");
+            ShowAllButton.AttachToolTip("Show all calls ever made.\r\nIn graph mode, red lines are calls LtR, blue lines are RtL and purple is both.");
             
         }
 

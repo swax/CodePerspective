@@ -25,6 +25,8 @@ namespace XLibrary.Panels
         public CodePanel()
         {
             InitializeComponent();
+
+            ListViewHelper.EnableDoubleBuffer(MsilView);
         }
 
         public void Init(MainForm main)

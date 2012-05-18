@@ -6,6 +6,8 @@ now
 
 	combine refresh/invalidate?
 
+	obsidian colors - code/console view too
+
 	3d 
 		towers translucent blue
 		light up white when hit - light up the code
@@ -76,6 +78,15 @@ now
 	track internal msil graph
 	
 	post-build command line to xray a build in debug mode so dev at any time can start introspex monitor
+
+
+scanner panel
+	option to recompile and remove signing
+	maybe need to create unique dat file name if multiple will be in the same directory
+	!!combined viewer!! - can load in multiple dats into same work space and shows updates accordingly
+	combined stack? if multiple dlls xrayed independently, could they detect they're in the same process and share the stack tracker?
+	install windows 8 VM and test scanning entire system
+		!!save snapshot before doing scan/replae
 
 code paths as a tree
 	clickin on node in tree shows subset

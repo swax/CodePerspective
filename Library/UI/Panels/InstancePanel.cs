@@ -32,6 +32,8 @@ namespace XLibrary
         public InstancePanel()
         {
             InitializeComponent();
+
+            ListViewHelper.EnableDoubleBuffer(SubnodesView);
         }
 
         public void Init(MainForm main)

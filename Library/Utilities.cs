@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Windows.Forms;
 
 namespace XLibrary
 {
@@ -126,6 +127,11 @@ namespace XLibrary
         public static double TicksToSeconds(long ticks)
         {
             return (double)ticks / (double)Stopwatch.Frequency;
+        }
+
+        public static void AttachToolTip(this Control control, string text)
+        {
+            new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(control, text);
         }
     }
 }

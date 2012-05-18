@@ -121,6 +121,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\IRenderer.cs" />
+    <Compile Include="UI\ListViewHelper.cs" />
     <Compile Include="UI\NodeModel.cs" />
     <Compile Include="UI\Panels\MethodPanel.cs">
       <SubType>UserControl</SubType>

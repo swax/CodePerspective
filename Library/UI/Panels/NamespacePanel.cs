@@ -19,6 +19,8 @@ namespace XLibrary.UI.Panels
         public NamespacePanel()
         {
             InitializeComponent();
+
+            ListViewHelper.EnableDoubleBuffer(SubnodesView);
         }
 
         internal void Init(MainForm main)

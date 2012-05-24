@@ -20,7 +20,7 @@ namespace XLibrary
 
         public GdiRenderer GdiView;
         public GLRenderer GLView;
-        public MatrixView Test3dView;
+        public FpsView Test3dView;
 
 
         public MainForm()
@@ -67,7 +67,7 @@ namespace XLibrary
 
                 if (Test3dView == null)
                 {
-                    Test3dView = new MatrixView(Model) { Dock = DockStyle.Fill };
+                    Test3dView = new FpsView(Model) { Dock = DockStyle.Fill };
                     ViewHostPanel.Controls.Add(Test3dView);
                 }
 

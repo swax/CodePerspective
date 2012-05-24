@@ -17,7 +17,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace XLibrary
 {
-    public partial class MatrixView : UserControl
+    public partial class FpsView : UserControl
     {
         public ViewModel Model;
 
@@ -25,6 +25,10 @@ namespace XLibrary
 
         bool ShowingOutside;
         bool ShowingExternal;
+
+        Timer LogicTimer;
+        int LogicFPS = 20;
+
 
         //bool ShowLabels = true;
 
@@ -84,10 +88,29 @@ namespace XLibrary
 
         public float PlatformHeight = 5.0f;
        
-        public bool FlatMode = false;
         int FontTexture;
         int FontList;
- 
+
+        bool holdingForward;
+        bool holdingBackward;
+        bool holdingUp;
+        bool holdingDown;
+        bool holdingLeftStrafe;
+        bool holdingRightStrafe;
+        bool holdingRun;
+
+        float camXPos = 1300;
+        float camYPos = 850;
+        float camZPos = -300;
+
+        bool MouseLook;
+
+        float movementSpeedFactor = 15.0f;
+
+        Point MidWindow = new Point();
+        float camXRot = 41;
+        float camYRot = -135;
+
         struct Vbo 
         { 
             public int VboID;
@@ -98,13 +121,22 @@ namespace XLibrary
         Vbo TreeMapVbo = new Vbo();
 
 
-        public MatrixView(ViewModel model)
+        public FpsView(ViewModel model)
         {
             Model = model;
 
             InitColors();
 
             InitializeComponent();
+
+
+            GLView.KeyDown += new KeyEventHandler(GLView_KeyDown);
+            GLView.KeyUp += new KeyEventHandler(GLView_KeyUp);
+
+            LogicTimer = new Timer();
+            LogicTimer.Interval = 1000 / LogicFPS;
+            LogicTimer.Tick += new EventHandler(LogicTimer_Tick);
+            LogicTimer.Enabled = true;
         }
 
         public void InitColors()
@@ -170,6 +202,184 @@ namespace XLibrary
             }
         }
 
+        void LogicTimer_Tick(object sender, EventArgs e)
+        {
+            DoCameraMove();
+
+            CheckMouseMove();
+        }
+
+        private double toRads(double angle)
+        {
+            return Math.PI * angle / 180.0;
+        }
+
+        void DoCameraMove()
+        {
+            // Break up our movement into components along the X, Y and Z axis
+            double moveX = 0.0f;
+            double moveY = 0.0f;
+            double moveZ = 0.0f;
+
+            float speed = movementSpeedFactor;
+            if (holdingRun)
+                speed *= 3;
+
+            if (holdingForward)
+            {
+                // Control X-Axis movement
+                double pitchFactor = Math.Cos(toRads(camXRot));
+                moveX += speed * Math.Sin(toRads(camYRot)) * pitchFactor;
+ 
+                // Control Y-Axis movement
+                moveY += speed * Math.Sin(toRads(camXRot)) * -1.0f;
+ 
+                // Control Z-Axis movement
+                double yawFactor = Math.Cos(toRads(camXRot));
+                moveZ += speed * Math.Cos(toRads(camYRot)) * -1.0f * yawFactor;
+            }
+ 
+            if (holdingBackward)
+            {
+                // Control X-Axis movement
+                double pitchFactor = Math.Cos(toRads(camXRot));
+                moveX += speed * Math.Sin(toRads(camYRot)) * -1.0f * pitchFactor;
+ 
+                // Control Y-Axis movement
+                moveY += speed * Math.Sin(toRads(camXRot));
+ 
+                // Control Z-Axis movement
+                double yawFactor = Math.Cos(toRads(camXRot));
+                moveZ += speed * Math.Cos(toRads(camYRot)) * yawFactor;
+            }
+
+            if (holdingUp)
+            {
+                moveY += speed;
+            }
+
+            if (holdingDown)
+            {
+                moveY -= speed;
+            }
+ 
+            if (holdingLeftStrafe)
+            {
+                // Calculate our Y-Axis rotation in radians once here because we use it twice
+                double yRotRad = toRads(camYRot);
+ 
+                moveX += -speed * Math.Cos(yRotRad);
+                moveZ += -speed * Math.Sin(yRotRad);
+            }
+ 
+            if (holdingRightStrafe)
+            {
+                // Calculate our Y-Axis rotation in radians once here because we use it twice
+                double yRotRad = toRads(camYRot);
+ 
+                moveX += speed * Math.Cos(yRotRad);
+                moveZ += speed * Math.Sin(yRotRad);
+            }
+ 
+            // After combining our movements for any & all keys pressed, assign them to our camera speed along the given axis
+
+            camXPos += (float) moveX;
+            camYPos += (float) moveY;
+            camZPos += (float) moveZ;
+        }
+
+        void GLView_KeyDown(object sender, KeyEventArgs e)
+        {      
+            if (e.KeyCode == Keys.W)
+                holdingForward = true;
+            else if (e.KeyCode == Keys.S)
+                holdingBackward = true;
+            else if (e.KeyCode == Keys.A)
+                holdingLeftStrafe = true;
+            else if (e.KeyCode == Keys.D)
+                holdingRightStrafe = true;
+            else if (e.KeyData == (Keys.LButton | Keys.ShiftKey | Keys.Control))
+                holdingDown = true;
+            else if (e.KeyCode == Keys.Space)
+                holdingUp = true;
+            else if (e.KeyCode == Keys.ShiftKey)
+                holdingRun = true;
+
+            else if (e.KeyCode == Keys.M || e.KeyCode == Keys.Escape)
+            {
+                if (e.KeyCode == Keys.Escape)
+                    MouseLook = false;
+                else
+                    MouseLook = !MouseLook;
+
+                if (MouseLook)
+                    Cursor.Hide();
+                else
+                    Cursor.Show();
+
+                Cursor.Position = GLView.PointToScreen(MidWindow);
+            }
+        }
+
+
+        void GLView_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.W)
+                holdingForward = false;
+            else if (e.KeyCode == Keys.S)
+                holdingBackward = false;
+            else if (e.KeyCode == Keys.A)
+                holdingLeftStrafe = false;
+            else if (e.KeyCode == Keys.D)
+                holdingRightStrafe = false;
+            else if (e.KeyData == (Keys.LButton | Keys.ShiftKey))
+                holdingDown = false;
+            else if (e.KeyCode == Keys.Space)
+                holdingUp = false;
+            else if (e.KeyCode == Keys.ShiftKey)
+                holdingRun = false;
+        }
+
+        void CheckMouseMove()
+        {
+            if (!MouseLook)
+                return;
+
+            float vertMouseSensitivity = 10.0f;
+            float horizMouseSensitivity = 10.0f;
+
+            //cout << "Mouse cursor is at position (" << mouseX << ", " << mouseY << endl;
+
+            var viewPos = GLView.PointToClient(Cursor.Position);
+
+            float horizMovement = viewPos.X - MidWindow.X;
+            float vertMovement = viewPos.Y - MidWindow.Y;
+
+            camXRot += vertMovement / vertMouseSensitivity;
+            camYRot += horizMovement / horizMouseSensitivity;
+
+            // Control looking up and down with the mouse forward/back movement
+            // Limit loking up to vertically up
+            if (camXRot < -90.0f)
+                camXRot = -90.0f;
+
+            // Limit looking down to vertically down
+            if (camXRot > 90.0f)
+                camXRot = 90.0f;
+
+            // Looking left and right. Keep the angles in the range -180.0f (anticlockwise turn looking behind) to 180.0f (clockwise turn looking behind)
+            if (camYRot < -180.0f)
+                camYRot += 360.0f;
+
+            if (camYRot > 180.0f)
+                camYRot -= 360.0f;
+
+            // Reset the mouse position to the centre of the window each frame
+            Cursor.Position = GLView.PointToScreen(MidWindow);
+            GLView.Invalidate();
+        }
+
+
         public void Redraw()
         {
             Model.DoRedraw = true;
@@ -207,6 +417,9 @@ namespace XLibrary
 
             GLLoaded = true;
 
+            GL.GenBuffers(1, out TreeMapVbo.VboID);
+            GL.GenBuffers(1, out TreeMapVbo.EboID);
+
             //LoadTextures();
             //BuildFont();
         }
@@ -218,6 +431,8 @@ namespace XLibrary
             if (!GLLoaded)
                 return;
 
+            MidWindow = new Point(Width / 2, Height / 2);
+
             SetupViewport();
         }
 
@@ -225,54 +440,17 @@ namespace XLibrary
         {
             GL.Viewport(0, 0, GLView.Width, GLView.Height);
 
-            if (FlatMode)
-            {
-                GL.MatrixMode(MatrixMode.Projection);
+            GL.MatrixMode(MatrixMode.Projection);
 
-                GL.LoadIdentity();
-                GL.Ortho(0, Width, 0, Height, -1000, 1000);
-                //GL.Scale(1, -1, 1);
-                //GL.Translate(0, -Height, 0);
-                GL.MatrixMode(MatrixMode.Modelview);
-            }
-            else
-            {
-                GL.MatrixMode(MatrixMode.Projection);
-
-                float aspect_ratio = GLView.Width / (float)GLView.Height;
-                Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
-                GL.LoadMatrix(ref perpective);
-
-                GL.MatrixMode(MatrixMode.Modelview);
-                Matrix4 lookat = Matrix4.LookAt(new Vector3(1500.0f, -500.0f, 1000.0f),
-                                                new Vector3(500.0f, 500.0f, 0),
-                                                new Vector3(0.0f, 0.0f, 1.0f));
-                GL.LoadMatrix(ref lookat);
-            }
+            float aspect_ratio = GLView.Width / (float)GLView.Height;
+            Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
+            GL.LoadMatrix(ref perpective);
 
             GLView.Invalidate();
         }
 
-        /*void OrthogonalStart()
-        {
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.PushMatrix();
 
-            GL.LoadIdentity();
-            GL.Ortho(0, Width, 0, Height, 1000, -1000);
-            GL.Scale(1, -1, 1);
-            GL.Translate(0, -Height, 0);
-
-            GL.MatrixMode(MatrixMode.Modelview);
-        }
-
-        void OthogonalEnd()
-        {
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.PopMatrix();
-
-            GL.MatrixMode(MatrixMode.Modelview);
-        }*/
+        Vector3 CameraPos = new Vector3(-500f, 0f, 0.0f);
 
         private void GLView_Paint(object sender, PaintEventArgs e)
         {
@@ -281,29 +459,58 @@ namespace XLibrary
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if ((!Model.DoRedraw && !Model.DoRevalue && !Model.DoResize) || Model.CurrentRoot == null)
-            {
-                // do nothing to vbo
-            }
-            else //if(TreeMapVbo.NumElements == 0)
-            {
-                RedrawTreeMap();
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
 
-                TreeMapVbo = LoadVBO(Vertices, VertexCount, Elements, ElementCount);
-            }
+            // Move the camera to our location in space
+            GL.Rotate(camXRot, 1.0f, 0.0f, 0.0f);        // Rotate our camera on the x-axis (looking up and down)
+            GL.Rotate(camYRot, 0.0f, 1.0f, 0.0f);        // Rotate our camera on the  y-axis (looking left and right)
+            GL.Translate(-camXPos, -camYPos, -camZPos);    // Translate the modelviewm matrix to the position of our camera
+ 
+            RedrawTreeMap();
 
-            Draw(TreeMapVbo);
+            LoadVBO(Vertices, VertexCount, Elements, ElementCount);
 
-            //glPrint(10, 10, "HELLOOOOOOOO");
+            Draw();
+
+            if(MouseLook)
+                DrawHud();
 
             GLView.SwapBuffers();
 
             Model.FpsCount++;
         }
 
-        Vbo LoadVBO<TVertex>(TVertex[] vertices, int verticesLength, int[] elements, int elementsLength) where TVertex : struct
+        void DrawHud()
         {
-            Vbo handle = new Vbo();
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.PushMatrix();
+            GL.LoadIdentity();
+            GL.Ortho(0, GLView.Width, GLView.Height, 0, 0, 1);
+           
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+
+            GL.Disable(EnableCap.CullFace);
+
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+
+            GL.Begin(BeginMode.Lines);
+            GL.Color3(Color.White);
+            GL.Vertex2(MidWindow.X - 2, MidWindow.Y);
+            GL.Vertex2(MidWindow.X + 3, MidWindow.Y);
+            GL.Vertex2(MidWindow.X, MidWindow.Y - 3);
+            GL.Vertex2(MidWindow.X, MidWindow.Y + 2);
+            GL.End();
+
+            GL.Enable(EnableCap.CullFace);
+
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.PopMatrix();
+        }
+
+        void LoadVBO<TVertex>(TVertex[] vertices, int verticesLength, int[] elements, int elementsLength) where TVertex : struct
+        {
             int size;
 
             // To create a VBO:
@@ -311,25 +518,24 @@ namespace XLibrary
             // 2) Bind the vertex buffer handle and upload your vertex data. Check that the buffer was uploaded correctly.
             // 3) Bind the element buffer handle and upload your element data. Check that the buffer was uploaded correctly.
 
-            GL.GenBuffers(1, out handle.VboID);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, handle.VboID);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, TreeMapVbo.VboID);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(verticesLength * BlittableValueType.StrideOf(vertices)), vertices, BufferUsageHint.StaticDraw);
             GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out size);
             if (verticesLength * BlittableValueType.StrideOf(vertices) != size)
                 throw new ApplicationException("Vertex data not uploaded correctly");
 
-            GL.GenBuffers(1, out handle.EboID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, handle.EboID);
+      
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TreeMapVbo.EboID);
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(elementsLength * sizeof(int)), elements, BufferUsageHint.StaticDraw);
             GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out size);
             if (elementsLength * sizeof(int) != size)
                 throw new ApplicationException("Element data not uploaded correctly");
 
-            handle.NumElements = elementsLength;
-            return handle;
+
+            TreeMapVbo.NumElements = elementsLength;
         }
 
-        void Draw(Vbo handle)
+        void Draw()
         {
             // To draw a VBO:
             // 1) Ensure that the VertexArray client state is enabled.
@@ -342,23 +548,14 @@ namespace XLibrary
             GL.EnableClientState(ArrayCap.VertexArray);
             GL.EnableClientState(ArrayCap.NormalArray);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, handle.VboID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, handle.EboID);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, TreeMapVbo.VboID);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, TreeMapVbo.EboID);
 
             GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
             GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
             GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
-
-            if (FlatMode)
-            {
-                GL.DrawElements(BeginMode.Lines, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            }
-            else
-            {
-                GL.DrawElements(BeginMode.Quads, handle.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            }
-
+            GL.DrawElements(BeginMode.Quads, TreeMapVbo.NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 
         float PanelBorderWidth = 4;
@@ -368,8 +565,8 @@ namespace XLibrary
 
         private void RedrawTreeMap()
         {
-            MapWidth = FlatMode ? GLView.Width : 1000;
-            MapHeight = FlatMode ? GLView.Height : 1000;
+            MapWidth = 1000;
+            MapHeight = 1000;
 
             ShowingOutside = Model.ShowOutside && Model.CurrentRoot != Model.InternalRoot;
             ShowingExternal = Model.ShowExternal && !Model.CurrentRoot.XNode.External;
@@ -447,94 +644,66 @@ namespace XLibrary
         int ElementCount = 0;
         int[] Elements = new int[1000];
 
-        void DrawRectangle(Color color, RectangleF rect)
+        void FillRectangle(Color color, RectangleF rect, float floor, float ceiling)
         {
-            DrawRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, 0);
+            FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, floor, ceiling);
         }
 
-        void DrawRectangle(Color color, float x, float y, float width, float height, float z)
-        {
-            AddNewVerticies(8);
-
-            var southWestBottom = new Vector3(x, y, z);
-            var southEastBottom = new Vector3(x + width, y, z);
-            var northEastBottom = new Vector3(x + width, y + height, z);
-            var northWestBottom = new Vector3(x, y + height, z);
-
-            var normal = new Vector3(0, 0, 1);
-            Vertices[VertexCount++].Set(northWestBottom, color, normal);
-            Vertices[VertexCount++].Set(northEastBottom, color, normal);
-
-            Vertices[VertexCount++].Set(northEastBottom, color, normal);
-            Vertices[VertexCount++].Set(southEastBottom, color, normal);
-
-            Vertices[VertexCount++].Set(southEastBottom, color, normal);
-            Vertices[VertexCount++].Set(southWestBottom, color, normal); 
-
-            Vertices[VertexCount++].Set(southWestBottom, color, normal);
-            Vertices[VertexCount++].Set(northWestBottom, color, normal);
-        }
-
-        void FillRectangle(Color color, RectangleF rect, float z, float zheight)
-        {
-            FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, z, zheight);
-        }
-
-        void FillRectangle(Color color, float x, float y, float width, float height, float z, float zheight)
+        void FillRectangle(Color color, float x, float z, float width, float length, float floor, float ceiling)
         {
             AddNewVerticies(24);
 
-            var southWestBottom = new Vector3(x, y, z);
-            var southEastBottom = new Vector3(x + width, y, z);
-            var northEastBottom = new Vector3(x + width, y + height, z);
-            var northWestBottom = new Vector3(x, y + height, z);
+            var v1 = new Vector3(x, floor, z);
+            var v2 = new Vector3(x + width, floor, z);
+            var v3 = new Vector3(x + width, floor, z + length);
+            var v4 = new Vector3(x, floor, z + length);
 
-            var southWestTop = new Vector3(x, y, z + zheight);
-            var southEastTop = new Vector3(x + width, y, z + zheight);
-            var northEastTop = new Vector3(x + width, y + height, z + zheight);
-            var northWestTop = new Vector3(x, y + height, z + zheight);
+            var v5 = new Vector3(x, floor + ceiling, z);
+            var v6 = new Vector3(x + width, floor + ceiling, z);
+            var v7 = new Vector3(x + width, floor + ceiling, z + length);
+            var v8 = new Vector3(x, floor + ceiling, z + length);
 
             // bottom vertices
-            var normal = new Vector3(0, 0, -1);
-            Vertices[VertexCount++].Set(northWestBottom, color, normal);
-            Vertices[VertexCount++].Set(northEastBottom, color, normal);
-            Vertices[VertexCount++].Set(southEastBottom, color, normal);
-            Vertices[VertexCount++].Set(southWestBottom, color, normal); 
+            var normal = new Vector3(0, -1, 0);
+            Vertices[VertexCount++].Set(v1, color, normal);
+            Vertices[VertexCount++].Set(v2, color, normal);
+            Vertices[VertexCount++].Set(v3, color, normal);
+            Vertices[VertexCount++].Set(v4, color, normal);
 
             // top vertices
-            normal = new Vector3(0, 0, 1);
-            Vertices[VertexCount++].Set(southWestTop, color, normal);
-            Vertices[VertexCount++].Set(southEastTop, color, normal);
-            Vertices[VertexCount++].Set(northEastTop, color, normal);
-            Vertices[VertexCount++].Set(northWestTop, color, normal);
-
-            // front vertices
-            normal = new Vector3(0, -1, 0);
-            Vertices[VertexCount++].Set(southWestBottom, color, normal);
-            Vertices[VertexCount++].Set(southEastBottom, color, normal);
-            Vertices[VertexCount++].Set(southEastTop, color, normal);
-            Vertices[VertexCount++].Set(southWestTop, color, normal);
-
-            // east vertices
-            normal = new Vector3(1, 0, 0);
-            Vertices[VertexCount++].Set(southEastBottom, color, normal);
-            Vertices[VertexCount++].Set(northEastBottom, color, normal);
-            Vertices[VertexCount++].Set(northEastTop, color, normal);
-            Vertices[VertexCount++].Set(southEastTop, color, normal);
-
-            // back vertices
             normal = new Vector3(0, 1, 0);
-            Vertices[VertexCount++].Set(northWestTop, color, normal);
-            Vertices[VertexCount++].Set(northEastTop, color, normal);
-            Vertices[VertexCount++].Set(northEastBottom, color, normal);
-            Vertices[VertexCount++].Set(northWestBottom, color, normal);
+            Vertices[VertexCount++].Set(v8, color, normal);
+            Vertices[VertexCount++].Set(v7, color, normal);     
+            Vertices[VertexCount++].Set(v6, color, normal);
+            Vertices[VertexCount++].Set(v5, color, normal);
+
+            // -z facing vertices
+            normal = new Vector3(0, 0, -1);
+            Vertices[VertexCount++].Set(v5, color, normal);
+            Vertices[VertexCount++].Set(v6, color, normal);
+            Vertices[VertexCount++].Set(v2, color, normal);
+            Vertices[VertexCount++].Set(v1, color, normal);
+
+            // x facing vertices
+            normal = new Vector3(1, 0, 0);
+            Vertices[VertexCount++].Set(v6, color, normal);
+            Vertices[VertexCount++].Set(v7, color, normal);
+            Vertices[VertexCount++].Set(v3, color, normal);
+            Vertices[VertexCount++].Set(v2, color, normal);
+
+            // z facing vertices
+            normal = new Vector3(0, 0, 1);
+            Vertices[VertexCount++].Set(v4, color, normal);
+            Vertices[VertexCount++].Set(v3, color, normal);
+            Vertices[VertexCount++].Set(v7, color, normal);
+            Vertices[VertexCount++].Set(v8, color, normal);
            
-            // west vertices
+            // -x facing vertices
             normal = new Vector3(-1, 0, 0);
-            Vertices[VertexCount++].Set(southWestTop, color, normal);
-            Vertices[VertexCount++].Set(northWestTop, color, normal);
-            Vertices[VertexCount++].Set(northWestBottom, color, normal);
-            Vertices[VertexCount++].Set(southWestBottom, color, normal);
+            Vertices[VertexCount++].Set(v1, color, normal);
+            Vertices[VertexCount++].Set(v4, color, normal);
+            Vertices[VertexCount++].Set(v8, color, normal);
+            Vertices[VertexCount++].Set(v5, color, normal);
         }
 
         private void AddNewVerticies(int amount)
@@ -579,16 +748,6 @@ namespace XLibrary
             }
 
             int firstVertexID = VertexCount;
-
-            /*Vertices[VertexCount++].Set(x + width/2f, y,             z, color);
-            Vertices[VertexCount++].Set(x + width,    y + height/2f, z, color);
-            Vertices[VertexCount++].Set(x + width/2f, y + height,    z, color);
-            Vertices[VertexCount++].Set(x,            y + height/2f, z, color);
-
-            Elements[ElementCount++] = firstVertexID + 0;
-            Elements[ElementCount++] = firstVertexID + 1;
-            Elements[ElementCount++] = firstVertexID + 2;
-            Elements[ElementCount++] = firstVertexID + 3;*/
         }
 
         private void SizeNode(NodeModel root, NodeModel exclude, bool center)
@@ -761,20 +920,10 @@ namespace XLibrary
 
                 try
                 {
-                    if(FlatMode)
-                        DrawRectangle(pen, node.AreaF);
+                    if (rect)
+                        FillRectangle(pen, node.AreaF, z, zheight);
                     else
-                    {
-                        if (rect)
-                            FillRectangle(pen, node.AreaF, z, zheight);
-                        else
-                            FillEllipse(pen, node.AreaF, z, zheight);
-                    }
-
-                    /*if (rect)
-                        DrawRectangle(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height, z);
-                    else
-                        DrawEllipse(pen, node.AreaF.X, node.AreaF.Y, node.AreaF.Width, node.AreaF.Height, z);*/
+                        FillEllipse(pen, node.AreaF, z, zheight);
                 }
                 catch (Exception ex)
                 {

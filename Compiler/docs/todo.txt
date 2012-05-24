@@ -8,19 +8,26 @@ now
 
 	obsidian colors - code/console view too
 
+	show fields in instance view even if no instances created
+
+	
 	3d 
+		Renderer options - GDI, GL 2D, FPS, save FPS colors
+
+		draw lines as dashes first, then do arcs from tower tops
+
+		Call render, igore draw calls and build vbo manually, so interface still implemented
+		
 		towers translucent blue
 		light up white when hit - light up the code
 			maybe not light up but light floors bottom to tip
 		communication as dot archs between towers
-		fps controls
 		texture sides of blocks with C#, MSIL, Timing, and Instance info
 		click on block multiple times rotates it
 		create city as a vbo that should rarely have to be changed
 		label function / field name on top of tower
 
 	zoom on class show method graph
-
 
 	build stats - time, dat size
 	double click on method in treeview, show containing class

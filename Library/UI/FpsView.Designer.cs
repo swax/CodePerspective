@@ -1,6 +1,6 @@
 ﻿namespace XLibrary
 {
-    partial class MatrixView
+    partial class FpsView
     {
         /// <summary> 
         /// Required designer variable.

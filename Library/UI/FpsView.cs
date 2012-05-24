@@ -17,7 +17,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace XLibrary
 {
-    public partial class FpsView : UserControl
+    public partial class FpsView : GLControl
     {
         public ViewModel Model;
 
@@ -127,11 +127,12 @@ namespace XLibrary
 
             InitColors();
 
-            InitializeComponent();
+            Load += new EventHandler(this.GLView_Load);
+            Paint += new PaintEventHandler(this.GLView_Paint);
+            Resize += new EventHandler(this.GLView_Resize);
 
-
-            GLView.KeyDown += new KeyEventHandler(GLView_KeyDown);
-            GLView.KeyUp += new KeyEventHandler(GLView_KeyUp);
+            KeyDown += new KeyEventHandler(GLView_KeyDown);
+            KeyUp += new KeyEventHandler(GLView_KeyUp);
 
             LogicTimer = new Timer();
             LogicTimer.Interval = 1000 / LogicFPS;
@@ -317,7 +318,7 @@ namespace XLibrary
                 else
                     Cursor.Show();
 
-                Cursor.Position = GLView.PointToScreen(MidWindow);
+                Cursor.Position = PointToScreen(MidWindow);
             }
         }
 
@@ -350,7 +351,7 @@ namespace XLibrary
 
             //cout << "Mouse cursor is at position (" << mouseX << ", " << mouseY << endl;
 
-            var viewPos = GLView.PointToClient(Cursor.Position);
+            var viewPos = PointToClient(Cursor.Position);
 
             float horizMovement = viewPos.X - MidWindow.X;
             float vertMovement = viewPos.Y - MidWindow.Y;
@@ -375,15 +376,15 @@ namespace XLibrary
                 camYRot -= 360.0f;
 
             // Reset the mouse position to the centre of the window each frame
-            Cursor.Position = GLView.PointToScreen(MidWindow);
-            GLView.Invalidate();
+            Cursor.Position = PointToScreen(MidWindow);
+            Invalidate();
         }
 
 
         public void Redraw()
         {
             Model.DoRedraw = true;
-            GLView.Invalidate();
+            Invalidate();
         }
 
         private void GLView_Load(object sender, EventArgs e)
@@ -419,15 +420,10 @@ namespace XLibrary
 
             GL.GenBuffers(1, out TreeMapVbo.VboID);
             GL.GenBuffers(1, out TreeMapVbo.EboID);
-
-            //LoadTextures();
-            //BuildFont();
         }
 
         private void GLView_Resize(object sender, EventArgs e)
         {
-            base.OnResize(e);
-
             if (!GLLoaded)
                 return;
 
@@ -438,15 +434,15 @@ namespace XLibrary
 
         internal void SetupViewport()
         {
-            GL.Viewport(0, 0, GLView.Width, GLView.Height);
+            GL.Viewport(0, 0, Width, Height);
 
             GL.MatrixMode(MatrixMode.Projection);
 
-            float aspect_ratio = GLView.Width / (float)GLView.Height;
+            float aspect_ratio = Width / (float)Height;
             Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
             GL.LoadMatrix(ref perpective);
 
-            GLView.Invalidate();
+            Invalidate();
         }
 
 
@@ -476,7 +472,7 @@ namespace XLibrary
             if(MouseLook)
                 DrawHud();
 
-            GLView.SwapBuffers();
+            SwapBuffers();
 
             Model.FpsCount++;
         }
@@ -486,7 +482,7 @@ namespace XLibrary
             GL.MatrixMode(MatrixMode.Projection);
             GL.PushMatrix();
             GL.LoadIdentity();
-            GL.Ortho(0, GLView.Width, GLView.Height, 0, 0, 1);
+            GL.Ortho(0, Width, Height, 0, 0, 1);
            
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
@@ -972,100 +968,6 @@ namespace XLibrary
             int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
 
             tgt = Color.FromArgb(a, r, g, b);
-        }
-
-        protected void LoadTextures()
-        {
-            var asm = Assembly.GetExecutingAssembly();
-            // loading the original font causes an error in texImage2D even with 8bpp set
-            var stream = asm.GetManifestResourceStream("XLibrary.Resources.Font2.png");
-
-            var image = new Bitmap(stream);
-
-            if (image == null)
-                return;
-
-            GL.Enable(EnableCap.Texture2D);
-            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
-
-            FontTexture = GL.GenTexture();
-
-            image.RotateFlip(RotateFlipType.RotateNoneFlipY);
-            
-            Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
-
-            BitmapData bitmapdata = image.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, image.PixelFormat);
-
-            // Create Linear Filtered Texture
-            GL.BindTexture(TextureTarget.Texture2D, FontTexture);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 256, 256, 0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bitmapdata.Scan0);
-
-            image.UnlockBits(bitmapdata);
-            image.Dispose();
-
-            GL.Disable(EnableCap.Texture2D);
-        }
-
-        public void BuildFont()									// Build Our Font Display List
-        {
-            float cx;											// Holds Our X Character Coord
-            float cy;											// Holds Our Y Character Coord
-
-            FontList = GL.GenLists(256);					// Creating 256 Display Lists
-            GL.BindTexture(TextureTarget.Texture2D, FontTexture);	// Select Our Font Texture
-            for (int loop = 0; loop < 256; loop++)				// Loop Through All 256 Lists
-            {
-                cx = (float)(loop % 16) / 16.0f;				// X Position Of Current Character
-                cy = (float)(loop / 16) / 16.0f;				// Y Position Of Current Character
-
-
-                GL.NewList(FontList + loop, ListMode.Compile);  // Start Building A List
-                GL.Begin(BeginMode.Quads);				        // Use A Quad For Each Character
-                GL.TexCoord2(cx, 1 - cy - 0.0625f);			    // Texture Coord (Bottom Left)
-                GL.Vertex2(0, 0);							    // Vertex Coord (Bottom Left)
-                GL.TexCoord2(cx + 0.0625f, 1 - cy - 0.0625f);   // Texture Coord (Bottom Right)
-                GL.Vertex2(16, 0);							    // Vertex Coord (Bottom Right)
-                GL.TexCoord2(cx + 0.0625f, 1 - cy);			    // Texture Coord (Top Right)
-                GL.Vertex2(16, 16);							    // Vertex Coord (Top Right)
-                GL.TexCoord2(cx, 1 - cy);					    // Texture Coord (Top Left)
-                GL.Vertex2(0, 16);							    // Vertex Coord (Top Left)
-                GL.End();										// Done Building Our Quad (Character)
-                GL.Translate(10, 0, 0);						    // Move To The Right Of The Character
-                GL.EndList();									// Done Building The Display List
-            }													// Loop Until All 256 Are Built
-        }
-
-
-        public void glPrint(int x, int y, string str)	// Where The Printing Happens
-        {
-            GL.BindTexture(TextureTarget.Texture2D, FontTexture);	// Select Our Font Texture
-            GL.Disable(EnableCap.DepthTest);							// Disables Depth Testing
-            GL.MatrixMode(MatrixMode.Projection);						// Select The Projection Matrix
-            GL.PushMatrix();										// Store The Projection Matrix
-            GL.LoadIdentity();									// Reset The Projection Matrix
-            GL.Ortho(0, GLView.Width, 0, GLView.Height, -1, 1);						// Set Up An Ortho Screen
-            GL.MatrixMode(MatrixMode.Modelview);						// Select The Modelview Matrix
-            GL.PushMatrix();										// Store The Modelview Matrix
-            GL.LoadIdentity();									// Reset The Modelview Matrix
-            GL.Translate(x, y, 0);									// Position The Text (0,0 - Bottom Left)
-
-            GL.ListBase(FontList - 32);	// Choose The Font Set (0 or 1)
-            // This is a really, really strange quirk of the CsGL library.  It seems that the glCallLists
-            // function, when passed a string, is supposed to be in unicode format, which means that we have
-            // to double the length for it to print the full string.  Strange, but it works.
-            
-            //GL.glCallLists(str.Length * 2, GL.GL_UNSIGNED_BYTE, str);	// Write The Text To The Screen
-            GL.CallLists<char>(str.Length, ListNameType.UnsignedByte, str.ToCharArray());
-            GL.MatrixMode(MatrixMode.Projection);						// Select The Projection Matrix
-            GL.PopMatrix();										// Restore The Old Projection Matrix
-            GL.MatrixMode(MatrixMode.Modelview);					// Select The Modelview Matrix
-            GL.PopMatrix();										// Restore The Old Projection Matrix
-            GL.Enable(EnableCap.DepthTest);								// Enables Depth Testing
         }
     }
 

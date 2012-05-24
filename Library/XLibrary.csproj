@@ -111,11 +111,8 @@
     <Compile Include="UI\DetailsNav.Designer.cs">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\MatrixView.cs">
+    <Compile Include="UI\FpsView.cs">
       <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\MatrixView.Designer.cs">
-      <DependentUpon>MatrixView.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\IRenderer.cs" />
     <Compile Include="UI\ListViewHelper.cs" />
@@ -197,9 +194,6 @@
   <ItemGroup>
     <EmbeddedResource Include="UI\DetailsNav.resx">
       <DependentUpon>DetailsNav.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\MatrixView.resx">
-      <DependentUpon>MatrixView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\MethodPanel.resx">
       <DependentUpon>MethodPanel.cs</DependentUpon>

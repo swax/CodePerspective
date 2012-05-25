@@ -17,7 +17,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace XLibrary
 {
-    public partial class GibsonView : GLControl
+    public partial class GibsonView : GLControl, IRenderer
     {
         public ViewModel Model;
 
@@ -38,11 +38,11 @@ namespace XLibrary
 
         Point MidWindow = new Point();
 
-        FpsCamera FpsCam = new FpsCamera();
+        FpsCamera FpsCam = new FpsCamera(41, -135, 1300, 850, -300);
 
         IColorProfile XColors = new GibsonColorProfile();
 
-        Vbo TreeMapVbo = new Vbo();
+        VertexBuffer TreeMapVbo = new VertexBuffer();
 
 
         public GibsonView(ViewModel model)
@@ -55,11 +55,25 @@ namespace XLibrary
 
             KeyDown += new KeyEventHandler(GLView_KeyDown);
             KeyUp += new KeyEventHandler(GLView_KeyUp);
+            MouseDown += new MouseEventHandler(GibsonView_MouseDown);
+            MouseUp += new MouseEventHandler(GibsonView_MouseUp);
 
             LogicTimer = new Timer();
             LogicTimer.Interval = 1000 / LogicFPS;
             LogicTimer.Tick += new EventHandler(LogicTimer_Tick);
             LogicTimer.Enabled = true;
+        }
+
+        public void Start()
+        {
+            Model.TwoDimensionalValues = true;
+            MakeCurrent();
+            LogicTimer.Enabled = true;
+        }
+
+        public void Stop()
+        {
+            LogicTimer.Enabled = false;
         }
 
         public void Redraw()
@@ -102,8 +116,7 @@ namespace XLibrary
 
             GLLoaded = true;
 
-            GL.GenBuffers(1, out TreeMapVbo.VboID);
-            GL.GenBuffers(1, out TreeMapVbo.EboID);
+            TreeMapVbo.Init();
         }
 
         private void GLView_Resize(object sender, EventArgs e)
@@ -200,6 +213,19 @@ namespace XLibrary
             FpsCam.KeyUp(e);
         }
 
+        void GibsonView_MouseDown(object sender, MouseEventArgs e)
+        {
+            MouseLook = true;
+            Cursor.Hide();
+            Cursor.Position = PointToScreen(MidWindow);
+        }
+
+        void GibsonView_MouseUp(object sender, MouseEventArgs e)
+        {
+            MouseLook = false;
+            Cursor.Show();
+        }
+
 
         float PanelBorderWidth = 4;
         float NodeBorderWidth = 4;
@@ -267,13 +293,13 @@ namespace XLibrary
 
             if (ShowingOutside)
             {
-                FillRectangle(XColors.BorderColor, Model.InternalRoot.AreaF.Width, 0, PanelBorderWidth, Model.InternalRoot.AreaF.Height, 0, PlatformHeight);
+                GLUtils.DrawCube(TreeMapVbo, XColors.BorderColor, Model.InternalRoot.AreaF.Width, 0, PanelBorderWidth, Model.InternalRoot.AreaF.Height, 0, PlatformHeight);
                 DrawNode(Model.InternalRoot, 0, true, PlatformHeight);
             }
 
             if (ShowingExternal)
             {
-                FillRectangle(XColors.BorderColor, Model.ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, Model.ExternalRoot.AreaF.Height, 0, PlatformHeight);
+                GLUtils.DrawCube(TreeMapVbo, XColors.BorderColor, Model.ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, Model.ExternalRoot.AreaF.Height, 0, PlatformHeight);
                 DrawNode(Model.ExternalRoot, 0, true, PlatformHeight);
             }
 
@@ -282,62 +308,7 @@ namespace XLibrary
 
         void FillRectangle(Color color, RectangleF rect, float floor, float ceiling)
         {
-            FillRectangle(color, rect.X, rect.Y, rect.Width, rect.Height, floor, ceiling);
-        }
-
-        void FillRectangle(Color color, float x, float z, float width, float length, float floor, float ceiling)
-        {
-            var v1 = new Vector3(x, floor, z);
-            var v2 = new Vector3(x + width, floor, z);
-            var v3 = new Vector3(x + width, floor, z + length);
-            var v4 = new Vector3(x, floor, z + length);
-
-            var v5 = new Vector3(x, floor + ceiling, z);
-            var v6 = new Vector3(x + width, floor + ceiling, z);
-            var v7 = new Vector3(x + width, floor + ceiling, z + length);
-            var v8 = new Vector3(x, floor + ceiling, z + length);
-
-            // bottom vertices
-            var normal = new Vector3(0, -1, 0);
-            TreeMapVbo.AddVertex(v1, color, normal);
-            TreeMapVbo.AddVertex(v2, color, normal);
-            TreeMapVbo.AddVertex(v3, color, normal);
-            TreeMapVbo.AddVertex(v4, color, normal);
-
-            // top vertices
-            normal = new Vector3(0, 1, 0);
-            TreeMapVbo.AddVertex(v8, color, normal);
-            TreeMapVbo.AddVertex(v7, color, normal);     
-            TreeMapVbo.AddVertex(v6, color, normal);
-            TreeMapVbo.AddVertex(v5, color, normal);
-
-            // -z facing vertices
-            normal = new Vector3(0, 0, -1);
-            TreeMapVbo.AddVertex(v5, color, normal);
-            TreeMapVbo.AddVertex(v6, color, normal);
-            TreeMapVbo.AddVertex(v2, color, normal);
-            TreeMapVbo.AddVertex(v1, color, normal);
-
-            // x facing vertices
-            normal = new Vector3(1, 0, 0);
-            TreeMapVbo.AddVertex(v6, color, normal);
-            TreeMapVbo.AddVertex(v7, color, normal);
-            TreeMapVbo.AddVertex(v3, color, normal);
-            TreeMapVbo.AddVertex(v2, color, normal);
-
-            // z facing vertices
-            normal = new Vector3(0, 0, 1);
-            TreeMapVbo.AddVertex(v4, color, normal);
-            TreeMapVbo.AddVertex(v3, color, normal);
-            TreeMapVbo.AddVertex(v7, color, normal);
-            TreeMapVbo.AddVertex(v8, color, normal);
-           
-            // -x facing vertices
-            normal = new Vector3(-1, 0, 0);
-            TreeMapVbo.AddVertex(v1, color, normal);
-            TreeMapVbo.AddVertex(v4, color, normal);
-            TreeMapVbo.AddVertex(v8, color, normal);
-            TreeMapVbo.AddVertex(v5, color, normal);
+            GLUtils.DrawCube(TreeMapVbo, color, rect.X, rect.Y, rect.Width, rect.Height, floor, ceiling);
         }
 
         private void SizeNode(NodeModel root, NodeModel exclude, bool center)
@@ -404,8 +375,6 @@ namespace XLibrary
             //bool pointBorder = node.AreaF.Width < 3.0f || node.AreaF.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool rect = Model.ViewLayout == LayoutType.ThreeD || Model.ViewLayout == LayoutType.TreeMap || Model.CenterMap.ContainsKey(node.ID);
-
             float zheight = PlatformHeight;
             if (node.ObjType == XObjType.Method)
                 zheight = Math.Max(250f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, 1);
@@ -528,8 +497,8 @@ namespace XLibrary
             }*/
 
 
-            if (Model.MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
-                drawChildren = false;
+            //if (Model.MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
+            //    drawChildren = false;
 
             if (drawChildren && node.AreaF.Width > 1 && node.AreaF.Height > 1)
                 foreach (var sub in node.Nodes)
@@ -561,6 +530,71 @@ namespace XLibrary
             int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
 
             tgt = Color.FromArgb(a, r, g, b);
+        }
+
+        public float ViewWidth
+        {
+            get { return Width; }
+        }
+
+        public float ViewHeight
+        {
+            get { return Height; }
+        }
+
+        public SizeF MeasureString(string text, Font font)
+        {
+            return new SizeF();
+        }
+
+        public void DrawString(string text, Font font, Color color, PointF point)
+        {
+            
+        }
+
+        public void DrawString(string text, Font font, Color color, float x, float y)
+        {
+            
+        }
+
+        public void DrawString(string text, Font font, Color color, RectangleF rect)
+        {
+            
+        }
+
+        public void DrawTextBackground(Color color, float x, float y, float width, float height)
+        {
+            
+        }
+
+        public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
+        {
+            
+        }
+
+        public void DrawNodeOutline(Color pen, int penWidth, RectangleF area, bool outside, NodeModel node, int depth)
+        {
+            
+        }
+
+        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        {
+            
+        }
+
+        public void ViewInvalidate()
+        {
+            Invalidate();
+        }
+
+        public void ViewRefresh()
+        {
+            Invalidate();
+        }
+
+        public Point GetCursorPosition()
+        {
+            return new Point();   
         }
     }
 }

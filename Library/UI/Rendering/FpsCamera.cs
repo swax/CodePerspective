@@ -19,15 +19,25 @@ namespace XLibrary
         bool holdingRightStrafe;
         bool holdingRun;
 
-        float camXPos = 1300;
-        float camYPos = 850;
-        float camZPos = -300;
+        float camXPos;
+        float camYPos;
+        float camZPos;
 
-        float camXRot = 41;
-        float camYRot = -135;
+        float camXRot;
+        float camYRot;
 
         float movementSpeedFactor = 15.0f;
 
+
+        public FpsCamera(float xrot, float yrot, float xpos, float ypos, float zpos)
+        {
+            camXRot = xrot;
+            camYRot = yrot;
+
+            camXPos = xpos;
+            camYPos = ypos;
+            camZPos = zpos;
+        }
 
         internal void KeyDown(KeyEventArgs e)
         {

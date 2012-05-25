@@ -11,6 +11,9 @@ namespace XLibrary
         float ViewWidth { get; }
         float ViewHeight { get; }
 
+        void Start();
+        void Stop();
+
         SizeF MeasureString(string text, Font font);
 
         void DrawString(string text, Font font, Color color, PointF point);

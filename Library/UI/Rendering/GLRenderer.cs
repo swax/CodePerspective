@@ -41,6 +41,17 @@ namespace XLibrary
             MouseLeave += new EventHandler(GLRenderer_MouseLeave);
         }
 
+        public void Start()
+        {
+            Model.TwoDimensionalValues = false;
+            MakeCurrent();
+        }
+
+        public void Stop()
+        {
+
+        }
+
         void GLRenderer_Load(object sender, EventArgs e)
         {
             SetupViewport();

@@ -52,7 +52,6 @@
             this.TimelineButton = new System.Windows.Forms.RadioButton();
             this.LayoutInitGraphButton = new System.Windows.Forms.RadioButton();
             this.ShowAllDependenciesCheckBox = new System.Windows.Forms.CheckBox();
-            this.Layout3dButton = new System.Windows.Forms.RadioButton();
             this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
             this.GraphDependencies = new System.Windows.Forms.RadioButton();
             this.MapDependencies = new System.Windows.Forms.RadioButton();
@@ -73,13 +72,19 @@
             this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
-            this.OpenGLCheckBox = new System.Windows.Forms.CheckBox();
+            this.panel7 = new System.Windows.Forms.Panel();
+            this.label7 = new System.Windows.Forms.Label();
+            this.RenderGdiButton = new System.Windows.Forms.RadioButton();
+            this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
+            this.RenderFpsButton = new System.Windows.Forms.RadioButton();
+            this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.panel5.SuspendLayout();
             this.panel6.SuspendLayout();
+            this.panel7.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -310,11 +315,9 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.OpenGLCheckBox);
             this.panel1.Controls.Add(this.TimelineButton);
             this.panel1.Controls.Add(this.LayoutInitGraphButton);
             this.panel1.Controls.Add(this.ShowAllDependenciesCheckBox);
-            this.panel1.Controls.Add(this.Layout3dButton);
             this.panel1.Controls.Add(this.GraphIntermediateDependencies);
             this.panel1.Controls.Add(this.GraphDependencies);
             this.panel1.Controls.Add(this.MapDependencies);
@@ -323,13 +326,13 @@
             this.panel1.Controls.Add(this.LayoutCallGraphButton);
             this.panel1.Location = new System.Drawing.Point(6, 17);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(192, 137);
+            this.panel1.Size = new System.Drawing.Size(114, 235);
             this.panel1.TabIndex = 21;
             // 
             // TimelineButton
             // 
             this.TimelineButton.AutoSize = true;
-            this.TimelineButton.Location = new System.Drawing.Point(94, 94);
+            this.TimelineButton.Location = new System.Drawing.Point(3, 95);
             this.TimelineButton.Name = "TimelineButton";
             this.TimelineButton.Size = new System.Drawing.Size(80, 17);
             this.TimelineButton.TabIndex = 34;
@@ -353,7 +356,7 @@
             // ShowAllDependenciesCheckBox
             // 
             this.ShowAllDependenciesCheckBox.AutoSize = true;
-            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(95, 50);
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(4, 170);
             this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
             this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(89, 17);
             this.ShowAllDependenciesCheckBox.TabIndex = 32;
@@ -361,22 +364,10 @@
             this.ShowAllDependenciesCheckBox.UseVisualStyleBackColor = true;
             this.ShowAllDependenciesCheckBox.CheckedChanged += new System.EventHandler(this.ShowAllDependenciesCheckBox_CheckedChanged);
             // 
-            // Layout3dButton
-            // 
-            this.Layout3dButton.AutoSize = true;
-            this.Layout3dButton.Location = new System.Drawing.Point(3, 117);
-            this.Layout3dButton.Name = "Layout3dButton";
-            this.Layout3dButton.Size = new System.Drawing.Size(63, 17);
-            this.Layout3dButton.TabIndex = 31;
-            this.Layout3dButton.TabStop = true;
-            this.Layout3dButton.Text = "3D Test";
-            this.Layout3dButton.UseVisualStyleBackColor = true;
-            this.Layout3dButton.CheckedChanged += new System.EventHandler(this.Layout3dButton_CheckedChanged);
-            // 
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(94, 73);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(3, 193);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
             this.GraphIntermediateDependencies.Size = new System.Drawing.Size(90, 17);
             this.GraphIntermediateDependencies.TabIndex = 30;
@@ -388,7 +379,7 @@
             // GraphDependencies
             // 
             this.GraphDependencies.AutoSize = true;
-            this.GraphDependencies.Location = new System.Drawing.Point(95, 27);
+            this.GraphDependencies.Location = new System.Drawing.Point(4, 147);
             this.GraphDependencies.Name = "GraphDependencies";
             this.GraphDependencies.Size = new System.Drawing.Size(100, 17);
             this.GraphDependencies.TabIndex = 25;
@@ -400,7 +391,7 @@
             // MapDependencies
             // 
             this.MapDependencies.AutoSize = true;
-            this.MapDependencies.Location = new System.Drawing.Point(94, 4);
+            this.MapDependencies.Location = new System.Drawing.Point(3, 124);
             this.MapDependencies.Name = "MapDependencies";
             this.MapDependencies.Size = new System.Drawing.Size(92, 17);
             this.MapDependencies.TabIndex = 24;
@@ -543,6 +534,7 @@
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(107, 89);
             this.panel6.TabIndex = 27;
+            this.panel6.Visible = false;
             // 
             // TrackingInstances
             // 
@@ -586,34 +578,95 @@
             this.label6.Size = new System.Drawing.Size(57, 13);
             this.label6.TabIndex = 26;
             this.label6.Text = "Tracking";
+            this.label6.Visible = false;
             // 
             // FpsLabel
             // 
-            this.FpsLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.FpsLabel.AutoSize = true;
-            this.FpsLabel.Location = new System.Drawing.Point(3, 164);
+            this.FpsLabel.ForeColor = System.Drawing.Color.Gray;
+            this.FpsLabel.Location = new System.Drawing.Point(3, 125);
             this.FpsLabel.Name = "FpsLabel";
             this.FpsLabel.Size = new System.Drawing.Size(47, 13);
             this.FpsLabel.TabIndex = 29;
             this.FpsLabel.Text = "FPS: XX";
             // 
-            // OpenGLCheckBox
+            // panel7
             // 
-            this.OpenGLCheckBox.AutoSize = true;
-            this.OpenGLCheckBox.Location = new System.Drawing.Point(3, 94);
-            this.OpenGLCheckBox.Name = "OpenGLCheckBox";
-            this.OpenGLCheckBox.Size = new System.Drawing.Size(66, 17);
-            this.OpenGLCheckBox.TabIndex = 35;
-            this.OpenGLCheckBox.Text = "OpenGL";
-            this.OpenGLCheckBox.UseVisualStyleBackColor = true;
-            this.OpenGLCheckBox.CheckedChanged += new System.EventHandler(this.OpenGLCheckBox_CheckedChanged);
+            this.panel7.Controls.Add(this.RenderGdiButton);
+            this.panel7.Controls.Add(this.RenderOpenGLButton);
+            this.panel7.Controls.Add(this.RenderFpsButton);
+            this.panel7.Controls.Add(this.RenderGibsonButton);
+            this.panel7.Controls.Add(this.FpsLabel);
+            this.panel7.Location = new System.Drawing.Point(126, 16);
+            this.panel7.Name = "panel7";
+            this.panel7.Size = new System.Drawing.Size(73, 236);
+            this.panel7.TabIndex = 31;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(123, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(65, 13);
+            this.label7.TabIndex = 30;
+            this.label7.Text = "Rendering";
+            // 
+            // RenderGdiButton
+            // 
+            this.RenderGdiButton.AutoSize = true;
+            this.RenderGdiButton.Location = new System.Drawing.Point(3, 6);
+            this.RenderGdiButton.Name = "RenderGdiButton";
+            this.RenderGdiButton.Size = new System.Drawing.Size(44, 17);
+            this.RenderGdiButton.TabIndex = 17;
+            this.RenderGdiButton.TabStop = true;
+            this.RenderGdiButton.Text = "GDI";
+            this.RenderGdiButton.UseVisualStyleBackColor = true;
+            this.RenderGdiButton.CheckedChanged += new System.EventHandler(this.RenderGdiButton_CheckedChanged);
+            // 
+            // RenderOpenGLButton
+            // 
+            this.RenderOpenGLButton.AutoSize = true;
+            this.RenderOpenGLButton.Location = new System.Drawing.Point(3, 29);
+            this.RenderOpenGLButton.Name = "RenderOpenGLButton";
+            this.RenderOpenGLButton.Size = new System.Drawing.Size(65, 17);
+            this.RenderOpenGLButton.TabIndex = 18;
+            this.RenderOpenGLButton.TabStop = true;
+            this.RenderOpenGLButton.Text = "OpenGL";
+            this.RenderOpenGLButton.UseVisualStyleBackColor = true;
+            this.RenderOpenGLButton.CheckedChanged += new System.EventHandler(this.RenderOpenGLButton_CheckedChanged);
+            // 
+            // RenderFpsButton
+            // 
+            this.RenderFpsButton.AutoSize = true;
+            this.RenderFpsButton.Location = new System.Drawing.Point(3, 52);
+            this.RenderFpsButton.Name = "RenderFpsButton";
+            this.RenderFpsButton.Size = new System.Drawing.Size(45, 17);
+            this.RenderFpsButton.TabIndex = 19;
+            this.RenderFpsButton.TabStop = true;
+            this.RenderFpsButton.Text = "FPS";
+            this.RenderFpsButton.UseVisualStyleBackColor = true;
+            this.RenderFpsButton.CheckedChanged += new System.EventHandler(this.RenderFpsButton_CheckedChanged);
+            // 
+            // RenderGibsonButton
+            // 
+            this.RenderGibsonButton.AutoSize = true;
+            this.RenderGibsonButton.Location = new System.Drawing.Point(3, 75);
+            this.RenderGibsonButton.Name = "RenderGibsonButton";
+            this.RenderGibsonButton.Size = new System.Drawing.Size(58, 17);
+            this.RenderGibsonButton.TabIndex = 20;
+            this.RenderGibsonButton.TabStop = true;
+            this.RenderGibsonButton.Text = "Gibson";
+            this.RenderGibsonButton.UseVisualStyleBackColor = true;
+            this.RenderGibsonButton.CheckedChanged += new System.EventHandler(this.RenderGibsonButton_CheckedChanged);
             // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.Controls.Add(this.FpsLabel);
+            this.Controls.Add(this.panel7);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.panel6);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.panel5);
@@ -627,7 +680,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(737, 177);
+            this.Size = new System.Drawing.Size(629, 271);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -640,6 +693,8 @@
             this.panel5.PerformLayout();
             this.panel6.ResumeLayout(false);
             this.panel6.PerformLayout();
+            this.panel7.ResumeLayout(false);
+            this.panel7.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -686,12 +741,16 @@
         private System.Windows.Forms.LinkLabel ResetProfilingLink;
         public System.Windows.Forms.RadioButton GraphIntermediateDependencies;
         public System.Windows.Forms.CheckBox IncludeMethods;
-        public System.Windows.Forms.RadioButton Layout3dButton;
         public System.Windows.Forms.Label FpsLabel;
         public System.Windows.Forms.CheckBox IncludeAnon;
         private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
         public System.Windows.Forms.RadioButton LayoutInitGraphButton;
         public System.Windows.Forms.RadioButton TimelineButton;
-        private System.Windows.Forms.CheckBox OpenGLCheckBox;
+        private System.Windows.Forms.Panel panel7;
+        private System.Windows.Forms.Label label7;
+        public System.Windows.Forms.RadioButton RenderGdiButton;
+        public System.Windows.Forms.RadioButton RenderOpenGLButton;
+        public System.Windows.Forms.RadioButton RenderFpsButton;
+        public System.Windows.Forms.RadioButton RenderGibsonButton;
     }
 }

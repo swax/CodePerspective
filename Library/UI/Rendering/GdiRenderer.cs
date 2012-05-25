@@ -45,6 +45,16 @@ namespace XLibrary
             LabelFormat.FormatFlags |= StringFormatFlags.NoWrap;
         }
 
+        public void Start()
+        {
+            Model.TwoDimensionalValues = false;
+        }
+
+        public void Stop()
+        {
+
+        }
+
         public float ViewWidth { get { return Width; } }
 
         public float ViewHeight { get { return Height; } }

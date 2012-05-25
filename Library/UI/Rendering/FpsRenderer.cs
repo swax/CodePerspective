@@ -29,7 +29,7 @@ namespace XLibrary
 
         bool MouseLook;
         Point MidWindow = new Point();
-        FpsCamera FpsCam = new FpsCamera();
+        FpsCamera FpsCam = new FpsCamera(53, -0.1f, 273, 420, 458);
 
         float depth = -1f;
         float depthStep = 0.00001f;
@@ -37,6 +37,8 @@ namespace XLibrary
         float LevelSize = 5;
 
         float OctogonEdge = (float) (1.0 - Math.Sqrt(2) / 2.0);
+
+        VertexBuffer NodeVbo = new VertexBuffer();
 
 
         public FpsRenderer(ViewModel model)
@@ -49,6 +51,8 @@ namespace XLibrary
 
             KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
             KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
+            MouseDown += new MouseEventHandler(FpsRenderer_MouseDown);
+            MouseUp += new MouseEventHandler(FpsRenderer_MouseUp);
 
             LogicTimer = new Timer();
             LogicTimer.Interval = 1000 / LogicFPS;
@@ -63,6 +67,18 @@ namespace XLibrary
             KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
             KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
             MouseLeave += new EventHandler(GLRenderer_MouseLeave);*/
+        }
+
+        public void Start()
+        {
+            Model.TwoDimensionalValues = true;
+            MakeCurrent();
+            LogicTimer.Enabled = true;
+        }
+
+        public void Stop()
+        {
+            LogicTimer.Enabled = false;
         }
 
         void GLRenderer_Load(object sender, EventArgs e)
@@ -95,6 +111,8 @@ namespace XLibrary
             GL.Light(LightName.Light0, LightParameter.Position, light_position);
 
             GLLoaded = true;
+
+            NodeVbo.Init();
         }
 
         void GLRenderer_Resize(object sender, EventArgs e)
@@ -159,7 +177,12 @@ namespace XLibrary
 
             depth = 0f;
 
+            NodeVbo.Reset();
+
             Model.Render();
+
+            NodeVbo.Load();
+            NodeVbo.Draw();
 
             if (MouseLook)
                 FpsCam.DrawHud(Width, Height, MidWindow, Color.Black);
@@ -238,15 +261,23 @@ namespace XLibrary
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
+            float x = area.X + 0.1f;
+            float y = area.Y + 0.1f;
+            float width = area.Width - 0.2f;
+            float length = area.Height - 0.2f;
+            float bottom = depth * LevelSize + 0.1f;
+            float height = LevelSize - 0.2f;
+
             if (outside)
                 FillEllipse(color, area);
             else
-                FillRectangle(color, area.X, area.Y, area.Width, area.Height);
+                GLUtils.DrawCube(NodeVbo, color, x, y, width, length, bottom, height);
+                //FillRectangle(color, area.X, area.Y, area.Width, area.Height);
         }
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-            FillRectangle(color, x, y, width, height);
+            //FillRectangle(color, x, y, width, height);
         }
 
         private void FillRectangle(Color color, float x, float y, float width, float height)
@@ -318,17 +349,16 @@ namespace XLibrary
 
             float x = area.X, z = area.Y, width = area.Width, length = area.Height;
             float floor = depth * LevelSize;
-            float ceiling = floor + 10; //node.SecondaryValue;
 
             var v1 = new Vector3(x, floor, z);
             var v2 = new Vector3(x + width, floor, z);
             var v3 = new Vector3(x + width, floor, z + length);
             var v4 = new Vector3(x, floor, z + length);
 
-            var v5 = new Vector3(x, floor + ceiling, z);
-            var v6 = new Vector3(x + width, floor + ceiling, z);
-            var v7 = new Vector3(x + width, floor + ceiling, z + length);
-            var v8 = new Vector3(x, floor + ceiling, z + length);
+            var v5 = new Vector3(x, floor + LevelSize, z);
+            var v6 = new Vector3(x + width, floor + LevelSize, z);
+            var v7 = new Vector3(x + width, floor + LevelSize, z + length);
+            var v8 = new Vector3(x, floor + LevelSize, z + length);
 
             GL.LineWidth(lineWidth);
 
@@ -444,6 +474,19 @@ namespace XLibrary
             }
 
             Model.View_KeyDown(e);
+        }
+
+        void FpsRenderer_MouseDown(object sender, MouseEventArgs e)
+        {
+            MouseLook = true;
+            Cursor.Hide();
+            Cursor.Position = PointToScreen(MidWindow);
+        }
+
+        void FpsRenderer_MouseUp(object sender, MouseEventArgs e)
+        {
+            MouseLook = false;
+            Cursor.Show();
         }
 
         void GLRenderer_MouseDoubleClick(object sender, MouseEventArgs e)

@@ -53,6 +53,13 @@ namespace XLibrary.Panels
             TimelineButton.Checked = Model.ViewLayout == LayoutType.Timeline;
             LayoutInOrder.Checked = Model.SequenceOrder;
 
+            // rendering
+            RenderGdiButton.Checked = Main.SelectedView is GdiRenderer;
+            RenderOpenGLButton.Checked = Main.SelectedView is GLRenderer;
+            RenderFpsButton.Checked = Main.SelectedView is FpsRenderer;
+            RenderGibsonButton.Checked = Main.SelectedView is GibsonView;
+
+            // show
             ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
             ShowHitButton.Checked = Model.ShowLayout == ShowNodes.Hit;
             ShowNotHitButton.Checked = Model.ShowLayout == ShowNodes.Unhit;
@@ -129,17 +136,6 @@ namespace XLibrary.Panels
                 return;
 
             Model.ViewLayout = LayoutType.Timeline;
-            Main.RefreshView();
-        }
-
-        private void Layout3dButton_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!Layout3dButton.Checked)
-                return;
-
-            Model.ViewLayout = LayoutType.ThreeD;
-            Model.MapMode = TreeMapMode.Normal;
-
             Main.RefreshView();
         }
 
@@ -326,24 +322,45 @@ namespace XLibrary.Panels
             Main.RefreshView();
         }
 
-        private void OpenGLFlatCheck_CheckedChanged(object sender, EventArgs e)
-        {
-            if (Main.Test3dView != null)
-            {
-                //Main.GLView.FlatMode = OpenGLFlatCheck.Checked;
-                Main.Test3dView.SetupViewport();
-            }
-        }
-
         private void IncludeAnon_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowAnon = IncludeAnon.Checked;
             Main.RefreshView();
         }
 
-        private void OpenGLCheckBox_CheckedChanged(object sender, EventArgs e)
+        private void RenderGdiButton_CheckedChanged(object sender, EventArgs e)
         {
-            Main.Set2dRenderer(OpenGLCheckBox.Checked);
+            if (!RenderGdiButton.Checked)
+                return;
+
+            Main.SetRenderer(typeof(GdiRenderer));
+            Main.RefreshView();
+        }
+
+        private void RenderOpenGLButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!RenderOpenGLButton.Checked)
+                return;
+
+            Main.SetRenderer(typeof(GLRenderer));
+            Main.RefreshView();
+        }
+
+        private void RenderFpsButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!RenderFpsButton.Checked)
+                return;
+
+            Main.SetRenderer(typeof(FpsRenderer));
+            Main.RefreshView();
+        }
+
+        private void RenderGibsonButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!RenderGibsonButton.Checked)
+                return;
+
+            Main.SetRenderer(typeof(GibsonView));
             Main.RefreshView();
         }
     }

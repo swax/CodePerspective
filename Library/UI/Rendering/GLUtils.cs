@@ -47,9 +47,64 @@ namespace XLibrary
 
             GL.Disable(EnableCap.Blend);
         }
+
+        public static void DrawCube(VertexBuffer vbo, Color color, float x, float z, float width, float length, float bottom, float height)
+        {
+            var v1 = new Vector3(x, bottom, z);
+            var v2 = new Vector3(x + width, bottom, z);
+            var v3 = new Vector3(x + width, bottom, z + length);
+            var v4 = new Vector3(x, bottom, z + length);
+
+            var v5 = new Vector3(x, bottom + height, z);
+            var v6 = new Vector3(x + width, bottom + height, z);
+            var v7 = new Vector3(x + width, bottom + height, z + length);
+            var v8 = new Vector3(x, bottom + height, z + length);
+
+            // bottom vertices
+            var normal = new Vector3(0, -1, 0);
+            vbo.AddVertex(v1, color, normal);
+            vbo.AddVertex(v2, color, normal);
+            vbo.AddVertex(v3, color, normal);
+            vbo.AddVertex(v4, color, normal);
+
+            // top vertices
+            normal = new Vector3(0, 1, 0);
+            vbo.AddVertex(v8, color, normal);
+            vbo.AddVertex(v7, color, normal);
+            vbo.AddVertex(v6, color, normal);
+            vbo.AddVertex(v5, color, normal);
+
+            // -z facing vertices
+            normal = new Vector3(0, 0, -1);
+            vbo.AddVertex(v5, color, normal);
+            vbo.AddVertex(v6, color, normal);
+            vbo.AddVertex(v2, color, normal);
+            vbo.AddVertex(v1, color, normal);
+
+            // x facing vertices
+            normal = new Vector3(1, 0, 0);
+            vbo.AddVertex(v6, color, normal);
+            vbo.AddVertex(v7, color, normal);
+            vbo.AddVertex(v3, color, normal);
+            vbo.AddVertex(v2, color, normal);
+
+            // z facing vertices
+            normal = new Vector3(0, 0, 1);
+            vbo.AddVertex(v4, color, normal);
+            vbo.AddVertex(v3, color, normal);
+            vbo.AddVertex(v7, color, normal);
+            vbo.AddVertex(v8, color, normal);
+
+            // -x facing vertices
+            normal = new Vector3(-1, 0, 0);
+            vbo.AddVertex(v1, color, normal);
+            vbo.AddVertex(v4, color, normal);
+            vbo.AddVertex(v8, color, normal);
+            vbo.AddVertex(v5, color, normal);
+        }
     }
 
-    public class Vbo
+    public class VertexBuffer
     {
         public int VboID;
         public int EboID;
@@ -61,6 +116,12 @@ namespace XLibrary
         int ElementCount = 0;
         int[] Elements = new int[1000];
 
+
+        public void Init()
+        {
+            GL.GenBuffers(1, out VboID);
+            GL.GenBuffers(1, out EboID);
+        }
 
         public void Reset()
         {

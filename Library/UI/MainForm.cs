@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using OpenTK;
 
 
 namespace XLibrary
@@ -18,9 +19,8 @@ namespace XLibrary
         LinkedListNode<NodeModel> Current;
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
-        public GdiRenderer GdiView;
-        public FpsRenderer GLView;
-        public GibsonView Test3dView;
+        public Control SelectedView;
+        public Dictionary<Type, Control> Renderers = new Dictionary<Type, Control>();
 
 
         public MainForm()
@@ -29,7 +29,8 @@ namespace XLibrary
 
             Model = new ViewModel(this, new BrightColorProfile());
 
-            Set2dRenderer(false);
+            InitRenderers();
+            SetRenderer(typeof(GdiRenderer));
 
             Model.SetRoot(Model.CurrentRoot); // init first node in history
 
@@ -49,6 +50,7 @@ namespace XLibrary
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
             NamespaceTab.Visible = false;
+
         }
 
         void RedrawTimer_Tick(object sender, EventArgs e)
@@ -58,82 +60,55 @@ namespace XLibrary
 
         public void RefreshView(bool redrawOnly = false, bool resetZoom = true)
         {
-            if (Model.ViewLayout == LayoutType.ThreeD)
-            {
-                if(GdiView != null)
-                    GdiView.Visible = false;
-                if (GLView != null)
-                    GLView.Visible = false;
+            if (resetZoom)
+                Model.ResetZoom();
 
-                if (Test3dView == null)
-                {
-                    Test3dView = new GibsonView(Model) { Dock = DockStyle.Fill };
-                    ViewHostPanel.Controls.Add(Test3dView);
-                }
-
-                Test3dView.Visible = true;
-                Test3dView.MakeCurrent();
-                Model.DoRevalue = !redrawOnly;
-                Test3dView.Redraw();
-            }
+            // check if view exists
+            if (redrawOnly)
+                Model.DoRedraw = true;
             else
+                Model.DoRevalue = true;
+
+            Model.Renderer.ViewInvalidate();       
+        }
+
+        public void InitRenderers()
+        {
+            Renderers[typeof(GdiRenderer)] = new GdiRenderer(Model);
+            Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
+            Renderers[typeof(FpsRenderer)] = new FpsRenderer(Model);
+            Renderers[typeof(GibsonView)] = new GibsonView(Model);
+
+            foreach (var renderer in Renderers.Values)
             {
-                if (Test3dView != null)
-                    Test3dView.Visible = false;
-
-                if (Model.Renderer is GdiRenderer)
-                    GdiView.Visible = true;
-                else
-                {
-                    GLView.Visible = true;
-                    GLView.MakeCurrent();
-                }
-
-                if (resetZoom)
-                    Model.ResetZoom();
-
-                // check if view exists
-                if (redrawOnly)
-                    Model.DoRedraw = true;
-                else
-                    Model.DoRevalue = true;
-
-                Model.Renderer.ViewInvalidate();
-
-                //PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
+                renderer.Dock = DockStyle.Fill;
+                renderer.Visible = false;
+                ViewHostPanel.Controls.Add(renderer);
             }
         }
 
-        public void Set2dRenderer(bool useGL)
+        public void SetRenderer(Type type)
         {
-            if (!useGL)
+            //PauseLink.Visible = (Model.ViewLayout == LayoutType.Timeline);
+
+            Control view;
+            if (!Renderers.TryGetValue(type, out view))
             {
-                if (GdiView == null)
-                {
-                    GdiView = new GdiRenderer(Model) { Dock = DockStyle.Fill };
-                    ViewHostPanel.Controls.Add(GdiView);
-                }
-
-                if (GLView != null)
-                    GLView.Visible = false;
-
-                GdiView.Visible = true;
-                Model.Renderer = GdiView;
+                MessageBox.Show("Renderer not found");
+                return;
             }
-            else
+
+            if (SelectedView != null)
             {
-                if (GLView == null)
-                {
-                    GLView = new FpsRenderer(Model) { Dock = DockStyle.Fill };
-                    ViewHostPanel.Controls.Add(GLView);
-                }
-
-                if (GdiView != null)
-                    GdiView.Visible = false;
-
-                GLView.Visible = true;
-                Model.Renderer = GLView;
+                SelectedView.Visible = false;
+                (SelectedView as IRenderer).Stop();
             }
+            SelectedView = view;
+
+            view.Visible = true;
+            (view as IRenderer).Start();
+
+            Model.Renderer = view as IRenderer;
         }
 
         public void UpdateBreadCrumbs()
@@ -194,7 +169,7 @@ namespace XLibrary
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
         {
-            DisplayTab.FpsLabel.Text = string.Format("x/s - revalue: {0}, resize {1}, redraw {2}, frames {3}",
+            DisplayTab.FpsLabel.Text = string.Format("revalue: {0}/s\r\nresize {1}\r\nredraw {2}\r\nframes {3}",
                 Model.RevalueCount, Model.ResizeCount, Model.RedrawCount, Model.FpsCount);
 
             Model.RevalueCount = 0;

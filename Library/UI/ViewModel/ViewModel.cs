@@ -9,7 +9,7 @@ namespace XLibrary
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
     public enum ShowNodes { All, Hit, Unhit, Instances }
 
-    public enum LayoutType { TreeMap, CallGraph, ThreeD, Timeline }
+    public enum LayoutType { TreeMap, CallGraph, Timeline }
     public enum TreeMapMode { Normal, Dependencies }
     public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init }
 
@@ -43,6 +43,7 @@ namespace XLibrary
         public SizeLayouts SizeLayout = SizeLayouts.MethodSize;
         public ShowNodes ShowLayout = ShowNodes.All;
         public bool DrawCallGraphVertically = false;
+        public bool TwoDimensionalValues;
 
         public CallGraphMode GraphMode = CallGraphMode.Method;
         public bool ShowCalls = true;
@@ -114,7 +115,7 @@ namespace XLibrary
             // only leaves have usable value
             if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
             {
-                if (ViewLayout == LayoutType.ThreeD)
+                if (TwoDimensionalValues)
                 {
                     root.Value = GetValueForLayout(root, SizeLayouts.Constant);
                     root.SecondaryValue = GetValueForLayout(root, SizeLayout);

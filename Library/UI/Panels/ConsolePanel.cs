@@ -16,7 +16,6 @@ namespace XLibrary.Panels
     {
         public MainForm Main;
         public XNodeIn[] Nodes = XRay.Nodes;
-        public GdiRenderer Tree;
 
 
         public ConsolePanel()
@@ -27,7 +26,6 @@ namespace XLibrary.Panels
         public void Init(MainForm main)
         {
             Main = main;
-            Tree = main.GdiView;
 
             ProcessInput("help");
         }
@@ -100,7 +98,7 @@ namespace XLibrary.Panels
 @"Commands: 
 calls
 datpath
-eval Nodes, Main, Tree
+eval Nodes, Main
 findid <name>
 help
 id <#>

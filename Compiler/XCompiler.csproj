@@ -97,10 +97,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildPanel.cs">
+    <Compile Include="Panels\BuildPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="BuildPanel.Designer.cs">
+    <Compile Include="Panels\BuildPanel.Designer.cs">
       <DependentUpon>BuildPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.cs" />
@@ -112,16 +112,16 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.MS.cs" />
-    <Compile Include="MonitorPanel.cs">
+    <Compile Include="Panels\MonitorPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="MonitorPanel.Designer.cs">
+    <Compile Include="Panels\MonitorPanel.Designer.cs">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
     </Compile>
-    <Compile Include="ScannerPanel.cs">
+    <Compile Include="Panels\ScannerPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ScannerPanel.Designer.cs">
+    <Compile Include="Panels\ScannerPanel.Designer.cs">
       <DependentUpon>ScannerPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="TestForm.cs">
@@ -137,13 +137,13 @@
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="BuildPanel.resx">
+    <EmbeddedResource Include="Panels\BuildPanel.resx">
       <DependentUpon>BuildPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MonitorPanel.resx">
+    <EmbeddedResource Include="Panels\MonitorPanel.resx">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ScannerPanel.resx">
+    <EmbeddedResource Include="Panels\ScannerPanel.resx">
       <DependentUpon>ScannerPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TestForm.resx">
@@ -155,7 +155,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="TestPanel.resx">
+    <EmbeddedResource Include="Panels\TestPanel.resx">
       <DependentUpon>TestPanel.cs</DependentUpon>
     </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
@@ -173,10 +173,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="TestPanel.cs">
+    <Compile Include="Panels\TestPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="TestPanel.Designer.cs">
+    <Compile Include="Panels\TestPanel.Designer.cs">
       <DependentUpon>TestPanel.cs</DependentUpon>
     </Compile>
   </ItemGroup>

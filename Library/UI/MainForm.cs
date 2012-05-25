@@ -19,8 +19,8 @@ namespace XLibrary
         LinkedList<NodeModel> History = new LinkedList<NodeModel>();
 
         public GdiRenderer GdiView;
-        public GLRenderer GLView;
-        public FpsView Test3dView;
+        public FpsRenderer GLView;
+        public GibsonView Test3dView;
 
 
         public MainForm()
@@ -67,11 +67,12 @@ namespace XLibrary
 
                 if (Test3dView == null)
                 {
-                    Test3dView = new FpsView(Model) { Dock = DockStyle.Fill };
+                    Test3dView = new GibsonView(Model) { Dock = DockStyle.Fill };
                     ViewHostPanel.Controls.Add(Test3dView);
                 }
 
                 Test3dView.Visible = true;
+                Test3dView.MakeCurrent();
                 Model.DoRevalue = !redrawOnly;
                 Test3dView.Redraw();
             }
@@ -83,7 +84,10 @@ namespace XLibrary
                 if (Model.Renderer is GdiRenderer)
                     GdiView.Visible = true;
                 else
+                {
                     GLView.Visible = true;
+                    GLView.MakeCurrent();
+                }
 
                 if (resetZoom)
                     Model.ResetZoom();
@@ -120,7 +124,7 @@ namespace XLibrary
             {
                 if (GLView == null)
                 {
-                    GLView = new GLRenderer(Model) { Dock = DockStyle.Fill };
+                    GLView = new FpsRenderer(Model) { Dock = DockStyle.Fill };
                     ViewHostPanel.Controls.Add(GLView);
                 }
 

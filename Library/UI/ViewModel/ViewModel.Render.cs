@@ -38,13 +38,13 @@ namespace XLibrary
 
                 if (ShowingOutside)
                 {
-                    Renderer.FillRectangle(XColors.BorderColor, InternalRoot.AreaF.Width, 0, PanelBorderWidth, InternalRoot.AreaF.Height);
+                    Renderer.DrawTextBackground(XColors.BorderColor, InternalRoot.AreaF.Width, 0, PanelBorderWidth, InternalRoot.AreaF.Height);
                     DrawNode(InternalRoot, 0, true);
                 }
 
                 if (ShowingExternal)
                 {
-                    Renderer.FillRectangle(XColors.BorderColor, ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, ExternalRoot.AreaF.Height);
+                    Renderer.DrawTextBackground(XColors.BorderColor, ExternalRoot.AreaF.X - PanelBorderWidth, 0, PanelBorderWidth, ExternalRoot.AreaF.Height);
                     DrawNode(ExternalRoot, 0, true);
                 }
 
@@ -78,14 +78,14 @@ namespace XLibrary
                 }
 
             // draw dividers for call graph
-            if (ViewLayout == LayoutType.CallGraph)
+            /*if (ViewLayout == LayoutType.CallGraph)
             {
-                /*if (ShowRightOutsideArea)
+                if (ShowRightOutsideArea)
                     buffer.DrawLine(CallDividerPen, RightDivider, 0, RightDivider, Height);
 
                 if (ShowLeftOutsideArea)
-                    buffer.DrawLine(CallDividerPen, LeftDivider, 0, LeftDivider, Height);*/
-            }
+                    buffer.DrawLine(CallDividerPen, LeftDivider, 0, LeftDivider, Height);
+            }*/
 
 
             // draw dependency graph
@@ -246,16 +246,12 @@ namespace XLibrary
             bool pointBorder = area.Width < 3.0f || area.Height < 3.0f;
 
             // use a circle for external/outside nodes in the call map
-            bool ellipse = ViewLayout == LayoutType.CallGraph && node.XNode.External;
+            bool outside = ViewLayout == LayoutType.CallGraph && node.XNode.External;
             bool needBorder = true;
 
-            Action<Color> fillFunction = (c) =>
+            Action<Color> draw = (c) =>
             {
-                if (ellipse)
-                    Renderer.FillEllipse(c, area);
-                else
-                    Renderer.FillRectangle(c, area);
-
+                Renderer.DrawNode(c, area, outside, node, depth);
                 needBorder = false;
             };
 
@@ -265,14 +261,14 @@ namespace XLibrary
                 if (depth > XColors.OverColors.Length - 1)
                     depth = XColors.OverColors.Length - 1;
 
-                fillFunction(XColors.OverColors[depth]);
+                draw(XColors.OverColors[depth]);
             }
             else if (ViewLayout == LayoutType.TreeMap ||
                      ViewLayout == LayoutType.Timeline ||
                      CenterMap.ContainsKey(node.ID))
-                fillFunction(XColors.EmptyColor);
+                draw(XColors.EmptyColor);
             else
-                fillFunction(XColors.OutsideColor);
+                draw(XColors.OutsideColor);
 
             if (showHit)
             {
@@ -282,47 +278,47 @@ namespace XLibrary
                     if (xNode.EntryPoint > 0)
                     {
                         if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            fillFunction(XColors.MultiEntryColor);
+                            draw(XColors.MultiEntryColor);
                         else
-                            fillFunction(XColors.EntryColor);
+                            draw(XColors.EntryColor);
                     }
                     else
                     {
                         if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            fillFunction(XColors.MultiHoldingColor);
+                            draw(XColors.MultiHoldingColor);
                         else
-                            fillFunction(XColors.HoldingColor);
+                            draw(XColors.HoldingColor);
                     }
                 }
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
-                    fillFunction(XColors.ExceptionColors[xNode.ExceptionHit]);
+                    draw(XColors.ExceptionColors[xNode.ExceptionHit]);
 
                 else if (xNode.FunctionHit > 0)
                 {
                     if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                        fillFunction(XColors.MultiHitColors[xNode.FunctionHit]);
+                        draw(XColors.MultiHitColors[xNode.FunctionHit]);
 
                     else if (node.ObjType == XObjType.Field)
                     {
                         if (xNode.LastFieldOp == FieldOp.Set)
-                            fillFunction(XColors.FieldSetColors[xNode.FunctionHit]);
+                            draw(XColors.FieldSetColors[xNode.FunctionHit]);
                         else
-                            fillFunction(XColors.FieldGetColors[xNode.FunctionHit]);
+                            draw(XColors.FieldGetColors[xNode.FunctionHit]);
                     }
                     else
-                        fillFunction(XColors.HitColors[xNode.FunctionHit]);
+                        draw(XColors.HitColors[xNode.FunctionHit]);
                 }
 
                 else if (xNode.ConstructedHit > 0)
                 {
-                    fillFunction(XColors.ConstructedColors[xNode.ConstructedHit]);
+                    draw(XColors.ConstructedColors[xNode.ConstructedHit]);
                 }
 
                 else if (xNode.DisposeHit > 0)
                 {
-                    fillFunction(XColors.DisposedColors[xNode.DisposeHit]);
+                    draw(XColors.DisposedColors[xNode.DisposeHit]);
                 }
             }
 
@@ -332,28 +328,28 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    fillFunction(XColors.InterdependentColor);
+                    draw(XColors.InterdependentColor);
 
                 else if (dependent)
-                    fillFunction(XColors.DependentColor);
+                    draw(XColors.DependentColor);
 
                 else if (independent)
-                    fillFunction(XColors.IndependentColor);
+                    draw(XColors.IndependentColor);
             }
 
             if (node.SearchMatch && !SearchStrobe)
-                fillFunction(XColors.SearchMatchColor);
+                draw(XColors.SearchMatchColor);
 
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
                 if (FilteredNodes.ContainsKey(node.ID))
-                    fillFunction(XColors.FilteredColor);
+                    draw(XColors.FilteredColor);
                 else if (IgnoredNodes.ContainsKey(node.ID))
-                    fillFunction(XColors.IgnoredColor);
+                    draw(XColors.IgnoredColor);
 
                 else if (needBorder) // dont draw the point if already lit up
-                    fillFunction(XColors.ObjColors[(int)node.ObjType]);
+                    draw(XColors.ObjColors[(int)node.ObjType]);
             }
             else
             {
@@ -370,10 +366,7 @@ namespace XLibrary
 
                 try
                 {
-                    if (ellipse)
-                        Renderer.DrawEllipse(pen, penWidth, area.X, area.Y, area.Width, area.Height);
-                    else
-                        Renderer.DrawRectangle(pen, penWidth, area.X, area.Y, area.Width, area.Height);
+                    Renderer.DrawNodeOutline(pen, penWidth, area, outside, node, depth);
                 }
                 catch (Exception ex)
                 {
@@ -385,7 +378,7 @@ namespace XLibrary
             //buffer.FillRectangle(SearchMatchBrush, node.DebugRect);
             if (ShowLabels && node.RoomForLabel)
             {
-                Renderer.FillRectangle(XColors.LabelBgColor, labelArea);
+                Renderer.DrawTextBackground(XColors.LabelBgColor, labelArea.X, labelArea.Y, labelArea.Width, labelArea.Height);
                 Renderer.DrawString(node.Name, TextFont, XColors.ObjColors[(int)node.ObjType], labelArea);
             }
 
@@ -488,7 +481,7 @@ namespace XLibrary
         public void DrawFooterPart(string label, Color color, ref float x)
         {
             SizeF size = Renderer.MeasureString(label, TextFont);
-            Renderer.FillRectangle(XColors.FooterBgColor, x, Renderer.ViewHeight - size.Height, size.Width, size.Height);
+            Renderer.DrawTextBackground(XColors.FooterBgColor, x, Renderer.ViewHeight - size.Height, size.Width, size.Height);
             Renderer.DrawString(label, TextFont, color, x, Renderer.ViewHeight - size.Height);
             x += size.Width;
         }
@@ -686,7 +679,7 @@ namespace XLibrary
 
 
             // draw background
-            Renderer.FillRectangle(XColors.TextBgColor, pos.X, pos.Y, bgWidth, bgHeight);
+            Renderer.DrawTextBackground(XColors.TextBgColor, pos.X, pos.Y, bgWidth, bgHeight);
 
             //GraphDebuggingLabel(buffer, pos);
 

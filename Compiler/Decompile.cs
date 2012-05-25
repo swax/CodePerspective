@@ -36,13 +36,14 @@ namespace XBuilder
 
         StringBuilder XIL = new StringBuilder(4096);
 
-        public bool TrackFlow;
-        public bool TrackInstances;
-        public bool TrackExternal;
-        public bool TrackAnon;
-        public bool TrackFields;
+        public bool TrackFlow = true;
+        public bool TrackInstances = true;
+        public bool TrackExternal = true;
+        public bool TrackAnon = true;
+        public bool TrackFields = true;
         public bool TrackCode = true;
-        public bool ShowUIonStart;
+        public bool ShowUIonStart = true;
+        public bool DecompileCSharp = true;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -61,7 +62,7 @@ namespace XBuilder
         public XRayedFile[] XRayedFiles;
 
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, string datPath, XRayedFile[] files, bool sxs, bool trackFlow, bool trackExternal, bool trackAnon, bool trackFields, bool trackInstances, bool showUiOnStart)
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, string datPath, XRayedFile[] files, bool sxs)
         {
             ExtRoot = extRoot;
             OriginalPath = item.FilePath;
@@ -72,12 +73,6 @@ namespace XBuilder
             XFile = item;
 
             XRayedFiles = files;
-            TrackFlow = trackFlow;
-            TrackExternal = trackExternal;
-            TrackAnon = trackAnon;
-            TrackFields = trackFields;
-            TrackInstances = trackInstances;
-            ShowUIonStart = showUiOnStart;
         }
 
         internal void MonoRecompile()
@@ -254,8 +249,9 @@ namespace XBuilder
                 foreach (var method in classDef.Methods)
                 {
                     XNodeOut methodNode = classNode.AddMethod(method);
-
-                    methodNode.CSharp = DecompileMethod(method);
+                    
+                    if(DecompileCSharp)
+                        methodNode.CSharp = DecompileMethod(method);
 
                     if (method.Body == null)
                         continue;

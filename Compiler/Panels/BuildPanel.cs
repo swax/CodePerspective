@@ -26,10 +26,11 @@ namespace XBuilder
         {
             InitializeComponent();
 
-           TrackFlowCheckBox.AttachToolTip(
-@"Checked: Calls between functions are traced
+            TrackFlowCheckBox.AttachToolTip("Calls between functions are tracked so call graphs can work");
 
-Unchecked: Slightly less overhead.");
+            TrackFieldsCheckBox.AttachToolTip("Set and get operations to class members are tracked");
+
+            TrackInstancesCheckBox.AttachToolTip("Creation and deletion of classes are tracked, and class introspection is enabled");
 
             ReplaceOriginalCheckBox.AttachToolTip(
 @"Unchecked: XRay copies and re-compiles the selected files then runs them side by side the originals.
@@ -37,6 +38,8 @@ Unchecked: Slightly less overhead.");
 
 Checked: XRay overwrites the original files with XRayed versions, originals are put in a backup directory.
            Namespaces are kept the same so referencing assemblies should still work.");
+
+            DecompileCSharpCheckBox.AttachToolTip("Recompile time takes signifigantly longer with this option");
 
             RunVerifyCheckbox.Visible = false;
             DecompileAgainCheckbox.Visible = false;
@@ -109,6 +112,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             bool compileWithMS = MsToolsCheckbox.Checked;
             bool decompileAgain = DecompileAgainCheckbox.Checked;
             bool showUiOnStart = ShowOnStartCheckBox.Checked;
+            bool decompileCSharp = DecompileCSharpCheckBox.Checked;
 
 
             new Thread(() =>
@@ -153,7 +157,16 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
 
                     foreach (XRayedFile item in files)
                     {
-                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, DatPath, files, !replaceOriginal, trackFlow, trackExternal, trackAnon, trackFields, trackInstances, showUiOnStart);
+                        XDecompile decompile = new XDecompile(intRoot, extRoot, item, OutputDir, DatPath, files, !replaceOriginal)
+                        {
+                            TrackFlow = trackFlow,
+                            TrackExternal = trackExternal,
+                            TrackAnon = trackAnon,
+                            TrackFields = trackFields,
+                            TrackInstances = trackInstances,
+                            ShowUIonStart = showUiOnStart,
+                            DecompileCSharp = decompileCSharp
+                        };
 
                         try
                         {

@@ -17,14 +17,10 @@ namespace XLibrary
         void DrawString(string text, Font font, Color color, float x, float y);
         void DrawString(string text, Font font, Color color, RectangleF rect);
 
-        void FillEllipse(Color color, RectangleF area);
+        void DrawTextBackground(Color color, float x, float y, float width, float height);
 
-        void FillRectangle(Color color, RectangleF area);
-        void FillRectangle(Color color, float x, float y, float width, float height);
-
-        void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height);
-
-        void DrawRectangle(Color color, int lineWidth, float x, float y, float width, float height);
+        void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth);
+        void DrawNodeOutline(Color pen, int penWidth, RectangleF area, bool outside, NodeModel node, int depth);
 
         void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed);
 
@@ -32,6 +28,7 @@ namespace XLibrary
         void ViewRefresh();
 
         Point GetCursorPosition();
+
     }
 
     public interface IMainUI

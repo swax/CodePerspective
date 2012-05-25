@@ -102,7 +102,11 @@
   <ItemGroup>
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
-    <Compile Include="UI\GLRenderer.cs">
+    <Compile Include="UI\Rendering\FpsCamera.cs" />
+    <Compile Include="UI\Rendering\FpsRenderer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Rendering\GLRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\DetailsNav.cs">
@@ -111,10 +115,11 @@
     <Compile Include="UI\DetailsNav.Designer.cs">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\FpsView.cs">
+    <Compile Include="UI\Rendering\GibsonView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\IRenderer.cs" />
+    <Compile Include="UI\Rendering\GLUtils.cs" />
+    <Compile Include="UI\Rendering\IRenderer.cs" />
     <Compile Include="UI\ListViewHelper.cs" />
     <Compile Include="UI\NodeModel.cs" />
     <Compile Include="UI\Panels\MethodPanel.cs">
@@ -171,10 +176,10 @@
     <Compile Include="UI\TreeGrid\TreeGridNodeCollection.cs" />
     <Compile Include="UI\TreeGrid\TreeGridView.cs" />
     <Compile Include="UI\CalcTreeMap.cs" />
-    <Compile Include="UI\GdiRenderer.cs">
+    <Compile Include="UI\Rendering\GdiRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\GdiRenderer.Designer.cs">
+    <Compile Include="UI\Rendering\GdiRenderer.Designer.cs">
       <DependentUpon>GdiRenderer.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\ViewModel\ViewModel.Render.cs" />
@@ -221,7 +226,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\GdiRenderer.resx">
+    <EmbeddedResource Include="UI\Rendering\GdiRenderer.resx">
       <DependentUpon>GdiRenderer.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -244,12 +249,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Resources\Font.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="UI\Resources\Font2.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="UI\ViewModel\ViewModel.CallGraph.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -258,6 +257,7 @@
       <Name>QuickFont</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

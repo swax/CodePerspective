@@ -17,13 +17,29 @@ namespace XLibrary
      * 2d while keeping the right order of layers or draw calls of all the rectangles and lines.
      */
 
-    public class GLRenderer : GLControl, IRenderer
+    public class FpsRenderer : GLControl, IRenderer
     {
         ViewModel Model;
         bool GLLoaded;
 
+        Timer LogicTimer;
+        int LogicFPS = 20;
 
-        public GLRenderer(ViewModel model)
+        float[] light_position = { 1f, 1f, 1f, 0f };
+
+        bool MouseLook;
+        Point MidWindow = new Point();
+        FpsCamera FpsCam = new FpsCamera();
+
+        float depth = -1f;
+        float depthStep = 0.00001f;
+
+        float LevelSize = 5;
+
+        float OctogonEdge = (float) (1.0 - Math.Sqrt(2) / 2.0);
+
+
+        public FpsRenderer(ViewModel model)
         {
             Model = model;
 
@@ -31,14 +47,22 @@ namespace XLibrary
             Paint += GLRenderer_Paint;
             Resize += GLRenderer_Resize;
 
-            MouseWheel += new MouseEventHandler(GLRenderer_MouseWheel);
+            KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
+            KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
+
+            LogicTimer = new Timer();
+            LogicTimer.Interval = 1000 / LogicFPS;
+            LogicTimer.Tick += new EventHandler(LogicTimer_Tick);
+            LogicTimer.Enabled = true;
+
+            /*MouseWheel += new MouseEventHandler(GLRenderer_MouseWheel);
             MouseDown += new MouseEventHandler(GLRenderer_MouseDown);
             MouseUp += new MouseEventHandler(GLRenderer_MouseUp);
             MouseMove += new MouseEventHandler(GLRenderer_MouseMove);
             MouseDoubleClick += new MouseEventHandler(GLRenderer_MouseDoubleClick);
             KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
             KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
-            MouseLeave += new EventHandler(GLRenderer_MouseLeave);
+            MouseLeave += new EventHandler(GLRenderer_MouseLeave);*/
         }
 
         void GLRenderer_Load(object sender, EventArgs e)
@@ -46,6 +70,29 @@ namespace XLibrary
             SetupViewport();
 
             GL.ClearColor(Model.XColors.BackgroundColor);
+
+            GL.ShadeModel(ShadingModel.Smooth);
+
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.ColorMaterial);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+
+            GL.Enable(EnableCap.Lighting);
+            GL.Enable(EnableCap.Light0);
+
+            float[] mat_emissive = { 0f, 0f, 0f, 1f };
+            float[] mat_specular = { 1f, 1f, 1f, 1.0f };
+
+            float[] light_diffuse = { .7f, .7f, .7f, .7f };
+            float[] light_specular = { 1.0f, 1.0f, 1.0f, 1.0f };
+            float[] light_ambient = { .5f, .5f, .35f, .5f };
+
+            GL.Light(LightName.Light0, LightParameter.Diffuse, light_diffuse);
+            GL.Light(LightName.Light0, LightParameter.Ambient, light_ambient);
+            GL.Light(LightName.Light0, LightParameter.Specular, light_specular);
+            GL.Light(LightName.Light0, LightParameter.Position, light_position);
 
             GLLoaded = true;
         }
@@ -62,14 +109,14 @@ namespace XLibrary
         {
             GL.Viewport(0, 0, Width, Height);
 
+            MidWindow = new Point(Width / 2, Height / 2);
+
             GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadIdentity();
-            GL.Ortho(0, Width, Height, 0, 0, 1); // sets 0,0 to upper left
 
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadIdentity();
+            float aspect_ratio = (float)Width / (float)Height;
+            Matrix4 perpective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect_ratio, 1, 4000);
+            GL.LoadMatrix(ref perpective);
 
-            Model.DoResize = true;
             Invalidate();
         }
 
@@ -83,16 +130,39 @@ namespace XLibrary
             get { return Height; }
         }
 
+        void LogicTimer_Tick(object sender, EventArgs e)
+        {
+            if (!MouseLook)
+                return;
+
+            FpsCam.MoveTick();
+
+            FpsCam.LookTick(PointToClient(Cursor.Position), MidWindow);
+
+            // Reset the mouse position to the centre of the window each frame
+            Cursor.Position = PointToScreen(MidWindow);
+            Invalidate();
+        }
+
         void GLRenderer_Paint(object sender, PaintEventArgs e)
         {
             if (!GLLoaded)
                 return;
 
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+
+            // Move the camera to our location in space
+            FpsCam.SetupCamera();
+
+            depth = 0f;
 
             Model.Render();
 
-            //glPrint(10, 10, "HELLOOOOOOOO");
+            if (MouseLook)
+                FpsCam.DrawHud(Width, Height, MidWindow, Color.Black);
 
             SwapBuffers();
 
@@ -135,7 +205,9 @@ namespace XLibrary
 
             qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
+            GL.Rotate(90, 1.0f, 0.0f, 0.0f);
             qfont.Print(text, new Vector2(x, y));
+            GL.Rotate(-90, 1.0f, 0.0f, 0.0f);
         }
 
         public void DrawString(string text, Font font, Color color, RectangleF rect)
@@ -144,14 +216,18 @@ namespace XLibrary
 
             qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
+            GL.Rotate(90, 1.0f, 0.0f, 0.0f);
             qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
+            GL.Rotate(-90, 1.0f, 0.0f, 0.0f);
         }
 
         public void FillEllipse(Color color, RectangleF area)
         {
-            SafeGLBlend(() =>
+            depth += depthStep;
+
+            GLUtils.SafeBlend(() =>
             {
-                SafeGLBegin(BeginMode.Polygon, () =>
+                GLUtils.SafeBegin(BeginMode.Polygon, () =>
                 {
                     GL.Color4(color);
 
@@ -160,34 +236,46 @@ namespace XLibrary
             });
         }
 
-        public void FillRectangle(Color color, RectangleF area)
+        public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            FillRectangle(color, area.X, area.Y, area.Width, area.Height);
+            if (outside)
+                FillEllipse(color, area);
+            else
+                FillRectangle(color, area.X, area.Y, area.Width, area.Height);
         }
 
-        public void FillRectangle(Color color, float x, float y, float width, float height)
+        public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-            SafeGLBlend(() =>
+            FillRectangle(color, x, y, width, height);
+        }
+
+        private void FillRectangle(Color color, float x, float y, float width, float height)
+        {
+            depth += depthStep;
+
+            GLUtils.SafeBlend(() =>
             {
-                SafeGLBegin(BeginMode.Quads, () =>
+                GLUtils.SafeBegin(BeginMode.Quads, () =>
                 {
                     GL.Color4(color);
 
-                    GL.Vertex2(x, y);
-                    GL.Vertex2(x + width, y);
-                    GL.Vertex2(x + width, y + height);
-                    GL.Vertex2(x, y + height);
+                    GL.Vertex3(x, depth, y + height);
+                    GL.Vertex3(x + width, depth, y + height);
+                    GL.Vertex3(x + width, depth, y);
+                    GL.Vertex3(x, depth, y);
                 });
             });
         }
 
         public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
         {
+            depth += depthStep;
+
             GL.LineWidth(lineWidth);
 
-            SafeGLBlend(() =>
+            GLUtils.SafeBlend(() =>
             {
-                SafeGLBegin(BeginMode.LineLoop, () =>
+                GLUtils.SafeBegin(BeginMode.LineLoop, () =>
                 {
                     GL.Color4(color);
 
@@ -196,7 +284,7 @@ namespace XLibrary
             });
         }
 
-        private static void DrawEllipseVerticies(float x, float y, float width, float height)
+        private void DrawEllipseVerticies(float x, float y, float width, float height)
         {
             double segments = 8.0;
 
@@ -215,7 +303,7 @@ namespace XLibrary
 
             for (int ii = 0; ii < segments; ii++)
             {
-                GL.Vertex2(xPos + cx, yPos + cy);//output vertex 
+                GL.Vertex3(xPos + cx, depth, yPos + cy);//output vertex 
 
                 //apply the rotation matrix
                 t = xPos;
@@ -224,34 +312,68 @@ namespace XLibrary
             }
         }
 
-        public void DrawRectangle(Color color, int lineWidth, float x, float y, float width, float height)
+        public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
+            //depth += depthStep;
+
+            float x = area.X, z = area.Y, width = area.Width, length = area.Height;
+            float floor = depth * LevelSize;
+            float ceiling = floor + 10; //node.SecondaryValue;
+
+            var v1 = new Vector3(x, floor, z);
+            var v2 = new Vector3(x + width, floor, z);
+            var v3 = new Vector3(x + width, floor, z + length);
+            var v4 = new Vector3(x, floor, z + length);
+
+            var v5 = new Vector3(x, floor + ceiling, z);
+            var v6 = new Vector3(x + width, floor + ceiling, z);
+            var v7 = new Vector3(x + width, floor + ceiling, z + length);
+            var v8 = new Vector3(x, floor + ceiling, z + length);
+
             GL.LineWidth(lineWidth);
 
-            SafeGLBlend(() =>
+            GLUtils.SafeBlend(() =>
             {
-                SafeGLBegin(BeginMode.LineLoop, () =>
+                GLUtils.SafeBegin(BeginMode.Lines, () =>
                 {
                     GL.Color4(color);
 
-                    GL.Vertex2(x, y);
-                    GL.Vertex2(x + width, y);
-                    GL.Vertex2(x + width, y + height);
-                    GL.Vertex2(x, y + height);
+                    DrawLine(v1, v2);
+                    DrawLine(v2, v3);
+                    DrawLine(v3, v4);
+                    DrawLine(v4, v1);
+
+                    DrawLine(v5, v6);
+                    DrawLine(v6, v7);
+                    DrawLine(v7, v8);
+                    DrawLine(v8, v5);
+                    
+                    DrawLine(v1, v5);
+                    DrawLine(v2, v6);
+                    DrawLine(v3, v7);
+                    DrawLine(v4, v8);
                 });
             });
         }
 
+        void DrawLine(Vector3 a, Vector3 b)
+        {
+            GL.Vertex3(a);
+            GL.Vertex3(b);
+        }
+
         public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
         {
+            depth += depthStep;
+
             GL.LineWidth(lineWidth);
 
-            SafeGLBlend(() =>
+            GLUtils.SafeBlend(() =>
             {
                 if (!dashed)
                     RenderLine(color, start, end);
                 else
-                    SafeGLEnable(EnableCap.LineStipple, () =>
+                    GLUtils.SafeEnable(EnableCap.LineStipple, () =>
                     {
                         //1111 1000 0000 0000
                         short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
@@ -263,14 +385,14 @@ namespace XLibrary
 
         private void RenderLine(Color color, PointF start, PointF end)
         {
-            SafeGLEnable(EnableCap.LineSmooth, () =>
+            GLUtils.SafeEnable(EnableCap.LineSmooth, () =>
             {
-                SafeGLBegin(BeginMode.Lines, () =>
+                GLUtils.SafeBegin(BeginMode.Lines, () =>
                 {
                     GL.Color4(color);
 
-                    GL.Vertex2(start.X, start.Y);
-                    GL.Vertex2(end.X, end.Y);
+                    GL.Vertex3(start.X, depth, start.Y);
+                    GL.Vertex3(end.X, depth, end.Y);
                 });
             });
         }
@@ -287,7 +409,7 @@ namespace XLibrary
 
         public Point GetCursorPosition()
         {
-            return PointToClient(Cursor.Position);
+            return new Point(0, 0); // return PointToClient(Cursor.Position);
         }
 
         void GLRenderer_MouseLeave(object sender, EventArgs e)
@@ -297,11 +419,30 @@ namespace XLibrary
 
         void GLRenderer_KeyUp(object sender, KeyEventArgs e)
         {
+            FpsCam.KeyUp(e);
+
             Model.View_KeyUp(e);
         }
 
         void GLRenderer_KeyDown(object sender, KeyEventArgs e)
         {
+            FpsCam.KeyDown(e);
+
+            if (e.KeyCode == Keys.M || e.KeyCode == Keys.Escape)
+            {
+                if (e.KeyCode == Keys.Escape)
+                    MouseLook = false;
+                else
+                    MouseLook = !MouseLook;
+
+                if (MouseLook)
+                    Cursor.Hide();
+                else
+                    Cursor.Show();
+
+                Cursor.Position = PointToScreen(MidWindow);
+            }
+
             Model.View_KeyDown(e);
         }
 
@@ -328,34 +469,6 @@ namespace XLibrary
         void GLRenderer_MouseWheel(object sender, MouseEventArgs e)
         {
             Model.View_MouseWheel(e);
-        }
-
-        public void SafeGLBegin(BeginMode mode, Action code)
-        {
-            GL.Begin(mode);
-
-            code();
-
-            GL.End();
-        }
-
-        public void SafeGLEnable(EnableCap cap, Action code)
-        {
-            GL.Enable(cap);
-
-            code();
-
-            GL.Disable(cap);
-        }
-
-        public void SafeGLBlend(Action code)
-        {
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.Enable(EnableCap.Blend);
-
-            code();
-
-            GL.Disable(EnableCap.Blend);
         }
     }
 }

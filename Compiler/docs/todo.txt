@@ -1,5 +1,23 @@
 ﻿
 now	
+
+	turn functions into buildings, add 'layer' to draw functions
+	signal to renderer if node outlines/layout has not changed
+	bright color outlines
+	black boxes inside outlines that light up
+	call lines as 5 line arc though the sky
+	add init parametsrs to fps view
+	Renderer options - GDI, GL 2D, FPS, save FPS colors
+	save gibson view colors in profile
+
+	
+	draw method graphs within class graphs
+	make a new color modes for 2d/3d swtichable
+	render code on the walls - proof of concept
+	debug facebook, github apps
+	'trystuff' in test app not decompiling, unresolved ref
+	manual hacker/matrix view with entire grid in a static VBO
+	
 	shade bg of alternate threads
 
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
@@ -10,10 +28,9 @@ now
 
 	show fields in instance view even if no instances created
 
+	on click render everything in select mode and find the result
 	
-	3d 
-		Renderer options - GDI, GL 2D, FPS, save FPS colors
-
+	3d		
 		draw lines as dashes first, then do arcs from tower tops
 
 		Call render, igore draw calls and build vbo manually, so interface still implemented

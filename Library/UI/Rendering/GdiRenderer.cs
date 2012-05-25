@@ -147,7 +147,7 @@ namespace XLibrary
             return CurrentBuffer.MeasureString(text, font);
 
         }
-        public void FillRectangle(Color color, float x, float y, float width, float height)
+        public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
             CurrentBuffer.FillRectangle(GetBrush(color), x, y, width, height);
         }
@@ -167,24 +167,25 @@ namespace XLibrary
             CurrentBuffer.DrawString(text, font, GetBrush(color), x, y, LabelFormat);
         }
 
-        public void FillEllipse(Color color, RectangleF area)
+        public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            CurrentBuffer.FillEllipse(GetBrush(color), area);
+            if(outside)
+                CurrentBuffer.FillEllipse(GetBrush(color), area);
+            else
+                CurrentBuffer.FillRectangle(GetBrush(color), area);
         }
 
-        public void FillRectangle(Color color, RectangleF area)
+        public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            CurrentBuffer.FillRectangle(GetBrush(color), area);
+            if (outside)
+                CurrentBuffer.DrawEllipse(GetPen(color, lineWidth, false), area.X, area.Y, area.Width, area.Height);
+            else
+                CurrentBuffer.DrawRectangle(GetPen(color, lineWidth, false), area.X, area.Y, area.Width, area.Height);
         }
 
         public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
         {
-            CurrentBuffer.DrawEllipse(GetPen(color, lineWidth, false), x, y, width, height);
-        }
-
-        public void DrawRectangle(Color color, int lineWidth, float x, float y, float width, float height)
-        {
-            CurrentBuffer.DrawRectangle(GetPen(color, lineWidth, false), x, y, width, height);
+            
         }
 
         public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)

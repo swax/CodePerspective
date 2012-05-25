@@ -34,6 +34,7 @@
             this.MsToolsCheckbox = new System.Windows.Forms.CheckBox();
             this.RunVerifyCheckbox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.DecompileCSharpCheckBox = new System.Windows.Forms.CheckBox();
             this.ShowOnStartCheckBox = new System.Windows.Forms.CheckBox();
             this.OutputLink = new System.Windows.Forms.LinkLabel();
             this.DecompileAgainCheckbox = new System.Windows.Forms.CheckBox();
@@ -58,7 +59,7 @@
             this.TrackInstancesCheckBox.AutoSize = true;
             this.TrackInstancesCheckBox.Checked = true;
             this.TrackInstancesCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(13, 95);
+            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(13, 72);
             this.TrackInstancesCheckBox.Name = "TrackInstancesCheckBox";
             this.TrackInstancesCheckBox.Size = new System.Drawing.Size(102, 17);
             this.TrackInstancesCheckBox.TabIndex = 23;
@@ -72,9 +73,9 @@
             this.TrackFieldsCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.TrackFieldsCheckBox.Location = new System.Drawing.Point(13, 26);
             this.TrackFieldsCheckBox.Name = "TrackFieldsCheckBox";
-            this.TrackFieldsCheckBox.Size = new System.Drawing.Size(126, 17);
+            this.TrackFieldsCheckBox.Size = new System.Drawing.Size(81, 17);
             this.TrackFieldsCheckBox.TabIndex = 22;
-            this.TrackFieldsCheckBox.Text = "Track class variables";
+            this.TrackFieldsCheckBox.Text = "Track fields";
             this.TrackFieldsCheckBox.UseVisualStyleBackColor = true;
             // 
             // StatusLabel
@@ -92,8 +93,9 @@
             // 
             // MsToolsCheckbox
             // 
+            this.MsToolsCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.MsToolsCheckbox.AutoSize = true;
-            this.MsToolsCheckbox.Location = new System.Drawing.Point(260, 185);
+            this.MsToolsCheckbox.Location = new System.Drawing.Point(261, 165);
             this.MsToolsCheckbox.Name = "MsToolsCheckbox";
             this.MsToolsCheckbox.Size = new System.Drawing.Size(189, 17);
             this.MsToolsCheckbox.TabIndex = 20;
@@ -102,8 +104,9 @@
             // 
             // RunVerifyCheckbox
             // 
+            this.RunVerifyCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.RunVerifyCheckbox.AutoSize = true;
-            this.RunVerifyCheckbox.Location = new System.Drawing.Point(260, 139);
+            this.RunVerifyCheckbox.Location = new System.Drawing.Point(261, 119);
             this.RunVerifyCheckbox.Name = "RunVerifyCheckbox";
             this.RunVerifyCheckbox.Size = new System.Drawing.Size(197, 17);
             this.RunVerifyCheckbox.TabIndex = 19;
@@ -114,6 +117,7 @@
             // 
             this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Controls.Add(this.DecompileCSharpCheckBox);
             this.OptionsPanel.Controls.Add(this.ShowOnStartCheckBox);
             this.OptionsPanel.Controls.Add(this.TrackInstancesCheckBox);
             this.OptionsPanel.Controls.Add(this.TrackFieldsCheckBox);
@@ -135,6 +139,18 @@
             this.OptionsPanel.Size = new System.Drawing.Size(322, 250);
             this.OptionsPanel.TabIndex = 21;
             // 
+            // DecompileCSharpCheckBox
+            // 
+            this.DecompileCSharpCheckBox.AutoSize = true;
+            this.DecompileCSharpCheckBox.Checked = true;
+            this.DecompileCSharpCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.DecompileCSharpCheckBox.Location = new System.Drawing.Point(13, 94);
+            this.DecompileCSharpCheckBox.Name = "DecompileCSharpCheckBox";
+            this.DecompileCSharpCheckBox.Size = new System.Drawing.Size(105, 17);
+            this.DecompileCSharpCheckBox.TabIndex = 25;
+            this.DecompileCSharpCheckBox.Text = "Decompile to C#";
+            this.DecompileCSharpCheckBox.UseVisualStyleBackColor = true;
+            // 
             // ShowOnStartCheckBox
             // 
             this.ShowOnStartCheckBox.AutoSize = true;
@@ -142,7 +158,7 @@
             this.ShowOnStartCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ShowOnStartCheckBox.Location = new System.Drawing.Point(13, 118);
             this.ShowOnStartCheckBox.Name = "ShowOnStartCheckBox";
-            this.ShowOnStartCheckBox.Size = new System.Drawing.Size(177, 17);
+            this.ShowOnStartCheckBox.Size = new System.Drawing.Size(197, 17);
             this.ShowOnStartCheckBox.TabIndex = 24;
             this.ShowOnStartCheckBox.Text = "Show Ghost Viewer when app starts";
             this.ShowOnStartCheckBox.UseVisualStyleBackColor = true;
@@ -164,8 +180,9 @@
             // 
             // DecompileAgainCheckbox
             // 
+            this.DecompileAgainCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.DecompileAgainCheckbox.AutoSize = true;
-            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(260, 162);
+            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(261, 142);
             this.DecompileAgainCheckbox.Name = "DecompileAgainCheckbox";
             this.DecompileAgainCheckbox.Size = new System.Drawing.Size(238, 17);
             this.DecompileAgainCheckbox.TabIndex = 18;
@@ -185,15 +202,17 @@
             // 
             // TrackAnonCheckBox
             // 
+            this.TrackAnonCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.TrackAnonCheckBox.AutoSize = true;
             this.TrackAnonCheckBox.Checked = true;
             this.TrackAnonCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TrackAnonCheckBox.Location = new System.Drawing.Point(13, 72);
+            this.TrackAnonCheckBox.Location = new System.Drawing.Point(261, 184);
             this.TrackAnonCheckBox.Name = "TrackAnonCheckBox";
             this.TrackAnonCheckBox.Size = new System.Drawing.Size(139, 17);
             this.TrackAnonCheckBox.TabIndex = 15;
             this.TrackAnonCheckBox.Text = "Track anonymous types";
             this.TrackAnonCheckBox.UseVisualStyleBackColor = true;
+            this.TrackAnonCheckBox.Visible = false;
             // 
             // ReplaceOriginalCheckBox
             // 
@@ -365,5 +384,6 @@
         private System.Windows.Forms.LinkLabel ResetLink;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox ShowOnStartCheckBox;
+        private System.Windows.Forms.CheckBox DecompileCSharpCheckBox;
     }
 }

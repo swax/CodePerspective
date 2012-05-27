@@ -108,9 +108,10 @@ namespace XLibrary
             CurrentRoot =  InternalRoot;
         }
 
-        public long RecalcCover(NodeModel root)
+        public void RecalcCover(NodeModel root)
         {
             root.Value = 0;
+            root.SecondaryValue = 0;
 
             // only leaves have usable value
             if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
@@ -145,15 +146,17 @@ namespace XLibrary
                     (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Active.Count > 0)));
 
                 if (node.Show)
-                    root.Value += RecalcCover(node);
+                {
+                    RecalcCover(node);
+                    root.Value += node.Value;
+                    root.SecondaryValue += node.SecondaryValue;
+                }
             }
 
 
             //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
 
             //Debug.Assert(root.Value >= 0);
-
-            return root.Value;
         }
 
         private long GetValueForLayout(NodeModel root, SizeLayouts layout)

@@ -249,9 +249,11 @@ namespace XLibrary
             bool outside = ViewLayout == LayoutType.CallGraph && node.XNode.External;
             bool needBorder = true;
 
-            Action<Color> draw = (c) =>
+            Color finalColor = XColors.EmptyColor;
+
+            Action<Color> applyColor = (c) =>
             {
-                Renderer.DrawNode(c, area, outside, node, depth);
+                GLUtils.BlendColors(c, ref finalColor);
                 needBorder = false;
             };
 
@@ -261,14 +263,14 @@ namespace XLibrary
                 if (depth > XColors.OverColors.Length - 1)
                     depth = XColors.OverColors.Length - 1;
 
-                draw(XColors.OverColors[depth]);
+                applyColor(XColors.OverColors[depth]);
             }
             else if (ViewLayout == LayoutType.TreeMap ||
                      ViewLayout == LayoutType.Timeline ||
                      CenterMap.ContainsKey(node.ID))
-                draw(XColors.EmptyColor);
+                applyColor(XColors.EmptyColor);
             else
-                draw(XColors.OutsideColor);
+                applyColor(XColors.OutsideColor);
 
             if (showHit)
             {
@@ -278,47 +280,47 @@ namespace XLibrary
                     if (xNode.EntryPoint > 0)
                     {
                         if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            draw(XColors.MultiEntryColor);
+                            applyColor(XColors.MultiEntryColor);
                         else
-                            draw(XColors.EntryColor);
+                            applyColor(XColors.EntryColor);
                     }
                     else
                     {
                         if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            draw(XColors.MultiHoldingColor);
+                            applyColor(XColors.MultiHoldingColor);
                         else
-                            draw(XColors.HoldingColor);
+                            applyColor(XColors.HoldingColor);
                     }
                 }
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
-                    draw(XColors.ExceptionColors[xNode.ExceptionHit]);
+                    applyColor(XColors.ExceptionColors[xNode.ExceptionHit]);
 
                 else if (xNode.FunctionHit > 0)
                 {
                     if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                        draw(XColors.MultiHitColors[xNode.FunctionHit]);
+                        applyColor(XColors.MultiHitColors[xNode.FunctionHit]);
 
                     else if (node.ObjType == XObjType.Field)
                     {
                         if (xNode.LastFieldOp == FieldOp.Set)
-                            draw(XColors.FieldSetColors[xNode.FunctionHit]);
+                            applyColor(XColors.FieldSetColors[xNode.FunctionHit]);
                         else
-                            draw(XColors.FieldGetColors[xNode.FunctionHit]);
+                            applyColor(XColors.FieldGetColors[xNode.FunctionHit]);
                     }
                     else
-                        draw(XColors.HitColors[xNode.FunctionHit]);
+                        applyColor(XColors.HitColors[xNode.FunctionHit]);
                 }
 
                 else if (xNode.ConstructedHit > 0)
                 {
-                    draw(XColors.ConstructedColors[xNode.ConstructedHit]);
+                    applyColor(XColors.ConstructedColors[xNode.ConstructedHit]);
                 }
 
                 else if (xNode.DisposeHit > 0)
                 {
-                    draw(XColors.DisposedColors[xNode.DisposeHit]);
+                    applyColor(XColors.DisposedColors[xNode.DisposeHit]);
                 }
             }
 
@@ -328,28 +330,30 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    draw(XColors.InterdependentColor);
+                    applyColor(XColors.InterdependentColor);
 
                 else if (dependent)
-                    draw(XColors.DependentColor);
+                    applyColor(XColors.DependentColor);
 
                 else if (independent)
-                    draw(XColors.IndependentColor);
+                    applyColor(XColors.IndependentColor);
             }
 
             if (node.SearchMatch && !SearchStrobe)
-                draw(XColors.SearchMatchColor);
+                applyColor(XColors.SearchMatchColor);
 
             // if just a point, drawing a border messes up pixels
             if (pointBorder)
             {
                 if (FilteredNodes.ContainsKey(node.ID))
-                    draw(XColors.FilteredColor);
+                    applyColor(XColors.FilteredColor);
                 else if (IgnoredNodes.ContainsKey(node.ID))
-                    draw(XColors.IgnoredColor);
+                    applyColor(XColors.IgnoredColor);
 
                 else if (needBorder) // dont draw the point if already lit up
-                    draw(XColors.ObjColors[(int)node.ObjType]);
+                    applyColor(XColors.ObjColors[(int)node.ObjType]);
+
+                Renderer.DrawNode(finalColor, area, outside, node, depth);
             }
             else
             {
@@ -364,14 +368,8 @@ namespace XLibrary
                 if (FocusedNodes.Contains(node))
                     penWidth = 2;
 
-                try
-                {
-                    Renderer.DrawNodeOutline(pen, penWidth, area, outside, node, depth);
-                }
-                catch (Exception ex)
-                {
-                    //File.WriteAllText("debug.txt", string.Format("{0}\r\n{1}\r\n{2}\r\n{3}\r\n{4}\r\n", ex, area.X, area.Y, area.Width, area.Height));
-                }
+                Renderer.DrawNode(finalColor, area, outside, node, depth);
+                Renderer.DrawNodeOutline(pen, penWidth, area, outside, node, depth);
             }
 
             // draw label
@@ -379,7 +377,7 @@ namespace XLibrary
             if (ShowLabels && node.RoomForLabel)
             {
                 Renderer.DrawTextBackground(XColors.LabelBgColor, labelArea.X, labelArea.Y, labelArea.Width, labelArea.Height);
-                Renderer.DrawString(node.Name, TextFont, XColors.ObjColors[(int)node.ObjType], labelArea);
+                Renderer.DrawNodeLabel(node.Name, TextFont, XColors.ObjColors[(int)node.ObjType], labelArea, node, depth);
             }
 
 

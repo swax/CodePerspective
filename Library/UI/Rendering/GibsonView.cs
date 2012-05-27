@@ -377,7 +377,7 @@ namespace XLibrary
             // use a circle for external/outside nodes in the call map
             float zheight = PlatformHeight;
             if (node.ObjType == XObjType.Method)
-                zheight = Math.Max(250f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, 1);
+                zheight = Math.Max(100f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, PlatformHeight);
 
             var xNode = node.XNode;
 
@@ -400,7 +400,7 @@ namespace XLibrary
                 if (depth > XColors.OverColors.Length - 1)
                     depth = XColors.OverColors.Length - 1;
 
-                BlendColors(XColors.OverColors[depth], ref pen);
+                GLUtils.BlendColors(XColors.OverColors[depth], ref pen);
             }
             //else
             //    FillRectangle(NothingBrush, node.AreaF, z);
@@ -411,37 +411,37 @@ namespace XLibrary
                 if (xNode.EntryPoint > 0)
                 {
                     if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                        BlendColors(XColors.MultiEntryColor, ref pen);
+                        GLUtils.BlendColors(XColors.MultiEntryColor, ref pen);
                     else
-                        BlendColors(XColors.EntryColor, ref pen);
+                        GLUtils.BlendColors(XColors.EntryColor, ref pen);
                 }
                 else
                 {
                     if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                        BlendColors(XColors.MultiHoldingColor, ref pen);
+                        GLUtils.BlendColors(XColors.MultiHoldingColor, ref pen);
                     else
-                        BlendColors(XColors.HoldingColor, ref pen);
+                        GLUtils.BlendColors(XColors.HoldingColor, ref pen);
                 }
             }
 
             // not an else if, draw over holding or entry
             if (xNode.ExceptionHit > 0)
-                BlendColors(XColors.ExceptionColors[xNode.FunctionHit], ref pen);
+                GLUtils.BlendColors(XColors.ExceptionColors[xNode.FunctionHit], ref pen);
 
             else if (xNode.FunctionHit > 0)
             {
                 if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                    BlendColors(XColors.MultiHitColors[xNode.FunctionHit], ref pen);
+                    GLUtils.BlendColors(XColors.MultiHitColors[xNode.FunctionHit], ref pen);
 
                 else if (node.ObjType == XObjType.Field)
                 {
                     if (xNode.LastFieldOp == FieldOp.Set)
-                        BlendColors(XColors.FieldSetColors[xNode.FunctionHit], ref pen);
+                        GLUtils.BlendColors(XColors.FieldSetColors[xNode.FunctionHit], ref pen);
                     else
-                        BlendColors(XColors.FieldGetColors[xNode.FunctionHit], ref pen);
+                        GLUtils.BlendColors(XColors.FieldGetColors[xNode.FunctionHit], ref pen);
                 }
                 else
-                    BlendColors(XColors.HitColors[xNode.FunctionHit], ref pen);
+                    GLUtils.BlendColors(XColors.HitColors[xNode.FunctionHit], ref pen);
             }
 
             if (Model.FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -450,17 +450,17 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    BlendColors(XColors.InterdependentColor, ref pen);
+                    GLUtils.BlendColors(XColors.InterdependentColor, ref pen);
 
                 else if (dependent)
-                    BlendColors(XColors.DependentColor, ref pen);
+                    GLUtils.BlendColors(XColors.DependentColor, ref pen);
 
                 else if (independent)
-                    BlendColors(XColors.IndependentColor, ref pen);
+                    GLUtils.BlendColors(XColors.IndependentColor, ref pen);
             }
 
             if (node.SearchMatch && !Model.SearchStrobe)
-                BlendColors(XColors.SearchMatchColor, ref pen);
+                GLUtils.BlendColors(XColors.SearchMatchColor, ref pen);
 
             // if just a point, drawing a border messes up pixels
             /*if (pointBorder)
@@ -522,16 +522,6 @@ namespace XLibrary
             }*/
         }
 
-        void BlendColors(Color src, ref Color tgt)
-        {
-            int a = ((src.A * src.A) >> 8) + ((tgt.A * (255 - src.A)) >> 8);
-            int r = ((src.R * src.A) >> 8) + ((tgt.R * (255 - src.A)) >> 8);
-            int g = ((src.G * src.A) >> 8) + ((tgt.G * (255 - src.A)) >> 8);
-            int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
-
-            tgt = Color.FromArgb(a, r, g, b);
-        }
-
         public float ViewWidth
         {
             get { return Width; }
@@ -547,17 +537,12 @@ namespace XLibrary
             return new SizeF();
         }
 
-        public void DrawString(string text, Font font, Color color, PointF point)
-        {
-            
-        }
-
         public void DrawString(string text, Font font, Color color, float x, float y)
         {
             
         }
 
-        public void DrawString(string text, Font font, Color color, RectangleF rect)
+        public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
             
         }

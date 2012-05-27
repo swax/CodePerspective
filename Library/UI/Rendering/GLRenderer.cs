@@ -133,11 +133,6 @@ namespace XLibrary
             return qfont;
         }
 
-        public void DrawString(string text, Font font, Color color, PointF point)
-        {
-            DrawString(text, font, color, point.X, point.Y);
-        }
-
         public void DrawString(string text, Font font, Color color, float x, float y)
         {
             QFont qfont = GetQFont(font);
@@ -147,7 +142,7 @@ namespace XLibrary
             qfont.Print(text, new Vector2(x, y));
         }
 
-        public void DrawString(string text, Font font, Color color, RectangleF rect)
+        public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
             QFont qfont = GetQFont(font);
 

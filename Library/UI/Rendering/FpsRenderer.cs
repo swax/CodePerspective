@@ -34,7 +34,7 @@ namespace XLibrary
         float depth = -1f;
         float depthStep = 0.00001f;
 
-        float LevelSize = 5;
+        float LevelSize = 3;
 
         float OctogonEdge = (float) (1.0 - Math.Sqrt(2) / 2.0);
 
@@ -217,31 +217,35 @@ namespace XLibrary
             return qfont;
         }
 
-        public void DrawString(string text, Font font, Color color, PointF point)
-        {
-            DrawString(text, font, color, point.X, point.Y);
-        }
-
         public void DrawString(string text, Font font, Color color, float x, float y)
         {
             QFont qfont = GetQFont(font);
 
             qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
-            GL.Rotate(90, 1.0f, 0.0f, 0.0f);
-            qfont.Print(text, new Vector2(x, y));
-            GL.Rotate(-90, 1.0f, 0.0f, 0.0f);
+            GLUtils.SafeSaveMatrix(() =>
+            {
+                GL.Rotate(90, 1.0f, 0.0f, 0.0f);
+                qfont.Print(text, new Vector2(x, y));
+            });
         }
 
-        public void DrawString(string text, Font font, Color color, RectangleF rect)
+        public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
             QFont qfont = GetQFont(font);
 
             qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
-            GL.Rotate(90, 1.0f, 0.0f, 0.0f);
-            qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
-            GL.Rotate(-90, 1.0f, 0.0f, 0.0f);
+            float floor = depth * LevelSize;
+            float height = GetNodeHeight(node);
+
+            GLUtils.SafeSaveMatrix(() =>
+            {
+                GL.Translate(0, 0, floor + height);
+                GL.Rotate(90, 1.0f, 0.0f, 0.0f);
+
+                qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
+            });
         }
 
         public void FillEllipse(Color color, RectangleF area)
@@ -266,13 +270,20 @@ namespace XLibrary
             float width = area.Width - 0.2f;
             float length = area.Height - 0.2f;
             float bottom = depth * LevelSize + 0.1f;
-            float height = LevelSize - 0.2f;
+            float height = GetNodeHeight(node) - 0.2f;
 
             if (outside)
                 FillEllipse(color, area);
             else
                 GLUtils.DrawCube(NodeVbo, color, x, y, width, length, bottom, height);
-                //FillRectangle(color, area.X, area.Y, area.Width, area.Height);
+        }
+
+        float GetNodeHeight(NodeModel node)
+        {
+            if (node.ObjType == XObjType.Method)
+                return Math.Max(100f * (float)node.SecondaryValue / (float)Model.MaxSecondaryValue, LevelSize);
+            else
+                return LevelSize;
         }
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
@@ -348,17 +359,19 @@ namespace XLibrary
             //depth += depthStep;
 
             float x = area.X, z = area.Y, width = area.Width, length = area.Height;
-            float floor = depth * LevelSize;
+
+            float floor = depth * LevelSize; 
+            float height = GetNodeHeight(node);
 
             var v1 = new Vector3(x, floor, z);
             var v2 = new Vector3(x + width, floor, z);
             var v3 = new Vector3(x + width, floor, z + length);
             var v4 = new Vector3(x, floor, z + length);
 
-            var v5 = new Vector3(x, floor + LevelSize, z);
-            var v6 = new Vector3(x + width, floor + LevelSize, z);
-            var v7 = new Vector3(x + width, floor + LevelSize, z + length);
-            var v8 = new Vector3(x, floor + LevelSize, z + length);
+            var v5 = new Vector3(x, floor + height, z);
+            var v6 = new Vector3(x + width, floor + height, z);
+            var v7 = new Vector3(x + width, floor + height, z + length);
+            var v8 = new Vector3(x, floor + height, z + length);
 
             GL.LineWidth(lineWidth);
 

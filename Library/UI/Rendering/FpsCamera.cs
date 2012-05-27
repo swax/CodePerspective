@@ -93,7 +93,7 @@ namespace XLibrary
                 moveX += speed * Math.Sin(toRads(camYRot)) * pitchFactor;
 
                 // Control Y-Axis movement
-                moveY += speed * Math.Sin(toRads(camXRot)) * -1.0f;
+                //moveY += speed * Math.Sin(toRads(camXRot)) * -1.0f;
 
                 // Control Z-Axis movement
                 double yawFactor = Math.Cos(toRads(camXRot));

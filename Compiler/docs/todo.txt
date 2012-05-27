@@ -1,9 +1,10 @@
 ﻿
 now	
-
-	block colors not working?
+	time rendering passes, time deops before after changes
 	draw lines from a vbo
 	put labels on tops of buildings
+	renderer enum for pointBorder to work with gdi only
+	size fields by instance count
 
 	signal to renderer if node outlines/layout has not changed
 	bright color outlines
@@ -17,6 +18,8 @@ now
 	'trystuff' in test app not decompiling, unresolved ref
 	way for renderer to tell methods node positions not modified so vbo can stay constant
 	
+	method/field dependency graph - map viewModel, see if it can be refactored
+
 	shade bg of alternate threads
 
 	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible

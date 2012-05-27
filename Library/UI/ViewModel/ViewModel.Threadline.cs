@@ -64,7 +64,7 @@ namespace XLibrary
 
                 float yPos = ScreenSize.Height - nodeHeight - 16;
 
-                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, new PointF(ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2));
+                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2);
 
                 float colWidth = timeline.Deepest * nodeWidth + 100;
 

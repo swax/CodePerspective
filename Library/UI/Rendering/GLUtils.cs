@@ -38,6 +38,15 @@ namespace XLibrary
             GL.Enable(cap);
         }
 
+        public static void SafeSaveMatrix(Action code)
+        {
+            GL.PushMatrix();
+
+            code();
+
+            GL.PopMatrix();
+        }
+
         public static void SafeBlend(Action code)
         {
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
@@ -46,6 +55,16 @@ namespace XLibrary
             code();
 
             GL.Disable(EnableCap.Blend);
+        }
+
+        public static void BlendColors(Color src, ref Color tgt)
+        {
+            int a = ((src.A * src.A) >> 8) + ((tgt.A * (255 - src.A)) >> 8);
+            int r = ((src.R * src.A) >> 8) + ((tgt.R * (255 - src.A)) >> 8);
+            int g = ((src.G * src.A) >> 8) + ((tgt.G * (255 - src.A)) >> 8);
+            int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
+
+            tgt = Color.FromArgb(a, r, g, b);
         }
 
         public static void DrawCube(VertexBuffer vbo, Color color, float x, float z, float width, float length, float bottom, float height)

@@ -142,8 +142,6 @@
             // DecompileCSharpCheckBox
             // 
             this.DecompileCSharpCheckBox.AutoSize = true;
-            this.DecompileCSharpCheckBox.Checked = true;
-            this.DecompileCSharpCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.DecompileCSharpCheckBox.Location = new System.Drawing.Point(13, 94);
             this.DecompileCSharpCheckBox.Name = "DecompileCSharpCheckBox";
             this.DecompileCSharpCheckBox.Size = new System.Drawing.Size(105, 17);

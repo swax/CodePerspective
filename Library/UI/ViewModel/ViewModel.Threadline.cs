@@ -200,13 +200,6 @@ namespace XLibrary
             foreach (var timeline in removeTimelines)
                 Threadlines.Remove(timeline.ThreadID);
         }
-
-        public bool TogglePause()
-        {
-            Paused = !Paused;
-
-            return Paused;
-        }
     }
 
     public class Threadline

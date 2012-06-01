@@ -18,6 +18,8 @@ namespace XLibrary
         PointF LastHoverPoint = new PointF();
         DateTime LastHoverTime = DateTime.Now;
 
+        public bool DrawSubpixel;
+
 
         public void Render()
         {
@@ -70,12 +72,12 @@ namespace XLibrary
 
 
             // draw ignored over nodes ignored may contain
-            foreach (var ignored in IgnoredNodes.Values)
+            /*foreach (var ignored in IgnoredNodes.Values)
                 if (PositionMap.ContainsKey(ignored.ID))
                 {
                     Renderer.DrawLine(XColors.IgnoredColor, 1, ignored.AreaF.UpperLeftCorner(), ignored.AreaF.LowerRightCorner(), false);
                     Renderer.DrawLine(XColors.IgnoredColor, 1, ignored.AreaF.UpperRightCorner(), ignored.AreaF.LowerLeftCorner(), false);
-                }
+                }*/
 
             // draw dividers for call graph
             /*if (ViewLayout == LayoutType.CallGraph)
@@ -149,7 +151,7 @@ namespace XLibrary
                         if (call.StillInside > 0 && ShowCalls)
                         {
                             if (ViewLayout == LayoutType.TreeMap)
-                                Renderer.DrawLine(XColors.HoldingCallColor, lineWidth, source.CenterF, destination.CenterF, false);
+                                Renderer.DrawEdge(XColors.HoldingCallColor, lineWidth, source.CenterF, destination.CenterF, false, source, destination);
                             else if (ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(lineWidth, XColors.HoldingCallColor, source, destination);
                         }
@@ -160,12 +162,15 @@ namespace XLibrary
                         {
                             if (ViewLayout == LayoutType.TreeMap)
                             {
-                                PointF start = PositionMap[call.Source].CenterF;
-                                PointF end = PositionMap[call.Destination].CenterF;
+                                var callSource = PositionMap[call.Source];
+                                var callDest = PositionMap[call.Destination];
+
+                                PointF start = callSource.CenterF;
+                                PointF end = callDest.CenterF;
                                 PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
 
-                                Renderer.DrawLine(XColors.CallOutColor, lineWidth, start, mid, false);
-                                Renderer.DrawLine(XColors.CallInColor, lineWidth, mid, end, false);
+                                Renderer.DrawEdge(XColors.CallOutColor, lineWidth, start, mid, false, callSource, callDest);
+                                Renderer.DrawEdge(XColors.CallInColor, lineWidth, mid, end, false, callSource, callDest);
                             }
                             else if (ViewLayout == LayoutType.CallGraph)
                             {
@@ -182,7 +187,7 @@ namespace XLibrary
                             var color = XColors.CallPenColors[call.Hit];
 
                             if (ViewLayout == LayoutType.TreeMap)
-                                Renderer.DrawLine(color, lineWidth, source.CenterF, destination.CenterF, true);
+                                Renderer.DrawEdge(color, lineWidth, source.CenterF, destination.CenterF, true, source, destination);
 
                             else if (ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(lineWidth, color, source, destination, true);
@@ -210,7 +215,7 @@ namespace XLibrary
         private void DrawGraphEdge(int penWidth, Color pen, NodeModel source, NodeModel destination, bool dashed=false)
         {
             if (source.Intermediates == null || !source.Intermediates.ContainsKey(destination.ID))
-                Renderer.DrawLine(pen, penWidth, source.CenterF, destination.CenterF, dashed);
+                Renderer.DrawEdge(pen, penWidth, source.CenterF, destination.CenterF, dashed, source, destination);
             else
             {
                 var intermediates = source.Intermediates[destination.ID];
@@ -225,7 +230,7 @@ namespace XLibrary
                     //if (next == last)
                     //    endCap = LineCap.ArrowAnchor;
 
-                    Renderer.DrawLine(pen, penWidth, prev.CenterF, next.CenterF, dashed);
+                    Renderer.DrawEdge(pen, penWidth, prev.CenterF, next.CenterF, dashed, prev, next);
                     prev = next;
                 }
             }
@@ -343,7 +348,7 @@ namespace XLibrary
                 applyColor(XColors.SearchMatchColor);
 
             // if just a point, drawing a border messes up pixels
-            if (pointBorder)
+            if (pointBorder && !DrawSubpixel)
             {
                 if (FilteredNodes.ContainsKey(node.ID))
                     applyColor(XColors.FilteredColor);
@@ -384,7 +389,7 @@ namespace XLibrary
             if (MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
                 drawChildren = false;
 
-            if (drawChildren && area.Width > 1 && area.Height > 1)
+            if (drawChildren && ((area.Width > 1 && area.Height > 1) || DrawSubpixel))
                 foreach (var sub in node.Nodes)
                     DrawNode(sub, depth + 1, drawChildren);
 

@@ -50,7 +50,7 @@ namespace XLibrary
             MainUI.UpdateBreadCrumbs();
 
             DoRevalue = true;
-            Renderer.ViewRefresh();
+            Renderer.ViewInvalidate();
         }
 
         public void ResetZoom()

@@ -84,12 +84,18 @@ namespace XLibrary
             vbo.AddVertex(v1, color, normal);
             vbo.AddVertex(v2, color, normal);
             vbo.AddVertex(v3, color, normal);
+
+            vbo.AddVertex(v1, color, normal);
+            vbo.AddVertex(v3, color, normal);
             vbo.AddVertex(v4, color, normal);
 
             // top vertices
             normal = new Vector3(0, 1, 0);
             vbo.AddVertex(v8, color, normal);
             vbo.AddVertex(v7, color, normal);
+            vbo.AddVertex(v6, color, normal);
+
+            vbo.AddVertex(v8, color, normal);
             vbo.AddVertex(v6, color, normal);
             vbo.AddVertex(v5, color, normal);
 
@@ -98,12 +104,18 @@ namespace XLibrary
             vbo.AddVertex(v5, color, normal);
             vbo.AddVertex(v6, color, normal);
             vbo.AddVertex(v2, color, normal);
+
+            vbo.AddVertex(v5, color, normal);
+            vbo.AddVertex(v2, color, normal);
             vbo.AddVertex(v1, color, normal);
 
             // x facing vertices
             normal = new Vector3(1, 0, 0);
             vbo.AddVertex(v6, color, normal);
             vbo.AddVertex(v7, color, normal);
+            vbo.AddVertex(v3, color, normal);
+
+            vbo.AddVertex(v6, color, normal);
             vbo.AddVertex(v3, color, normal);
             vbo.AddVertex(v2, color, normal);
 
@@ -112,12 +124,18 @@ namespace XLibrary
             vbo.AddVertex(v4, color, normal);
             vbo.AddVertex(v3, color, normal);
             vbo.AddVertex(v7, color, normal);
+
+            vbo.AddVertex(v4, color, normal);
+            vbo.AddVertex(v7, color, normal);
             vbo.AddVertex(v8, color, normal);
 
             // -x facing vertices
             normal = new Vector3(-1, 0, 0);
             vbo.AddVertex(v1, color, normal);
             vbo.AddVertex(v4, color, normal);
+            vbo.AddVertex(v8, color, normal);
+
+            vbo.AddVertex(v1, color, normal);
             vbo.AddVertex(v8, color, normal);
             vbo.AddVertex(v5, color, normal);
         }
@@ -127,9 +145,8 @@ namespace XLibrary
     {
         public int VboID;
         public int EboID;
-        public int NumElements;
 
-        int VertexCount = 0;
+        public int VertexCount = 0;
         VertexPositionColor[] Vertices = new VertexPositionColor[1000];
 
         int ElementCount = 0;
@@ -169,12 +186,9 @@ namespace XLibrary
             GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out size);
             if (ElementCount * sizeof(int) != size)
                 throw new ApplicationException("Element data not uploaded correctly");
-
-
-            NumElements = ElementCount;
         }
 
-        public void Draw()
+        public void Draw(BeginMode mode)
         {
             // To draw a VBO:
             // 1) Ensure that the VertexArray client state is enabled.
@@ -194,7 +208,7 @@ namespace XLibrary
             GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
             GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
-            GL.DrawElements(BeginMode.Quads, NumElements, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.DrawElements(mode, ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 
         internal void AddVertex(Vector3 point, Color color, Vector3 normal)
@@ -226,6 +240,12 @@ namespace XLibrary
         public Vector3 Position;
         public uint Color;
         public Vector3 Normal;
+
+        public void Set(Vector3 pos, Color color)
+        {
+            Position = pos;
+            Color = ToRgba(color);
+        }
 
         public void Set(Vector3 pos, Color color, Vector3 normal)
         {

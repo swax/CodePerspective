@@ -48,6 +48,7 @@ namespace XLibrary
         public void Start()
         {
             Model.TwoDimensionalValues = false;
+            Model.DrawSubpixel = false;
         }
 
         public void Stop()
@@ -127,11 +128,6 @@ namespace XLibrary
             Invalidate();
         }
 
-        public void ViewRefresh()
-        {
-            Refresh();
-        }
-
         private void GdiRenderer_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             Model.View_MouseDoubleClick(e.Location);
@@ -193,7 +189,7 @@ namespace XLibrary
             
         }
 
-        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {             
             var pen = GetPen(color, lineWidth, dashed);
 

@@ -54,7 +54,6 @@
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
             this.ViewHostPanel = new System.Windows.Forms.Panel();
-            this.PauseLink = new System.Windows.Forms.LinkLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -289,25 +288,10 @@
             this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.ViewHostPanel.Controls.Add(this.PauseLink);
             this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
             this.ViewHostPanel.Name = "ViewHostPanel";
             this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
             this.ViewHostPanel.TabIndex = 7;
-            // 
-            // PauseLink
-            // 
-            this.PauseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.PauseLink.AutoSize = true;
-            this.PauseLink.BackColor = System.Drawing.Color.Transparent;
-            this.PauseLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.PauseLink.Location = new System.Drawing.Point(486, 11);
-            this.PauseLink.Name = "PauseLink";
-            this.PauseLink.Size = new System.Drawing.Size(52, 16);
-            this.PauseLink.TabIndex = 6;
-            this.PauseLink.TabStop = true;
-            this.PauseLink.Text = "Pause";
-            this.PauseLink.Visible = false;
             // 
             // MainForm
             // 
@@ -360,6 +344,5 @@
         private System.Windows.Forms.ToolStripMenuItem ClearSearchMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
         private System.Windows.Forms.Panel ViewHostPanel;
-        private System.Windows.Forms.LinkLabel PauseLink;
     }
 }

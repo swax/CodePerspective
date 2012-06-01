@@ -55,13 +55,10 @@ namespace XLibrary
             return line;
         }
 
-        public static IEnumerable<T> Do<T>(this IEnumerable<T> list, Action<T> method)
+        public static void ForEach<T>(this IEnumerable<T> enumeration, Action<T> action)
         {
-            foreach (T obj in list)
-            {
-                method(obj);
-                yield return obj;
-            }
+            foreach (T item in enumeration)
+                action(item);
         }
 
         /*public static Point3D Move(this Point3D start, double x, double y, double z)

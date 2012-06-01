@@ -73,11 +73,12 @@
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
             this.panel7 = new System.Windows.Forms.Panel();
-            this.label7 = new System.Windows.Forms.Label();
             this.RenderGdiButton = new System.Windows.Forms.RadioButton();
             this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
             this.RenderFpsButton = new System.Windows.Forms.RadioButton();
             this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
+            this.label7 = new System.Windows.Forms.Label();
+            this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -584,7 +585,7 @@
             // 
             this.FpsLabel.AutoSize = true;
             this.FpsLabel.ForeColor = System.Drawing.Color.Gray;
-            this.FpsLabel.Location = new System.Drawing.Point(3, 125);
+            this.FpsLabel.Location = new System.Drawing.Point(3, 139);
             this.FpsLabel.Name = "FpsLabel";
             this.FpsLabel.Size = new System.Drawing.Size(47, 13);
             this.FpsLabel.TabIndex = 29;
@@ -592,6 +593,7 @@
             // 
             // panel7
             // 
+            this.panel7.Controls.Add(this.PauseLink);
             this.panel7.Controls.Add(this.RenderGdiButton);
             this.panel7.Controls.Add(this.RenderOpenGLButton);
             this.panel7.Controls.Add(this.RenderFpsButton);
@@ -601,16 +603,6 @@
             this.panel7.Name = "panel7";
             this.panel7.Size = new System.Drawing.Size(73, 236);
             this.panel7.TabIndex = 31;
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(123, 0);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(65, 13);
-            this.label7.TabIndex = 30;
-            this.label7.Text = "Rendering";
             // 
             // RenderGdiButton
             // 
@@ -660,6 +652,27 @@
             this.RenderGibsonButton.UseVisualStyleBackColor = true;
             this.RenderGibsonButton.CheckedChanged += new System.EventHandler(this.RenderGibsonButton_CheckedChanged);
             // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label7.Location = new System.Drawing.Point(123, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(65, 13);
+            this.label7.TabIndex = 30;
+            this.label7.Text = "Rendering";
+            // 
+            // PauseLink
+            // 
+            this.PauseLink.AutoSize = true;
+            this.PauseLink.Location = new System.Drawing.Point(3, 95);
+            this.PauseLink.Name = "PauseLink";
+            this.PauseLink.Size = new System.Drawing.Size(37, 13);
+            this.PauseLink.TabIndex = 17;
+            this.PauseLink.TabStop = true;
+            this.PauseLink.Text = "Pause";
+            this.PauseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PauseLink_LinkClicked);
+            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -680,7 +693,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(629, 271);
+            this.Size = new System.Drawing.Size(629, 254);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -752,5 +765,6 @@
         public System.Windows.Forms.RadioButton RenderOpenGLButton;
         public System.Windows.Forms.RadioButton RenderFpsButton;
         public System.Windows.Forms.RadioButton RenderGibsonButton;
+        private System.Windows.Forms.LinkLabel PauseLink;
     }
 }

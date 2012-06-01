@@ -24,10 +24,9 @@ namespace XLibrary
         void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth);
         void DrawNodeOutline(Color pen, int penWidth, RectangleF area, bool outside, NodeModel node, int depth);
 
-        void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed);
+        void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination);
 
         void ViewInvalidate();
-        void ViewRefresh();
 
         Point GetCursorPosition();
 

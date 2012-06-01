@@ -363,5 +363,15 @@ namespace XLibrary.Panels
             Main.SetRenderer(typeof(GibsonView));
             Main.RefreshView();
         }
+
+        private void PauseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            Model.Paused = !Model.Paused;
+
+            if (Model.Paused)
+                PauseLink.Text = "Resume";
+            else
+                PauseLink.Text = "Pause";
+        }
     }
 }

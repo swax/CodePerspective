@@ -288,14 +288,6 @@ namespace XLibrary
             NamespaceTab.Visible = (showPanel == NamespaceTab);
         }
 
-        private void PauseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            if (Model.TogglePause())
-                PauseLink.Text = "Resume";
-            else
-                PauseLink.Text = "Pause";
-        }
-
         private void ChangeSplitterOrientation_Click(object sender, EventArgs e)
         {
             if(splitContainer1.Orientation == Orientation.Vertical)

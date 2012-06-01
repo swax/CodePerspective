@@ -38,7 +38,10 @@ namespace XLibrary
 
         float OctogonEdge = (float) (1.0 - Math.Sqrt(2) / 2.0);
 
-        VertexBuffer NodeVbo = new VertexBuffer();
+        VertexBuffer Nodes = new VertexBuffer();
+        Dictionary<int, VertexBuffer> Outlines = new Dictionary<int,VertexBuffer>();
+        Dictionary<int, VertexBuffer> CallLines = new Dictionary<int, VertexBuffer>();
+        Dictionary<int, VertexBuffer> DashedCallLines = new Dictionary<int, VertexBuffer>();
 
 
         public FpsRenderer(ViewModel model)
@@ -72,6 +75,7 @@ namespace XLibrary
         public void Start()
         {
             Model.TwoDimensionalValues = true;
+            Model.DrawSubpixel = true;
             MakeCurrent();
             LogicTimer.Enabled = true;
         }
@@ -112,7 +116,7 @@ namespace XLibrary
 
             GLLoaded = true;
 
-            NodeVbo.Init();
+            Nodes.Init();
         }
 
         void GLRenderer_Resize(object sender, EventArgs e)
@@ -175,14 +179,39 @@ namespace XLibrary
             // Move the camera to our location in space
             FpsCam.SetupCamera();
 
-            depth = 0f;
+            if (!Model.Paused)
+            {
+                depth = 0f;
 
-            NodeVbo.Reset();
+                // reset vertex buffers
+                Nodes.Reset();
+                Outlines.Values.ForEach(v => v.Reset());
+                CallLines.Values.ForEach(v => v.Reset());
+                DashedCallLines.Values.ForEach(v => v.Reset());
 
-            Model.Render();
+                // render
+                Model.Render();
 
-            NodeVbo.Load();
-            NodeVbo.Draw();
+                // send vertex buffers to gpu
+                Nodes.Load();
+                Outlines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
+                CallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
+                DashedCallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
+            }
+
+            // draw vertex buffers
+            Nodes.Draw(BeginMode.Triangles);
+            DrawLineVbo(Outlines);
+            DrawLineVbo(CallLines);
+
+            GLUtils.SafeEnable(EnableCap.LineStipple, () =>
+            {
+                //1111 1000 0000 0000
+                short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
+                GL.LineStipple(1, pattern);
+
+                DrawLineVbo(DashedCallLines);
+            });
 
             if (MouseLook)
                 FpsCam.DrawHud(Width, Height, MidWindow, Color.Black);
@@ -190,6 +219,19 @@ namespace XLibrary
             SwapBuffers();
 
             Model.FpsCount++;
+        }
+
+        private void DrawLineVbo(Dictionary<int, VertexBuffer> widthMap)
+        {
+            foreach (int width in widthMap.Keys)
+            {
+                var vbo = widthMap[width];
+                if (vbo.VertexCount == 0)
+                    continue;
+
+                GL.LineWidth(width);
+                vbo.Draw(BeginMode.Lines);
+            }
         }
 
         public SizeF MeasureString(string text, Font font)
@@ -236,30 +278,16 @@ namespace XLibrary
 
             qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
-            float floor = depth * LevelSize;
-            float height = GetNodeHeight(node);
+            float height = 0;
+            if(Model.ViewLayout == LayoutType.TreeMap)
+                height = depth * LevelSize + GetNodeHeight(node);
 
             GLUtils.SafeSaveMatrix(() =>
             {
-                GL.Translate(0, 0, floor + height);
+                GL.Translate(0, height, 0);
                 GL.Rotate(90, 1.0f, 0.0f, 0.0f);
 
                 qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
-            });
-        }
-
-        public void FillEllipse(Color color, RectangleF area)
-        {
-            depth += depthStep;
-
-            GLUtils.SafeBlend(() =>
-            {
-                GLUtils.SafeBegin(BeginMode.Polygon, () =>
-                {
-                    GL.Color4(color);
-
-                    DrawEllipseVerticies(area.X, area.Y, area.Width, area.Height);
-                });
             });
         }
 
@@ -273,9 +301,9 @@ namespace XLibrary
             float height = GetNodeHeight(node) - 0.2f;
 
             if (outside)
-                FillEllipse(color, area);
+                DrawPyramid(color, x, y, width, length, bottom, height);
             else
-                GLUtils.DrawCube(NodeVbo, color, x, y, width, length, bottom, height);
+                GLUtils.DrawCube(Nodes, color, x, y, width, length, bottom, height);
         }
 
         float GetNodeHeight(NodeModel node)
@@ -288,70 +316,7 @@ namespace XLibrary
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-            //FillRectangle(color, x, y, width, height);
-        }
-
-        private void FillRectangle(Color color, float x, float y, float width, float height)
-        {
-            depth += depthStep;
-
-            GLUtils.SafeBlend(() =>
-            {
-                GLUtils.SafeBegin(BeginMode.Quads, () =>
-                {
-                    GL.Color4(color);
-
-                    GL.Vertex3(x, depth, y + height);
-                    GL.Vertex3(x + width, depth, y + height);
-                    GL.Vertex3(x + width, depth, y);
-                    GL.Vertex3(x, depth, y);
-                });
-            });
-        }
-
-        public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
-        {
-            depth += depthStep;
-
-            GL.LineWidth(lineWidth);
-
-            GLUtils.SafeBlend(() =>
-            {
-                GLUtils.SafeBegin(BeginMode.LineLoop, () =>
-                {
-                    GL.Color4(color);
-
-                    DrawEllipseVerticies(x, y, width, height);
-                });
-            });
-        }
-
-        private void DrawEllipseVerticies(float x, float y, float width, float height)
-        {
-            double segments = 8.0;
-
-            // http://stackoverflow.com/questions/5886628/effecient-way-to-draw-ellipse-with-opengl-or-d3d
-
-            double cx = x + width / 2.0;
-            double cy = y + height / 2.0;
-
-            double theta = 2.0 * 3.1415926 / segments;
-            double c = Math.Cos(theta); //precalculate the sine and cosine
-            double s = Math.Sin(theta);
-            double t = 0;
-
-            double xPos = width / 2.0; //we start at angle = 0 
-            double yPos = 0;
-
-            for (int ii = 0; ii < segments; ii++)
-            {
-                GL.Vertex3(xPos + cx, depth, yPos + cy);//output vertex 
-
-                //apply the rotation matrix
-                t = xPos;
-                xPos = c * xPos - s * yPos;
-                yPos = s * t + c * yPos;
-            }
+   
         }
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
@@ -363,6 +328,79 @@ namespace XLibrary
             float floor = depth * LevelSize; 
             float height = GetNodeHeight(node);
 
+            if(outside)
+                DrawPyramidOutline(color, lineWidth, x, z, width, length, floor, height);
+            else
+                DrawBoxOutline(color, lineWidth, x, z, width, length, floor, height);
+        }
+
+        private void DrawPyramidOutline(Color color, int lineWidth, float x, float z, float width, float length, float floor, float height)
+        {
+            var v1 = new Vector3(x, floor, z);
+            var v2 = new Vector3(x + width, floor, z);
+            var v3 = new Vector3(x + width, floor, z + length);
+            var v4 = new Vector3(x, floor, z + length);
+
+            var v5 = new Vector3(x + width / 2f, floor + height, z + length / 2f);
+
+            DrawLine(v1, v2, Outlines, color, lineWidth);
+            DrawLine(v2, v3, Outlines, color, lineWidth);
+            DrawLine(v3, v4, Outlines, color, lineWidth);
+            DrawLine(v4, v1, Outlines, color, lineWidth);
+
+            DrawLine(v1, v5, Outlines, color, lineWidth);
+            DrawLine(v2, v5, Outlines, color, lineWidth);
+            DrawLine(v3, v5, Outlines, color, lineWidth);
+            DrawLine(v4, v5, Outlines, color, lineWidth);
+        }
+
+        private void DrawPyramid(Color color, float x, float z, float width, float length, float floor, float height)
+        {
+            var v1 = new Vector3(x, floor, z);
+            var v2 = new Vector3(x + width, floor, z);
+            var v3 = new Vector3(x + width, floor, z + length);
+            var v4 = new Vector3(x, floor, z + length);
+
+            var v5 = new Vector3(x + width / 2f, floor + height, z + length / 2f);
+
+            // bottom vertices
+            var normal = new Vector3(0, -1, 0);
+            Nodes.AddVertex(v1, color, normal);
+            Nodes.AddVertex(v2, color, normal);
+            Nodes.AddVertex(v3, color, normal);
+
+            Nodes.AddVertex(v1, color, normal);
+            Nodes.AddVertex(v3, color, normal);
+            Nodes.AddVertex(v4, color, normal);
+
+            // -z facing vertices
+            normal = new Vector3(0, 0, -1);
+            Nodes.AddVertex(v3, color, normal);
+            Nodes.AddVertex(v2, color, normal);
+            Nodes.AddVertex(v5, color, normal);
+
+            // x facing vertices
+            normal = new Vector3(1, 0, 0);
+            Nodes.AddVertex(v4, color, normal);
+            Nodes.AddVertex(v3, color, normal);
+            Nodes.AddVertex(v5, color, normal);
+
+            // z facing vertices
+            normal = new Vector3(0, 0, 1);
+            Nodes.AddVertex(v1, color, normal);
+            Nodes.AddVertex(v4, color, normal);
+            Nodes.AddVertex(v5, color, normal);
+
+            // -x facing vertices
+            normal = new Vector3(-1, 0, 0);
+            Nodes.AddVertex(v2, color, normal);
+            Nodes.AddVertex(v1, color, normal);
+            Nodes.AddVertex(v5, color, normal);
+        }
+
+
+        private void DrawBoxOutline(Color color, int lineWidth, float x, float z, float width, float length, float floor, float height)
+        {
             var v1 = new Vector3(x, floor, z);
             var v2 = new Vector3(x + width, floor, z);
             var v3 = new Vector3(x + width, floor, z + length);
@@ -373,79 +411,52 @@ namespace XLibrary
             var v7 = new Vector3(x + width, floor + height, z + length);
             var v8 = new Vector3(x, floor + height, z + length);
 
-            GL.LineWidth(lineWidth);
+            DrawLine(v1, v2, Outlines, color, lineWidth);
+            DrawLine(v2, v3, Outlines, color, lineWidth);
+            DrawLine(v3, v4, Outlines, color, lineWidth);
+            DrawLine(v4, v1, Outlines, color, lineWidth);
 
-            GLUtils.SafeBlend(() =>
-            {
-                GLUtils.SafeBegin(BeginMode.Lines, () =>
-                {
-                    GL.Color4(color);
+            DrawLine(v5, v6, Outlines, color, lineWidth);
+            DrawLine(v6, v7, Outlines, color, lineWidth);
+            DrawLine(v7, v8, Outlines, color, lineWidth);
+            DrawLine(v8, v5, Outlines, color, lineWidth);
 
-                    DrawLine(v1, v2);
-                    DrawLine(v2, v3);
-                    DrawLine(v3, v4);
-                    DrawLine(v4, v1);
-
-                    DrawLine(v5, v6);
-                    DrawLine(v6, v7);
-                    DrawLine(v7, v8);
-                    DrawLine(v8, v5);
-                    
-                    DrawLine(v1, v5);
-                    DrawLine(v2, v6);
-                    DrawLine(v3, v7);
-                    DrawLine(v4, v8);
-                });
-            });
+            DrawLine(v1, v5, Outlines, color, lineWidth);
+            DrawLine(v2, v6, Outlines, color, lineWidth);
+            DrawLine(v3, v7, Outlines, color, lineWidth);
+            DrawLine(v4, v8, Outlines, color, lineWidth);
         }
 
-        void DrawLine(Vector3 a, Vector3 b)
+        void DrawLine(Vector3 a, Vector3 b, Dictionary<int, VertexBuffer> widthMap, Color color, int width)
         {
-            GL.Vertex3(a);
-            GL.Vertex3(b);
+            VertexBuffer vbo;
+            if (!widthMap.TryGetValue(width, out vbo))
+            {
+                vbo = new VertexBuffer();
+                vbo.Init();
+                widthMap[width] = vbo;
+            }
+
+            var normal = new Vector3();
+            vbo.AddVertex(a, color, normal);
+            vbo.AddVertex(b, color, normal); 
         }
 
-        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
             depth += depthStep;
 
-            GL.LineWidth(lineWidth);
+            var a = new Vector3(start.X, depth, start.Y);
+            var b = new Vector3(end.X, depth, end.Y);
 
-            GLUtils.SafeBlend(() =>
-            {
-                if (!dashed)
-                    RenderLine(color, start, end);
-                else
-                    GLUtils.SafeEnable(EnableCap.LineStipple, () =>
-                    {
-                        //1111 1000 0000 0000
-                        short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
-                        GL.LineStipple(1, pattern);
-                        RenderLine(color, start, end);
-                    });
-            });
-        }
-
-        private void RenderLine(Color color, PointF start, PointF end)
-        {
-            GLUtils.SafeEnable(EnableCap.LineSmooth, () =>
-            {
-                GLUtils.SafeBegin(BeginMode.Lines, () =>
-                {
-                    GL.Color4(color);
-
-                    GL.Vertex3(start.X, depth, start.Y);
-                    GL.Vertex3(end.X, depth, end.Y);
-                });
-            });
+            if (!dashed)
+                DrawLine(a, b, CallLines, color, lineWidth);
+            else
+                DrawLine(a, b, DashedCallLines, color, lineWidth);
+          
         }
 
         public void ViewInvalidate()
-        {
-            Invalidate();
-        }
-
-        public void ViewRefresh()
         {
             Invalidate();
         }

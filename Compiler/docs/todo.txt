@@ -1,110 +1,70 @@
 ﻿
-now	
-	time rendering passes, time deops before after changes
-	draw lines from a vbo
-	put labels on tops of buildings
-	renderer enum for pointBorder to work with gdi only
-	size fields by instance count
+fps view
+	outline/labels/nodes static - test fps with 'pause' button to stop reloading the vbos, try with code walls as well
+	node hits, call lines dynamic
 
-	signal to renderer if node outlines/layout has not changed
-	bright color outlines
-	black boxes inside outlines that light up
 	call lines as 5 line arc though the sky
-	
-	draw method graphs within class graphs
-	make a new color modes for 2d/3d swtichable
-	render code on the walls - proof of concept
-	debug facebook, github apps
-	'trystuff' in test app not decompiling, unresolved ref
-	way for renderer to tell methods node positions not modified so vbo can stay constant
-	
-	method/field dependency graph - map viewModel, see if it can be refactored
-
-	shade bg of alternate threads
-
-	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
-
-	combine refresh/invalidate?
-
-	obsidian colors - code/console view too
-
-	show fields in instance view even if no instances created
-
+	write code on walls - texture sides of blocks with C#, MSIL, Timing, and Instance info
 	on click render everything in select mode and find the result
+	a way to keep must drawn objects static in vbo
+	size fields by instance count
 	
-	3d		
-		draw lines as dashes first, then do arcs from tower tops
+color profile 
+	obsidian colors - code/console view too
+	change at run time
+	load from file
+	serialize to xml
 
-		Call render, igore draw calls and build vbo manually, so interface still implemented
-		
-		towers translucent blue
-		light up white when hit - light up the code
-			maybe not light up but light floors bottom to tip
-		communication as dot archs between towers
-		texture sides of blocks with C#, MSIL, Timing, and Instance info
-		click on block multiple times rotates it
-		create city as a vbo that should rarely have to be changed
-		label function / field name on top of tower
-
-	zoom on class show method graph
-
-	build stats - time, dat size
-	double click on method in treeview, show containing class
+class graph
 	double click on class in class/init graph, show connected
+	double click zoomed in class node, show method graph, save view mode in history
 	switch to class graph from method graph, and move zoom up to class level
-	create an obsidian color them
-	about tab - code used, licenses, put about panel in builder and viewer
 
-	paint.net photshop.dll recompile/view not working..
+treemap view
+	double click on method in treeview, show containing class
+	Put sub-classses inside parent classes so functions/methods are adacent?
 
+threadline
+	shade bg of alternate threads
 	add last run time to mouse over in threadline
-
 	if fields selected in thread line
 		show fields as row at bottom, at mid-point between accessing threads
 
-	Top level thread filter in crumbs - works in all views?
-		filter call graph by selected thread
-		a way to filter by thread intersections
-		way to show what FIELDS are accessed by multiple threads
-		3d thread lines - cylinder with threadlines spread around edge, lines go up/down off the screen, mouse rotates cylinder
-		call graph, filtered by thread
-			add to function call class an int[] for each thread id that used the call
-			drop down combo of threads tracked, name is name of entry point
-			different colors per thread
-		option to turn on/off
-		pick 6 colors, take thread.getHash() % 6 to get index of color
-		color nodes/lines between nodes according to hash
-		save red for nodes/calls hit by multiple colors
-		each entry instance has an id, could map instance ids to function calls
-		6 red orange yellow green blue purple
-		black interlace when threads intersect
-		array 0 - 5
-		map thread id to array index
-		every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
-		sep call graphs per thread, or list of ids, select to show graph for just that
+method graph in each class graph node
 
-	does 'reset hit' reset class hit status>
-	break out color profile for GL
+method/field dependency graph built on re-compile like class dependency graph
 
-	blend colors so i can see outside calls bettter
-	
-	better browsing - double click on class to see internal methods (or zoom in on class)
-	on click method/node, show that instance view, and select the line with that field
+xlibrary
+	move covered nodes into view model so different UIs dont share the same covered node set
 
-	field value in code view
-	links in code view
-	search also highlights code/instances
-	add method / field dependencies to graph
-		add info if method is encapsulated by a try, or parent is (trace if there's anyway for unhandled exceptions)
-	
-	move covered nodes into view model
+about tab - code used, licenses, put about panel in builder and viewer	
 
-	double click focused class go to method view, save view mode in history
-	msil view - lots of dupe items in list`1 class
-	track internal msil graph
-	
-	post-build command line to xray a build in debug mode so dev at any time can start introspex monitor
+Top level thread filter in crumbs - works in all views?
+	filter call graph by selected thread
+	a way to filter by thread intersections
+	way to show what FIELDS are accessed by multiple threads
+	3d thread lines - cylinder with threadlines spread around edge, lines go up/down off the screen, mouse rotates cylinder
+	call graph, filtered by thread
+		add to function call class an int[] for each thread id that used the call
+		drop down combo of threads tracked, name is name of entry point
+		different colors per thread
+	pick 6 colors, take thread.getHash() % 6 to get index of color
+	color nodes/lines between nodes according to hash
+	save red for nodes/calls hit by multiple colors
+	each entry instance has an id, could map instance ids to function calls
+	6 red orange yellow green blue purple
+	black interlace when threads intersect
+	array 0 - 5
+	map thread id to array index
+	every sec, clear map but keep colors as pref if thread checks in, if not pref is cleared
+	sep call graphs per thread, or list of ids, select to show graph for just that
 
+builder
+	 build stats - time, dat size
+	 post-build command line to xray a build in debug mode so dev at any time can start introspex monitor
+	 show what the compiler settinsg were of the app when opened with xray
+	 rename field with types to anon classes to new name
+	 ability in interface to speedup/slowdown update speed
 
 scanner panel
 	option to recompile and remove signing
@@ -120,17 +80,6 @@ code paths as a tree
 	there is 'something' here, there a 'code paths' that get run periodically
 		how can i define and show these paths, catagorize by time freq?
 
-abstract rendering, openGL (without text for now) / gdi plus / Direct2D later for metro
-	rendering interface that can be passed in, cache color brushes/pens
-	compare deOps performance because its sloooww
-	blend colors in gdi like openGl
-
-draw flat treemap in orthagonal view
-	click to select should work well
-	load in letter textures and draw labels
-	add call graph to opengl flat render
-	click object in openGL windows (hit testing, pixel to object)
-
 unit-tests built in
 	ability to run funtions manually
 	can visually see real code block run and affected code blocks
@@ -141,54 +90,18 @@ error handling
 	try to handle paint.net crashing with xray
 	maybe first pass source show's MSIL
 
-self compiling
-	put xCompiler in xLib dll
-	copy exe/dlls on compile and save markers where source can be read from them
-	while xraying dll, show source code directly ripped from source exe/dll
-	allow user to modify source
-	re-compile exe/dlls
-	re-xray compiled exe/dlls
-	re-start xray'd exe
-
-openGL
-	texture functions with translucent code
-	have texture light up when hit
-	draw call lines underneath city, rotate world to see underneath
-
-	have name spaces just as blue outlines around class bases
-	mouse over highlight
-
-	'towers of code'
-		each function is a text on the surface of the wall, that lights up when run
-		fields are at the top of towers
-		class graph connects towers with lines bewteen
-
-	load IL and write on the walls of the cube
-	black sky
-	boxes dark blue semi translucent
-	code on walls of box
-	code lights up white when function is run
-	wsad/mouselook fly through, click highlights selected
-	 
-	flying white dot cars through program city
-	   use 2d xray app to figure out how to generate paths
-		  hide everything but methods, and show calls in lanes
-			 find shortest path to destination node
-  		   start off in direction of node, if hit a wall, chage direction
-  		   set height of car based on distance traveling
-				 lower = farther, higher = short jumps
-     			 color by number of bounaries crossed, class, namespace, 
-
 apps
-	de-ops
-		problem expanding dictionaries keyvalue elements in some classes
-	pixelscope
-		track instances in pixel scope doesnt work
-		can put pixelscope on laptop to analyze with xray?
-	openTK
-		gives an assembly reference not found on compile
+	facebook - no longer working - mixed mode assembly error
+	de-ops - problem expanding dictionaries keyvalue elements in some classes
+	openTK - gives an assembly reference not found on compile
+	github - not working
+	test app - 'trystuff' in test app not decompiling, unresolved ref
+	xlibrary - method dependency graph to see if ViewModel can be refactored
+	paint.net photshop.dll recompile/view not working..
 
 instance view
+	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
+	show fields in instance view even if no instances created
 	clicking on field should highlight in instance grid and vice versa
 	ivcryptostream not showing anything still
 	hyperlink in instance view to check out base types, etc..
@@ -201,20 +114,14 @@ instance view
 search box
 	show count next to search box for found #, clicking on # filters display to those nodes
 	state graph + function graph ( show inter-state calls, and calls between states ) = total program understanding
+	search also highlights code/instances
 
 Graph Direct -> Method map, does not re-add call dashed lines
 
-profile tab
-	draw out new visualization
-	profile auto refresh
-
-details tab
-	clicking on namespace - gives child classes with instance count for each
-	class - gives list of fields, and methods by base class
-	method - gives timing info
-	field - gives value for different instances
-	each has links to parents so can surf just through details
-	selection box follows
+profile
+	blink green outline when navigated
+	clicking on call in list, blinks the link
+		show under call dots
 
 console tab
    run funtions on existing instances manually
@@ -228,58 +135,21 @@ help tab
 		standard, matrix
 		call graph - red calls/dependent on, blue - converse
 
-
-Put sub-classses inside parent classes so functions/methods are adacent?
-
-
-3d hackers
-	each class is a building
-	align in graph projection
-	make the connecting lines roads, with cars as green moving dots
-	each layer of the building is method
-	layers light up when called
-
-	windows lighting up are running functions
-	zooming in on building shows fields/values
-	zooming in on function shows code
-
-surf through state
-	mouse over function/fields lights up connected functions/fields
-	click on function
-		top accessed fields and states
-	zooms in on class box
-	state is sitting right there
-	connected functions sitting there
-
-hook calls to edge of node in graph view?
-
-rename field with types to anon classes to new name
-
-option to re-organize classes methods 'processClassNames'
-
-keep track anon/external option or just have it able to turn off on client side?
-
-show what the compiler settinsg were of the app when opened with xray
-
-ability in interface to speedup/slowdown update speed
-
-profiling
-	blink green outline when navigated
-	clicking on call in list, blinks the link
-		show under call dots
-			
-	hook back/forward buttons up to details
-	sorting list view
-			
-	refresh link at bottom
-	sum total time of all calls to functions in higher than method details
-	timer updating stats
-	if same details window already open use that
-	tooltips for list headers, say that this, is this, sum is sum of all times in bottom pane
-		
 look at functions with links that are no longer active
 	see if function could have returned without triggering an exit
 	test a chain of functions a b c d e f, where f throws, and c catches, test that intermediate calls have been cleared
+
+
+-------------------------------------------- ADVANCED --------------------------------------------
+
+self compiling
+	put xCompiler in xLib dll
+	copy exe/dlls on compile and save markers where source can be read from them
+	while xraying dll, show source code directly ripped from source exe/dll
+	allow user to modify source
+	re-compile exe/dlls
+	re-xray compiled exe/dlls
+	re-start xray'd exe
 
 override
 	user can edit MSIL
@@ -293,7 +163,6 @@ override
 	
 recompile mscorlib, and put in same dir as software so my internal one is used instead
 	test recompiling mscorlib and rest of .net and having it used locally
-
 
 future 
 	people write and modify code as the app runs

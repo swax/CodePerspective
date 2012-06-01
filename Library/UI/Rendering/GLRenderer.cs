@@ -44,6 +44,7 @@ namespace XLibrary
         public void Start()
         {
             Model.TwoDimensionalValues = false;
+            Model.DrawSubpixel = false;
             MakeCurrent();
         }
 
@@ -250,7 +251,7 @@ namespace XLibrary
             });
         }
 
-        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
             GL.LineWidth(lineWidth);
 
@@ -284,11 +285,6 @@ namespace XLibrary
         }
 
         public void ViewInvalidate()
-        {
-            Invalidate();
-        }
-
-        public void ViewRefresh()
         {
             Invalidate();
         }

@@ -67,6 +67,7 @@ namespace XLibrary
         public void Start()
         {
             Model.TwoDimensionalValues = true;
+            Model.DrawSubpixel = true;
             MakeCurrent();
             LogicTimer.Enabled = true;
         }
@@ -163,7 +164,7 @@ namespace XLibrary
 
             TreeMapVbo.Load();
 
-            TreeMapVbo.Draw();
+            TreeMapVbo.Draw(BeginMode.Triangles);
 
             if (MouseLook)
                 FpsCam.DrawHud(Width, Height, MidWindow, Color.White);
@@ -562,17 +563,12 @@ namespace XLibrary
             
         }
 
-        public void DrawLine(Color color, int lineWidth, PointF start, PointF end, bool dashed)
+        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
             
         }
 
         public void ViewInvalidate()
-        {
-            Invalidate();
-        }
-
-        public void ViewRefresh()
         {
             Invalidate();
         }

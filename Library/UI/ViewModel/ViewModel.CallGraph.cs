@@ -13,6 +13,8 @@ namespace XLibrary
 
         const int MinCallNodeSize = 5;
 
+        public bool ShowMethodsInClassGraph = false;  // still a work in progress
+
 
         public void DrawCallGraph()
         {
@@ -354,7 +356,7 @@ namespace XLibrary
 
                 
                 // remove graphs with 1 element
-                if (graph.Count == 1)
+                if (graph.Count == 1 && !ShowMethodsInClassGraph)
                 {
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);
@@ -745,8 +747,24 @@ namespace XLibrary
                     //debugLog.Add(string.Format("Traversing to child {0} -> {1}, rank {2} -> {3}", ID, edge.Destination.ID, Rank, edge.Destination.Rank));
 
                     if (PositionMap.ContainsKey(destId))
-                        LayoutGraph(graph, PositionMap[destId], node.Rank.Value + 1, parents.ToList());//, debugLog);
+                    {
+                        var target = PositionMap[destId];
 
+                        // if in class call graph mode and this node is a method
+                            // only connect to next method if destination is in the same class
+
+                        if (ShowMethodsInClassGraph &&
+                            (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
+                            node.ObjType != XObjType.Class)
+                        {
+                            if (target.Parent == node.Parent)
+                                LayoutGraph(graph, target, node.Rank.Value + 1, parents.ToList());
+                            else
+                                continue;
+                        }
+                        else
+                            LayoutGraph(graph, target, node.Rank.Value + 1, parents.ToList());//, debugLog);
+                    }
                     //debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
                 }
 
@@ -801,8 +819,16 @@ namespace XLibrary
             {
                 AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
             }
-            else if ((GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                     (GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class))
+            else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class) ||
+                     (GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class))
+            {
+                AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
+            }
+
+            // show methods as a subgraph in the class
+            if ( ShowMethodsInClassGraph &&
+                 (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) && 
+                 (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field) )
             {
                 AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
             }

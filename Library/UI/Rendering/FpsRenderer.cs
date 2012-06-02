@@ -185,15 +185,17 @@ namespace XLibrary
 
                 // reset vertex buffers
                 Nodes.Reset();
+                FontMap.Values.ForEach(f => f.ResetVBOs());
                 Outlines.Values.ForEach(v => v.Reset());
                 CallLines.Values.ForEach(v => v.Reset());
                 DashedCallLines.Values.ForEach(v => v.Reset());
-
+                
                 // render
                 Model.Render();
 
                 // send vertex buffers to gpu
                 Nodes.Load();
+                FontMap.Values.ForEach(f => f.LoadVBOs());
                 Outlines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
                 CallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
                 DashedCallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
@@ -211,6 +213,12 @@ namespace XLibrary
                 GL.LineStipple(1, pattern);
 
                 DrawLineVbo(DashedCallLines);
+            });
+
+            GLUtils.SafeSaveMatrix(() =>
+            {
+                GL.Rotate(90, 1.0f, 0.0f, 0.0f);
+                FontMap.Values.ForEach(f => f.DrawVBOs());
             });
 
             if (MouseLook)
@@ -249,7 +257,11 @@ namespace XLibrary
             if(FontMap.TryGetValue(font, out qfont))
                 return qfont;
 
-            var config = new QFontBuilderConfiguration() { TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault };
+            var config = new QFontBuilderConfiguration() 
+            { 
+                UseVertexBuffer = true,
+                TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault 
+            };
 
             qfont = new QFont(font, config);
             qfont.Options.TransformToViewport = null;
@@ -263,13 +275,7 @@ namespace XLibrary
         {
             QFont qfont = GetQFont(font);
 
-            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
-
-            GLUtils.SafeSaveMatrix(() =>
-            {
-                GL.Rotate(90, 1.0f, 0.0f, 0.0f);
-                qfont.Print(text, new Vector2(x, y));
-            });
+            qfont.PrintToVBO(text, new Vector3(x, y, 0), color);
         }
 
         public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
@@ -282,13 +288,7 @@ namespace XLibrary
             if(Model.ViewLayout == LayoutType.TreeMap)
                 height = depth * LevelSize + GetNodeHeight(node);
 
-            GLUtils.SafeSaveMatrix(() =>
-            {
-                GL.Translate(0, height, 0);
-                GL.Rotate(90, 1.0f, 0.0f, 0.0f);
-
-                qfont.Print(text, rect.Width, QFontAlignment.Left, new Vector2(rect.X, rect.Y));
-            });
+            qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color);
         }
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)

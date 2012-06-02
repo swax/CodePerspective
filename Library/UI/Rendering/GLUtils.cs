@@ -38,6 +38,17 @@ namespace XLibrary
             GL.Enable(cap);
         }
 
+        public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
+        {
+            foreach (var cap in caps)
+                GL.EnableClientState(cap);
+
+            code();
+
+            foreach (var cap in caps)
+                GL.DisableClientState(cap);
+        }
+
         public static void SafeSaveMatrix(Action code)
         {
             GL.PushMatrix();
@@ -188,7 +199,9 @@ namespace XLibrary
                 throw new ApplicationException("Element data not uploaded correctly");
         }
 
-        public void Draw(BeginMode mode)
+        static ArrayCap[] DrawStates = new ArrayCap[] { ArrayCap.ColorArray, ArrayCap.VertexArray, ArrayCap.NormalArray };
+
+        public void Draw(BeginMode mode)                
         {
             // To draw a VBO:
             // 1) Ensure that the VertexArray client state is enabled.
@@ -197,18 +210,17 @@ namespace XLibrary
             // 4) Call DrawElements. (Note: the last parameter is an offset into the element buffer
             //    and will usually be IntPtr.Zero).
 
-            GL.EnableClientState(ArrayCap.ColorArray);
-            GL.EnableClientState(ArrayCap.VertexArray);
-            GL.EnableClientState(ArrayCap.NormalArray);
+            GLUtils.SafeGLEnableClientStates(DrawStates, () =>
+            {
+                GL.BindBuffer(BufferTarget.ArrayBuffer, VboID);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, EboID);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VboID);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EboID);
+                GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
+                GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
+                GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
-            GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
-            GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
-            GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
-
-            GL.DrawElements(mode, ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                GL.DrawElements(mode, ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            });
         }
 
         internal void AddVertex(Vector3 point, Color color, Vector3 normal)

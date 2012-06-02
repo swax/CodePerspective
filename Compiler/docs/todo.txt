@@ -1,19 +1,22 @@
 ﻿
 fps view
-	outline/labels/nodes static - test fps with 'pause' button to stop reloading the vbos, try with code walls as well
-	node hits, call lines dynamic
+	flag to redraw nodes / call lines
+	keep vertex color array seperate and mod/load that per run
 
+	outline/labels/nodes static - test fps with 'pause' button to stop reloading the vbos, try with code walls as well
 	call lines as 5 line arc though the sky
 	write code on walls - texture sides of blocks with C#, MSIL, Timing, and Instance info
-	on click render everything in select mode and find the result
+	select support
 	a way to keep must drawn objects static in vbo
 	size fields by instance count
+	vector font?
 	
 color profile 
 	obsidian colors - code/console view too
 	change at run time
 	load from file
 	serialize to xml
+	jurassic park lulz - green horizon - draw back wall iso view?
 
 class graph
 	double click on class in class/init graph, show connected

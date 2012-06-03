@@ -2,12 +2,13 @@
 fps view
 	flag to redraw nodes / call lines
 	keep vertex color array seperate and mod/load that per run
-
-	outline/labels/nodes static - test fps with 'pause' button to stop reloading the vbos, try with code walls as well
+	port advanced drawing to 2d opengl
+	port advanced drawing to gdi+
+	support for only redrawing threadline on change
+	mouse look button?
 	call lines as 5 line arc though the sky
 	write code on walls - texture sides of blocks with C#, MSIL, Timing, and Instance info
 	select support
-	a way to keep must drawn objects static in vbo
 	size fields by instance count
 	vector font?
 	

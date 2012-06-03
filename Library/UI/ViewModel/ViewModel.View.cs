@@ -182,39 +182,44 @@ namespace XLibrary
                 SetRoot(node);
         }
 
+        public void ClickNode(NodeModel node)
+        {
+            if (!CtrlDown)
+            {
+                FocusedNodes.ForEach(n => n.Focused = false);
+                FocusedNodes.Clear();
+            }
+
+            if (node == null)
+                return;
+
+            else if (node.Focused && CtrlDown)
+            {
+                node.Focused = false;
+
+                FocusedNodes.Remove(node);
+            }
+
+            else
+            {
+                node.Focused = true;
+
+                FocusedNodes.Add(node);
+
+                MainUI.NavigatePanelTo(node);
+            }
+
+            DoRedraw = true;
+            Renderer.ViewInvalidate();
+        }
+
         public void ManualMouseClick(MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                if (!CtrlDown)
-                {
-                    FocusedNodes.ForEach(n => n.Focused = false);
-                    FocusedNodes.Clear();
-                }
-
                 var node = GuiHovered.LastOrDefault();
 
-                if (node == null)
-                    return;
-
-                else if (node.Focused && CtrlDown)
-                {
-                    node.Focused = false;
-
-                    FocusedNodes.Remove(node);
-                }
-
-                else
-                {
-                    node.Focused = true;
-
-                    FocusedNodes.Add(node);
-
-                    MainUI.NavigatePanelTo(node);
-                }
-
-                DoRedraw = true;
-                Renderer.ViewInvalidate();
+                ClickNode(node);
             }
             else if (e.Button == MouseButtons.Right)
             {

@@ -43,6 +43,13 @@ namespace XLibrary
         Dictionary<int, VertexBuffer> CallLines = new Dictionary<int, VertexBuffer>();
         Dictionary<int, VertexBuffer> DashedCallLines = new Dictionary<int, VertexBuffer>();
 
+        bool SelectionMode;
+        Point SelectionPoint;
+        int SelectionColor;
+        Dictionary<int, NodeModel> SelectionMap;
+
+        EnableCap[] LineCaps = new EnableCap[] { EnableCap.Blend, EnableCap.LineSmooth };
+
 
         public FpsRenderer(ViewModel model)
         {
@@ -56,6 +63,7 @@ namespace XLibrary
             KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
             MouseDown += new MouseEventHandler(FpsRenderer_MouseDown);
             MouseUp += new MouseEventHandler(FpsRenderer_MouseUp);
+            Click += new EventHandler(FpsRenderer_Click);
 
             LogicTimer = new Timer();
             LogicTimer.Interval = 1000 / LogicFPS;
@@ -67,8 +75,6 @@ namespace XLibrary
             MouseUp += new MouseEventHandler(GLRenderer_MouseUp);
             MouseMove += new MouseEventHandler(GLRenderer_MouseMove);
             MouseDoubleClick += new MouseEventHandler(GLRenderer_MouseDoubleClick);
-            KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
-            KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
             MouseLeave += new EventHandler(GLRenderer_MouseLeave);*/
         }
 
@@ -92,6 +98,7 @@ namespace XLibrary
             GL.ClearColor(Model.XColors.BackgroundColor);
 
             GL.ShadeModel(ShadingModel.Smooth);
+            GL.Hint(HintTarget.LineSmoothHint, HintMode.Nicest);
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.ColorMaterial);
@@ -146,7 +153,7 @@ namespace XLibrary
         {
             get { return Width; }
         }
-
+        
         public float ViewHeight
         {
             get { return Height; }
@@ -179,6 +186,9 @@ namespace XLibrary
             // Move the camera to our location in space
             FpsCam.SetupCamera();
 
+            if (SelectionMode)
+                DoSelectionPass();
+
             if (!Model.Paused)
             {
                 depth = 0f;
@@ -192,7 +202,7 @@ namespace XLibrary
                 
                 // render
                 Model.Render();
-
+           
                 // send vertex buffers to gpu
                 Nodes.Load();
                 FontMap.Values.ForEach(f => f.LoadVBOs());
@@ -203,16 +213,22 @@ namespace XLibrary
 
             // draw vertex buffers
             Nodes.Draw(BeginMode.Triangles);
-            DrawLineVbo(Outlines);
-            DrawLineVbo(CallLines);
 
-            GLUtils.SafeEnable(EnableCap.LineStipple, () =>
+            GLUtils.SafeEnable(LineCaps, () =>
             {
-                //1111 1000 0000 0000
-                short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
-                GL.LineStipple(1, pattern);
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-                DrawLineVbo(DashedCallLines);
+                DrawLineVbo(Outlines);
+                DrawLineVbo(CallLines);
+
+                GLUtils.SafeEnable(EnableCap.LineStipple, () =>
+                {
+                    //1111 1000 0000 0000
+                    short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
+                    GL.LineStipple(1, pattern);
+
+                    DrawLineVbo(DashedCallLines);
+                });
             });
 
             GLUtils.SafeSaveMatrix(() =>
@@ -227,6 +243,44 @@ namespace XLibrary
             SwapBuffers();
 
             Model.FpsCount++;
+        }
+
+        private void DoSelectionPass()
+        {
+            // turn off options
+            GLUtils.SafeDisable(EnableCap.Lighting, () =>
+            {
+                // reset vbo
+                Nodes.Reset();
+
+                // call render
+                Model.Render();
+
+                // load vbo
+                Nodes.Load();
+
+                // draw node vbo
+                Nodes.Draw(BeginMode.Triangles);
+
+                // read pixel
+                byte[] rgb = new byte[3];
+                GL.ReadPixels(SelectionPoint.X, Height - SelectionPoint.Y, 1, 1, PixelFormat.Rgb, PixelType.UnsignedByte, rgb);
+
+                // convert to color int
+                Color color = Color.FromArgb(255, rgb[0], rgb[1], rgb[2]);
+                int index = color.ToArgb();
+
+                // look up in map
+                NodeModel node;
+                if (SelectionMap.TryGetValue(index, out node))
+                    Model.ClickNode(node);
+            });
+
+            // clear buffer
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            // turn off selection mode
+            SelectionMode = false;
         }
 
         private void DrawLineVbo(Dictionary<int, VertexBuffer> widthMap)
@@ -289,6 +343,7 @@ namespace XLibrary
                 height = depth * LevelSize + GetNodeHeight(node);
 
             qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color);
+
         }
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
@@ -299,6 +354,14 @@ namespace XLibrary
             float length = area.Height - 0.2f;
             float bottom = depth * LevelSize + 0.1f;
             float height = GetNodeHeight(node) - 0.2f;
+
+            if (SelectionMode)
+            {
+                SelectionColor++;
+                int index = (255 << 24) | SelectionColor;
+                SelectionMap[index] = node;
+                color = Color.FromArgb(index);
+            }
 
             if (outside)
                 DrawPyramid(color, x, y, width, length, bottom, height);
@@ -321,8 +384,6 @@ namespace XLibrary
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            //depth += depthStep;
-
             float x = area.X, z = area.Y, width = area.Width, length = area.Height;
 
             float floor = depth * LevelSize; 
@@ -453,7 +514,6 @@ namespace XLibrary
                 DrawLine(a, b, CallLines, color, lineWidth);
             else
                 DrawLine(a, b, DashedCallLines, color, lineWidth);
-          
         }
 
         public void ViewInvalidate()
@@ -502,15 +562,23 @@ namespace XLibrary
 
         void FpsRenderer_MouseDown(object sender, MouseEventArgs e)
         {
-            MouseLook = true;
-            Cursor.Hide();
-            Cursor.Position = PointToScreen(MidWindow);
+            //MouseLook = true;
+            //Cursor.Hide();
+            //Cursor.Position = PointToScreen(MidWindow);
         }
 
         void FpsRenderer_MouseUp(object sender, MouseEventArgs e)
         {
-            MouseLook = false;
-            Cursor.Show();
+            //MouseLook = false;
+            //Cursor.Show();
+        }
+
+        void FpsRenderer_Click(object sender, EventArgs e)
+        {
+            SelectionPoint = PointToClient(Cursor.Position);
+            SelectionColor = 1;
+            SelectionMap = new Dictionary<int, NodeModel>();
+            SelectionMode = true;
         }
 
         void GLRenderer_MouseDoubleClick(object sender, MouseEventArgs e)

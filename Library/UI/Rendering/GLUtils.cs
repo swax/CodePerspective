@@ -29,6 +29,17 @@ namespace XLibrary
             GL.Disable(cap);
         }
 
+        public static void SafeEnable(EnableCap[] caps, Action code)
+        {
+            foreach (var cap in caps)
+                GL.Enable(cap);
+
+            code();
+
+            foreach (var cap in caps)
+                GL.Disable(cap);
+        }
+
         public static void SafeDisable(EnableCap cap, Action code)
         {
             GL.Disable(cap);
@@ -155,25 +166,19 @@ namespace XLibrary
     public class VertexBuffer
     {
         public int VboID;
-        public int EboID;
 
         public int VertexCount = 0;
         VertexPositionColor[] Vertices = new VertexPositionColor[1000];
-
-        int ElementCount = 0;
-        int[] Elements = new int[1000];
 
 
         public void Init()
         {
             GL.GenBuffers(1, out VboID);
-            GL.GenBuffers(1, out EboID);
         }
 
         public void Reset()
         {
             VertexCount = 0;
-            ElementCount = 0;
         }
 
         public void Load()
@@ -190,13 +195,6 @@ namespace XLibrary
             GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out size);
             if (VertexCount * BlittableValueType.StrideOf(Vertices) != size)
                 throw new ApplicationException("Vertex data not uploaded correctly");
-
-
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, EboID);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(ElementCount * sizeof(int)), Elements, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ElementArrayBuffer, BufferParameterName.BufferSize, out size);
-            if (ElementCount * sizeof(int) != size)
-                throw new ApplicationException("Element data not uploaded correctly");
         }
 
         static ArrayCap[] DrawStates = new ArrayCap[] { ArrayCap.ColorArray, ArrayCap.VertexArray, ArrayCap.NormalArray };
@@ -213,13 +211,12 @@ namespace XLibrary
             GLUtils.SafeGLEnableClientStates(DrawStates, () =>
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, VboID);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, EboID);
 
                 GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
                 GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
                 GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
 
-                GL.DrawElements(mode, ElementCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                GL.DrawArrays(mode, 0, VertexCount);
             });
         }
 
@@ -231,15 +228,6 @@ namespace XLibrary
                 Array.Copy(Vertices, newArray, VertexCount);
                 Vertices = newArray;
             }
-
-            if (ElementCount + 1 >= Elements.Length)
-            {
-                var newArray = new int[Elements.Length * 2];
-                Array.Copy(Elements, newArray, ElementCount);
-                Elements = newArray;
-            }
-
-            Elements[ElementCount++] = VertexCount;
 
             Vertices[VertexCount++].Set(point, color, normal);
         }

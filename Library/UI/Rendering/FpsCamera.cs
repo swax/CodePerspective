@@ -201,18 +201,18 @@ namespace XLibrary
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
 
-            GLUtils.SafeDisable(EnableCap.CullFace, () =>
-            {
-                GL.Clear(ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                GLUtils.SafeBegin(BeginMode.Lines, () =>
-                {
-                    GL.Color3(crosshair);
-                    GL.Vertex2(center.X - 2, center.Y);
-                    GL.Vertex2(center.X + 3, center.Y);
-                    GL.Vertex2(center.X, center.Y - 3);
-                    GL.Vertex2(center.X, center.Y + 2);
-                });
+            GL.LineWidth(1);
+            
+            GLUtils.SafeBegin(BeginMode.Lines, () =>
+            {
+                GL.Color3(crosshair);
+               
+                GL.Vertex2(center.X - 2, center.Y);
+                GL.Vertex2(center.X + 3, center.Y);
+                GL.Vertex2(center.X, center.Y - 3);
+                GL.Vertex2(center.X, center.Y + 2);
             });
 
             GL.MatrixMode(MatrixMode.Projection);

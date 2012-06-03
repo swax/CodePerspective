@@ -158,8 +158,6 @@ namespace XLibrary
 
         static void ResetCallHits(SharedDictionary<FunctionCall> callMap)
         {
-            DashOffset = (DashOffset == 2) ? 0 : DashOffset + 1;
-
             foreach (var call in callMap)
             {
                 if (call == null || call.Hit <= 0)

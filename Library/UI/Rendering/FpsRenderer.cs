@@ -45,8 +45,7 @@ namespace XLibrary
 
         bool SelectionMode;
         Point SelectionPoint;
-        int SelectionColor;
-        Dictionary<int, NodeModel> SelectionMap;
+        Dictionary<int, NodeModel> SelectionMap = new Dictionary<int,NodeModel>();
 
         EnableCap[] LineCaps = new EnableCap[] { EnableCap.Blend, EnableCap.LineSmooth };
 
@@ -224,7 +223,7 @@ namespace XLibrary
                 GLUtils.SafeEnable(EnableCap.LineStipple, () =>
                 {
                     //1111 1000 0000 0000
-                    short pattern = (short)(0xF800 >> (XRay.DashOffset * 5));
+                    ushort pattern = (ushort)(0xF800 >> (XRay.DashOffset * 5));
                     GL.LineStipple(1, pattern);
 
                     DrawLineVbo(DashedCallLines);
@@ -267,12 +266,11 @@ namespace XLibrary
                 GL.ReadPixels(SelectionPoint.X, Height - SelectionPoint.Y, 1, 1, PixelFormat.Rgb, PixelType.UnsignedByte, rgb);
 
                 // convert to color int
-                Color color = Color.FromArgb(255, rgb[0], rgb[1], rgb[2]);
-                int index = color.ToArgb();
+                int id = (rgb[0] << 24) | (rgb[1] << 16) | rgb[2];
 
                 // look up in map
                 NodeModel node;
-                if (SelectionMap.TryGetValue(index, out node))
+                if (SelectionMap.TryGetValue(id, out node))
                     Model.ClickNode(node);
             });
 
@@ -342,7 +340,23 @@ namespace XLibrary
             if(Model.ViewLayout == LayoutType.TreeMap)
                 height = depth * LevelSize + GetNodeHeight(node);
 
-            qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color);
+            if (SelectionMode)
+            {
+                SelectionMap[node.ID] = node;
+                color = Color.FromArgb((255 << 24) | node.ID);
+
+                var textArea = qfont.Measure(text, rect.Width, QFontAlignment.Left);
+
+                var normal = new Vector3(0, 1, 0);
+                var v1 = new Vector3(rect.X, height, rect.Y);
+                var v2 = new Vector3(rect.X, height, rect.Y + textArea.Height);
+                var v3 = new Vector3(rect.X + textArea.Width, height, rect.Y + textArea.Height);
+                var v4 = new Vector3(rect.X + textArea.Width, height, rect.Y);
+
+                Nodes.AddVerticies(color, normal, v1, v2, v3, v1, v3, v4);
+            }
+            else
+                qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color);
 
         }
 
@@ -357,10 +371,8 @@ namespace XLibrary
 
             if (SelectionMode)
             {
-                SelectionColor++;
-                int index = (255 << 24) | SelectionColor;
-                SelectionMap[index] = node;
-                color = Color.FromArgb(index);
+                SelectionMap[node.ID] = node;
+                color = Color.FromArgb((255 << 24) | node.ID);
             }
 
             if (outside)
@@ -426,37 +438,24 @@ namespace XLibrary
 
             // bottom vertices
             var normal = new Vector3(0, -1, 0);
-            Nodes.AddVertex(v1, color, normal);
-            Nodes.AddVertex(v2, color, normal);
-            Nodes.AddVertex(v3, color, normal);
-
-            Nodes.AddVertex(v1, color, normal);
-            Nodes.AddVertex(v3, color, normal);
-            Nodes.AddVertex(v4, color, normal);
+            Nodes.AddVerticies(color, normal, v1, v2, v3);
+            Nodes.AddVerticies(color, normal, v1, v3, v4);
 
             // -z facing vertices
             normal = new Vector3(0, 0, -1);
-            Nodes.AddVertex(v3, color, normal);
-            Nodes.AddVertex(v2, color, normal);
-            Nodes.AddVertex(v5, color, normal);
+            Nodes.AddVerticies(color, normal, v3, v2, v5);
 
             // x facing vertices
             normal = new Vector3(1, 0, 0);
-            Nodes.AddVertex(v4, color, normal);
-            Nodes.AddVertex(v3, color, normal);
-            Nodes.AddVertex(v5, color, normal);
+            Nodes.AddVerticies(color, normal, v4, v3, v5);
 
             // z facing vertices
             normal = new Vector3(0, 0, 1);
-            Nodes.AddVertex(v1, color, normal);
-            Nodes.AddVertex(v4, color, normal);
-            Nodes.AddVertex(v5, color, normal);
+            Nodes.AddVerticies(color, normal, v1, v4, v5);
 
             // -x facing vertices
             normal = new Vector3(-1, 0, 0);
-            Nodes.AddVertex(v2, color, normal);
-            Nodes.AddVertex(v1, color, normal);
-            Nodes.AddVertex(v5, color, normal);
+            Nodes.AddVerticies(color, normal, v2, v1, v5);
         }
 
 
@@ -576,7 +575,6 @@ namespace XLibrary
         void FpsRenderer_Click(object sender, EventArgs e)
         {
             SelectionPoint = PointToClient(Cursor.Position);
-            SelectionColor = 1;
             SelectionMap = new Dictionary<int, NodeModel>();
             SelectionMode = true;
         }

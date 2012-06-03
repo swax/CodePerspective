@@ -196,6 +196,8 @@ namespace XLibrary
                 }
             }
 
+            XRay.DashOffset = (XRay.DashOffset == 0) ? 2 : XRay.DashOffset - 1;
+
             // draw mouse over label
             DrawFooterLabel();
             DrawToolTip();

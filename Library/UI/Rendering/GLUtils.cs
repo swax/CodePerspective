@@ -103,63 +103,27 @@ namespace XLibrary
 
             // bottom vertices
             var normal = new Vector3(0, -1, 0);
-            vbo.AddVertex(v1, color, normal);
-            vbo.AddVertex(v2, color, normal);
-            vbo.AddVertex(v3, color, normal);
-
-            vbo.AddVertex(v1, color, normal);
-            vbo.AddVertex(v3, color, normal);
-            vbo.AddVertex(v4, color, normal);
+            vbo.AddVerticies(color, normal, v1, v2, v3, v1, v3, v4);
 
             // top vertices
             normal = new Vector3(0, 1, 0);
-            vbo.AddVertex(v8, color, normal);
-            vbo.AddVertex(v7, color, normal);
-            vbo.AddVertex(v6, color, normal);
-
-            vbo.AddVertex(v8, color, normal);
-            vbo.AddVertex(v6, color, normal);
-            vbo.AddVertex(v5, color, normal);
+            vbo.AddVerticies(color, normal, v8, v7, v6, v8, v6, v5);
 
             // -z facing vertices
             normal = new Vector3(0, 0, -1);
-            vbo.AddVertex(v5, color, normal);
-            vbo.AddVertex(v6, color, normal);
-            vbo.AddVertex(v2, color, normal);
-
-            vbo.AddVertex(v5, color, normal);
-            vbo.AddVertex(v2, color, normal);
-            vbo.AddVertex(v1, color, normal);
+            vbo.AddVerticies(color, normal, v5, v6, v2, v5, v2, v1);
 
             // x facing vertices
             normal = new Vector3(1, 0, 0);
-            vbo.AddVertex(v6, color, normal);
-            vbo.AddVertex(v7, color, normal);
-            vbo.AddVertex(v3, color, normal);
-
-            vbo.AddVertex(v6, color, normal);
-            vbo.AddVertex(v3, color, normal);
-            vbo.AddVertex(v2, color, normal);
+            vbo.AddVerticies(color, normal, v6, v7, v3, v6, v3, v2);
 
             // z facing vertices
             normal = new Vector3(0, 0, 1);
-            vbo.AddVertex(v4, color, normal);
-            vbo.AddVertex(v3, color, normal);
-            vbo.AddVertex(v7, color, normal);
-
-            vbo.AddVertex(v4, color, normal);
-            vbo.AddVertex(v7, color, normal);
-            vbo.AddVertex(v8, color, normal);
+            vbo.AddVerticies(color, normal, v4, v3, v7, v4, v7, v8);
 
             // -x facing vertices
             normal = new Vector3(-1, 0, 0);
-            vbo.AddVertex(v1, color, normal);
-            vbo.AddVertex(v4, color, normal);
-            vbo.AddVertex(v8, color, normal);
-
-            vbo.AddVertex(v1, color, normal);
-            vbo.AddVertex(v8, color, normal);
-            vbo.AddVertex(v5, color, normal);
+            vbo.AddVerticies(color, normal, v1, v4, v8, v1, v8, v5);
         }
     }
 
@@ -218,6 +182,12 @@ namespace XLibrary
 
                 GL.DrawArrays(mode, 0, VertexCount);
             });
+        }
+
+        internal void AddVerticies(Color color, Vector3 normal, params Vector3[] points)
+        {
+            foreach (var point in points)
+                AddVertex(point, color, normal);
         }
 
         internal void AddVertex(Vector3 point, Color color, Vector3 normal)

@@ -1,5 +1,9 @@
 ﻿
 fps view
+	click select labels in 3d
+	2d gl to vbos (check gl threadline fps in deops is higher than gdi)
+	
+	profile rendering THEN find savings
 	flag to redraw nodes / call lines
 	keep vertex color array seperate and mod/load that per run
 	port advanced drawing to 2d opengl
@@ -8,7 +12,6 @@ fps view
 	mouse look button?
 	call lines as 5 line arc though the sky
 	write code on walls - texture sides of blocks with C#, MSIL, Timing, and Instance info
-	select support
 	size fields by instance count
 	vector font?
 	

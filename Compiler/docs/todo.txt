@@ -1,8 +1,5 @@
 ﻿
 fps view
-	click select labels in 3d
-	2d gl to vbos (check gl threadline fps in deops is higher than gdi)
-	
 	profile rendering THEN find savings
 	flag to redraw nodes / call lines
 	keep vertex color array seperate and mod/load that per run

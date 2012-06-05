@@ -28,7 +28,6 @@ namespace XLibrary
         Dictionary<int, Pen> PenCache = new Dictionary<int, Pen>();
 
 
-
         public GdiRenderer(ViewModel model)
         {
             InitializeComponent();
@@ -170,23 +169,28 @@ namespace XLibrary
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            if(outside)
-                CurrentBuffer.FillEllipse(GetBrush(color), area);
+            if (outside)
+                CurrentBuffer.FillPolygon(GetBrush(color), GetTriangleFromRect(area));
             else
                 CurrentBuffer.FillRectangle(GetBrush(color), area);
+        }
+
+        private PointF[] GetTriangleFromRect(RectangleF area)
+        {
+            return new PointF[]
+            {
+                new PointF(area.X, area.Y + area.Height),
+                new PointF(area.X + area.Width/2f, area.Y),
+                new PointF(area.X + area.Width, area.Y + area.Height)
+            };
         }
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
             if (outside)
-                CurrentBuffer.DrawEllipse(GetPen(color, lineWidth, false), area.X, area.Y, area.Width, area.Height);
+                CurrentBuffer.DrawPolygon(GetPen(color, lineWidth, false), GetTriangleFromRect(area));
             else
                 CurrentBuffer.DrawRectangle(GetPen(color, lineWidth, false), area.X, area.Y, area.Width, area.Height);
-        }
-
-        public void DrawEllipse(Color color, int lineWidth, float x, float y, float width, float height)
-        {
-            
         }
 
         public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)

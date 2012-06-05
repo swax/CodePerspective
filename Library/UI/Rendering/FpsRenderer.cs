@@ -185,11 +185,11 @@ namespace XLibrary
             // Move the camera to our location in space
             FpsCam.SetupCamera();
 
-            if (SelectionMode)
-                DoSelectionPass();
-
             if (!Model.Paused)
             {
+                if (SelectionMode)
+                    DoSelectionPass();
+
                 depth = 0f;
 
                 // reset vertex buffers
@@ -333,8 +333,6 @@ namespace XLibrary
         public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
             QFont qfont = GetQFont(font);
-
-            qfont.Options.Colour = new Color4(color.R, color.G, color.B, color.A);
 
             float height = 0;
             if(Model.ViewLayout == LayoutType.TreeMap)

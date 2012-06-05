@@ -19,6 +19,7 @@ namespace XLibrary
         public HashSet<int> AllowedNodes = new HashSet<int>();
         public bool Paused;
 
+
         public void DrawTheadline()
         {
             long currentTick = XRay.Watch.ElapsedTicks;
@@ -135,60 +136,61 @@ namespace XLibrary
             AddedNodes.Clear();
             UnfinishedItems.Clear();
 
-            // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
-            int startPos= XRay.ThreadlinePos; // start with the newest position
-            if (startPos == -1)// havent started, or disabled
-                return;
-
-            int i = startPos;
-            long startTick = 0;
-
-            while (true)
+            foreach (var flow in XRay.FlowMap)
             {
-                // iterate to next node
-                var item = XRay.Threadline[i];
-                if (item == null)
-                    break;
+                // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
+                int startPos = flow.ThreadlinePos; // start with the newest position
+                if (startPos == -1)// havent started, or disabled
+                    return;
 
-                if (startTick == 0)
-                    startTick = item.StartTick;
+                int i = startPos;
+                long startTick = 0;
 
-                // we should be reading into the past, if the next item is 
-                // in the future, then we are reading space that the app as logged 
-                // since this process was started (its nice cause we avoid locks on the timeline
-                if (item.StartTick > startTick)
-                    break;
-
-                // do stuff with item
-                Threadline timeline = null;
-                if (!Threadlines.ContainsKey(item.ThreadID))
+                while (true)
                 {
-                    timeline = new Threadline(item.ThreadID, ThreadOrder++);
-                    Threadlines[item.ThreadID] = timeline;
+                    // iterate to next node
+                    var item = flow.Threadline[i];
+                    if (item == null)
+                        break;
+
+                    if (startTick == 0)
+                        startTick = item.StartTick;
+
+                    // we should be reading into the past, if the next item is 
+                    // in the future, then we are reading space that the app as logged 
+                    // since this process was started (its nice cause we avoid locks on the timeline
+                    if (item.StartTick > startTick)
+                        break;
+
+                    // do stuff with item
+                    Threadline timeline;
+                    if (!Threadlines.TryGetValue(item.ThreadID, out timeline))
+                    {
+                        timeline = new Threadline(item.ThreadID, ThreadOrder++);
+                        Threadlines[item.ThreadID] = timeline;
+                    }
+     
+                    if (AllowedNodes.Contains(item.NodeID))
+                    {
+                        if (item.EndTick == 0)
+                            UnfinishedItems.Add(item);
+                        else
+                            timeline.Sequence.Add(item);
+
+                        if (item.Depth > timeline.Deepest)
+                            timeline.Deepest = item.Depth;
+
+                        timeline.DepthSet.Add(item.Depth);
+                    }
+
+                    // iterate to previous item in time
+                    i--;
+                    if (i < 0)
+                        i = flow.Threadline.Length - 1;
+
+                    if (i == startPos)
+                        break;
                 }
-                else
-                    timeline = Threadlines[item.ThreadID];
-
-                if (AllowedNodes.Contains(item.NodeID))
-                {
-                    if (item.EndTick == 0)
-                        UnfinishedItems.Add(item);
-                    else
-                        timeline.Sequence.Add(item);
-
-                    if (item.Depth > timeline.Deepest)
-                        timeline.Deepest = item.Depth;
-
-                    timeline.DepthSet.Add(item.Depth);
-                }
-
-                // iterate to previous item in time
-                i--;
-                if (i < 0)
-                    i = XRay.Threadline.Length - 1;
-
-                if (i == startPos)
-                    break;
             }
 
             // add unfinshed items, we do this separetly because they are out of time order in xray

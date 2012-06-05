@@ -52,8 +52,6 @@ namespace XLibrary
         internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
         internal static bool ThreadlineEnabled = true;
-        internal static int ThreadlinePos = -1;
-        internal static StackItem[] Threadline = new StackItem[2000]; // if vert res is 1200, then 16px entrys would be like 75 timeline lines, across 5 threads would be 500
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -399,7 +397,7 @@ namespace XLibrary
             if (flow.Pos == -1)
             {
                 flow.Pos = 0;
-                AddStackItem(flow, nodeID, null);
+                flow.AddStackItem(nodeID, null, Watch.ElapsedTicks, ThreadlineEnabled);
                 node.EntryPoint++;
                 return;
             }
@@ -450,44 +448,11 @@ namespace XLibrary
 
                 flow.Pos++;
 
-                AddStackItem(flow, nodeID, call);
+                flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, ThreadlineEnabled);
             }
 
             if(ClassTracking)
                 TrackClassCall(nodeID, node, source);
-        }
-
-        private static void AddStackItem(ThreadFlow flow, int nodeID, FunctionCall call)
-        {
-            var newItem = new StackItem() 
-            { 
-                NodeID = nodeID, 
-                Call = call, 
-                StartTick = Watch.ElapsedTicks, 
-                Depth = flow.Pos, 
-                ThreadID = flow.ThreadID 
-            };
-
-            flow.Stack[flow.Pos] = newItem;
-
-            if (!ThreadlineEnabled)
-                return;
-
-            // dont over write items in timeline that haven't ended yet
-            while(true)
-            {
-                ThreadlinePos++;
-                if (ThreadlinePos >= Threadline.Length)
-                    ThreadlinePos = 0;
-
-                var overwrite = Threadline[ThreadlinePos];
-
-                if (overwrite == null || overwrite.EndTick != 0)
-                {
-                    Threadline[ThreadlinePos] = newItem;
-                    break;
-                }
-            }
         }
 
         public static XNode GetContainingClass(XNode node)
@@ -898,6 +863,46 @@ namespace XLibrary
 
         internal int Pos = -1; // current position on the stack
         internal StackItem[] Stack = new StackItem[XRay.MaxStack];
+
+        internal int ThreadlinePos = -1;
+        internal StackItem[] Threadline = new StackItem[200]; // 200 lines, 16px high, like 3000px record
+        
+        
+        internal void AddStackItem(int nodeID, FunctionCall call, long startTick, bool ThreadlineEnabled)
+        {
+            if (Pos >= XRay.MaxStack)
+                return;
+
+            var newItem = new StackItem() 
+            { 
+                NodeID = nodeID, 
+                Call = call, 
+                StartTick = startTick, 
+                Depth = Pos, 
+                ThreadID = ThreadID 
+            };
+
+            Stack[Pos] = newItem;
+
+            if (!ThreadlineEnabled)
+                return;
+
+            // dont over write items in timeline that haven't ended yet
+            while (true)
+            {
+                ThreadlinePos++;
+                if (ThreadlinePos >= Threadline.Length)
+                    ThreadlinePos = 0;
+
+                var overwrite = Threadline[ThreadlinePos];
+
+                if (overwrite == null || overwrite.EndTick != 0)
+                {
+                    Threadline[ThreadlinePos] = newItem;
+                    break;
+                }
+            }
+        }
     }
 
     public class StackItem

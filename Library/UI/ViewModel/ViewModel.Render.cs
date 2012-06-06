@@ -151,7 +151,7 @@ namespace XLibrary
                         if (call.StillInside > 0 && ShowCalls)
                         {
                             if (ViewLayout == LayoutType.TreeMap)
-                                Renderer.DrawEdge(XColors.HoldingCallColor, lineWidth, source.CenterF, destination.CenterF, false, source, destination);
+                                Renderer.DrawCallLine(XColors.HoldingCallColor, lineWidth, source.CenterF, destination.CenterF, false, source, destination);
                             else if (ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(lineWidth, XColors.HoldingCallColor, source, destination);
                         }
@@ -169,8 +169,8 @@ namespace XLibrary
                                 PointF end = callDest.CenterF;
                                 PointF mid = new PointF(start.X + (end.X - start.X) / 2, start.Y + (end.Y - start.Y) / 2);
 
-                                Renderer.DrawEdge(XColors.CallOutColor, lineWidth, start, mid, false, callSource, callDest);
-                                Renderer.DrawEdge(XColors.CallInColor, lineWidth, mid, end, false, callSource, callDest);
+                                Renderer.DrawCallLine(XColors.CallOutColor, lineWidth, start, mid, false, callSource, callDest);
+                                Renderer.DrawCallLine(XColors.CallInColor, lineWidth, mid, end, false, callSource, callDest);
                             }
                             else if (ViewLayout == LayoutType.CallGraph)
                             {
@@ -187,7 +187,7 @@ namespace XLibrary
                             var color = XColors.CallPenColors[call.Hit];
 
                             if (ViewLayout == LayoutType.TreeMap)
-                                Renderer.DrawEdge(color, lineWidth, source.CenterF, destination.CenterF, true, source, destination);
+                                Renderer.DrawCallLine(color, lineWidth, source.CenterF, destination.CenterF, true, source, destination);
 
                             else if (ViewLayout == LayoutType.CallGraph)
                                 DrawGraphEdge(lineWidth, color, source, destination, true);
@@ -217,7 +217,7 @@ namespace XLibrary
         private void DrawGraphEdge(int penWidth, Color pen, NodeModel source, NodeModel destination, bool dashed=false)
         {
             if (source.Intermediates == null || !source.Intermediates.ContainsKey(destination.ID))
-                Renderer.DrawEdge(pen, penWidth, source.CenterF, destination.CenterF, dashed, source, destination);
+                Renderer.DrawCallLine(pen, penWidth, source.CenterF, destination.CenterF, dashed, source, destination);
             else
             {
                 var intermediates = source.Intermediates[destination.ID];
@@ -232,7 +232,7 @@ namespace XLibrary
                     //if (next == last)
                     //    endCap = LineCap.ArrowAnchor;
 
-                    Renderer.DrawEdge(pen, penWidth, prev.CenterF, next.CenterF, dashed, prev, next);
+                    Renderer.DrawCallLine(pen, penWidth, prev.CenterF, next.CenterF, dashed, prev, next);
                     prev = next;
                 }
             }

@@ -26,6 +26,7 @@ namespace XLibrary
         Dictionary<int, VertexBuffer> Outlines = new Dictionary<int, VertexBuffer>();
         Dictionary<int, VertexBuffer> CallLines = new Dictionary<int, VertexBuffer>();
         Dictionary<int, VertexBuffer> DashedCallLines = new Dictionary<int, VertexBuffer>();
+        VertexBuffer Overlays = new VertexBuffer();
 
         EnableCap[] LineCaps = new EnableCap[] { EnableCap.Blend, EnableCap.LineSmooth };
 
@@ -71,6 +72,7 @@ namespace XLibrary
             GLLoaded = true;
 
             Nodes.Init();
+            Overlays.Init();
         }
 
         void GLRenderer_Resize(object sender, EventArgs e)
@@ -121,6 +123,7 @@ namespace XLibrary
                 Outlines.Values.ForEach(v => v.Reset());
                 CallLines.Values.ForEach(v => v.Reset());
                 DashedCallLines.Values.ForEach(v => v.Reset());
+                Overlays.Reset();
 
                 // render
                 Model.Render();
@@ -131,6 +134,7 @@ namespace XLibrary
                 Outlines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
                 CallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
                 DashedCallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
+                Overlays.Load();
             }
 
             // draw vertex buffers
@@ -153,8 +157,12 @@ namespace XLibrary
                 });
             });
 
-            FontMap.Values.ForEach(f => f.DrawVBOs());
-         
+            GLUtils.SafeEnable(EnableCap.Blend, () =>
+            {
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                Overlays.Draw(BeginMode.Triangles);
+                FontMap.Values.ForEach(f => f.DrawVBOs());
+            });
 
             SwapBuffers();
 
@@ -219,30 +227,45 @@ namespace XLibrary
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
-            if (outside)
-                FillEllipse(color, area);
-            else
-                FillRectangle(color, area.X, area.Y, area.Width, area.Height);
+            var verticies = outside ? GetTriangleVerticies(area) : GetRectVerticies(area);
+
+            Nodes.AddVerticies(color, Normal, verticies);
         }
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-            FillRectangle(color, x, y, width, height);
+            Overlays.AddVerticies(color, Normal, GetRectVerticies(x, y, width, height));
         }
 
-        private void FillRectangle(Color color, float x, float y, float width, float height)
+        private Vector3[] GetRectVerticies(RectangleF rect)
+        {
+            return GetRectVerticies(rect.X, rect.Y, rect.Width, rect.Height);
+        }
+
+        private Vector3[] GetRectVerticies(float x, float y, float width, float height)
         {
             var v1 = new Vector3(x, y, 0);
             var v2 = new Vector3(x + width, y, 0);
             var v3 = new Vector3(x + width, y + height, 0);
             var v4 = new Vector3(x, y + height, 0);
 
-            Nodes.AddVerticies(color, Normal, v1, v2, v3, v1, v3, v4);
+            return new Vector3[] { v1, v2, v3, v1, v3, v4 };
+        }
+
+        public Vector3[] GetTriangleVerticies(RectangleF area)
+        {
+            return new Vector3[] {
+                new Vector3(area.X, area.Y + area.Height, 0),
+                new Vector3(area.X + area.Width / 2f, area.Y, 0),
+                new Vector3(area.X + area.Width, area.Y + area.Height, 0)
+            };
         }
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
             float x = area.X, y = area.Y, width = area.Width, height = area.Height;
+
+            var vbo = GetLineVbo(Outlines, lineWidth);
 
             if (outside)
             {
@@ -250,9 +273,7 @@ namespace XLibrary
                 var v2 = new Vector3(area.X + area.Width / 2f, area.Y, 0);
                 var v3 = new Vector3(area.X + area.Width, area.Y + area.Height, 0);
 
-                DrawLine(v1, v2, Outlines, color, lineWidth);
-                DrawLine(v2, v3, Outlines, color, lineWidth);
-                DrawLine(v3, v1, Outlines, color, lineWidth);
+                vbo.AddVerticies(color, Normal, v1, v2, v2, v3, v3, v1);
             }
             else
             {
@@ -261,14 +282,11 @@ namespace XLibrary
                 var v3 = new Vector3(x + width, y + height, 0);
                 var v4 = new Vector3(x, y + height, 0);
 
-                DrawLine(v1, v2, Outlines, color, lineWidth);
-                DrawLine(v2, v3, Outlines, color, lineWidth);
-                DrawLine(v3, v4, Outlines, color, lineWidth);
-                DrawLine(v4, v1, Outlines, color, lineWidth);
+                vbo.AddVerticies(color, Normal, v1, v2, v2, v3, v3, v4, v4, v1);
             }
         }
 
-        void DrawLine(Vector3 a, Vector3 b, Dictionary<int, VertexBuffer> widthMap, Color color, int width)
+        private VertexBuffer GetLineVbo(Dictionary<int, VertexBuffer> widthMap, int width)
         {
             VertexBuffer vbo;
             if (!widthMap.TryGetValue(width, out vbo))
@@ -278,29 +296,22 @@ namespace XLibrary
                 widthMap[width] = vbo;
             }
 
-            var normal = new Vector3();
-            vbo.AddVertex(a, color, normal);
-            vbo.AddVertex(b, color, normal);
+            return vbo;
         }
 
-        public void FillEllipse(Color color, RectangleF area)
-        {
-            var v1 = new Vector3(area.X, area.Y + area.Height, 0);
-            var v2 = new Vector3(area.X + area.Width/2f, area.Y, 0);
-            var v3 = new Vector3(area.X + area.Width, area.Y + area.Height, 0);
-
-            Nodes.AddVerticies(color, Normal, v1, v2, v3);
-        }
-
-        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
+        public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
             var a = new Vector3(start.X, start.Y, 0);
             var b = new Vector3(end.X, end.Y, 0);
 
+            VertexBuffer vbo = null;
+            
             if (!dashed)
-                DrawLine(a, b, CallLines, color, lineWidth);
+                vbo = GetLineVbo(CallLines, lineWidth);
             else
-                DrawLine(a, b, DashedCallLines, color, lineWidth);
+                vbo = GetLineVbo(DashedCallLines, lineWidth);
+
+            vbo.AddVerticies(color, Normal, a, b);
         }
 
         public void ViewInvalidate()

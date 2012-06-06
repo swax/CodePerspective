@@ -28,6 +28,9 @@ namespace XLibrary
 
         public void SetRoot(NodeModel node, bool logHistory = true)
         {
+            if (node == null)
+                return;
+
             // setting internal root will auto show properly sized external root area if showing it is enabled
             ResetZoom();
             CurrentRoot = (node == TopRoot) ? InternalRoot : node;

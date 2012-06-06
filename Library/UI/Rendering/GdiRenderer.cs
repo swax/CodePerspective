@@ -193,7 +193,7 @@ namespace XLibrary
                 CurrentBuffer.DrawRectangle(GetPen(color, lineWidth, false), area.X, area.Y, area.Width, area.Height);
         }
 
-        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
+        public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {             
             var pen = GetPen(color, lineWidth, dashed);
 

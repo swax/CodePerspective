@@ -1,5 +1,12 @@
 ﻿
+explore apps, make notes when something demoable comes up
+	why xtestapp code not being generated for linked dll
+	turn on exception catching for code generation
+	do another asp test
+	upgrade ilspy/cecil
+
 fps view
+	improve lighting world and on user
 	profile rendering THEN find savings
 	flag to redraw nodes / call lines
 	keep vertex color array seperate and mod/load that per run

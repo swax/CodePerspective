@@ -18,6 +18,7 @@ namespace XLibrary
         bool holdingLeftStrafe;
         bool holdingRightStrafe;
         bool holdingRun;
+        bool holdingWheel;
 
         float camXPos;
         float camYPos;
@@ -83,6 +84,8 @@ namespace XLibrary
             double moveZ = 0.0f;
 
             float speed = movementSpeedFactor;
+            if (holdingWheel)
+                speed *= 3;
             if (holdingRun)
                 speed *= 3;
 
@@ -93,7 +96,8 @@ namespace XLibrary
                 moveX += speed * Math.Sin(toRads(camYRot)) * pitchFactor;
 
                 // Control Y-Axis movement
-                //moveY += speed * Math.Sin(toRads(camXRot)) * -1.0f;
+                if(holdingWheel)
+                    moveY += speed * Math.Sin(toRads(camXRot)) * -1.0f;
 
                 // Control Z-Axis movement
                 double yawFactor = Math.Cos(toRads(camXRot));
@@ -107,7 +111,8 @@ namespace XLibrary
                 moveX += speed * Math.Sin(toRads(camYRot)) * -1.0f * pitchFactor;
 
                 // Control Y-Axis movement
-                moveY += speed * Math.Sin(toRads(camXRot));
+                if(holdingWheel)
+                    moveY += speed * Math.Sin(toRads(camXRot));
 
                 // Control Z-Axis movement
                 double yawFactor = Math.Cos(toRads(camXRot));
@@ -217,6 +222,19 @@ namespace XLibrary
 
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();
+        }
+
+        internal void MoveWheelTick(bool forward)
+        {
+            holdingForward = forward;
+            holdingBackward = !forward;
+            holdingWheel = true;
+
+            MoveTick();
+
+            holdingForward = false;
+            holdingBackward = false;
+            holdingWheel = false;
         }
     }
 }

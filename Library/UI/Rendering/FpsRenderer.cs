@@ -25,14 +25,9 @@ namespace XLibrary
         Timer LogicTimer;
         int LogicFPS = 20;
 
-        float[] light_position = { 1f, 1f, 1f, 0f };
-
         bool MouseLook;
         Point MidWindow = new Point();
         FpsCamera FpsCam = new FpsCamera(53, -0.1f, 273, 420, 458);
-
-        float depth = -1f;
-        float depthStep = 0.00001f;
 
         float LevelSize = 3;
 
@@ -43,11 +38,19 @@ namespace XLibrary
         Dictionary<int, VertexBuffer> CallLines = new Dictionary<int, VertexBuffer>();
         Dictionary<int, VertexBuffer> DashedCallLines = new Dictionary<int, VertexBuffer>();
 
-        bool SelectionMode;
+        enum SelectionModes { None, Single, Double };
+        SelectionModes SelectionMode;
         Point SelectionPoint;
         Dictionary<int, NodeModel> SelectionMap = new Dictionary<int,NodeModel>();
 
         EnableCap[] LineCaps = new EnableCap[] { EnableCap.Blend, EnableCap.LineSmooth };
+
+        Point MouseDownPoint;
+        Point PanStart;
+
+        float LabelHeight = 0f;
+        float CallHeight = 1f;
+        float LiveCallHeight = 2f;
 
 
         public FpsRenderer(ViewModel model)
@@ -58,23 +61,19 @@ namespace XLibrary
             Paint += GLRenderer_Paint;
             Resize += GLRenderer_Resize;
 
-            KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
-            KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
+            KeyDown += new KeyEventHandler(FpsRenderer_KeyDown);
+            KeyUp += new KeyEventHandler(FpsRenderer_KeyUp);
             MouseDown += new MouseEventHandler(FpsRenderer_MouseDown);
             MouseUp += new MouseEventHandler(FpsRenderer_MouseUp);
-            Click += new EventHandler(FpsRenderer_Click);
+            Leave += new EventHandler(FpsRenderer_Leave);
+            MouseMove += new MouseEventHandler(FpsRenderer_MouseMove);
+            MouseDoubleClick += new MouseEventHandler(FpsRenderer_MouseDoubleClick);
+            MouseWheel += new MouseEventHandler(FpsRenderer_MouseWheel);
 
             LogicTimer = new Timer();
             LogicTimer.Interval = 1000 / LogicFPS;
             LogicTimer.Tick += new EventHandler(LogicTimer_Tick);
             LogicTimer.Enabled = true;
-
-            /*MouseWheel += new MouseEventHandler(GLRenderer_MouseWheel);
-            MouseDown += new MouseEventHandler(GLRenderer_MouseDown);
-            MouseUp += new MouseEventHandler(GLRenderer_MouseUp);
-            MouseMove += new MouseEventHandler(GLRenderer_MouseMove);
-            MouseDoubleClick += new MouseEventHandler(GLRenderer_MouseDoubleClick);
-            MouseLeave += new EventHandler(GLRenderer_MouseLeave);*/
         }
 
         public void Start()
@@ -106,19 +105,12 @@ namespace XLibrary
             GL.CullFace(CullFaceMode.Back);
 
             GL.Enable(EnableCap.Lighting);
+
             GL.Enable(EnableCap.Light0);
-
-            float[] mat_emissive = { 0f, 0f, 0f, 1f };
-            float[] mat_specular = { 1f, 1f, 1f, 1.0f };
-
-            float[] light_diffuse = { .7f, .7f, .7f, .7f };
-            float[] light_specular = { 1.0f, 1.0f, 1.0f, 1.0f };
-            float[] light_ambient = { .5f, .5f, .35f, .5f };
-
-            GL.Light(LightName.Light0, LightParameter.Diffuse, light_diffuse);
-            GL.Light(LightName.Light0, LightParameter.Ambient, light_ambient);
-            GL.Light(LightName.Light0, LightParameter.Specular, light_specular);
-            GL.Light(LightName.Light0, LightParameter.Position, light_position);
+            GL.Light(LightName.Light0, LightParameter.Diffuse, new float[] { .7f, .7f, .7f, .7f });
+            GL.Light(LightName.Light0, LightParameter.Ambient, new float[] { .5f, .5f, .5f, .5f });
+            GL.Light(LightName.Light0, LightParameter.Specular, new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
+            GL.Light(LightName.Light0, LightParameter.Position, new float[] { 1f, 1f, 1f, 0f });
 
             GLLoaded = true;
 
@@ -160,10 +152,10 @@ namespace XLibrary
 
         void LogicTimer_Tick(object sender, EventArgs e)
         {
-            if (!MouseLook)
-                return;
-
             FpsCam.MoveTick();
+
+            if (!MouseLook)
+                return;    
 
             FpsCam.LookTick(PointToClient(Cursor.Position), MidWindow);
 
@@ -187,10 +179,8 @@ namespace XLibrary
 
             if (!Model.Paused)
             {
-                if (SelectionMode)
+                if (SelectionMode != SelectionModes.None)
                     DoSelectionPass();
-
-                depth = 0f;
 
                 // reset vertex buffers
                 Nodes.Reset();
@@ -270,15 +260,19 @@ namespace XLibrary
 
                 // look up in map
                 NodeModel node;
-                if (SelectionMap.TryGetValue(id, out node))
+                SelectionMap.TryGetValue(id, out node);
+
+                if (SelectionMode == SelectionModes.Single)
                     Model.ClickNode(node);
+                else
+                    Model.SetRoot(node);
             });
 
             // clear buffer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             // turn off selection mode
-            SelectionMode = false;
+            SelectionMode = SelectionModes.None;
         }
 
         private void DrawLineVbo(Dictionary<int, VertexBuffer> widthMap)
@@ -334,11 +328,11 @@ namespace XLibrary
         {
             QFont qfont = GetQFont(font);
 
-            float height = 0;
+            float height = LabelHeight;
             if(Model.ViewLayout == LayoutType.TreeMap)
-                height = depth * LevelSize + GetNodeHeight(node);
-
-            if (SelectionMode)
+                height = depth * LevelSize + GetNodeHeight(node); // put over call lines
+            
+            if (SelectionMode != SelectionModes.None) 
             {
                 SelectionMap[node.ID] = node;
                 color = Color.FromArgb((255 << 24) | node.ID);
@@ -367,7 +361,7 @@ namespace XLibrary
             float bottom = depth * LevelSize + 0.1f;
             float height = GetNodeHeight(node) - 0.2f;
 
-            if (SelectionMode)
+            if (SelectionMode != SelectionModes.None)
             {
                 SelectionMap[node.ID] = node;
                 color = Color.FromArgb((255 << 24) | node.ID);
@@ -405,6 +399,19 @@ namespace XLibrary
                 DrawBoxOutline(color, lineWidth, x, z, width, length, floor, height);
         }
 
+        private VertexBuffer GetLineVbo(Dictionary<int, VertexBuffer> widthMap, int width)
+        {
+            VertexBuffer vbo;
+            if (!widthMap.TryGetValue(width, out vbo))
+            {
+                vbo = new VertexBuffer();
+                vbo.Init();
+                widthMap[width] = vbo;
+            }
+
+            return vbo;
+        }
+
         private void DrawPyramidOutline(Color color, int lineWidth, float x, float z, float width, float length, float floor, float height)
         {
             var v1 = new Vector3(x, floor, z);
@@ -414,15 +421,12 @@ namespace XLibrary
 
             var v5 = new Vector3(x + width / 2f, floor + height, z + length / 2f);
 
-            DrawLine(v1, v2, Outlines, color, lineWidth);
-            DrawLine(v2, v3, Outlines, color, lineWidth);
-            DrawLine(v3, v4, Outlines, color, lineWidth);
-            DrawLine(v4, v1, Outlines, color, lineWidth);
+            var vbo = GetLineVbo(Outlines, lineWidth);
 
-            DrawLine(v1, v5, Outlines, color, lineWidth);
-            DrawLine(v2, v5, Outlines, color, lineWidth);
-            DrawLine(v3, v5, Outlines, color, lineWidth);
-            DrawLine(v4, v5, Outlines, color, lineWidth);
+            var normal = new Vector3();
+
+            vbo.AddVerticies(color, normal, v1, v2, v2, v3, v3, v4, v4, v1,
+                                            v1, v5, v2, v5, v3, v5, v4, v5);
         }
 
         private void DrawPyramid(Color color, float x, float z, float width, float length, float floor, float height)
@@ -436,8 +440,7 @@ namespace XLibrary
 
             // bottom vertices
             var normal = new Vector3(0, -1, 0);
-            Nodes.AddVerticies(color, normal, v1, v2, v3);
-            Nodes.AddVerticies(color, normal, v1, v3, v4);
+            Nodes.AddVerticies(color, normal, v1, v2, v3, v1, v3, v4);
 
             // -z facing vertices
             normal = new Vector3(0, 0, -1);
@@ -469,48 +472,27 @@ namespace XLibrary
             var v7 = new Vector3(x + width, floor + height, z + length);
             var v8 = new Vector3(x, floor + height, z + length);
 
-            DrawLine(v1, v2, Outlines, color, lineWidth);
-            DrawLine(v2, v3, Outlines, color, lineWidth);
-            DrawLine(v3, v4, Outlines, color, lineWidth);
-            DrawLine(v4, v1, Outlines, color, lineWidth);
-
-            DrawLine(v5, v6, Outlines, color, lineWidth);
-            DrawLine(v6, v7, Outlines, color, lineWidth);
-            DrawLine(v7, v8, Outlines, color, lineWidth);
-            DrawLine(v8, v5, Outlines, color, lineWidth);
-
-            DrawLine(v1, v5, Outlines, color, lineWidth);
-            DrawLine(v2, v6, Outlines, color, lineWidth);
-            DrawLine(v3, v7, Outlines, color, lineWidth);
-            DrawLine(v4, v8, Outlines, color, lineWidth);
-        }
-
-        void DrawLine(Vector3 a, Vector3 b, Dictionary<int, VertexBuffer> widthMap, Color color, int width)
-        {
-            VertexBuffer vbo;
-            if (!widthMap.TryGetValue(width, out vbo))
-            {
-                vbo = new VertexBuffer();
-                vbo.Init();
-                widthMap[width] = vbo;
-            }
+            var vbo = GetLineVbo(Outlines, lineWidth);
 
             var normal = new Vector3();
-            vbo.AddVertex(a, color, normal);
-            vbo.AddVertex(b, color, normal); 
+
+            vbo.AddVerticies(color, normal, v1, v2, v2, v3, v3, v4, v4, v1,
+                                            v5, v6, v6, v7, v7, v8, v8, v5,
+                                            v1, v5, v2, v6, v3, v7, v4, v8);
         }
 
-        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
+        public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool live, NodeModel source, NodeModel destination)
         {
-            depth += depthStep;
+            float height = live ? LiveCallHeight : CallHeight;
 
-            var a = new Vector3(start.X, depth, start.Y);
-            var b = new Vector3(end.X, depth, end.Y);
+            var a = new Vector3(start.X, height, start.Y);
+            var b = new Vector3(end.X, height, end.Y);
 
-            if (!dashed)
-                DrawLine(a, b, CallLines, color, lineWidth);
-            else
-                DrawLine(a, b, DashedCallLines, color, lineWidth);
+            var vbo = GetLineVbo(live ? DashedCallLines : CallLines, lineWidth * 2);
+
+            var normal = new Vector3();
+
+            vbo.AddVerticies(color, normal, a, b);
         }
 
         public void ViewInvalidate()
@@ -523,19 +505,14 @@ namespace XLibrary
             return new Point(0, 0); // return PointToClient(Cursor.Position);
         }
 
-        void GLRenderer_MouseLeave(object sender, EventArgs e)
-        {
-            Model.View_MouseLeave();
-        }
-
-        void GLRenderer_KeyUp(object sender, KeyEventArgs e)
+        void FpsRenderer_KeyUp(object sender, KeyEventArgs e)
         {
             FpsCam.KeyUp(e);
 
             Model.View_KeyUp(e);
         }
 
-        void GLRenderer_KeyDown(object sender, KeyEventArgs e)
+        void FpsRenderer_KeyDown(object sender, KeyEventArgs e)
         {
             FpsCam.KeyDown(e);
 
@@ -559,6 +536,11 @@ namespace XLibrary
 
         void FpsRenderer_MouseDown(object sender, MouseEventArgs e)
         {
+            //Model.View_MouseDown(e);
+
+            MouseDownPoint = e.Location;
+            PanStart = e.Location;
+
             //MouseLook = true;
             //Cursor.Hide();
             //Cursor.Position = PointToScreen(MidWindow);
@@ -566,40 +548,67 @@ namespace XLibrary
 
         void FpsRenderer_MouseUp(object sender, MouseEventArgs e)
         {
+            //Model.View_MouseUp(e);
+            
+            if (MouseDownPoint == e.Location)
+                ManualMouseClick(e, SelectionModes.Single);
+
+            MouseDownPoint = Point.Empty;
+            PanStart = Point.Empty;
+
             //MouseLook = false;
             //Cursor.Show();
         }
 
-        void FpsRenderer_Click(object sender, EventArgs e)
+        void FpsRenderer_MouseMove(object sender, MouseEventArgs e)
         {
-            SelectionPoint = PointToClient(Cursor.Position);
-            SelectionMap = new Dictionary<int, NodeModel>();
-            SelectionMode = true;
+            //Model.View_MouseMove(e);
+            
+            // if moving with left button on, pan
+            if (MouseDownPoint != Point.Empty && e.Button == MouseButtons.Left)
+            {
+                FpsCam.LookTick(e.Location, PanStart);
+
+                PanStart = e.Location;
+            }
         }
 
-        void GLRenderer_MouseDoubleClick(object sender, MouseEventArgs e)
+        void ManualMouseClick(MouseEventArgs e, SelectionModes mode)
         {
-            Model.View_MouseDoubleClick(e.Location);
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                SelectionPoint = PointToClient(Cursor.Position);
+                SelectionMap = new Dictionary<int, NodeModel>();
+
+                // on double click event, mouse up will fire after so don't set selection mode back to single
+                if (SelectionMode == SelectionModes.None)
+                    SelectionMode = mode;
+            }
+            // back button zoom out
+            else if (e.Button == MouseButtons.XButton1)
+                Model.NavBack();
+
+            // forward button zoom in
+            else if (e.Button == MouseButtons.XButton2)
+                Model.NavForward();
         }
 
-        void GLRenderer_MouseMove(object sender, MouseEventArgs e)
+        void FpsRenderer_Leave(object sender, EventArgs e)
         {
-            Model.View_MouseMove(e);
+            Model.View_MouseLeave();
         }
 
-        void GLRenderer_MouseUp(object sender, MouseEventArgs e)
+        void FpsRenderer_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            Model.View_MouseUp(e);
+            ManualMouseClick(e, SelectionModes.Double);
         }
 
-        void GLRenderer_MouseDown(object sender, MouseEventArgs e)
+        void FpsRenderer_MouseWheel(object sender, MouseEventArgs e)
         {
-            Model.View_MouseDown(e);
-        }
+            float steps = (float)e.Delta / 120f;
 
-        void GLRenderer_MouseWheel(object sender, MouseEventArgs e)
-        {
-            Model.View_MouseWheel(e);
+            for(int i = 0; i < Math.Abs(steps); i++)
+                FpsCam.MoveWheelTick(e.Delta > 0);
         }
     }
 }

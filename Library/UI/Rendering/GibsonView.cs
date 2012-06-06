@@ -563,7 +563,7 @@ namespace XLibrary
             
         }
 
-        public void DrawEdge(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
+        public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
             
         }

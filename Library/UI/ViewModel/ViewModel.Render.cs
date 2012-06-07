@@ -138,6 +138,9 @@ namespace XLibrary
                         if (!PositionMap.ContainsKey(call.Destination))
                             continue;
 
+                        if (ShowThreads != null && !call.ThreadIDs.Any(id => ShowThreads.Contains(id)))
+                            continue;
+
                         var destination = PositionMap[call.Destination];
 
                         // if there are items we're filtering on then only show calls to those nodes

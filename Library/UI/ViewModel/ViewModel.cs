@@ -48,6 +48,7 @@ namespace XLibrary
         public bool ShowCalls = true;
         public bool SequenceOrder = false;
         public bool ShowLabels = true;
+        public HashSet<int> ShowThreads;
 
         public bool ShowAllDependencies = false;
         public Dictionary<int, NodeModel> InterDependencies = new Dictionary<int, NodeModel>();
@@ -107,7 +108,7 @@ namespace XLibrary
             CurrentRoot =  InternalRoot;
         }
 
-        public void RecalcCover(NodeModel root)
+        public void RecalcCover(NodeModel root, bool rootShow=true)
         {
             root.Value = 0;
             root.SecondaryValue = 0;
@@ -129,33 +130,58 @@ namespace XLibrary
 
             foreach (var node in root.Nodes)
             {
-                if ((node.ObjType == XObjType.Field && !ShowFields) ||
-                     (node.ObjType == XObjType.Method && !ShowMethods) ||
-                     (node.XNode.IsAnon && !ShowAnon)
-                   )
+                bool nodeShow = rootShow;
+
+                // show can only be set to false
+                if (nodeShow)
                 {
-                    node.Show = false;
-                    continue;
+                    nodeShow =
+                        ShowLayout == ShowNodes.All ||
+                        (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
+                        (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
+                        (ShowLayout == ShowNodes.Instances &&
+                         (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Active.Count > 0)));
+
+                    if ((node.ObjType == XObjType.Field && !ShowFields) ||
+                        (node.ObjType == XObjType.Method && !ShowMethods) ||
+                        (node.XNode.IsAnon && !ShowAnon))
+                        nodeShow = false;
+
+                    if (ShowThreads != null &&
+                        (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field) &&
+                        (node.XNode.ThreadIDs == null || !node.XNode.ThreadIDs.Any(id => ShowThreads.Contains(id))))
+                        nodeShow = false;
                 }
+ 
+                RecalcCover(node, nodeShow);
 
-                node.Show =
-                    ShowLayout == ShowNodes.All ||
-                    (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
-                    (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
-                    (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Active.Count > 0)));
-
-                if (node.Show)
+                if (nodeShow)
                 {
-                    RecalcCover(node);
                     root.Value += node.Value;
                     root.SecondaryValue += node.SecondaryValue;
+
+                    if (root.Value == 0)
+                    {
+                        nodeShow = false;
+                        Utilities.RecurseTree(root.Nodes, n => n.Show = false, n => n.Nodes);
+                    }
                 }
+
+                node.Show = nodeShow;
             }
         
-            // make sure still visible, even if class is empty
-            if (root.Value == 0)
+            // when hide field/methods selected and user is viewing treemap - just show class map
+            // make sure class graph still shows up with field/methods unselected
+            // when show fields/methods is on we still want to hide certain classes that are filtered by thread for instance
+            if (root.Value == 0 && !ShowFields && !ShowMethods &&
+                (root.ObjType != XObjType.Method && root.ObjType != XObjType.Field) &&
+                (ViewLayout == LayoutType.TreeMap ||
+                 (ViewLayout == LayoutType.CallGraph &&
+                  (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init))))
+            {
                 root.Value = 1;
-
+                // on return to calling function causes root.show = true
+            }
 
             //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
 

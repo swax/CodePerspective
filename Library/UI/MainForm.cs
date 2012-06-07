@@ -22,6 +22,8 @@ namespace XLibrary
         public Control SelectedView;
         public Dictionary<Type, Control> Renderers = new Dictionary<Type, Control>();
 
+        bool ThreadMultiSelect;
+
 
         public MainForm()
         {
@@ -178,7 +180,8 @@ namespace XLibrary
 
             if (Model.SizeLayout == SizeLayouts.TimeInMethod ||
                 Model.SizeLayout == SizeLayouts.Hits ||
-                Model.SizeLayout == SizeLayouts.TimePerHit)
+                Model.SizeLayout == SizeLayouts.TimePerHit ||
+                Model.ShowThreads != null) // new nodes may have been covered by the filtered threads
             {
                 RefreshView(false, false);
             }
@@ -320,6 +323,72 @@ namespace XLibrary
             Model.SearchHighlightSubs = SubsSearchMenuItem.Checked;
             Model.LastSearch = ""; // forces search to re-run
             RefreshView(true, false);
+        }
+
+        private void ThreadButton_DropDownOpening(object sender, EventArgs e)
+        {
+            ThreadButton.DropDownItems.Clear();
+            
+            var allItem = new ToolStripMenuItem("Show All");
+            allItem.CheckOnClick = true;
+            allItem.Checked = (Model.ShowThreads == null);
+            allItem.CheckedChanged += new EventHandler(ThreadShowAll_CheckedChanged);
+            ThreadButton.DropDownItems.Add(allItem);
+
+            var MultiSelect = new ToolStripMenuItem("Multi-Select");
+            MultiSelect.CheckOnClick = true;
+            MultiSelect.Checked = ThreadMultiSelect;
+            MultiSelect.CheckedChanged += new EventHandler(ThreadMultiSelect_CheckedChanged);
+            ThreadButton.DropDownItems.Add(MultiSelect);
+
+            ThreadButton.DropDownItems.Add(new ToolStripSeparator());
+
+            foreach (var flow in XRay.FlowMap)
+            {
+                var menuItem = new ToolStripMenuItem(string.Format("Thread {0}: {1}", flow.ThreadID, flow.Handle.Name));
+
+                menuItem.ForeColor = flow.Handle.IsAlive ? Color.Black : Color.Gray;
+                menuItem.Tag = flow;
+                menuItem.CheckOnClick = true;
+                menuItem.Checked = (Model.ShowThreads != null && Model.ShowThreads.Contains(flow.ThreadID));
+                menuItem.CheckedChanged += new EventHandler(ThreadMenuItem_CheckedChanged);
+
+                ThreadButton.DropDownItems.Add(menuItem);
+            }
+        }
+
+        void ThreadShowAll_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.ShowThreads = null;
+            RefreshView();
+        }
+
+        void ThreadMultiSelect_CheckedChanged(object sender, EventArgs e)
+        {
+            ThreadMultiSelect = (sender as ToolStripMenuItem).Checked;
+        }
+
+        void ThreadMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            var flow = item.Tag as ThreadFlow;
+
+            if (flow == null)
+                return;
+
+            if (Model.ShowThreads == null)
+                Model.ShowThreads = new HashSet<int>();
+
+            if (!ThreadMultiSelect)
+                Model.ShowThreads.Clear();
+
+            if (item.Checked)
+                Model.ShowThreads.Add(flow.ThreadID);
+            else
+                Model.ShowThreads.Remove(flow.ThreadID);
+
+            // do a refresh view
+            RefreshView();
         }
     }
 

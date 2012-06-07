@@ -52,6 +52,7 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.ThreadButton = new System.Windows.Forms.ToolStripDropDownButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -118,7 +119,8 @@
             this.ForwardButton,
             this.toolStripSeparator1,
             this.SearchTextBox,
-            this.SearchToolButton});
+            this.SearchToolButton,
+            this.ThreadButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
             this.MainToolStrip.Name = "MainToolStrip";
             this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
@@ -271,6 +273,17 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
+            // ThreadButton
+            // 
+            this.ThreadButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.ThreadButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ThreadButton.Image = ((System.Drawing.Image)(resources.GetObject("ThreadButton.Image")));
+            this.ThreadButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ThreadButton.Name = "ThreadButton";
+            this.ThreadButton.Size = new System.Drawing.Size(29, 22);
+            this.ThreadButton.Text = "toolStripSplitButton1";
+            this.ThreadButton.DropDownOpening += new System.EventHandler(this.ThreadButton_DropDownOpening);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -318,5 +331,6 @@
         private System.Windows.Forms.ToolStripMenuItem ClearSearchMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
         private System.Windows.Forms.Panel ViewHostPanel;
+        private System.Windows.Forms.ToolStripDropDownButton ThreadButton;
     }
 }

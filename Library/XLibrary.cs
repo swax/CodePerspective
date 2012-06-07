@@ -52,7 +52,6 @@ namespace XLibrary
         internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
         internal static bool ThreadlineEnabled = true;
-        internal static SharedDictionary<Thread> ThreadMap = new SharedDictionary<Thread>(100);
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -436,7 +435,6 @@ namespace XLibrary
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
 
             call.ThreadIDs.Add(thread);
-
             call.Hit = ShowTicks;
             call.TotalHits++;
 
@@ -447,7 +445,7 @@ namespace XLibrary
             flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
-                TrackClassCall(nodeID, node, source);
+                TrackClassCall(nodeID, node, source, thread);
         }
 
         public static XNode GetContainingClass(XNode node)
@@ -463,7 +461,7 @@ namespace XLibrary
             return null;
         }
 
-        public static void TrackClassCall(int nodeID, XNodeIn node, int source)
+        public static void TrackClassCall(int nodeID, XNodeIn node, int source, int thread)
         {
             var srcNode = Nodes[source];
             if (srcNode == null)
@@ -496,6 +494,7 @@ namespace XLibrary
                 sourceClass.AddFunctionCall(ref sourceClass.CallsOut, destClass.ID, call);
             }
 
+            call.ThreadIDs.Add(thread);
             call.Hit = ShowTicks;
             call.TotalHits++;
         }

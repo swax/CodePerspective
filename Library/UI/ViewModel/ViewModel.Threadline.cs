@@ -68,6 +68,9 @@ namespace XLibrary
 
             foreach (var flow in XRay.FlowMap)
             {
+                if (ShowThreads != null && !ShowThreads.Contains(flow.ThreadID))
+                    continue;
+
                 UnfinishedItems.Clear();
 
                 // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
@@ -172,7 +175,7 @@ namespace XLibrary
                 string label = "ID " + timeline.ThreadID.ToString() + ": " + timeline.Name; 
                 float x = ScreenOffset.X + xOffset + 2;
                 float y = ScreenOffset.Y + yPos + nodeHeight + 2;
-                Renderer.DrawString(label, TextFont, Color.Black, x, y, colWidth, 18);
+                Renderer.DrawString(label, TextFont, timeline.Active ? Color.Black : Color.Gray, x, y, colWidth, 18);
 
                 foreach (var item in timeline.Sequence)
                 {

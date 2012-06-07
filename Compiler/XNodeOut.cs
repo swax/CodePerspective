@@ -214,7 +214,7 @@ namespace XBuilder
         internal XNodeOut AddField(FieldReference fieldDef)
         {
             // include namespace later for dynamic lookups - string name = fieldDef.FieldType.FullName + "::" + fieldDef.Name;
-            string name = fieldDef.FieldType.Name + "  " + fieldDef.Name;
+            string name = fieldDef.FieldType.Name + " " + fieldDef.Name;
 
             var node = AddNode(name, XObjType.Field);
 

@@ -60,6 +60,7 @@ namespace XLibrary
         {
             PanOffset = Point.Empty;
             ZoomFactor = 1;
+            CurrentThreadlineZoom = null;
         }
 
         public void NavBack()
@@ -182,7 +183,12 @@ namespace XLibrary
         {
             var node = GuiHovered.LastOrDefault();
             if (node != null)
+            {
+                if (ViewLayout == LayoutType.TreeMap && node.ObjType != XObjType.Class)
+                    node = node.GetParentClass(false);
+
                 SetRoot(node);
+            }
         }
 
         public void ClickNode(NodeModel node)

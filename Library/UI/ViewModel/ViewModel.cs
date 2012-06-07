@@ -23,8 +23,7 @@ namespace XLibrary
         public bool DoRevalue = true;
 
         public Dictionary<int, NodeModel> PositionMap = new Dictionary<int, NodeModel>();
-        public Dictionary<int, NodeModel> CenterMap = new Dictionary<int, NodeModel>(); // used to filter calls into and out of center
-        public Dictionary<int, NodeModel> OutsideMap = new Dictionary<int, NodeModel>(); // used to filter calls into and out of center     
+        public HashSet<int> CenterMap = new HashSet<int>(); // used to filter calls into and out of center
 
         public NodeModel CurrentRoot;
         public NodeModel InternalRoot;
@@ -152,6 +151,10 @@ namespace XLibrary
                     root.SecondaryValue += node.SecondaryValue;
                 }
             }
+
+            // make sure still visible, even if class is empty
+            if (root.Value == 0)
+                root.Value = 1;
 
 
             //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);

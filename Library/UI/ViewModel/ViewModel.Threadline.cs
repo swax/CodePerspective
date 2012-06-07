@@ -16,112 +16,42 @@ namespace XLibrary
         public List<StackItem> UnfinishedItems = new List<StackItem>();
 
         public NodeModel CurrentThreadlineZoom;
-        public HashSet<int> AllowedNodes = new HashSet<int>();
         public bool Paused;
 
 
         public void DrawTheadline()
         {
-            long currentTick = XRay.Watch.ElapsedTicks;
+            if (DoRevalue)
+            {
+                RecalcCover(InternalRoot);
+                RecalcCover(ExternalRoot);
+
+                DoRevalue = false;
+                RevalueCount++;
+
+                DoResize = true;
+            }
 
             // set what nodes are allowed in the threadline based on the current root
             if (CurrentThreadlineZoom != CurrentRoot)
             {
-                AllowedNodes.Clear();
-                AllowedNodes.Add(CurrentRoot.ID);
+                CenterMap.Clear();
+                CenterMap.Add(CurrentRoot.ID);
 
                 Utilities.RecurseTree<NodeModel>(
                     tree: CurrentRoot.Nodes,
-                    evaluate: n => AllowedNodes.Add(n.ID),
+                    evaluate: n => CenterMap.Add(n.ID),
                     recurse: n => n.Nodes);
 
                 CurrentThreadlineZoom = CurrentRoot;
             }
 
-            PositionMap.Clear();
+            long currentTick = XRay.Watch.ElapsedTicks;
 
             if(!Paused)
                 CalcThreadline(currentTick);
 
-            ThreadlineNodes.Clear();
-
-            // go through each thread object and position nodes
-            float xOffset = 0;
-            float nodeHeight = 18;
-            float nodeWidth = 18;
-
-            foreach(var timeline in Threadlines.Values.OrderBy(t => t.ThreadID))
-            {
-                // do depth correction so we dont have empty columns
-                int fixedDepth = 0;
-                timeline.FixedDepths = new int[timeline.Deepest + 1];
-                foreach (var depth in timeline.DepthSet)
-                {
-                    timeline.FixedDepths[depth] = fixedDepth;
-                    fixedDepth++;
-                }
-
-                timeline.NodeDepths = new ThreadlineNode[timeline.Deepest + 2]; // an extra level to prevent outside bounds exc when checking lower level
-
-                float yPos = ScreenSize.Height - nodeHeight - 16;
-
-                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2);
-
-                float colWidth = timeline.Deepest * nodeWidth + 100;
-
-                foreach(var item in timeline.Sequence)
-                {
-                    int depth = timeline.FixedDepths[item.Depth];
-                    float xPos = xOffset + nodeWidth * depth;
-
-                    // draw
-                    var node = NodeModels[item.NodeID];
-                    PositionMap[node.ID] = node;
-
-                    if (node.XNode.External && !ShowExternal)
-                        continue;
-
-                    var area = new RectangleF(ScreenOffset.X + xPos, ScreenOffset.Y + yPos, nodeHeight, nodeWidth);
-
-                    // only light up the latest node
-                    if (!AddedNodes.Contains(node.ID))
-                    {
-                        node.RoomForLabel = true;
-                        node.SetArea(area);
-                    }
-
-                    // extend this node down to the previous nodes (future node) depth
-                    bool foundPrev = false;
-                    for (int i = depth + 1; i < timeline.NodeDepths.Length; i++)
-                    {
-                        if (!foundPrev && timeline.NodeDepths[i] != null)
-                        {
-                            area.Height = timeline.NodeDepths[i].Area.Bottom - area.Top;
-                            foundPrev = true;
-                        }
-
-                        timeline.NodeDepths[i] = null;
-                    }
-
-                    bool showHit = false;
-                    if (item.EndTick == 0 || Utilities.TicksToSeconds(currentTick - item.StartTick) < 1.0) // of started in last second
-                        showHit = true;
-
-                    float labelX = ScreenOffset.X + xPos + nodeWidth + 3;
-                    float labelWidth = colWidth - nodeWidth * (depth + 1) - 3;
-                    var labelArea = new RectangleF(labelX, ScreenOffset.Y + yPos + 1, labelWidth, nodeHeight);
-                    var entry = new ThreadlineNode() { Node = node, Area = area, LabelArea = labelArea, ShowHit = showHit };
-
-                    if(timeline.NodeDepths[depth] == null)             
-                        timeline.NodeDepths[depth] = entry;
-
-                    ThreadlineNodes.Add(entry);
-
-                    yPos -= nodeHeight;
-                }
-
-                xOffset += colWidth;
-            }
+            LayoutThreadlines(currentTick);
         }
 
         private void CalcThreadline(long currentTick)
@@ -169,8 +99,13 @@ namespace XLibrary
                         timeline = new Threadline(item.ThreadID, ThreadOrder++);
                         Threadlines[item.ThreadID] = timeline;
                     }
-     
-                    if (AllowedNodes.Contains(item.NodeID))
+
+                    var node = NodeModels[item.NodeID];
+
+                    if (node.Show &&
+                        (CenterMap.Contains(node.ID) ||
+                         (ShowOutside && !node.XNode.External) ||
+                         (ShowExternal && node.XNode.External) ))
                     {
                         if (item.EndTick == 0)
                             UnfinishedItems.Add(item);
@@ -201,6 +136,88 @@ namespace XLibrary
             var removeTimelines = Threadlines.Values.Where(t => t.Sequence.Count == 0).ToArray();
             foreach (var timeline in removeTimelines)
                 Threadlines.Remove(timeline.ThreadID);
+        }
+
+        private void LayoutThreadlines(long currentTick)
+        {
+            PositionMap.Clear();
+            
+            ThreadlineNodes.Clear();
+
+            // go through each thread object and position nodes
+            float xOffset = 0;
+            float nodeHeight = 18;
+            float nodeWidth = 18;
+
+            foreach (var timeline in Threadlines.Values.OrderBy(t => t.ThreadID))
+            {
+                // do depth correction so we dont have empty columns
+                int fixedDepth = 0;
+                timeline.FixedDepths = new int[timeline.Deepest + 1];
+                foreach (var depth in timeline.DepthSet)
+                {
+                    timeline.FixedDepths[depth] = fixedDepth;
+                    fixedDepth++;
+                }
+
+                timeline.NodeDepths = new ThreadlineNode[timeline.Deepest + 2]; // an extra level to prevent outside bounds exc when checking lower level
+
+                float yPos = ScreenSize.Height - nodeHeight - 16;
+
+                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2);
+
+                float colWidth = timeline.Deepest * nodeWidth + 100;
+
+                foreach (var item in timeline.Sequence)
+                {
+                    var node = NodeModels[item.NodeID];
+
+                    PositionMap[node.ID] = node;
+
+                    int depth = timeline.FixedDepths[item.Depth];
+                    float xPos = xOffset + nodeWidth * depth;
+
+                    var area = new RectangleF(ScreenOffset.X + xPos, ScreenOffset.Y + yPos, nodeHeight, nodeWidth);
+
+                    // only light up the latest node
+                    if (!AddedNodes.Contains(node.ID))
+                    {
+                        node.RoomForLabel = true;
+                        node.SetArea(area);
+                    }
+
+                    // extend this node down to the previous nodes (future node) depth
+                    bool foundPrev = false;
+                    for (int i = depth + 1; i < timeline.NodeDepths.Length; i++)
+                    {
+                        if (!foundPrev && timeline.NodeDepths[i] != null)
+                        {
+                            area.Height = timeline.NodeDepths[i].Area.Bottom - area.Top;
+                            foundPrev = true;
+                        }
+
+                        timeline.NodeDepths[i] = null;
+                    }
+
+                    bool showHit = false;
+                    if (item.EndTick == 0 || Utilities.TicksToSeconds(currentTick - item.StartTick) < 1.0) // of started in last second
+                        showHit = true;
+
+                    float labelX = ScreenOffset.X + xPos + nodeWidth + 3;
+                    float labelWidth = colWidth - nodeWidth * (depth + 1) - 3;
+                    var labelArea = new RectangleF(labelX, ScreenOffset.Y + yPos + 1, labelWidth, nodeHeight);
+                    var entry = new ThreadlineNode() { Node = node, Area = area, LabelArea = labelArea, ShowHit = showHit };
+
+                    if (timeline.NodeDepths[depth] == null)
+                        timeline.NodeDepths[depth] = entry;
+
+                    ThreadlineNodes.Add(entry);
+
+                    yPos -= nodeHeight;
+                }
+
+                xOffset += colWidth;
+            }
         }
     }
 

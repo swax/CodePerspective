@@ -1,4 +1,21 @@
 ﻿
+linked source on screen
+	precalculate size of c# code word wrapped with 80 char max
+	when user is zoomed in enough to display the width, display it
+		mouse wheel over code scrolls it
+	have call link originate directly from hyper text function
+	when person clicks on function link, app 'flys' over to that function, zoom out/zoom in, like google earth
+	at end - user should see class graph, zoom into method graph, zoom into code, click on code links and zoom to connected functions
+	field text light up with set/get performed
+	give an occurance ID for functions, so can match up exactly which call from method was used
+	
+real source editing
+	given a directory of source files
+	match source functions with methods
+	example, xray xlibrary, open in analyze and match with source files
+	if field/method dependencies graphed then there is a graph to start from
+	allow user to drag nodes in rank and pin node positions in each rank static
+
 explore apps, make notes when something demoable comes up
 	why xtestapp code not being generated for linked dll
 	turn on exception catching for code generation
@@ -27,12 +44,13 @@ color profile
 	jurassic park lulz - green horizon - draw back wall iso view?
 
 class graph
-	double click on class in class/init graph, show connected
+	**switching to class/init graph when zoomed in on something below class level, zoom up to class level
+	**double click on class in class/init graph, show connected
 	double click zoomed in class node, show method graph, save view mode in history
 	switch to class graph from method graph, and move zoom up to class level
+	method graph in each class graph node
 
 treemap view
-	double click on method in treeview, show containing class
 	Put sub-classses inside parent classes so functions/methods are adacent?
 
 threadline
@@ -41,16 +59,17 @@ threadline
 	if fields selected in thread line
 		show fields as row at bottom, at mid-point between accessing threads
 
-method graph in each class graph node
-
-method/field dependency graph built on re-compile like class dependency graph
+method/field dependency graph 
+	built on re-compile like class dependency graph
 
 xlibrary
 	move covered nodes into view model so different UIs dont share the same covered node set
 
-about tab - code used, licenses, put about panel in builder and viewer	
+about tab 
+	code used, licenses, put about panel in builder and viewer	
 
 Top level thread filter in crumbs - works in all views?
+	** list items in thread flow - filter nodes to whats in thread flow list !!! can get thread name as well?
 	filter call graph by selected thread
 	a way to filter by thread intersections
 	way to show what FIELDS are accessed by multiple threads

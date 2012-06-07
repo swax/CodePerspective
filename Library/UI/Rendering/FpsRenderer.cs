@@ -236,7 +236,7 @@ namespace XLibrary
 
         private void DoSelectionPass()
         {
-            // turn off options
+            // turn off lighting and draw world as flat colored objects who's color corresponds to their node id
             GLUtils.SafeDisable(EnableCap.Lighting, () =>
             {
                 // reset vbo
@@ -251,7 +251,7 @@ namespace XLibrary
                 // draw node vbo
                 Nodes.Draw(BeginMode.Triangles);
 
-                // read pixel
+                // read pixel at cursor
                 byte[] rgb = new byte[3];
                 GL.ReadPixels(SelectionPoint.X, Height - SelectionPoint.Y, 1, 1, PixelFormat.Rgb, PixelType.UnsignedByte, rgb);
 
@@ -317,13 +317,6 @@ namespace XLibrary
             return qfont;
         }
 
-        public void DrawString(string text, Font font, Color color, float x, float y)
-        {
-            QFont qfont = GetQFont(font);
-
-            qfont.PrintToVBO(text, new Vector3(x, y, 0), color);
-        }
-
         public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
             QFont qfont = GetQFont(font);
@@ -383,8 +376,18 @@ namespace XLibrary
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-   
+           // used for footer and tooltips, needs mouse over to worki
+            // could draw in ortho view
         }
+
+        public void DrawString(string text, Font font, Color color, float x, float y)
+        {
+            // used for footer and tooltips, needs mouse over to work
+            // could draw in ortho view
+            //QFont qfont = GetQFont(font);
+            //qfont.PrintToVBO(text, new Vector3(x, y, 0), color);
+        }
+
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {

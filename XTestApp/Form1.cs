@@ -47,6 +47,7 @@ namespace XTestApp
 
             var bb = typeof(StaticTemplateClass<int>);
 
+            var fieldVal = TestField;
 
             /*var z = typeof(StaticTemplateClass<int>);
 
@@ -121,6 +122,13 @@ namespace XTestApp
         private void throwButton_Click(object sender, EventArgs e)
         {
             TryStuff();
+        }
+
+        int TestField { get { return CalledFromField(); } }
+
+        private int CalledFromField()
+        {
+            return 5;
         }
 
         private void button1_Click(object sender, EventArgs e)

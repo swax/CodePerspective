@@ -29,7 +29,6 @@ namespace XLibrary
                 Graphs.Clear();
                 PositionMap.Clear();
                 CenterMap.Clear();
-                OutsideMap.Clear();
 
                 // iternate nodes at this zoom level
                 if (GraphMode == CallGraphMode.Intermediates)
@@ -43,7 +42,7 @@ namespace XLibrary
 
                     foreach (var n in InterDependencies.Values)
                     {
-                        CenterMap[n.ID] = n;
+                        CenterMap.Add(n.ID);
                         PositionMap[n.ID] = n;
 
                         var find = InterDependencies.Keys.ToList();
@@ -361,7 +360,6 @@ namespace XLibrary
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);
                     CenterMap.Remove(remove.ID);
-                    OutsideMap.Remove(remove.ID);
 
                     continue;
                 }
@@ -798,15 +796,12 @@ namespace XLibrary
                       (xNode.Dependencies != null && xNode.Dependencies.Length > 0)))
             {
                 if (center)
-                    CenterMap[node.ID] = node;
+                    CenterMap.Add(node.ID);
 
                 // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
                 if (center || DependentClasses.Contains(node.ID) || IndependentClasses.Contains(node.ID))
                 {
                     PositionMap[node.ID] = node;
-
-                    if (!CenterMap.ContainsKey(node.ID))
-                        OutsideMap[node.ID] = node;
 
                     if (xNode.Independencies != null)
                         node.EdgesIn = xNode.Independencies;
@@ -845,17 +840,14 @@ namespace XLibrary
                 return;
 
             if (center)
-                CenterMap[node.ID] = node;
+                CenterMap.Add(node.ID);
 
             // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
             if (center ||
-                 (callsIn != null && callsIn.Any(c => CenterMap.ContainsKey(c.Source))) ||
-                 (callsOut != null && callsOut.Any(c => CenterMap.ContainsKey(c.Destination))))
+                 (callsIn != null && callsIn.Any(c => CenterMap.Contains(c.Source))) ||
+                 (callsOut != null && callsOut.Any(c => CenterMap.Contains(c.Destination))))
             {
                 PositionMap[node.ID] = node;
-
-                if (!CenterMap.ContainsKey(node.ID))
-                    OutsideMap[node.ID] = node;
 
                 if (callsIn != null)
                     node.EdgesIn = callsIn.Select(c => c.Source).ToArray();
@@ -897,8 +889,6 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[sub.ID] = sub;
-                    if (!InterDependencies.ContainsKey(d))
-                        OutsideMap[sub.ID] = sub;
 
                     n.AddIntermediateDependency(sub);
                     pathFound = true;
@@ -940,8 +930,6 @@ namespace XLibrary
                 if (addLink)
                 {
                     PositionMap[parent.ID] = parent;
-                    if (!InterDependencies.ContainsKey(d))
-                        OutsideMap[parent.ID] = parent;
 
                     parent.AddIntermediateDependency(n);
                     pathFound = true;

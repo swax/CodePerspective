@@ -390,14 +390,16 @@ namespace XLibrary
                 FlowMap.Add(thread, flow);
             }
 
-            if(node.ObjType == XObjType.Method)
+            bool isMethod = (node.ObjType == XObjType.Method);
+
+            if(isMethod)
                 node.StillInside++;
+
 
             // if the first entry, return here
             if (flow.Pos == -1)
             {
-                flow.Pos = 0;
-                flow.AddStackItem(nodeID, null, Watch.ElapsedTicks, ThreadlineEnabled);
+                flow.AddStackItem(nodeID, null, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
                 node.EntryPoint++;
                 return;
             }
@@ -442,14 +444,11 @@ namespace XLibrary
             call.Hit = ShowTicks;
             call.TotalHits++;
 
-            if (node.ObjType == XObjType.Method)
-            {
+            // if a method
+            if (isMethod) 
                 call.StillInside++;
 
-                flow.Pos++;
-
-                flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, ThreadlineEnabled);
-            }
+            flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
                 TrackClassCall(nodeID, node, source);
@@ -866,10 +865,12 @@ namespace XLibrary
 
         internal int ThreadlinePos = -1;
         internal StackItem[] Threadline = new StackItem[200]; // 200 lines, 16px high, like 3000px record
-        
-        
-        internal void AddStackItem(int nodeID, FunctionCall call, long startTick, bool ThreadlineEnabled)
+
+
+        internal void AddStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
         {
+            Pos++;
+
             if (Pos >= XRay.MaxStack)
                 return;
 
@@ -882,7 +883,13 @@ namespace XLibrary
                 ThreadID = ThreadID 
             };
 
-            Stack[Pos] = newItem;
+            if (isMethod)
+                Stack[Pos] = newItem;
+            else
+            {
+                newItem.EndTick = startTick;
+                Pos--;
+            }      
 
             if (!ThreadlineEnabled)
                 return;

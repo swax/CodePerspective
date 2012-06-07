@@ -26,7 +26,9 @@ namespace XLibrary
             // clear and pre-process marked depencies
             RecalcDependencies();
 
-            DoSearch();
+            // figure out if we need to do a search
+            if (SearchString != LastSearch)
+                DoSearch();
 
             // draw layout
             ScreenSize.Width = Renderer.ViewWidth * ZoomFactor;
@@ -69,7 +71,7 @@ namespace XLibrary
                 foreach (var node in ThreadlineNodes)
                     DrawNode(node.Node, node.Area, node.LabelArea, 0, false, node.ShowHit);
             }
-
+            
 
             // draw ignored over nodes ignored may contain
             /*foreach (var ignored in IgnoredNodes.Values)
@@ -273,8 +275,7 @@ namespace XLibrary
                 applyColor(XColors.OverColors[depth]);
             }
             else if (ViewLayout == LayoutType.TreeMap ||
-                     ViewLayout == LayoutType.Timeline ||
-                     CenterMap.ContainsKey(node.ID))
+                     CenterMap.Contains(node.ID))
                 applyColor(XColors.EmptyColor);
             else
                 applyColor(XColors.OutsideColor);
@@ -415,10 +416,6 @@ namespace XLibrary
 
         public void DoSearch()
         {
-            // figure out if we need to do a search
-            if (SearchString == LastSearch)
-                return;
-
             LastSearch = SearchString;
             bool empty = string.IsNullOrEmpty(SearchString);
 

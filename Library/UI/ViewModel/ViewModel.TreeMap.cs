@@ -130,7 +130,7 @@ namespace XLibrary
                 node.LabelClipped = false;
 
                 if (center)
-                    CenterMap[node.ID] = node;
+                    CenterMap.Add(node.ID);
 
                 if (sector.Rect.Width > 1.0f && sector.Rect.Height > 1.0f)
                     SizeNode(Renderer, node, exclude, center);

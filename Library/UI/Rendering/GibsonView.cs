@@ -361,7 +361,7 @@ namespace XLibrary
                 node.RoomForLabel = false; // cant do above without graphic artifacts
 
                 if (center)
-                    Model.CenterMap[node.ID] = node;
+                    Model.CenterMap.Add(node.ID);
 
                 if (sector.Rect.Width > 1.0f && sector.Rect.Height > 1.0f)
                     SizeNode(node, exclude, center);

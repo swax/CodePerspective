@@ -110,7 +110,7 @@ namespace XLibrary
         public Color FieldGetColor { get { return Color.LimeGreen; } }
 
         public Color TextColor { get { return Color.Black; } }
-        public Color TextBgColor { get { return Color.FromArgb(192, Color.White); } }
+        public Color TextBgColor { get { return Color.FromArgb(255, Color.White); } }
         public Color LabelBgColor { get { return Color.FromArgb(128, Color.White); } }
         public Color FooterBgColor { get { return Color.White; } }
 
@@ -246,7 +246,7 @@ namespace XLibrary
         public Color FieldGetColor { get { return Color.LimeGreen; } }
 
         public Color TextColor { get { return Color.Black; } }
-        public Color TextBgColor { get { return Color.FromArgb(192, Color.White); } }
+        public Color TextBgColor { get { return Color.FromArgb(255, Color.White); } }
         public Color LabelBgColor { get { return Color.FromArgb(128, Color.White); } }
         public Color FooterBgColor { get { return Color.White; } }
 

@@ -52,6 +52,7 @@ namespace XLibrary
         internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
         internal static bool ThreadlineEnabled = true;
+        internal static SharedDictionary<Thread> ThreadMap = new SharedDictionary<Thread>(100);
 
         internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
 
@@ -854,6 +855,7 @@ namespace XLibrary
     class ThreadFlow
     {
         internal int ThreadID;
+        internal Thread Handle;
 
         internal int Pos = -1; // current position on the stack
         internal StackItem[] Stack = new StackItem[XRay.MaxStack];
@@ -866,6 +868,8 @@ namespace XLibrary
         {
             Pos++;
 
+            Handle = Thread.CurrentThread;  
+
             if (Pos >= XRay.MaxStack)
                 return;
 
@@ -874,8 +878,7 @@ namespace XLibrary
                 NodeID = nodeID, 
                 Call = call, 
                 StartTick = startTick, 
-                Depth = Pos, 
-                ThreadID = ThreadID 
+                Depth = Pos 
             };
 
             if (isMethod)
@@ -913,7 +916,6 @@ namespace XLibrary
         internal FunctionCall Call;
         internal long StartTick;
         internal long EndTick;
-        internal int ThreadID;
         internal int Depth;
     }
 

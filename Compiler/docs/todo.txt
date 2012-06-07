@@ -71,6 +71,7 @@ about tab
 
 Top level thread filter in crumbs - works in all views?
 	** list items in thread flow - filter nodes to whats in thread flow list !!! can get thread name as well?
+	drop down icon with current threads, check to select thread, option to select all, option to clear selections
 	How to tell if a thread is dead?
 	filter call graph by selected thread
 	a way to filter by thread intersections

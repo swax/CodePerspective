@@ -466,7 +466,7 @@ namespace XLibrary
         {
             SizeF size = Renderer.MeasureString(label, TextFont);
             Renderer.DrawTextBackground(XColors.FooterBgColor, x, Renderer.ViewHeight - size.Height, size.Width, size.Height);
-            Renderer.DrawString(label, TextFont, color, x, Renderer.ViewHeight - size.Height);
+            Renderer.DrawString(label, TextFont, color, x, Renderer.ViewHeight - size.Height, size.Width, size.Height);
             x += size.Width;
         }
 
@@ -669,7 +669,7 @@ namespace XLibrary
 
             foreach (var node in labels)
             {
-                Renderer.DrawString(node.Item1, TextFont, node.Item2, pos.X, pos.Y);
+                Renderer.DrawString(node.Item1, TextFont, node.Item2, pos.X, pos.Y, bgWidth, bgHeight);
 
                 pos.Y += lineHeight;
                 // pos.X += indent;

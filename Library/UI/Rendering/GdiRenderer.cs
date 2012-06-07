@@ -162,9 +162,10 @@ namespace XLibrary
             CurrentBuffer.DrawString(text, font, GetBrush(color), rect, LabelFormat);
         }
 
-        public void DrawString(string text, Font font, Color color, float x, float y)
+        public void DrawString(string text, Font font, Color color, float x, float y, float width, float height)
         {
-            CurrentBuffer.DrawString(text, font, GetBrush(color), x, y, LabelFormat);
+            var rect = new RectangleF(x, y, width, height);
+            CurrentBuffer.DrawString(text, font, GetBrush(color), rect, LabelFormat);
         }
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)

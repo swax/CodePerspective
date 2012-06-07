@@ -16,7 +16,7 @@ namespace XLibrary
 
         SizeF MeasureString(string text, Font font);
 
-        void DrawString(string text, Font font, Color color, float x, float y);
+        void DrawString(string text, Font font, Color color, float x, float y, float width, float height);
         void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth);
         
         void DrawTextBackground(Color color, float x, float y, float width, float height);

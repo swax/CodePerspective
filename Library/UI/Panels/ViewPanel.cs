@@ -25,6 +25,8 @@ namespace XLibrary.Panels
             ShowAllDependenciesCheckBox.AttachToolTip("Show dependencies of dependencies");
             GraphIntermediateDependencies.AttachToolTip("Given 2 selected class nodes, show how they depend on each other");
 
+            RenderGibsonButton.AttachToolTip("hax0rz 0wnly - press 'm' for mouse look");
+
             IncludeOutsideZoomButton.AttachToolTip("Show methods outside current zoom level\r\nIn call graph view these methods are gray");
             IncludeNotXRayedButton.AttachToolTip("Shows methods outside what was xrayed\r\nIn call graph view these methods are circles");
             LayoutInOrder.AttachToolTip("In the call graph methods are shown in the order that they were first called top to bottom");

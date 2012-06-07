@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Diagnostics;
+using System.Threading;
 
 namespace XLibrary
 {
@@ -64,10 +65,11 @@ namespace XLibrary
             }
 
             AddedNodes.Clear();
-            UnfinishedItems.Clear();
 
             foreach (var flow in XRay.FlowMap)
             {
+                UnfinishedItems.Clear();
+
                 // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
                 int startPos = flow.ThreadlinePos; // start with the newest position
                 if (startPos == -1)// havent started, or disabled
@@ -94,10 +96,10 @@ namespace XLibrary
 
                     // do stuff with item
                     Threadline timeline;
-                    if (!Threadlines.TryGetValue(item.ThreadID, out timeline))
+                    if (!Threadlines.TryGetValue(flow.ThreadID, out timeline))
                     {
-                        timeline = new Threadline(item.ThreadID, ThreadOrder++);
-                        Threadlines[item.ThreadID] = timeline;
+                        timeline = new Threadline(flow.Handle, ThreadOrder++);
+                        Threadlines[flow.ThreadID] = timeline;
                     }
 
                     var node = NodeModels[item.NodeID];
@@ -126,11 +128,12 @@ namespace XLibrary
                     if (i == startPos)
                         break;
                 }
+
+                // add unfinshed items, we do this separetly because they are out of time order in xray
+                foreach (var item in UnfinishedItems.OrderByDescending(ui => ui.StartTick))
+                    Threadlines[flow.ThreadID].Sequence.Add(item);
             }
 
-            // add unfinshed items, we do this separetly because they are out of time order in xray
-            foreach (var item in UnfinishedItems.OrderByDescending(ui => ui.StartTick))
-                Threadlines[item.ThreadID].Sequence.Add(item);
 
             // remove empty threads
             var removeTimelines = Threadlines.Values.Where(t => t.Sequence.Count == 0).ToArray();
@@ -163,10 +166,13 @@ namespace XLibrary
                 timeline.NodeDepths = new ThreadlineNode[timeline.Deepest + 2]; // an extra level to prevent outside bounds exc when checking lower level
 
                 float yPos = ScreenSize.Height - nodeHeight - 16;
-
-                Renderer.DrawString("Thread " + timeline.ThreadID.ToString(), TextFont, Color.Black, ScreenOffset.X + xOffset + 2, ScreenOffset.Y + yPos + nodeHeight + 2);
-
+          
                 float colWidth = timeline.Deepest * nodeWidth + 100;
+
+                string label = "ID " + timeline.ThreadID.ToString() + ": " + timeline.Name; 
+                float x = ScreenOffset.X + xOffset + 2;
+                float y = ScreenOffset.Y + yPos + nodeHeight + 2;
+                Renderer.DrawString(label, TextFont, Color.Black, x, y, colWidth, 18);
 
                 foreach (var item in timeline.Sequence)
                 {
@@ -196,6 +202,7 @@ namespace XLibrary
                             foundPrev = true;
                         }
 
+
                         timeline.NodeDepths[i] = null;
                     }
 
@@ -224,6 +231,9 @@ namespace XLibrary
     public class Threadline
     {
         public int ThreadID;
+        public string Name;
+        public bool Active;
+
         public int Order;
         public int Deepest; // dont reset, if we do columns start moving around whenever it changes
 
@@ -233,10 +243,12 @@ namespace XLibrary
         public int[] FixedDepths;
 
 
-        public Threadline(int threadID, int order)
+        public Threadline(Thread thread, int order)
         {
-            ThreadID = threadID;
+            ThreadID = thread.ManagedThreadId;
             Order = order;
+            Name = (thread.Name != null) ? thread.Name : "";
+            Active = thread.IsAlive;
         }
     }
 

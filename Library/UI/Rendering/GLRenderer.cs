@@ -211,11 +211,11 @@ namespace XLibrary
             return qfont;
         }
 
-        public void DrawString(string text, Font font, Color color, float x, float y)
+        public void DrawString(string text, Font font, Color color, float x, float y, float width, float height)
         {
             QFont qfont = GetQFont(font);
 
-            qfont.PrintToVBO(text, new Vector3(x, y, 0), color);
+            qfont.PrintToVBO(text, width, QFontAlignment.Left, new Vector3(x, y, 0), color);
         }
 
         public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)

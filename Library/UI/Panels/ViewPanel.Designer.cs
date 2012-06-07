@@ -73,12 +73,11 @@
             this.label6 = new System.Windows.Forms.Label();
             this.FpsLabel = new System.Windows.Forms.Label();
             this.panel7 = new System.Windows.Forms.Panel();
+            this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.RenderGdiButton = new System.Windows.Forms.RadioButton();
             this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
-            this.RenderFpsButton = new System.Windows.Forms.RadioButton();
             this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
             this.label7 = new System.Windows.Forms.Label();
-            this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -596,13 +595,23 @@
             this.panel7.Controls.Add(this.PauseLink);
             this.panel7.Controls.Add(this.RenderGdiButton);
             this.panel7.Controls.Add(this.RenderOpenGLButton);
-            this.panel7.Controls.Add(this.RenderFpsButton);
             this.panel7.Controls.Add(this.RenderGibsonButton);
             this.panel7.Controls.Add(this.FpsLabel);
             this.panel7.Location = new System.Drawing.Point(126, 16);
             this.panel7.Name = "panel7";
             this.panel7.Size = new System.Drawing.Size(73, 236);
             this.panel7.TabIndex = 31;
+            // 
+            // PauseLink
+            // 
+            this.PauseLink.AutoSize = true;
+            this.PauseLink.Location = new System.Drawing.Point(3, 95);
+            this.PauseLink.Name = "PauseLink";
+            this.PauseLink.Size = new System.Drawing.Size(37, 13);
+            this.PauseLink.TabIndex = 17;
+            this.PauseLink.TabStop = true;
+            this.PauseLink.Text = "Pause";
+            this.PauseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PauseLink_LinkClicked);
             // 
             // RenderGdiButton
             // 
@@ -628,29 +637,17 @@
             this.RenderOpenGLButton.UseVisualStyleBackColor = true;
             this.RenderOpenGLButton.CheckedChanged += new System.EventHandler(this.RenderOpenGLButton_CheckedChanged);
             // 
-            // RenderFpsButton
-            // 
-            this.RenderFpsButton.AutoSize = true;
-            this.RenderFpsButton.Location = new System.Drawing.Point(3, 52);
-            this.RenderFpsButton.Name = "RenderFpsButton";
-            this.RenderFpsButton.Size = new System.Drawing.Size(45, 17);
-            this.RenderFpsButton.TabIndex = 19;
-            this.RenderFpsButton.TabStop = true;
-            this.RenderFpsButton.Text = "FPS";
-            this.RenderFpsButton.UseVisualStyleBackColor = true;
-            this.RenderFpsButton.CheckedChanged += new System.EventHandler(this.RenderFpsButton_CheckedChanged);
-            // 
             // RenderGibsonButton
             // 
             this.RenderGibsonButton.AutoSize = true;
-            this.RenderGibsonButton.Location = new System.Drawing.Point(3, 75);
+            this.RenderGibsonButton.Location = new System.Drawing.Point(3, 52);
             this.RenderGibsonButton.Name = "RenderGibsonButton";
             this.RenderGibsonButton.Size = new System.Drawing.Size(58, 17);
-            this.RenderGibsonButton.TabIndex = 20;
+            this.RenderGibsonButton.TabIndex = 19;
             this.RenderGibsonButton.TabStop = true;
             this.RenderGibsonButton.Text = "Gibson";
             this.RenderGibsonButton.UseVisualStyleBackColor = true;
-            this.RenderGibsonButton.CheckedChanged += new System.EventHandler(this.RenderGibsonButton_CheckedChanged);
+            this.RenderGibsonButton.CheckedChanged += new System.EventHandler(this.RenderFpsButton_CheckedChanged);
             // 
             // label7
             // 
@@ -661,17 +658,6 @@
             this.label7.Size = new System.Drawing.Size(65, 13);
             this.label7.TabIndex = 30;
             this.label7.Text = "Rendering";
-            // 
-            // PauseLink
-            // 
-            this.PauseLink.AutoSize = true;
-            this.PauseLink.Location = new System.Drawing.Point(3, 95);
-            this.PauseLink.Name = "PauseLink";
-            this.PauseLink.Size = new System.Drawing.Size(37, 13);
-            this.PauseLink.TabIndex = 17;
-            this.PauseLink.TabStop = true;
-            this.PauseLink.Text = "Pause";
-            this.PauseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PauseLink_LinkClicked);
             // 
             // ViewPanel
             // 
@@ -693,7 +679,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(629, 254);
+            this.Size = new System.Drawing.Size(612, 237);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -763,7 +749,6 @@
         private System.Windows.Forms.Label label7;
         public System.Windows.Forms.RadioButton RenderGdiButton;
         public System.Windows.Forms.RadioButton RenderOpenGLButton;
-        public System.Windows.Forms.RadioButton RenderFpsButton;
         public System.Windows.Forms.RadioButton RenderGibsonButton;
         private System.Windows.Forms.LinkLabel PauseLink;
     }

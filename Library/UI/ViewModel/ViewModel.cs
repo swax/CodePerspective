@@ -151,7 +151,7 @@ namespace XLibrary
                     root.SecondaryValue += node.SecondaryValue;
                 }
             }
-
+        
             // make sure still visible, even if class is empty
             if (root.Value == 0)
                 root.Value = 1;

@@ -76,8 +76,7 @@ namespace XLibrary
         {
             Renderers[typeof(GdiRenderer)] = new GdiRenderer(Model);
             Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
-            Renderers[typeof(FpsRenderer)] = new FpsRenderer(Model);
-            Renderers[typeof(GibsonView)] = new GibsonView(Model);
+            Renderers[typeof(GibsonRenderer)] = new GibsonRenderer(Model);
 
             foreach (var renderer in Renderers.Values)
             {
@@ -195,7 +194,7 @@ namespace XLibrary
             Model.NavForward();
         }
 
-        private void OnOffButton_Click(object sender, EventArgs e)
+        /*private void OnOffButton_Click(object sender, EventArgs e)
         {
             if (XRay.XRayEnabled)
             {
@@ -209,7 +208,7 @@ namespace XLibrary
                 OnOffButton.Text = "on";
                 OnOffButton.ForeColor = Color.Green;
             }
-        }
+        }*/
 
         private void SearchTextBox_TextChanged(object sender, EventArgs e)
         {

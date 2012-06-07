@@ -114,8 +114,6 @@ namespace XLibrary
         internal int ParentID;
 
         internal int FunctionHit; 
-        internal int LastCallingThread;
-        internal int ConflictHit; 
         internal int ExceptionHit;
         internal int ConstructedHit;
         internal int DisposeHit;
@@ -124,6 +122,8 @@ namespace XLibrary
 
         internal int EntryPoint;
         internal int StillInside;
+
+        internal HashSet<int> ThreadIDs;
 
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
@@ -294,9 +294,6 @@ namespace XLibrary
 
             if (ExceptionHit > 0)
                 ExceptionHit--;
-
-            if (ConflictHit > 0)
-                ConflictHit--;
 
             if (ConstructedHit > 0)
                 ConstructedHit--;

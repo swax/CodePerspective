@@ -103,7 +103,7 @@
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
     <Compile Include="UI\Rendering\FpsCamera.cs" />
-    <Compile Include="UI\Rendering\FpsRenderer.cs">
+    <Compile Include="UI\Rendering\GibsonRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\Rendering\GLRenderer.cs">
@@ -114,9 +114,6 @@
     </Compile>
     <Compile Include="UI\DetailsNav.Designer.cs">
       <DependentUpon>DetailsNav.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Rendering\GibsonView.cs">
-      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\Rendering\GLUtils.cs" />
     <Compile Include="UI\Rendering\IRenderer.cs" />

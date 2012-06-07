@@ -16,8 +16,8 @@ real source editing
 	if field/method dependencies graphed then there is a graph to start from
 	allow user to drag nodes in rank and pin node positions in each rank static
 
-explore apps, make notes when something demoable comes up
-	why xtestapp code not being generated for linked dll
+explore apps
+	**why xtestapp code not being generated for linked dll
 	turn on exception catching for code generation
 	do another asp test
 	upgrade ilspy/cecil
@@ -44,8 +44,6 @@ color profile
 	jurassic park lulz - green horizon - draw back wall iso view?
 
 class graph
-	**switching to class/init graph when zoomed in on something below class level, zoom up to class level
-	**double click on class in class/init graph, show connected
 	double click zoomed in class node, show method graph, save view mode in history
 	switch to class graph from method graph, and move zoom up to class level
 	method graph in each class graph node
@@ -63,13 +61,17 @@ method/field dependency graph
 	built on re-compile like class dependency graph
 
 xlibrary
+	**fix dupe nodes getting created for templated classes - Dictionary<>, etc..
 	move covered nodes into view model so different UIs dont share the same covered node set
 
 about tab 
-	code used, licenses, put about panel in builder and viewer	
+	put about panel in builder and viewer	
+	github address, swax homepage, donate/biitcoin account
+	thanks - opentk, quickfont, cecil, icsharp, stackoverflow
 
 Top level thread filter in crumbs - works in all views?
 	** list items in thread flow - filter nodes to whats in thread flow list !!! can get thread name as well?
+	How to tell if a thread is dead?
 	filter call graph by selected thread
 	a way to filter by thread intersections
 	way to show what FIELDS are accessed by multiple threads
@@ -122,7 +124,7 @@ error handling
 
 apps
 	facebook - no longer working - mixed mode assembly error
-	de-ops - problem expanding dictionaries keyvalue elements in some classes
+	deOps - problem expanding dictionaries keyvalue elements in some classes
 	openTK - gives an assembly reference not found on compile
 	github - not working
 	test app - 'trystuff' in test app not decompiling, unresolved ref

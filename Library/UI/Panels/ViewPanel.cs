@@ -56,8 +56,7 @@ namespace XLibrary.Panels
             // rendering
             RenderGdiButton.Checked = Main.SelectedView is GdiRenderer;
             RenderOpenGLButton.Checked = Main.SelectedView is GLRenderer;
-            RenderFpsButton.Checked = Main.SelectedView is FpsRenderer;
-            RenderGibsonButton.Checked = Main.SelectedView is GibsonView;
+            RenderGibsonButton.Checked = Main.SelectedView is GibsonRenderer;
 
             // show
             ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
@@ -88,9 +87,24 @@ namespace XLibrary.Panels
             if (!LayoutTreeMapButton.Checked)
                 return;
 
+
+
             Model.ViewLayout = LayoutType.TreeMap;
             Model.MapMode = TreeMapMode.Normal;
             Main.RefreshView();
+
+            SetRootToClass();
+        }
+
+        private void SetRootToClass()
+        {
+            if (Model.CurrentRoot != null &&
+                Model.CurrentRoot.ObjType == XObjType.Method ||
+                Model.CurrentRoot.ObjType == XObjType.Field)
+            {
+                var root = Model.CurrentRoot.GetParentClass(false);
+                Model.SetRoot(root, false);
+            }
         }
 
         private void LayoutCallGraphButton_CheckedChanged(object sender, EventArgs e)
@@ -111,6 +125,7 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Init;
             Main.RefreshView();
+            SetRootToClass();
         }
 
 
@@ -128,6 +143,7 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Class;
             Main.RefreshView();
+            SetRootToClass();
         }
 
         private void TimelineButton_CheckedChanged(object sender, EventArgs e)
@@ -348,19 +364,10 @@ namespace XLibrary.Panels
 
         private void RenderFpsButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (!RenderFpsButton.Checked)
-                return;
-
-            Main.SetRenderer(typeof(FpsRenderer));
-            Main.RefreshView();
-        }
-
-        private void RenderGibsonButton_CheckedChanged(object sender, EventArgs e)
-        {
             if (!RenderGibsonButton.Checked)
                 return;
 
-            Main.SetRenderer(typeof(GibsonView));
+            Main.SetRenderer(typeof(GibsonRenderer));
             Main.RefreshView();
         }
 
@@ -372,6 +379,11 @@ namespace XLibrary.Panels
                 PauseLink.Text = "Resume";
             else
                 PauseLink.Text = "Pause";
+        }
+
+        private void panel7_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

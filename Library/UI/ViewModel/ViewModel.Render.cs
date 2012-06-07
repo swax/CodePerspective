@@ -284,22 +284,7 @@ namespace XLibrary
             {
                 // check if function is an entry point or holding
                 if (XRay.FlowTracking && xNode.StillInside > 0)
-                {
-                    if (xNode.EntryPoint > 0)
-                    {
-                        if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            applyColor(XColors.MultiEntryColor);
-                        else
-                            applyColor(XColors.EntryColor);
-                    }
-                    else
-                    {
-                        if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                            applyColor(XColors.MultiHoldingColor);
-                        else
-                            applyColor(XColors.HoldingColor);
-                    }
-                }
+                    applyColor((xNode.EntryPoint > 0) ? XColors.EntryColor : XColors.HoldingColor);
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
@@ -307,10 +292,7 @@ namespace XLibrary
 
                 else if (xNode.FunctionHit > 0)
                 {
-                    if (XRay.ThreadTracking && xNode.ConflictHit > 0)
-                        applyColor(XColors.MultiHitColors[xNode.FunctionHit]);
-
-                    else if (node.ObjType == XObjType.Field)
+                    if (node.ObjType == XObjType.Field)
                     {
                         if (xNode.LastFieldOp == FieldOp.Set)
                             applyColor(XColors.FieldSetColors[xNode.FunctionHit]);

@@ -34,9 +34,8 @@
             this.RevalueTimer = new System.Windows.Forms.Timer(this.components);
             this.SearchTimer = new System.Windows.Forms.Timer(this.components);
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.ViewHostPanel = new System.Windows.Forms.Panel();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
-            this.OnOffButton = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.BackButton = new System.Windows.Forms.ToolStripButton();
             this.ForwardButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -53,7 +52,6 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.ViewHostPanel = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -63,7 +61,6 @@
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
-            this.ViewHostPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // RedrawTimer
@@ -103,12 +100,20 @@
             this.splitContainer1.SplitterDistance = 360;
             this.splitContainer1.TabIndex = 4;
             // 
+            // ViewHostPanel
+            // 
+            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
+            this.ViewHostPanel.Name = "ViewHostPanel";
+            this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
+            this.ViewHostPanel.TabIndex = 7;
+            // 
             // MainToolStrip
             // 
             this.MainToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.OnOffButton,
-            this.toolStripSeparator2,
             this.BackButton,
             this.ForwardButton,
             this.toolStripSeparator1,
@@ -119,23 +124,6 @@
             this.MainToolStrip.Size = new System.Drawing.Size(550, 25);
             this.MainToolStrip.TabIndex = 4;
             this.MainToolStrip.Text = "toolStrip1";
-            // 
-            // OnOffButton
-            // 
-            this.OnOffButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.OnOffButton.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.OnOffButton.ForeColor = System.Drawing.Color.Green;
-            this.OnOffButton.Image = ((System.Drawing.Image)(resources.GetObject("OnOffButton.Image")));
-            this.OnOffButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.OnOffButton.Name = "OnOffButton";
-            this.OnOffButton.Size = new System.Drawing.Size(25, 22);
-            this.OnOffButton.Text = "on";
-            this.OnOffButton.Click += new System.EventHandler(this.OnOffButton_Click);
-            // 
-            // toolStripSeparator2
-            // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
             // BackButton
             // 
@@ -283,16 +271,6 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
-            // ViewHostPanel
-            // 
-            this.ViewHostPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ViewHostPanel.Location = new System.Drawing.Point(0, 28);
-            this.ViewHostPanel.Name = "ViewHostPanel";
-            this.ViewHostPanel.Size = new System.Drawing.Size(550, 330);
-            this.ViewHostPanel.TabIndex = 7;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -312,8 +290,6 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
-            this.ViewHostPanel.ResumeLayout(false);
-            this.ViewHostPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -334,8 +310,6 @@
         private System.Windows.Forms.ToolStripButton BackButton;
         private System.Windows.Forms.ToolStripButton ForwardButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton OnOffButton;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripTextBox SearchTextBox;
         private System.Windows.Forms.Timer SearchTimer;
         public Panels.CodePanel CodeTab;

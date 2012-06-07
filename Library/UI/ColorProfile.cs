@@ -21,10 +21,7 @@ namespace XLibrary
         Color OutsideColor { get; }
 
         Color EntryColor { get; }
-        Color MultiEntryColor { get; }
-
         Color HoldingColor { get; }
-        Color MultiHoldingColor { get; }
 
         Color SearchMatchColor { get; }
 
@@ -38,13 +35,9 @@ namespace XLibrary
         Color CallDividerColor { get; }
 
         Color HitColor { get; }
-        Color MultiHitColor { get; }
-
         Color ConstructedColor { get; }
         Color DisposedColor { get; }
-
         Color ExceptionColor { get; }
-        Color MultiExceptionColor { get; }
 
         Color FieldSetColor { get; }
         Color FieldGetColor { get; }
@@ -65,7 +58,6 @@ namespace XLibrary
 
         Color[] OverColors { get; }
         Color[] HitColors { get; }
-        Color[] MultiHitColors { get; }
 
         Color[] ConstructedColors { get; }
         Color[] DisposedColors { get; }
@@ -96,10 +88,7 @@ namespace XLibrary
         public Color OutsideColor { get { return Color.LightGray; } }
 
         public Color EntryColor { get { return Color.LightGreen; } }
-        public Color MultiEntryColor { get { return Color.LimeGreen; } }
-
         public Color HoldingColor { get { return Color.FromArgb(255, 255, 192); } }
-        public Color MultiHoldingColor { get { return Color.Yellow; } }
 
         public Color SearchMatchColor { get { return Color.Red; } }
 
@@ -113,13 +102,9 @@ namespace XLibrary
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
 
         public Color HitColor { get { return Color.Orange; } }
-        public Color MultiHitColor { get { return Color.Orange; } }
-
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
-
         public Color ExceptionColor { get { return Color.Red; } }
-        public Color MultiExceptionColor { get { return Color.DarkRed; } }
 
         public Color FieldSetColor { get { return Color.Blue; } }
         public Color FieldGetColor { get { return Color.LimeGreen; } }
@@ -143,9 +128,6 @@ namespace XLibrary
 
         Color[] _HitColors;
         public Color[] HitColors { get { return _HitColors; } }
-
-        Color[] _MultiHitColors;
-        public Color[] MultiHitColors { get { return _MultiHitColors; } }
 
         Color[] _ConstructedColors;
         public Color[] ConstructedColors { get { return _ConstructedColors; } }
@@ -176,7 +158,6 @@ namespace XLibrary
         {
             _OverColors = new Color[7];
             _HitColors = new Color[XRay.HitFrames];
-            _MultiHitColors = new Color[XRay.HitFrames];
 
             _ExceptionColors = new Color[XRay.HitFrames];
             _FieldSetColors = new Color[XRay.HitFrames];
@@ -197,7 +178,6 @@ namespace XLibrary
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
                 _HitColors[i] = Color.FromArgb(255 - brightness, HitColor);
-                _MultiHitColors[i] = Color.FromArgb(255 - brightness, MultiHitColor);
                 _ExceptionColors[i] = Color.FromArgb(255 - brightness, ExceptionColor);
 
                 _ConstructedColors[i] = Color.FromArgb(255 - brightness, ConstructedColor);
@@ -244,10 +224,7 @@ namespace XLibrary
         public Color OutsideColor { get { return Color.LightGray; } }
 
         public Color EntryColor { get { return Color.LightGreen; } }
-        public Color MultiEntryColor { get { return Color.LimeGreen; } }
-
         public Color HoldingColor { get { return Color.FromArgb(255, 255, 192); } }
-        public Color MultiHoldingColor { get { return Color.Yellow; } }
 
         public Color SearchMatchColor { get { return Color.Red; } }
 
@@ -261,13 +238,9 @@ namespace XLibrary
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
 
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
-        public Color MultiHitColor { get { return Color.Orange; } }
-
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
-
         public Color ExceptionColor { get { return Color.Red; } }
-        public Color MultiExceptionColor { get { return Color.DarkRed; } }
 
         public Color FieldSetColor { get { return Color.Blue; } }
         public Color FieldGetColor { get { return Color.LimeGreen; } }
@@ -291,9 +264,6 @@ namespace XLibrary
 
         Color[] _HitColors;
         public Color[] HitColors { get { return _HitColors; } }
-
-        Color[] _MultiHitColors;
-        public Color[] MultiHitColors { get { return _MultiHitColors; } }
 
         Color[] _ConstructedColors;
         public Color[] ConstructedColors { get { return _ConstructedColors; } }
@@ -324,7 +294,6 @@ namespace XLibrary
         {
             _OverColors = new Color[7];
             _HitColors = new Color[XRay.HitFrames];
-            _MultiHitColors = new Color[XRay.HitFrames];
 
             _ExceptionColors = new Color[XRay.HitFrames];
             _FieldSetColors = new Color[XRay.HitFrames];
@@ -345,7 +314,6 @@ namespace XLibrary
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
                 _HitColors[i] = Color.FromArgb(255 - brightness, HitColor);
-                _MultiHitColors[i] = Color.FromArgb(255 - brightness, MultiHitColor);
                 _ExceptionColors[i] = Color.FromArgb(255 - brightness, ExceptionColor);
 
                 _ConstructedColors[i] = Color.FromArgb(255 - brightness, ConstructedColor);
@@ -391,10 +359,7 @@ namespace XLibrary
         public Color OutsideColor { get { return Color.DarkGray; } }
 
         public Color EntryColor { get { return Color.LightGreen; } }
-        public Color MultiEntryColor { get { return Color.LimeGreen; } }
-
         public Color HoldingColor { get { return Color.FromArgb(255, 255, 192); } }
-        public Color MultiHoldingColor { get { return Color.Yellow; } }
 
         public Color SearchMatchColor { get { return Color.Red; } }
 
@@ -408,13 +373,9 @@ namespace XLibrary
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
 
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
-        public Color MultiHitColor { get { return Color.Orange; } }
-
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
-
         public Color ExceptionColor { get { return Color.Red; } }
-        public Color MultiExceptionColor { get { return Color.DarkRed; } }
 
         public Color FieldSetColor { get { return Color.Blue; } }
         public Color FieldGetColor { get { return Color.LimeGreen; } }
@@ -492,7 +453,6 @@ namespace XLibrary
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
                 _HitColors[i] = Color.FromArgb(255 - brightness, HitColor);
-                _MultiHitColors[i] = Color.FromArgb(255 - brightness, MultiHitColor);
                 _ExceptionColors[i] = Color.FromArgb(255 - brightness, ExceptionColor);
 
                 _ConstructedColors[i] = Color.FromArgb(255 - brightness, ConstructedColor);

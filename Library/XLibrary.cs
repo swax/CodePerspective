@@ -342,6 +342,10 @@ namespace XLibrary
             int thread = 0;
             if (ThreadTracking)
                 thread = Thread.CurrentThread.ManagedThreadId;
+           
+            if (node.ThreadIDs == null)
+                node.ThreadIDs = new HashSet<int>();
+            node.ThreadIDs.Add(thread);
 
             //if (CallLogging)
             //    LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
@@ -362,17 +366,6 @@ namespace XLibrary
             }
 
             node.FunctionHit = ShowTicks;
-
-            if (node.ObjType != XObjType.Method)
-                LogError("{0} {1} Hit", node.ObjType, nodeID);
-
-            if (ThreadTracking && thread != 0)
-            {
-                if (node.LastCallingThread != 0 && node.LastCallingThread != thread)
-                    node.ConflictHit = ShowTicks;
-
-                node.LastCallingThread = thread;
-            }
 
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);
@@ -440,6 +433,8 @@ namespace XLibrary
 
             if (source != call.Source || nodeID != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
+
+            call.ThreadIDs.Add(thread);
 
             call.Hit = ShowTicks;
             call.TotalHits++;
@@ -933,6 +928,8 @@ namespace XLibrary
         internal int TotalHits;
         internal long TotalCallTime;
         internal long TotalTimeOutsideDest;
+
+        internal HashSet<int> ThreadIDs = new HashSet<int>();
 
 
         internal long TotalTimeInsideDest

@@ -345,7 +345,7 @@ namespace XLibrary
 
             foreach (var flow in XRay.FlowMap)
             {
-                var menuItem = new ToolStripMenuItem(string.Format("Thread {0}: {1}", flow.ThreadID, flow.Handle.Name));
+                var menuItem = new ToolStripMenuItem(string.Format("Thread {0}: {1}", flow.ThreadID, flow.Name));
 
                 menuItem.ForeColor = flow.Handle.IsAlive ? Color.Black : Color.Gray;
                 menuItem.Tag = flow;

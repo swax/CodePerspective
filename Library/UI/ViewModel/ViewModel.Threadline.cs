@@ -101,7 +101,7 @@ namespace XLibrary
                     Threadline timeline;
                     if (!Threadlines.TryGetValue(flow.ThreadID, out timeline))
                     {
-                        timeline = new Threadline(flow.Handle, ThreadOrder++);
+                        timeline = new Threadline(flow, ThreadOrder++);
                         Threadlines[flow.ThreadID] = timeline;
                     }
 
@@ -172,7 +172,7 @@ namespace XLibrary
           
                 float colWidth = timeline.Deepest * nodeWidth + 100;
 
-                string label = "ID " + timeline.ThreadID.ToString() + ": " + timeline.Name; 
+                string label = "#" + timeline.ThreadID.ToString() + ": " + timeline.Name; 
                 float x = ScreenOffset.X + xOffset + 2;
                 float y = ScreenOffset.Y + yPos + nodeHeight + 2;
                 Renderer.DrawString(label, TextFont, timeline.Active ? Color.Black : Color.Gray, x, y, colWidth, 18);
@@ -246,12 +246,12 @@ namespace XLibrary
         public int[] FixedDepths;
 
 
-        public Threadline(Thread thread, int order)
+        public Threadline(ThreadFlow flow, int order)
         {
-            ThreadID = thread.ManagedThreadId;
+            ThreadID = flow.ThreadID;
             Order = order;
-            Name = (thread.Name != null) ? thread.Name : "";
-            Active = thread.IsAlive;
+            Name = flow.Name;
+            Active = flow.Handle.IsAlive;
         }
     }
 

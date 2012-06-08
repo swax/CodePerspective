@@ -378,7 +378,7 @@ namespace XLibrary
             ThreadFlow flow;
             if (!FlowMap.TryGetValue(thread, out flow))
             {
-                flow = new ThreadFlow() { ThreadID = thread };
+                flow = new ThreadFlow() { ThreadID = thread, Name = node.Name };
                 FlowMap.Add(thread, flow);
             }
 
@@ -850,19 +850,20 @@ namespace XLibrary
         }
     }
 
-    class ThreadFlow
+    public class ThreadFlow
     {
-        internal int ThreadID;
-        internal Thread Handle;
+        public int ThreadID;
+        public string Name;
+        public Thread Handle;
 
-        internal int Pos = -1; // current position on the stack
-        internal StackItem[] Stack = new StackItem[XRay.MaxStack];
+        public int Pos = -1; // current position on the stack
+        public StackItem[] Stack = new StackItem[XRay.MaxStack];
 
-        internal int ThreadlinePos = -1;
-        internal StackItem[] Threadline = new StackItem[200]; // 200 lines, 16px high, like 3000px record
+        public int ThreadlinePos = -1;
+        public StackItem[] Threadline = new StackItem[200]; // 200 lines, 16px high, like 3000px record
 
 
-        internal void AddStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
+        public void AddStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
         {
             Pos++;
 
@@ -910,29 +911,29 @@ namespace XLibrary
 
     public class StackItem
     {
-        internal int NodeID;
-        internal FunctionCall Call;
-        internal long StartTick;
-        internal long EndTick;
-        internal int Depth;
+        public int NodeID;
+        public FunctionCall Call;
+        public long StartTick;
+        public long EndTick;
+        public int Depth;
     }
 
-    class FunctionCall
+    public class FunctionCall
     {
-        internal int Source;
-        internal int Destination;
+        public int Source;
+        public int Destination;
 
-        internal int Hit;
-        internal int StillInside;
+        public int Hit;
+        public int StillInside;
 
-        internal int TotalHits;
-        internal long TotalCallTime;
-        internal long TotalTimeOutsideDest;
+        public int TotalHits;
+        public long TotalCallTime;
+        public long TotalTimeOutsideDest;
 
-        internal HashSet<int> ThreadIDs = new HashSet<int>();
+        public HashSet<int> ThreadIDs = new HashSet<int>();
 
 
-        internal long TotalTimeInsideDest
+        public long TotalTimeInsideDest
         {
             get
             {

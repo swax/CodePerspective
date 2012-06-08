@@ -45,6 +45,7 @@ color profile
 
 class graph
 	**see if class graph can be derived from functions on draw, and we can remove class tracking from xlibrary
+	**call lines going backwards, not looking too good in gl
 	double click zoomed in class node, show method graph, save view mode in history
 	method graph in each class graph node
 

@@ -161,7 +161,7 @@ namespace XLibrary
                                 DrawGraphEdge(lineWidth, XColors.HoldingCallColor, source, destination);
                         }
 
-                        else if (XRay.ShowAllCalls &&
+                        else if (ShowAllCalls &&
                                  GraphMode != CallGraphMode.Intermediates &&
                                  GraphMode != CallGraphMode.Init)
                         {

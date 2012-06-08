@@ -33,7 +33,6 @@ namespace XLibrary
         internal static bool InstanceChange;
 
         internal static BitArray CoveredNodes;
-        internal static bool ShowAllCalls;
 
         internal const int HitFrames = 30;
         internal const int ShowTicks = HitFrames - 1; // first index

@@ -40,7 +40,7 @@ namespace XLibrary.Panels
             Main = main;
             Model = main.Model;
 
-            CallsAllButton.Checked = XRay.ShowAllCalls;
+            CallsAllButton.Checked = Model.ShowAllCalls;
             CallsRealTimeButton.Checked = Model.ShowCalls;
 
             IncludeOutsideZoomButton.Checked = Model.ShowOutside;
@@ -261,7 +261,7 @@ namespace XLibrary.Panels
 
         private void CallsAllButton_CheckedChanged(object sender, EventArgs e)
         {
-            XRay.ShowAllCalls = CallsAllButton.Checked;
+            Model.ShowAllCalls = CallsAllButton.Checked;
             Main.RefreshView(true, false);
         }
 

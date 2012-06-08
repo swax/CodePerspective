@@ -114,7 +114,7 @@ apps
 	paint.net photshop.dll recompile/view not working..
 
 instance view
-	click title in instance view - focus on node in view, if zoomed into far, zoom out, or make outside visible
+	click title in instance view - focus on node in under current root, if zoomed into far, zoom out, or make outside visible
 	show fields in instance view even if no instances created
 	clicking on field should highlight in instance grid and vice versa
 	ivcryptostream not showing anything still

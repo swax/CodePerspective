@@ -45,6 +45,7 @@ namespace XLibrary
         public bool TwoDimensionalValues;
 
         public CallGraphMode GraphMode = CallGraphMode.Method;
+        public bool ShowAllCalls = false;
         public bool ShowCalls = true;
         public bool SequenceOrder = false;
         public bool ShowLabels = true;

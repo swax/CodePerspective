@@ -277,20 +277,20 @@ namespace XLibrary
                 NavForward();
         }
 
-        void ToggleNode(Dictionary<int, NodeModel> map, NodeModel node)
+        void ToggleNode(HashSet<int> map, NodeModel node)
         {
             // make sure a node cant be selected and ignored simultaneously
-            if (map != IgnoredNodes && IgnoredNodes.ContainsKey(node.ID))
+            if (map != IgnoredNodes && IgnoredNodes.Contains(node.ID))
                 IgnoredNodes.Remove(node.ID);
 
-            if (map != FilteredNodes && FilteredNodes.ContainsKey(node.ID))
+            if (map != FilteredNodes && FilteredNodes.Contains(node.ID))
                 FilteredNodes.Remove(node.ID);
 
             // toggle the setting of the node in the map
-            if (map.ContainsKey(node.ID))
+            if (map.Contains(node.ID))
                 map.Remove(node.ID);
             else
-                map[node.ID] = node;
+                map.Add(node.ID);
 
             DoRedraw = true;
             Renderer.ViewInvalidate();

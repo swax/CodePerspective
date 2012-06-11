@@ -1,4 +1,28 @@
 ﻿
+draw class graph with methods inside
+	draw points with border color, not nothing color
+	
+	render view in 1x1 area and scale on draw
+	pan/zoom shouldnt have to call resize
+	apply pan/zoom in renderer can be option that opengl views turn off to do pan/zoom as transformation
+	currently pan/zoom runs many resize cylcles, after change should take no resize cycles
+
+	background and outline colors saved in vbo
+	draw overlays dynamically inbetween - overlays blended
+
+	current
+		clear graph, center, position maps
+		add nodes
+		build graphs
+		size graphs
+
+	draw class graph
+		save position map / clear it
+		foreach node in saved postion map
+			set a virtual zoom to to that class level
+			draw method graph in class area
+			add nodes to saved position map and clear
+
 linked source on screen
 	precalculate size of c# code word wrapped with 80 char max
 	when user is zoomed in enough to display the width, display it

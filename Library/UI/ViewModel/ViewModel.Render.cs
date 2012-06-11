@@ -213,7 +213,7 @@ namespace XLibrary
             var map = select ? FilteredNodes : IgnoredNodes;
 
             foreach (var parent in node.GetParents())
-                if (map.ContainsKey(parent.ID))
+                if (map.Contains(parent.ID))
                     return true;
 
             return false;
@@ -255,66 +255,57 @@ namespace XLibrary
 
             var xNode = node.XNode;
 
-            bool pointBorder = area.Width < 3.0f || area.Height < 3.0f;
-
-            // use a circle for external/outside nodes in the call map
-            bool outside = ViewLayout == LayoutType.CallGraph && node.XNode.External;
-            bool needBorder = true;
-
-            Color finalColor = XColors.EmptyColor;
-
-            Action<Color> applyColor = (c) =>
-            {
-                GLUtils.BlendColors(c, ref finalColor);
-                needBorder = false;
-            };
-
-            // blue selection area
-            if (node.Hovered)
+            // set background of node base color
+            Color background = XColors.EmptyColor;
+    
+            // if selcted
+            if (node.Hovered && ViewLayout == LayoutType.TreeMap)
             {
                 if (depth > XColors.OverColors.Length - 1)
                     depth = XColors.OverColors.Length - 1;
 
-                applyColor(XColors.OverColors[depth]);
+                background = XColors.OverColors[depth];
             }
-            else if (ViewLayout == LayoutType.TreeMap ||
-                     CenterMap.Contains(node.ID))
-                applyColor(XColors.EmptyColor);
-            else
-                applyColor(XColors.OutsideColor);
+            else if (ViewLayout != LayoutType.TreeMap && !CenterMap.Contains(node.ID))
+                background = XColors.OutsideColor;
+
+            // if no overlay, draw the border color as the entire node cause its very small
+            bool noBorder = area.Width < 3.0f || area.Height < 3.0f;
+
+            if(noBorder)  
+                background = XColors.ObjColors[(int)node.ObjType];
+
+
+            Color overlay = XColors.EmptyColor;
 
             if (showHit)
             {
                 // check if function is an entry point or holding
                 if (XRay.FlowTracking && xNode.StillInside > 0)
-                    applyColor((xNode.EntryPoint > 0) ? XColors.EntryColor : XColors.HoldingColor);
+                    GLUtils.BlendColors((xNode.EntryPoint > 0) ? XColors.EntryColor : XColors.HoldingColor, ref overlay);
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
-                    applyColor(XColors.ExceptionColors[xNode.ExceptionHit]);
+                    GLUtils.BlendColors(XColors.ExceptionColors[xNode.ExceptionHit], ref overlay);
 
                 else if (xNode.FunctionHit > 0)
                 {
                     if (node.ObjType == XObjType.Field)
                     {
                         if (xNode.LastFieldOp == FieldOp.Set)
-                            applyColor(XColors.FieldSetColors[xNode.FunctionHit]);
+                            GLUtils.BlendColors(XColors.FieldSetColors[xNode.FunctionHit], ref overlay);
                         else
-                            applyColor(XColors.FieldGetColors[xNode.FunctionHit]);
+                            GLUtils.BlendColors(XColors.FieldGetColors[xNode.FunctionHit], ref overlay);
                     }
                     else
-                        applyColor(XColors.HitColors[xNode.FunctionHit]);
+                        GLUtils.BlendColors(XColors.HitColors[xNode.FunctionHit], ref overlay);
                 }
 
                 else if (xNode.ConstructedHit > 0)
-                {
-                    applyColor(XColors.ConstructedColors[xNode.ConstructedHit]);
-                }
+                    GLUtils.BlendColors(XColors.ConstructedColors[xNode.ConstructedHit], ref overlay);
 
                 else if (xNode.DisposeHit > 0)
-                {
-                    applyColor(XColors.DisposedColors[xNode.DisposeHit]);
-                }
+                    GLUtils.BlendColors(XColors.DisposedColors[xNode.DisposeHit], ref overlay);
             }
 
             if (FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -323,45 +314,50 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    applyColor(XColors.InterdependentColor);
+                    GLUtils.BlendColors(XColors.InterdependentColor, ref overlay);
 
                 else if (dependent)
-                    applyColor(XColors.DependentColor);
+                    GLUtils.BlendColors(XColors.DependentColor, ref overlay);
 
                 else if (independent)
-                    applyColor(XColors.IndependentColor);
+                    GLUtils.BlendColors(XColors.IndependentColor, ref overlay);
             }
 
             if (node.SearchMatch && !SearchStrobe)
-                applyColor(XColors.SearchMatchColor);
+                GLUtils.BlendColors(XColors.SearchMatchColor, ref overlay);
+
+            if (FilteredNodes.Contains(node.ID))
+                GLUtils.BlendColors(XColors.FilteredColor, ref overlay);
+            else if (IgnoredNodes.Contains(node.ID))
+                GLUtils.BlendColors(XColors.IgnoredColor, ref overlay);
+
+            // mix background with overlay
+            if (overlay != XColors.EmptyColor)
+                GLUtils.BlendColors(overlay, ref background);
+
+            // use a circle for external/outside nodes in the call map
+            bool outside = (ViewLayout == LayoutType.CallGraph && node.XNode.External);
+
 
             // if just a point, drawing a border messes up pixels
-            if (pointBorder && !DrawSubpixel)
+            if (noBorder && !DrawSubpixel)
             {
-                if (FilteredNodes.ContainsKey(node.ID))
-                    applyColor(XColors.FilteredColor);
-                else if (IgnoredNodes.ContainsKey(node.ID))
-                    applyColor(XColors.IgnoredColor);
-
-                else if (needBorder) // dont draw the point if already lit up
-                    applyColor(XColors.ObjColors[(int)node.ObjType]);
-
-                Renderer.DrawNode(finalColor, area, outside, node, depth);
+                Renderer.DrawNode(background, area, outside, node, depth);
             }
             else
             {
                 Color pen = XColors.ObjColors[(int)node.ObjType];
 
-                if (FilteredNodes.ContainsKey(node.ID))
+                if (FilteredNodes.Contains(node.ID))
                     pen = XColors.FilteredColor;
-                else if (IgnoredNodes.ContainsKey(node.ID))
+                else if (IgnoredNodes.Contains(node.ID))
                     pen = XColors.IgnoredColor;
 
                 int penWidth = 1;
                 if (FocusedNodes.Contains(node))
                     penWidth = 2;
 
-                Renderer.DrawNode(finalColor, area, outside, node, depth);
+                Renderer.DrawNode(background, area, outside, node, depth);        
                 Renderer.DrawNodeOutline(pen, penWidth, area, outside, node, depth);
             }
 

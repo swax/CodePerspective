@@ -72,8 +72,8 @@ namespace XLibrary
         public string SearchString;
         public string LastSearch;
 
-        public Dictionary<int, NodeModel> FilteredNodes = new Dictionary<int, NodeModel>();
-        public Dictionary<int, NodeModel> IgnoredNodes = new Dictionary<int, NodeModel>();
+        public HashSet<int> FilteredNodes = new HashSet<int>();
+        public HashSet<int> IgnoredNodes = new HashSet<int>(); 
 
         // performance
         public int FpsCount;

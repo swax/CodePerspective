@@ -113,6 +113,7 @@ apps
 	test app - 'trystuff' in test app not decompiling, unresolved ref
 	xlibrary - method dependency graph to see if ViewModel can be refactored
 	paint.net photshop.dll recompile/view not working..
+	vsvim - works but rediculously complicated, i think if apps are built with xray from the start they'd look better, idk
 
 instance view
 	click title in instance view - focus on node in under current root, if zoomed into far, zoom out, or make outside visible

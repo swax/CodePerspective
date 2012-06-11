@@ -34,9 +34,11 @@
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ScanButton = new System.Windows.Forms.Button();
-            this.PathLink = new System.Windows.Forms.LinkLabel();
+            this.BrowseLink = new System.Windows.Forms.LinkLabel();
             this.ResultsLabel = new System.Windows.Forms.Label();
             this.ScanCountTimer = new System.Windows.Forms.Timer(this.components);
+            this.PathTextBox = new System.Windows.Forms.TextBox();
+            this.AddToBuildLink = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // FilesList
@@ -80,16 +82,17 @@
             this.ScanButton.UseVisualStyleBackColor = true;
             this.ScanButton.Click += new System.EventHandler(this.ScanButton_Click);
             // 
-            // PathLink
+            // BrowseLink
             // 
-            this.PathLink.AutoSize = true;
-            this.PathLink.Location = new System.Drawing.Point(84, 8);
-            this.PathLink.Name = "PathLink";
-            this.PathLink.Size = new System.Drawing.Size(22, 13);
-            this.PathLink.TabIndex = 2;
-            this.PathLink.TabStop = true;
-            this.PathLink.Text = "C:\\";
-            this.PathLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PathLink_LinkClicked);
+            this.BrowseLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.BrowseLink.AutoSize = true;
+            this.BrowseLink.Location = new System.Drawing.Point(279, 8);
+            this.BrowseLink.Name = "BrowseLink";
+            this.BrowseLink.Size = new System.Drawing.Size(42, 13);
+            this.BrowseLink.TabIndex = 2;
+            this.BrowseLink.TabStop = true;
+            this.BrowseLink.Text = "Browse";
+            this.BrowseLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.PathLink_LinkClicked);
             // 
             // ResultsLabel
             // 
@@ -106,12 +109,36 @@
             this.ScanCountTimer.Interval = 1000;
             this.ScanCountTimer.Tick += new System.EventHandler(this.ScanCountTimer_Tick);
             // 
+            // PathTextBox
+            // 
+            this.PathTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.PathTextBox.Location = new System.Drawing.Point(84, 5);
+            this.PathTextBox.Name = "PathTextBox";
+            this.PathTextBox.Size = new System.Drawing.Size(189, 20);
+            this.PathTextBox.TabIndex = 6;
+            this.PathTextBox.Text = "C:\\";
+            // 
+            // AddToBuildLink
+            // 
+            this.AddToBuildLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.AddToBuildLink.AutoSize = true;
+            this.AddToBuildLink.Location = new System.Drawing.Point(212, 275);
+            this.AddToBuildLink.Name = "AddToBuildLink";
+            this.AddToBuildLink.Size = new System.Drawing.Size(109, 13);
+            this.AddToBuildLink.TabIndex = 7;
+            this.AddToBuildLink.TabStop = true;
+            this.AddToBuildLink.Text = "Add Selected to Build";
+            this.AddToBuildLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.AddToBuildLink_LinkClicked);
+            // 
             // ScannerPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.AddToBuildLink);
+            this.Controls.Add(this.PathTextBox);
             this.Controls.Add(this.ResultsLabel);
-            this.Controls.Add(this.PathLink);
+            this.Controls.Add(this.BrowseLink);
             this.Controls.Add(this.ScanButton);
             this.Controls.Add(this.FilesList);
             this.Name = "ScannerPanel";
@@ -125,11 +152,13 @@
 
         private System.Windows.Forms.ListView FilesList;
         private System.Windows.Forms.Button ScanButton;
-        private System.Windows.Forms.LinkLabel PathLink;
+        private System.Windows.Forms.LinkLabel BrowseLink;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.Label ResultsLabel;
         private System.Windows.Forms.Timer ScanCountTimer;
+        private System.Windows.Forms.TextBox PathTextBox;
+        private System.Windows.Forms.LinkLabel AddToBuildLink;
     }
 }

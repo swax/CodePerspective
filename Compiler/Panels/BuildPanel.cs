@@ -55,17 +55,24 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             if (open.ShowDialog() != DialogResult.OK)
                 return;
 
-            if (SourceDir == null)
-                SourceDir = Path.GetDirectoryName(open.FileName);
+            AddFilesToList(open.FileNames);
+        }
 
-            else if (SourceDir != Path.GetDirectoryName(open.FileName))
+        public void AddFilesToList(string[] paths)
+        {
+            foreach (string path in paths)
             {
-                MessageBox.Show("Files must be from the same directory");
-                return;
-            }
+                if (SourceDir == null)
+                    SourceDir = Path.GetDirectoryName(path);
 
-            foreach (string path in open.FileNames)
+                else if (SourceDir != Path.GetDirectoryName(path))
+                {
+                    MessageBox.Show("Files must be from the same directory");
+                    return;
+                }
+
                 FileList.Items.Add(new XRayedFile(path));
+            }
 
             UpdateOutputPath();
 

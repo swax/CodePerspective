@@ -20,6 +20,7 @@ namespace XBuilder
         int ScanCount;
         StringBuilder ErrorLog = new StringBuilder();
         bool StopThread;
+        MainForm Main;
 
 
         public ScannerPanel()
@@ -31,6 +32,11 @@ namespace XBuilder
             ScanButton.AttachToolTip("Scans selected directory for files that can be xrayed");
         }
 
+        public void Init(MainForm main)
+        {
+            Main = main;
+        }
+
         private void ScanButton_Click(object sender, EventArgs e)
         {
             if (ScanThread != null)
@@ -40,7 +46,7 @@ namespace XBuilder
                 return;
             }
 
-            string path = PathLink.Text;
+            string path = PathTextBox.Text;
 
             var info = new DirectoryInfo(path);
 
@@ -109,7 +115,7 @@ namespace XBuilder
                     FilesList.Items.Add(new ListViewItem(new string[] { 
                         file.Name, 
                         (asmToken.Length > 0) ? "Yes" : "No", 
-                        file.Directory.FullName }));
+                        file.FullName }));
                 }));
             }
             catch (Exception ex)
@@ -123,11 +129,11 @@ namespace XBuilder
             var dialog = new FolderBrowserDialog();
 
             dialog.Description = "Select folder to scan";
-            dialog.SelectedPath = PathLink.Text;
+            dialog.SelectedPath = PathTextBox.Text;
             dialog.ShowNewFolderButton = false;
 
             if (dialog.ShowDialog() == DialogResult.OK)
-                PathLink.Text = dialog.SelectedPath;
+                PathTextBox.Text = dialog.SelectedPath;
         }
 
         private void ScanCountTimer_Tick(object sender, EventArgs e)
@@ -136,6 +142,15 @@ namespace XBuilder
                 ResultsLabel.Text = String.Format("{0} .net assemblies found, {1} scanned", FoundCount, ScanCount);
             else
                 ResultsLabel.Text = "";
+        }
+
+        private void AddToBuildLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var paths = FilesList.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[2].Text).ToArray();
+
+            Main.BuildPanel.AddFilesToList(paths);
+
+            Main.MainTabs.SelectedTab = Main.MainTabs.TabPages[0];
         }
     }
 }

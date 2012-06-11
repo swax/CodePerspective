@@ -28,34 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.MainTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.BuildPanel = new XBuilder.BuildPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.buildPanel1 = new XBuilder.BuildPanel();
             this.monitorPanel1 = new XBuilder.MonitorPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.scannerPanel1 = new XBuilder.ScannerPanel();
-            this.tabControl1.SuspendLayout();
+            this.ScannerPanel = new XBuilder.ScannerPanel();
+            this.MainTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
-            // tabControl1
+            // MainTabs
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(385, 393);
-            this.tabControl1.TabIndex = 0;
+            this.MainTabs.Controls.Add(this.tabPage1);
+            this.MainTabs.Controls.Add(this.tabPage2);
+            this.MainTabs.Controls.Add(this.tabPage3);
+            this.MainTabs.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MainTabs.Location = new System.Drawing.Point(0, 0);
+            this.MainTabs.Name = "MainTabs";
+            this.MainTabs.SelectedIndex = 0;
+            this.MainTabs.Size = new System.Drawing.Size(385, 393);
+            this.MainTabs.TabIndex = 0;
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.buildPanel1);
+            this.tabPage1.Controls.Add(this.BuildPanel);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -63,6 +63,14 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Build";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // BuildPanel
+            // 
+            this.BuildPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.BuildPanel.Location = new System.Drawing.Point(3, 3);
+            this.BuildPanel.Name = "BuildPanel";
+            this.BuildPanel.Size = new System.Drawing.Size(371, 361);
+            this.BuildPanel.TabIndex = 0;
             // 
             // tabPage2
             // 
@@ -75,14 +83,6 @@
             this.tabPage2.Text = "Monitor";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // buildPanel1
-            // 
-            this.buildPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.buildPanel1.Location = new System.Drawing.Point(3, 3);
-            this.buildPanel1.Name = "buildPanel1";
-            this.buildPanel1.Size = new System.Drawing.Size(371, 361);
-            this.buildPanel1.TabIndex = 0;
-            // 
             // monitorPanel1
             // 
             this.monitorPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -93,7 +93,7 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.scannerPanel1);
+            this.tabPage3.Controls.Add(this.ScannerPanel);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
@@ -102,13 +102,13 @@
             this.tabPage3.Text = "Scanner";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // scannerPanel1
+            // ScannerPanel
             // 
-            this.scannerPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.scannerPanel1.Location = new System.Drawing.Point(3, 3);
-            this.scannerPanel1.Name = "scannerPanel1";
-            this.scannerPanel1.Size = new System.Drawing.Size(371, 361);
-            this.scannerPanel1.TabIndex = 0;
+            this.ScannerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ScannerPanel.Location = new System.Drawing.Point(3, 3);
+            this.ScannerPanel.Name = "ScannerPanel";
+            this.ScannerPanel.Size = new System.Drawing.Size(371, 361);
+            this.ScannerPanel.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -116,10 +116,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(385, 393);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.MainTabs);
             this.Name = "MainForm";
             this.Text = "Ghost in the Code";
-            this.tabControl1.ResumeLayout(false);
+            this.MainTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
@@ -129,13 +129,13 @@
 
         #endregion
 
-        private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private BuildPanel buildPanel1;
-        private MonitorPanel monitorPanel1;
         private System.Windows.Forms.TabPage tabPage3;
-        private ScannerPanel scannerPanel1;
+        public BuildPanel BuildPanel;
+        public MonitorPanel monitorPanel1;
+        public ScannerPanel ScannerPanel;
+        public System.Windows.Forms.TabControl MainTabs;
 
 
     }

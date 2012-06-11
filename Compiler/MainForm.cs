@@ -24,6 +24,8 @@ namespace XBuilder
         public MainForm()
         {
             InitializeComponent();
+
+            ScannerPanel.Init(this);
         }
     }
 

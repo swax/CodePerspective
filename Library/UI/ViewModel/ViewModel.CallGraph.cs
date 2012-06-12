@@ -13,7 +13,9 @@ namespace XLibrary
 
         const int MinCallNodeSize = 5;
 
-        public bool ShowMethodsInClassGraph = false;  // still a work in progress
+        public NodeModel GraphContainer;
+
+        public bool ShowMethodsInClassGraph = true;
 
 
         public void DrawCallGraph()
@@ -26,59 +28,9 @@ namespace XLibrary
                 RecalcCover(InternalRoot);
                 RecalcCover(ExternalRoot);
 
-                Graphs.Clear();
-                PositionMap.Clear();
-                CenterMap.Clear();
+                GraphContainer = null;
 
-                // iternate nodes at this zoom level
-                if (GraphMode == CallGraphMode.Intermediates)
-                {
-                    foreach (var n in NodeModels)
-                    {
-                        n.Intermediates = null;
-                        n.DependencyChainIn = null;
-                        n.DependencyChainOut = null;
-                    }
-
-                    foreach (var n in InterDependencies.Values)
-                    {
-                        CenterMap.Add(n.ID);
-                        PositionMap[n.ID] = n;
-
-                        var find = InterDependencies.Keys.ToList();
-                        find.Remove(n.ID);
-
-                        FindChainTo(n, find);
-                        //FindIntermediatesFrom(n); // creates too many interdependent links, gets confusing
-                    }
-
-                    foreach (var n in NodeModels)
-                    {
-                        if (n.DependencyChainIn != null)
-                            n.EdgesIn = n.DependencyChainIn.Keys.ToArray();
-
-                        if (n.DependencyChainOut != null)
-                            n.EdgesOut = n.DependencyChainOut.Keys.ToArray();
-                    }
-                }
-                else
-                {
-                    AddCalledNodes(CurrentRoot, true);
-
-                    if (ShowOutside || CenterMap.Count == 1) // prevent blank screen
-                        AddCalledNodes(InternalRoot, false);
-
-                    if (ShowExternal)
-                        AddCalledNodes(ExternalRoot, false);
-                }
-
-                if (PositionMap.Count > 0)
-                {
-                    BuildGraphs();
-
-                    if (Graphs.Count > 0)
-                        SizeGraphs();
-                }
+                CreateGraphs(CurrentRoot);
 
                 XRay.CallChange = false;
                 XRay.CoverChange = false;
@@ -94,131 +46,237 @@ namespace XLibrary
 
             if (DoResize)
             {
-                ScaleGraph(Renderer);
+                foreach (var graph in Graphs)
+                {
+                    if (graph.ContainerNode == null)
+                        ScaleGraph(graph, new RectangleF(ScreenOffset, ScreenSize));
+                    else
+                        ScaleGraph(graph, graph.ContainerNode.AreaF);
+                }
 
                 DoResize = false;
                 ResizeCount++;
             }
         }
 
-        private void ScaleGraph(IRenderer Renderer)
+        private void CreateGraphs(NodeModel root, int depth=-1)
         {
-            float fullSize = (float)Math.Min(ScreenSize.Width, ScreenSize.Height) / 2;
+            Graphs.Clear();
+            PositionMap.Clear();
+            CenterMap.Clear();
 
-            foreach (var graph in Graphs)
+            // iternate nodes at this zoom level
+            if (GraphMode == CallGraphMode.Intermediates)
             {
-                for (int i = 0; i < graph.Ranks.Length; i++)
+                AddDependencyNodes();
+            }
+            else
+            {
+                AddCalledNodes(root, true, depth);
+
+                if (GraphContainer == null)
                 {
-                    var rank = graph.Ranks[i];
+                    if (ShowOutside || CenterMap.Count == 1) // prevent blank screen
+                        AddCalledNodes(InternalRoot, false);
 
-                    if (DrawCallGraphVertically)
+                    if (ShowExternal)
+                        AddCalledNodes(ExternalRoot, false);
+                }
+            }
+
+            if (PositionMap.Count > 0)
+            {
+                BuildGraphs();
+
+                if (Graphs.Count > 0)
+                    LayoutGraphs();
+            }
+
+            if ((GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
+                ShowMethods && ShowMethodsInClassGraph && 
+                GraphContainer == null)
+            {
+                // save graphs
+                var savedGraphs = Graphs;
+                var savedPositions = PositionMap;
+                var savedCenter = CenterMap;
+
+                Graphs = new List<Graph>();
+                PositionMap = new Dictionary<int, NodeModel>();
+                CenterMap = new HashSet<int>();
+
+                var classNodes = savedPositions.Values.ToArray();
+
+                foreach (var classNode in classNodes)
+                {
+                    GraphContainer = classNode;
+
+                    CreateGraphs(classNode, 1);
+
+                    savedGraphs.AddRange(Graphs);
+                    foreach (var kvp in PositionMap)
                     {
-                        for (int x = 0; x < rank.Column.Count; x++)
-                        {
-                            var node = rank.Column[x];
-
-                            var temp = node.ScaledLocation.X;
-                            node.ScaledLocation.X = node.ScaledLocation.Y;
-                            node.ScaledLocation.Y = temp;
-                        }
+                        if (savedPositions.ContainsKey(kvp.Key))
+                            XRay.LogError(string.Format("savedPositions already contains key for {0} after iterating {1}", kvp.Value.Name, classNode.Name));
+                         
+                        savedPositions[kvp.Key] = kvp.Value;
+                        savedCenter.Add(kvp.Key);
                     }
+                }
 
-                    float right = ScreenOffset.X + ScreenSize.Width;
-                    if (ShowLabels)
-                    {
-                        if (i < graph.Ranks.Length - 1)
-                            right = ScreenOffset.X + ScreenSize.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
-                                    (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
-                    }
+                Graphs = savedGraphs;
+                PositionMap = savedPositions;
+                CenterMap = savedCenter;
+            }
+        }
 
-                    // set node area
+        private void AddDependencyNodes()
+        {
+            foreach (var n in NodeModels)
+            {
+                n.Intermediates = null;
+                n.DependencyChainIn = null;
+                n.DependencyChainOut = null;
+            }
+
+            foreach (var n in InterDependencies.Values)
+            {
+                CenterMap.Add(n.ID);
+                PositionMap[n.ID] = n;
+
+                var find = InterDependencies.Keys.ToList();
+                find.Remove(n.ID);
+
+                FindChainTo(n, find);
+                //FindIntermediatesFrom(n); // creates too many interdependent links, gets confusing
+            }
+
+            foreach (var n in NodeModels)
+            {
+                if (n.DependencyChainIn != null)
+                    n.EdgesIn = n.DependencyChainIn.Keys.ToArray();
+
+                if (n.DependencyChainOut != null)
+                    n.EdgesOut = n.DependencyChainOut.Keys.ToArray();
+            }
+        }
+
+        private void ScaleGraph(Graph graph, RectangleF area)
+        {
+            float fullSize = (float)Math.Min(area.Width, area.Height) / 2;
+
+
+            for (int i = 0; i < graph.Ranks.Length; i++)
+            {
+                var rank = graph.Ranks[i];
+
+                if (DrawCallGraphVertically)
+                {
                     for (int x = 0; x < rank.Column.Count; x++)
                     {
                         var node = rank.Column[x];
 
-                        float size = fullSize * node.ScaledSize;
-
-                        float halfSize = size / 2;
-
-                        if (size < MinCallNodeSize)
-                            size = MinCallNodeSize;
-
-                        node.SetArea(new RectangleF(
-                            ScreenOffset.X + ScreenSize.Width * node.ScaledLocation.X - halfSize,
-                            ScreenOffset.Y + ScreenSize.Height * node.ScaledLocation.Y - halfSize,
-                            size, size));
+                        var temp = node.ScaledLocation.X;
+                        node.ScaledLocation.X = node.ScaledLocation.Y;
+                        node.ScaledLocation.Y = temp;
                     }
+                }
 
-                    if (ShowLabels)
+                float right = area.X + area.Width;
+                if (ShowLabels)
+                {
+                    if (i < graph.Ranks.Length - 1)
+                        right = area.X + area.Width * graph.Ranks[i + 1].Column[0].ScaledLocation.X -
+                                (graph.Ranks[i + 1].Column.Max(c => fullSize * c.ScaledSize) / 2);
+                }
+
+                // set node area
+                for (int x = 0; x < rank.Column.Count; x++)
+                {
+                    var node = rank.Column[x];
+
+                    float size = fullSize * node.ScaledSize;
+
+                    float halfSize = size / 2;
+
+                    if (size < MinCallNodeSize)
+                        size = MinCallNodeSize;
+
+                    node.SetArea(new RectangleF(
+                        area.X + area.Width * node.ScaledLocation.X - halfSize,
+                        area.Y + area.Height * node.ScaledLocation.Y - halfSize,
+                        size, size));
+                }
+
+                if (ShowLabels)
+                {
+                    var rankNodes = rank.Column.Where(n => n.ID != 0).ToArray();
+
+                    for (int x = 0; x < rankNodes.Length; x++)
                     {
-                        var rankNodes = rank.Column.Where(n => n.ID != 0).ToArray();
+                        var node = rankNodes[x];
 
-                        for (int x = 0; x < rankNodes.Length; x++)
+                        // check if enough room in box for label
+                        node.RoomForLabel = false;
+                        node.LabelClipped = false;
+
+
+                        SizeF textSize = Renderer.MeasureString(node.Name, TextFont);
+
+                        //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
+                        float left = node.AreaF.Right;
+                        float top = graph.ScaledOffset;
+
+                        var thisY = rankNodes[x].ScaledLocation.Y;
+
+                        if (x > 0)
                         {
-                            var node = rankNodes[x];
-
-                            // check if enough room in box for label
-                            node.RoomForLabel = false;
-                            node.LabelClipped = false;
-
-
-                            SizeF textSize = Renderer.MeasureString(node.Name, TextFont);
-
-                            //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
-                            float left = node.AreaF.Right;
-                            float top = graph.ScaledOffset;
-
-                            var thisY = rankNodes[x].ScaledLocation.Y;
-
-                            if (x > 0)
-                            {
-                                var aboveY = rankNodes[x - 1].ScaledLocation.Y;
-                                float distance = thisY - aboveY;
-                                top = aboveY + (distance / 2f);
-                            }
-
-                            float bottom = graph.ScaledOffset + graph.ScaledHeight;
-                            if (x < rankNodes.Length - 1)
-                            {
-                                var belowY = rankNodes[x + 1].ScaledLocation.Y;
-                                float distance = belowY - thisY;
-                                bottom = thisY + (distance / 2f);
-                            }
-
-                            float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                            top = ScreenOffset.Y + (node.ScaledLocation.Y - distanceFromCenter) * ScreenSize.Height;
-                            bottom = ScreenOffset.Y + (node.ScaledLocation.Y + distanceFromCenter) * ScreenSize.Height;
-
-
-                            node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
-      
-                            if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
-                            {
-                                node.RoomForLabel = true;
-
-                                if (node.LabelRect.Width < textSize.Width)
-                                    node.LabelClipped = true;
-
-                                node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2f) - (textSize.Height / 2f);
-                                node.LabelRect.Height = textSize.Height;
-                            }
-
-                            /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
-                                label.Width < node.AreaF.Width + LabelPadding * 2)
-                            {
-                                label.X += LabelPadding;
-                                label.Y += LabelPadding;
-
-                                node.RoomForLabel = true;
-                                node.LabelRect = label;
-                            }*/
+                            var aboveY = rankNodes[x - 1].ScaledLocation.Y;
+                            float distance = thisY - aboveY;
+                            top = aboveY + (distance / 2f);
                         }
+
+                        float bottom = graph.ScaledOffset + graph.ScaledHeight;
+                        if (x < rankNodes.Length - 1)
+                        {
+                            var belowY = rankNodes[x + 1].ScaledLocation.Y;
+                            float distance = belowY - thisY;
+                            bottom = thisY + (distance / 2f);
+                        }
+
+                        float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
+                        top = area.Y + (node.ScaledLocation.Y - distanceFromCenter) * area.Height;
+                        bottom = area.Y +  (node.ScaledLocation.Y + distanceFromCenter) * area.Height;
+
+
+                        node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
+
+                        if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
+                        {
+                            node.RoomForLabel = true;
+
+                            if (node.LabelRect.Width < textSize.Width)
+                                node.LabelClipped = true;
+
+                            node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2f) - (textSize.Height / 2f);
+                            node.LabelRect.Height = textSize.Height;
+                        }
+
+                        /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
+                            label.Width < node.AreaF.Width + LabelPadding * 2)
+                        {
+                            label.X += LabelPadding;
+                            label.Y += LabelPadding;
+
+                            node.RoomForLabel = true;
+                            node.LabelRect = label;
+                        }*/
                     }
                 }
             }
         }
 
-        private void SizeGraphs()
+        private void LayoutGraphs()
         {
             Graphs = Graphs.OrderByDescending(g => g.Weight).ToList();
 
@@ -355,7 +413,7 @@ namespace XLibrary
 
                 
                 // remove graphs with 1 element
-                if (graph.Count == 1 && !ShowMethodsInClassGraph)
+                if (graph.Count == 1 && GraphContainer == null)
                 {
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);
@@ -463,7 +521,7 @@ namespace XLibrary
                     }
                 }
 
-                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight });
+                Graphs.Add(new Graph(GraphContainer) { Ranks = ranks, Weight = graphWeight });
 
             } while (PositionMap.Values.Any(n => n.Rank == null));
 
@@ -748,20 +806,7 @@ namespace XLibrary
                     {
                         var target = PositionMap[destId];
 
-                        // if in class call graph mode and this node is a method
-                            // only connect to next method if destination is in the same class
-
-                        if (ShowMethodsInClassGraph &&
-                            (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
-                            node.ObjType != XObjType.Class)
-                        {
-                            if (target.Parent == node.Parent)
-                                LayoutGraph(graph, target, node.Rank.Value + 1, parents.ToList());
-                            else
-                                continue;
-                        }
-                        else
-                            LayoutGraph(graph, target, node.Rank.Value + 1, parents.ToList());//, debugLog);
+                        LayoutGraph(graph, target, node.Rank.Value + 1, parents.ToList());//, debugLog);
                     }
                     //debugLog.Add(string.Format("Return to node {0} rank {1}", ID, Rank));
                 }
@@ -777,7 +822,7 @@ namespace XLibrary
             //debugLog.Add(string.Format("Exited Node ID {0} rank {1}", ID, Rank));
         }
 
-        private void AddCalledNodes(NodeModel node, bool center)
+        private void AddCalledNodes(NodeModel node, bool center, int depth = -1)
         {
             if (!node.Show)
                 return;
@@ -810,27 +855,25 @@ namespace XLibrary
                         node.EdgesOut = xNode.Dependencies;
                 }
             }
-            else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class)
+            else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class && GraphContainer == null)
             {
                 AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
             }
-            else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class) ||
-                     (GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class))
+            else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class && GraphContainer == null) ||
+                     (GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) || 
+                     (GraphContainer != null && node.ObjType != XObjType.Class))
             {
                 AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
             }
 
-            // show methods as a subgraph in the class
-            if ( ShowMethodsInClassGraph &&
-                 (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) && 
-                 (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field) )
-            {
-                AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
-            }
+            if (depth == 0)
+                return;
+           
+            depth--;
 
             foreach (var sub in node.Nodes)
                 if (sub != InternalRoot) // when traversing outside root, dont interate back into center root
-                    AddCalledNodes(sub, center);
+                    AddCalledNodes(sub, center, depth);
         }
 
         private void AddEdges(NodeModel node, bool center, SharedDictionary<FunctionCall> callsIn, SharedDictionary<FunctionCall> callsOut)
@@ -943,13 +986,21 @@ namespace XLibrary
 
     public class Graph
     {
-        internal Rank[] Ranks;
-        internal long Weight;
+        public Rank[] Ranks;
+        public long Weight;
 
-        internal float ScaledHeight;
-        internal float ScaledOffset;
+        public float ScaledHeight;
+        public float ScaledOffset;
 
-        internal IEnumerable<NodeModel> Nodes()
+        public NodeModel ContainerNode;
+
+
+        public Graph(NodeModel container)
+        {
+            ContainerNode = container;
+        }
+
+        public IEnumerable<NodeModel> Nodes()
         {
             foreach (var r in Ranks)
                 foreach (var n in r.Column)

@@ -1,8 +1,13 @@
 ﻿
 draw class graph with methods inside
-	*select class selects all internal methods
-	mouse over on methods working
+	no min scale size
+	when drawing then the mins come in
+
+	set call point to center of node if too small to draw
+
 	*don't draw or iterate on subpixel nodes
+		remove from position/center maps
+
 	*remove min draw size, use similar alg to tree graph sizing
 	*have a 2 pix area inside node when drawing, if not engouh room then don't draw
 	*in deops run to second timer call graph not connected
@@ -18,9 +23,36 @@ draw class graph with methods inside
 	background and outline colors saved in vbo
 	draw overlays dynamically inbetween - overlays blended
 	destroy color not showing for test app in openGL modes
-		
+
 figure out class links passively
 	do on revalue/call change
+
+	each node has an array attached to it of calls out or pointers to calls out
+	a namespace would have a list of calls attached to it, but not in the main call map
+	when drawing the calls for a namespace the max value is taken from the list of calls
+
+	special function call class that contains a list of function calls encapsulated by it
+		countdown value is dervived from contained calls
+
+	steps
+		create map - use class map as a starting point
+		draw graph based on map
+		draw call lines based on graph
+		remove class specific call stuff
+
+
+	on a new call
+		the source and dest are iterated up to a common root
+		iterating down from the common root
+
+
+	if a new call -
+		traverse up tree from source and dest
+		make a store a map with alternate call points
+
+	iterate up node tree from both nodes until common ancestor found
+		traverse back down tree adding call links between each pair of nodes
+
 	see if code can be removed for class tracking
 	see if higher level constructs can be linked together as well passively, like namespaces
 	add a graphing mode where graphs area made between nodes on the same level with sub-graphs inside that
@@ -36,7 +68,7 @@ linked source on screen
 	at end - user should see class graph, zoom into method graph, zoom into code, click on code links and zoom to connected functions
 	field text light up with set/get performed
 	give an occurance ID for functions, so can match up exactly which call from method was used
-	
+
 real source editing
 	given a directory of source files
 	match source functions with methods

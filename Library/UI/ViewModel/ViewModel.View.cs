@@ -118,7 +118,7 @@ namespace XLibrary
             }
             else if (ViewLayout == LayoutType.CallGraph)
             {
-                var hovered = PositionMap.Values.FirstOrDefault(n => n.AreaF.Contains(loc.X, loc.Y) || n.LabelRect.Contains(loc.X, loc.Y));
+                var hovered = PositionMap.Values.LastOrDefault(n => n.AreaF.Contains(loc.X, loc.Y) || n.LabelRect.Contains(loc.X, loc.Y));
                 if (hovered != null)
                     AddNodeToHovered(hovered);
             }

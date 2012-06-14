@@ -1,11 +1,15 @@
 ﻿
 draw class graph with methods inside
-	select class selects all internal methods
-	hide class to class edges
-	figure out triangles - just make inside area smaller i guess
-	select internal methods
-	don't draw or iterate on subpixel nodes
-
+	*select class selects all internal methods
+	mouse over on methods working
+	*don't draw or iterate on subpixel nodes
+	*remove min draw size, use similar alg to tree graph sizing
+	*have a 2 pix area inside node when drawing, if not engouh room then don't draw
+	*in deops run to second timer call graph not connected
+	maybe make another column if not enough room in rank
+	layout subgraphs within parents
+		brings non-xrayed areas under xrayed roots
+		will have to show shading, maybe a ligher gray for external in tree view
 	render view in 1x1 area and scale on draw
 	pan/zoom shouldnt have to call resize
 	apply pan/zoom in renderer can be option that opengl views turn off to do pan/zoom as transformation
@@ -13,77 +17,15 @@ draw class graph with methods inside
 
 	background and outline colors saved in vbo
 	draw overlays dynamically inbetween - overlays blended
-
-	current
-		if(revalue)
-			clear graph, center, position maps
-			AddCalledNodes(root)
-			BuildGraphs()
-			LayoutGraphs()
-
-		if(resize)
-			ScaleGraph() 
-
-	new 
-		if(revalue)
-			CreateGraphs(zoomRoot)
-
-		CreateGraphs(root)
-			clear graph, center, position maps
-			AddCalledNodes(root)
-			BuildGraphs()
-			LayoutGraphs()
-				if graph is sub root and 1 element in graph, still draw it
-
-			if nodes are classes and show methds on then
-				copy position/graphs map referece to new var, and set position map to new ...
-				
-				foreach class node as newRoot in position map
-					CreateGraphs(classRoot)
-					add position/graphs to saved vars
-
-				copy saved vars back to original position/graphs
-
-		if(resize)
-			ScaleGraph()
-				if(parent set to something)
-					add offset of parent to graph
-					may need to mod if area is inside a triangle
-
 	destroy color not showing for test app in openGL modes
-
-	draw current root
-		if graph is of classes
-			save position map of class graph
-			save graph map
-			foreach node in saved class position map
-				clear position map
-				clear graph map
-				set graph.parent to parent class node
-				set root to method
-				draw root graph
-				save positions/graphs
-
-	draw graphs
-		draw internal method graph if there's room or subpixel off
-		offset graph by parent property
-
-
-	draw class graph
-		save position map / clear it
-		foreach node in saved postion map
-			set a virtual zoom to to that class level
-			draw method graph in class area
-			add nodes to saved position map and clear
-			determine if subpixel and should draw
-		add parent property to graph type
-			when drawing graphs use size of parent, if parent null use screen size
 		
 figure out class links passively
+	do on revalue/call change
 	see if code can be removed for class tracking
 	see if higher level constructs can be linked together as well passively, like namespaces
 	add a graphing mode where graphs area made between nodes on the same level with sub-graphs inside that
 	mode to put sub-classes inside parent class nodes
+	re-run xray on vsVim and see if it's a lot more understandable with the each component in a graph
 
 linked source on screen
 	precalculate size of c# code word wrapped with 80 char max
@@ -133,7 +75,6 @@ class graph
 	**see if class graph can be derived from functions on draw, and we can remove class tracking from xlibrary
 	**call lines going backwards, not looking too good in gl
 	double click zoomed in class node, show method graph, save view mode in history
-	method graph in each class graph node
 
 treemap view
 	Put sub-classses inside parent classes so functions/methods are adacent?

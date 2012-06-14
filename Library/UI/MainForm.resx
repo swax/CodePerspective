@@ -159,16 +159,18 @@
   <data name="ThreadButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAIISURBVDhPpZP7S1NxGMbPPxKaXVUkMEq8IpKUCoY/hGgI
-        ymqkDYYXcCjDZOANURSjCNGFQUTsl4GXVMxKk62YU4fXQpaIlygHQxBRH8/zwvyaIAYe+HLgnPN8nue9
-        HA3nvDTq63oW/jm13XOwvPTB3DYFY5MH+bXfcN8ygfTSMSSXfESicQDxBqdYHwH29g9w2tnZ3UcguIvN
-        rR3417exuBJE5N1n/wfwLgXEOc38Bc6xNRHb+/y4nm49G0Bnit2zf9H6bkliE/jKuYxrd6oVgDWfjB+K
-        TWeKMyrGEVfowITvD9re/9ABVQrAhh0HHK+ZselMMaN/mvwtDb+aVqkA7HYIwIj3ysfluPTorJnP6Ezx
-        oHsD1s5ZXEktUwCOioB5f1CEPR9+wTG6iuiserTo8dkwng7HT/R+XUPF8xlcTjErAOdMcW6NW8STiwG8
-        7vej8oUPN/PsEv3t8Ao0TZP3T1u8uJRkUgAuSYHtO97oLxmXd5t9Ho8aPTK+GzntqNfrLm2fFoihwYOI
-        xGIF4KjoGBLzY1OrF9k6OOFxnwDC4wxIMX1G0pMhgVyMNyoA13PAtS7OrJk1PrC69LUdQWxuF6IybHrX
-        LRI7JrtZdoDAo1XmbjMyD+tjSXxGcXRmnYg5ttD9QuxDhN0uUgDOmbvNTpPOJaGAo2K36cyaGZvOFIfd
-        KlSA8/zRh9ABIDUG+1JpAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJzSURBVDhPrZLbS9NhAIb9H7oKusoOFAYdyPLCiAhUTFPQ
+        DhZKWqAQjUBBgsCKkiChxLDQSjqYYcrUmJpm0825uTlTUZd5qKmbm+fj5k5P32+JXvyiq77753nf7/2+
+        kJD/dVoNFpq1/ajUvdQ2d1PVYKLik4G3Sh1lHzWUflDzvLyFotdNPH7VgCxXgv91/IEAfn8Ary9AzoMX
+        coGU/LcjOCTYJ0CPN8D84iqKvGK5oKbJvMlH5kwSrhjjUGY/B9I72XfpC3uTlLjWAzhnlsi6VSgXVKmM
+        WwWkVD/4NiqvewK43H5WXH4m7HOkZxfIBRV1+qBAqvynwSgHNxrsTxENkpUsrvoYtTq5fCNfLnhT3S5g
+        MZS4q1fcNZi67mdVpC4LcGHFx9ySF8uIjfNZd+WCl5VtwYXXBezegKdN37AkJ9AfF0Xf6RNMdJjpGRwn
+        4eptuaDkvToIuzwi1e3DKeDvF5OwGczMLHoZ15npPnYYQ3U9Z9JytwSarlFi8hyczLVz/OYvTAMOltd8
+        DKVewKY3M73gYWrOg23Ww4imC1PYHtLir2DVatFt30ZI3D0nkqSwrBFjv1MMN4C+z8GsSHXOe5kSoLrL
+        zs7oIn5OuVG/q8EQuiMIS5LNH1lQqgoO1dHrICy1HU33FLYZD1+NdkJjivlsmGR4wkV9ay+RidflGzx8
+        VsesWNkpKrd128Wz1bL7bDm7Ykto1E8yJGCLdQ3pw0XEZ8kF958qccyLe45PMzhsF2tb6ewZQ2v8QYtu
+        kAZ1HzXNZipVnRyNvSYX3HlSRUbOIy4r8jkn3jlRPJW0dlRKNqeSFcHaEXGZhAv4SHTGpuA3C8ZcFpfr
+        GO8AAAAASUVORK5CYII=
 </value>
   </data>
 </root>

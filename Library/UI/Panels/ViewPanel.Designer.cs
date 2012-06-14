@@ -206,9 +206,9 @@
             this.IncludeOutsideZoomButton.AutoSize = true;
             this.IncludeOutsideZoomButton.Location = new System.Drawing.Point(3, 3);
             this.IncludeOutsideZoomButton.Name = "IncludeOutsideZoomButton";
-            this.IncludeOutsideZoomButton.Size = new System.Drawing.Size(88, 17);
+            this.IncludeOutsideZoomButton.Size = new System.Drawing.Size(92, 17);
             this.IncludeOutsideZoomButton.TabIndex = 10;
-            this.IncludeOutsideZoomButton.Text = "Outside View";
+            this.IncludeOutsideZoomButton.Text = "Outside Zoom";
             this.IncludeOutsideZoomButton.UseVisualStyleBackColor = true;
             this.IncludeOutsideZoomButton.CheckedChanged += new System.EventHandler(this.IncludeOutsideZoomButton_CheckedChanged);
             // 
@@ -679,7 +679,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(612, 237);
+            this.Size = new System.Drawing.Size(595, 220);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);

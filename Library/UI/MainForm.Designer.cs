@@ -43,6 +43,7 @@
             this.SearchToolButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.ClearSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SubsSearchMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ThreadButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.TabPanel = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DisplayTab = new XLibrary.Panels.ViewPanel();
@@ -52,7 +53,6 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
-            this.ThreadButton = new System.Windows.Forms.ToolStripDropDownButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -185,6 +185,17 @@
             this.SubsSearchMenuItem.Text = "Highlight Subs";
             this.SubsSearchMenuItem.CheckedChanged += new System.EventHandler(this.SubsSearchMenuItem_CheckedChanged);
             // 
+            // ThreadButton
+            // 
+            this.ThreadButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.ThreadButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ThreadButton.Image = ((System.Drawing.Image)(resources.GetObject("ThreadButton.Image")));
+            this.ThreadButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ThreadButton.Name = "ThreadButton";
+            this.ThreadButton.Size = new System.Drawing.Size(29, 22);
+            this.ThreadButton.Text = "toolStripSplitButton1";
+            this.ThreadButton.DropDownOpening += new System.EventHandler(this.ThreadButton_DropDownOpening);
+            // 
             // TabPanel
             // 
             this.TabPanel.Controls.Add(this.tabPage1);
@@ -272,17 +283,6 @@
             this.ConsoleTab.Name = "ConsoleTab";
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
-            // 
-            // ThreadButton
-            // 
-            this.ThreadButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.ThreadButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.ThreadButton.Image = ((System.Drawing.Image)(resources.GetObject("ThreadButton.Image")));
-            this.ThreadButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.ThreadButton.Name = "ThreadButton";
-            this.ThreadButton.Size = new System.Drawing.Size(29, 22);
-            this.ThreadButton.Text = "toolStripSplitButton1";
-            this.ThreadButton.DropDownOpening += new System.EventHandler(this.ThreadButton_DropDownOpening);
             // 
             // MainForm
             // 

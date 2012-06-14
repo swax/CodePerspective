@@ -21,6 +21,8 @@ namespace XLibrary.Panels
 
         IColorProfile ColorProfile = new BrightColorProfile();
 
+        Dictionary<int, CodeRow> InstructionMap = new Dictionary<int, CodeRow>();
+
 
         public CodePanel()
         {
@@ -88,6 +90,7 @@ namespace XLibrary.Panels
         {
             MsilView.BeginUpdate();
 
+            InstructionMap.Clear();
             MsilView.Items.Clear();
 
             if (SelectedNode == null || SelectedNode.MsilPos == 0)
@@ -123,6 +126,8 @@ namespace XLibrary.Panels
 
                 var row = new CodeRow(inst, line);
                 MsilView.Items.Add(row);
+
+                InstructionMap[inst.Offset] = row;
             }
 
             MsilView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
@@ -328,9 +333,25 @@ namespace XLibrary.Panels
             if (item.Inst.RefId == 0)
                 return;
 
-            var refNode = Model.NodeModels[item.Inst.RefId];
+            // if a goto instruction scroll down and select that
+            if (item.Inst.Line.StartsWith("goto "))
+            {
+                item.Selected = false;
 
-            Main.NavigatePanelTo(refNode);
+                if (InstructionMap.ContainsKey(item.Inst.RefId))
+                {
+                    var target = InstructionMap[item.Inst.RefId];
+                    target.Selected = true;
+                    MsilView.EnsureVisible(target.Index);
+                }
+            }
+            // else this is an instruction to another method, select thats
+            else
+            {
+                var refNode = Model.NodeModels[item.Inst.RefId];
+
+                Main.NavigatePanelTo(refNode);
+            }
         }
     }
 

@@ -15,8 +15,6 @@ namespace XLibrary
 
         public NodeModel GraphContainer;
 
-        public bool ShowMethodsInClassGraph = true;
-
 
         public void DrawCallGraph()
         {
@@ -50,6 +48,14 @@ namespace XLibrary
                 {
                     if (graph.ContainerNode == null)
                         ScaleGraph(graph, new RectangleF(ScreenOffset, ScreenSize));
+
+                    else if (graph.ContainerNode.XNode.External)
+                    {
+                        // this is assuming the external node is a triangle
+                        var area = graph.ContainerNode.AreaF;
+                        var inside = new RectangleF(area.X + area.Width / 4f, area.Y + area.Height / 2f, area.Width / 2f, area.Height / 2f);
+                        ScaleGraph(graph, inside);
+                    }
                     else
                         ScaleGraph(graph, graph.ContainerNode.AreaF);
                 }
@@ -93,7 +99,7 @@ namespace XLibrary
             }
 
             if ((GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
-                ShowMethods && ShowMethodsInClassGraph && 
+                ShowMethods && 
                 GraphContainer == null)
             {
                 // save graphs
@@ -165,7 +171,6 @@ namespace XLibrary
         {
             float fullSize = (float)Math.Min(area.Width, area.Height) / 2;
 
-
             for (int i = 0; i < graph.Ranks.Length; i++)
             {
                 var rank = graph.Ranks[i];
@@ -209,70 +214,93 @@ namespace XLibrary
                 }
 
                 if (ShowLabels)
+                    SetLabelArea(graph, area, rank, right);
+            }
+        }
+
+        private void SetLabelArea(Graph graph, RectangleF area, Rank rank, float right)
+        {
+            var rankNodes = rank.Column.Where(n => n.ID != 0).ToArray();
+
+            for (int x = 0; x < rankNodes.Length; x++)
+            {
+                var node = rankNodes[x];
+
+                // check if enough room in box for label
+                node.RoomForLabel = false;
+                node.LabelClipped = false;
+
+                SizeF textSize = Renderer.MeasureString(node.Name, TextFont);
+
+                // first see if label fits above node, we prefer this because it looks better when zoomed in
+                float left = node.AreaF.Left;
+                float top = area.Y + area.Height * graph.ScaledOffset;
+                bool topFit = true;
+
+                if (x > 0)
+                    top = rankNodes[x - 1].AreaF.Bottom;
+
+                float bottom = node.AreaF.Top;
+
+                node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
+
+                // if label doesnt fit above, put it to the right of the node
+                if (textSize.Height > node.LabelRect.Height)
                 {
-                    var rankNodes = rank.Column.Where(n => n.ID != 0).ToArray();
+                    //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
+                    topFit = false;
 
-                    for (int x = 0; x < rankNodes.Length; x++)
+                    left = node.AreaF.Right;
+                    top = graph.ScaledOffset;
+
+                    var thisY = rankNodes[x].ScaledLocation.Y;
+
+                    if (x > 0)
                     {
-                        var node = rankNodes[x];
-
-                        // check if enough room in box for label
-                        node.RoomForLabel = false;
-                        node.LabelClipped = false;
-
-
-                        SizeF textSize = Renderer.MeasureString(node.Name, TextFont);
-
-                        //area from middle of node to edges of midpoint between adjacent nodes, and length to next rank - max node's width /2
-                        float left = node.AreaF.Right;
-                        float top = graph.ScaledOffset;
-
-                        var thisY = rankNodes[x].ScaledLocation.Y;
-
-                        if (x > 0)
-                        {
-                            var aboveY = rankNodes[x - 1].ScaledLocation.Y;
-                            float distance = thisY - aboveY;
-                            top = aboveY + (distance / 2f);
-                        }
-
-                        float bottom = graph.ScaledOffset + graph.ScaledHeight;
-                        if (x < rankNodes.Length - 1)
-                        {
-                            var belowY = rankNodes[x + 1].ScaledLocation.Y;
-                            float distance = belowY - thisY;
-                            bottom = thisY + (distance / 2f);
-                        }
-
-                        float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
-                        top = area.Y + (node.ScaledLocation.Y - distanceFromCenter) * area.Height;
-                        bottom = area.Y +  (node.ScaledLocation.Y + distanceFromCenter) * area.Height;
-
-
-                        node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
-
-                        if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
-                        {
-                            node.RoomForLabel = true;
-
-                            if (node.LabelRect.Width < textSize.Width)
-                                node.LabelClipped = true;
-
-                            node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2f) - (textSize.Height / 2f);
-                            node.LabelRect.Height = textSize.Height;
-                        }
-
-                        /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
-                            label.Width < node.AreaF.Width + LabelPadding * 2)
-                        {
-                            label.X += LabelPadding;
-                            label.Y += LabelPadding;
-
-                            node.RoomForLabel = true;
-                            node.LabelRect = label;
-                        }*/
+                        float aboveY = rankNodes[x - 1].ScaledLocation.Y;
+                        float distance = thisY - aboveY;
+                        top = aboveY + (distance / 2f);
                     }
+
+                    bottom = graph.ScaledOffset + graph.ScaledHeight;
+                    if (x < rankNodes.Length - 1)
+                    {
+                        float belowY = rankNodes[x + 1].ScaledLocation.Y;
+                        float distance = belowY - thisY;
+                        bottom = thisY + (distance / 2f);
+                    }
+
+                    float distanceFromCenter = Math.Min(node.ScaledLocation.Y - top, bottom - node.ScaledLocation.Y);
+                    top = area.Y + (node.ScaledLocation.Y - distanceFromCenter) * area.Height;
+                    bottom = area.Y + (node.ScaledLocation.Y + distanceFromCenter) * area.Height;
+
+                    node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
                 }
+
+                if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
+                {
+                    node.RoomForLabel = true;
+
+                    if (node.LabelRect.Width < textSize.Width)
+                        node.LabelClipped = true;
+
+                    if (topFit)
+                        node.LabelRect.Y = node.LabelRect.Bottom - textSize.Height;
+                    else
+                        node.LabelRect.Y = (node.LabelRect.Y + node.LabelRect.Height / 2f) - (textSize.Height / 2f);
+
+                    node.LabelRect.Height = textSize.Height;
+                }
+
+                /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
+                    label.Width < node.AreaF.Width + LabelPadding * 2)
+                {
+                    label.X += LabelPadding;
+                    label.Y += LabelPadding;
+
+                    node.RoomForLabel = true;
+                    node.LabelRect = label;
+                }*/
             }
         }
 
@@ -413,7 +441,7 @@ namespace XLibrary
 
                 
                 // remove graphs with 1 element
-                if (graph.Count == 1 && GraphContainer == null)
+                if (graph.Count == 1 && !ShowMethods)
                 {
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);

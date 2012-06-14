@@ -133,6 +133,9 @@ namespace XLibrary
                     if (ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class)
                         continue;
 
+                    if (ViewLayout == LayoutType.CallGraph && source.ObjType == XObjType.Class && ShowMethods)
+                        continue;
+
                     foreach (var call in source.XNode.CallsOut)
                     {
                         if (!PositionMap.ContainsKey(call.Destination))

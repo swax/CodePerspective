@@ -60,7 +60,8 @@ namespace XLibrary
                 DrawCallGraph();
 
                 // id 0 nodes are intermediates
-                foreach (var node in Graphs.SelectMany(g => g.Nodes()).Where(n => n.ID != 0))
+                foreach(var node in PositionMap.Values)
+                //foreach (var node in Graphs.SelectMany(g => g.Nodes()).Where(n => n.ID != 0))
                     DrawNode(node, 0, false);
             }
 

@@ -125,11 +125,17 @@ namespace XLibrary
 
         internal HashSet<int> ThreadIDs;
 
+        // either method to method, or class to class calls
         internal SharedDictionary<FunctionCall> CalledIn;
         internal SharedDictionary<FunctionCall> CallsOut;
 
+        // class initializing another class
         internal SharedDictionary<FunctionCall> InitsOf;
         internal SharedDictionary<FunctionCall> InitsBy;
+
+        // layer graph, graph for each depth from root
+        internal HashSet<int> LayerIn;
+        internal HashSet<int> LayerOut;
 
         internal FieldOp LastFieldOp;
 
@@ -300,6 +306,28 @@ namespace XLibrary
 
             if (DisposeHit > 0)
                 DisposeHit--;
+        }
+
+        XNodeIn[] ParentChain;
+
+        internal XNodeIn[] GetParentChain()
+        {
+            if (ParentChain != null)
+                return ParentChain;
+
+            var chain = new List<XNodeIn>();
+
+            var next = this;
+            chain.Add(next);
+
+            while (next.Parent != null)
+            {
+                next = next.Parent as XNodeIn;
+                chain.Add(next);
+            }
+
+            ParentChain = chain.ToArray();
+            return ParentChain;
         }
     }
 

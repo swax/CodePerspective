@@ -52,8 +52,6 @@ namespace XLibrary
 
         internal static bool ThreadlineEnabled = true;
 
-        internal static bool TrackCallGraph = true; // turning this off would save mem/cpu - todo test impact
-
         internal static string DatPath;
         //internal static bool CallLogging;
         internal static HashSet<int> ErrorDupes = new HashSet<int>();
@@ -411,24 +409,7 @@ namespace XLibrary
 
             FunctionCall call;
             if (!CallMap.TryGetValue(hash, out call))
-            {
-                call = new FunctionCall() { Source = source, Destination = nodeID };
-                CallMap.Add(hash, call);
-
-                // add link to node that its been called
-                if (TrackCallGraph)
-                {
-                    node.AddFunctionCall(ref node.CalledIn, source, call);
-
-                    var srcNode = Nodes[source];
-                    if (srcNode == null)
-                        return;
-
-                    srcNode.AddFunctionCall(ref srcNode.CallsOut, nodeID, call);
-                }
-
-                CallChange = true;
-            }
+                call = CreateNewCall(hash, source, node);
 
             if (source != call.Source || nodeID != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
@@ -444,7 +425,59 @@ namespace XLibrary
             flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
-                TrackClassCall(nodeID, node, source, thread);
+                TrackClassCall(node, source, thread);
+        }
+
+        public static FunctionCall CreateNewCall(int hash, int sourceID, XNodeIn dest)
+        {
+            var call = new FunctionCall() { Source = sourceID, Destination = dest.ID };
+            CallMap.Add(hash, call);
+
+            // add link to node that its been called
+            dest.AddFunctionCall(ref dest.CalledIn, sourceID, call);
+
+            var source = Nodes[sourceID];
+            source.AddFunctionCall(ref source.CallsOut, dest.ID, call);
+
+            //***** new location of create of class to class add function call
+
+            CreateLayerCall(source, dest);
+
+
+            CallChange = true;
+
+            return call;
+        }
+
+        private static void CreateLayerCall(XNodeIn source, XNodeIn dest)
+        {
+            var sourceChain = source.GetParentChain();
+            var destChain = dest.GetParentChain();
+
+            for (int i = 0; i < sourceChain.Length; i++)
+                for (int x = 0; x < destChain.Length; x++)
+                    if (sourceChain[i] == destChain[x])
+                    {
+                        if (i == 0 || x == 0)
+                        {
+                            LogError(string.Format("Error trying to find common link between {0} and {1}, common had 0 index", sourceChain[i].Name, destChain[x].Name));
+                            return;
+                        }
+
+                        var sourceLayer = sourceChain[i - 1];
+                        var destLayer = destChain[x - 1];
+
+                        if (sourceLayer.LayerOut == null)
+                            sourceLayer.LayerOut = new HashSet<int>();
+
+                        if (destLayer.LayerIn == null)
+                            destLayer.LayerIn = new HashSet<int>();
+
+                        sourceLayer.LayerOut.Add(dest.ID);
+                        destLayer.LayerIn.Add(source.ID);
+
+                        return;
+                    }
         }
 
         public static XNode GetContainingClass(XNode node)
@@ -460,7 +493,7 @@ namespace XLibrary
             return null;
         }
 
-        public static void TrackClassCall(int nodeID, XNodeIn node, int source, int thread)
+        public static void TrackClassCall(XNodeIn node, int source, int thread)
         {
             var srcNode = Nodes[source];
             if (srcNode == null)

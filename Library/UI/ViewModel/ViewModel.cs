@@ -11,7 +11,7 @@ namespace XLibrary
 
     public enum LayoutType { TreeMap, CallGraph, Timeline }
     public enum TreeMapMode { Normal, Dependencies }
-    public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init }
+    public enum CallGraphMode { Method, Class, Dependencies, Intermediates, Init, Layers }
 
 
     public partial class ViewModel

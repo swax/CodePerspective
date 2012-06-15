@@ -72,6 +72,10 @@ namespace XLibrary
             return nameT;
         }
 
+        public static void RecurseTree<T>(T root, Action<T> evaluate, Func<T, IEnumerable<T>> recurse)
+        {
+            RecurseTree(new T[] { root }, evaluate, recurse);
+        }
 
         public static void RecurseTree<T>(IEnumerable<T> tree, Action<T> evaluate, Func<T, IEnumerable<T>> recurse)
         {

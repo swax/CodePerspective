@@ -473,8 +473,8 @@ namespace XLibrary
                         if (destLayer.LayerIn == null)
                             destLayer.LayerIn = new HashSet<int>();
 
-                        sourceLayer.LayerOut.Add(dest.ID);
-                        destLayer.LayerIn.Add(source.ID);
+                        sourceLayer.LayerOut.Add(destLayer.ID);
+                        destLayer.LayerIn.Add(sourceLayer.ID);
 
                         return;
                     }

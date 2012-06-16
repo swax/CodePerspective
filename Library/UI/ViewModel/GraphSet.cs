@@ -66,20 +66,16 @@ namespace XLibrary
 
             if (GraphMode == CallGraphMode.Layers)
             {
-                // save links
-
                 foreach (var child in root.Nodes)
                 {
-                    //GraphContainer = child;
-                    //CreateGraphs(child);
+                    var set = new GraphSet(Model, child, child);
+                    Subsets.Add(set);
                 }
-
-                // set links
             }
 
-            if ((GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
-                Model.ShowMethods &&
-                GraphContainer == null)
+            else if ((GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
+                     Model.ShowMethods &&
+                     GraphContainer == null)
             {
                 var classNodes = PositionMap.Values.ToArray();
 
@@ -124,6 +120,19 @@ namespace XLibrary
                         node.EdgesOut = xNode.Dependencies;
                 }
             }
+            else if (GraphMode == CallGraphMode.Layers)
+            {
+                if (center)
+                    CenterMap.Add(node.ID);
+
+                PositionMap[node.ID] = node;
+
+                if (xNode.LayerIn != null)
+                    node.EdgesIn = xNode.LayerIn.ToArray();
+
+                if (xNode.LayerOut != null)
+                    node.EdgesOut = xNode.LayerOut.ToArray();
+            }
             else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class && GraphContainer == null)
             {
                 AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
@@ -134,17 +143,6 @@ namespace XLibrary
             {
                 AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
             }
-            else if (GraphMode == CallGraphMode.Layers)
-            {
-                if (center)
-                    CenterMap.Add(node.ID);
-
-                PositionMap[node.ID] = node;
-
-                node.EdgesIn = xNode.LayerIn.ToArray();
-                node.EdgesOut = xNode.LayerOut.ToArray();
-            }
-
 
             if (depth == 0)
                 return;
@@ -317,7 +315,7 @@ namespace XLibrary
 
 
                 // remove graphs with 1 element
-                if (graph.Count == 1 && !Model.ShowMethods)
+                if (graph.Count == 1 && !Model.ShowMethods && GraphMode != CallGraphMode.Layers)
                 {
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);
@@ -425,7 +423,7 @@ namespace XLibrary
                     }
                 }
 
-                Graphs.Add(new Graph(GraphContainer) { Ranks = ranks, Weight = graphWeight });
+                Graphs.Add(new Graph() { Ranks = ranks, Weight = graphWeight });
 
             } while (PositionMap.Values.Any(n => n.Rank == null));
 
@@ -848,13 +846,6 @@ namespace XLibrary
         public float ScaledHeight;
         public float ScaledOffset;
 
-        public NodeModel ContainerNode;
-
-
-        public Graph(NodeModel container)
-        {
-            ContainerNode = container;
-        }
 
         public IEnumerable<NodeModel> Nodes()
         {

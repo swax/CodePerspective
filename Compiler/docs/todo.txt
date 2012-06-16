@@ -1,31 +1,12 @@
-﻿
+﻿breadcrumbs drop down not cleared when re-opened
+
 layer graph
-	create some code so graph/position/center vars dont get set till end of op
-	carry over to class code as well
-	have few places in callgraph file that use graph/position/center maps
-
-	find common parent between
-		create a virtual function call between the 2 subs
-
-	special function call class that contains a list of function calls encapsulated by it
-		countdown value is dervived from contained calls
+	expand nodes till they near fill available area
 	re-run xray on vsVim and see if it's a lot more understandable with the each component in a graph
+	turn inits by/of into int[] type like dependencies
 
-how to remove class call graph
-	might now want to do this because every class call draw is going to have to iterate all method calls
-	when a new functionCall is created
-		find parent classes of source and dest
-			create a new 'virtual function call between source and dest'
-				add newly created method function call to list
-	layout of class graph is still the same
-		hit/thread values of virtual function call is derived from a list of associated method calls
+	function to minimize node distance in graph?
 
-turn inits by/of into int[] type like dependencies
-
-function to minimize node distance in graph?
-
-draw class graph with methods inside
-	
 	don't draw node if smaller than point
 		use same draw code as tree map?
     no matter what the size

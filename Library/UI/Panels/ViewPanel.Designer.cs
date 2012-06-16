@@ -49,7 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.TimelineButton = new System.Windows.Forms.RadioButton();
+            this.LayoutTimelineButton = new System.Windows.Forms.RadioButton();
             this.LayoutInitGraphButton = new System.Windows.Forms.RadioButton();
             this.ShowAllDependenciesCheckBox = new System.Windows.Forms.CheckBox();
             this.GraphIntermediateDependencies = new System.Windows.Forms.RadioButton();
@@ -78,6 +78,7 @@
             this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
             this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
             this.label7 = new System.Windows.Forms.Label();
+            this.LayoutLayerGraphButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -102,10 +103,10 @@
             this.LayoutTreeMapButton.AutoSize = true;
             this.LayoutTreeMapButton.Location = new System.Drawing.Point(3, 3);
             this.LayoutTreeMapButton.Name = "LayoutTreeMapButton";
-            this.LayoutTreeMapButton.Size = new System.Drawing.Size(85, 17);
+            this.LayoutTreeMapButton.Size = new System.Drawing.Size(71, 17);
             this.LayoutTreeMapButton.TabIndex = 1;
             this.LayoutTreeMapButton.TabStop = true;
-            this.LayoutTreeMapButton.Text = "Method Map";
+            this.LayoutTreeMapButton.Text = "Tree Map";
             this.LayoutTreeMapButton.UseVisualStyleBackColor = true;
             this.LayoutTreeMapButton.CheckedChanged += new System.EventHandler(this.LayoutTreeMapButton_CheckedChanged);
             // 
@@ -114,10 +115,10 @@
             this.LayoutCallGraphButton.AutoSize = true;
             this.LayoutCallGraphButton.Location = new System.Drawing.Point(3, 26);
             this.LayoutCallGraphButton.Name = "LayoutCallGraphButton";
-            this.LayoutCallGraphButton.Size = new System.Drawing.Size(86, 17);
+            this.LayoutCallGraphButton.Size = new System.Drawing.Size(93, 17);
             this.LayoutCallGraphButton.TabIndex = 2;
             this.LayoutCallGraphButton.TabStop = true;
-            this.LayoutCallGraphButton.Text = "Method Calls";
+            this.LayoutCallGraphButton.Text = "Method Graph";
             this.LayoutCallGraphButton.UseVisualStyleBackColor = true;
             this.LayoutCallGraphButton.CheckedChanged += new System.EventHandler(this.LayoutCallGraphButton_CheckedChanged);
             // 
@@ -149,7 +150,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(497, 1);
+            this.label2.Location = new System.Drawing.Point(597, 1);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(48, 13);
             this.label2.TabIndex = 3;
@@ -195,7 +196,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(390, 0);
+            this.label3.Location = new System.Drawing.Point(490, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(49, 13);
             this.label3.TabIndex = 9;
@@ -263,7 +264,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(202, 0);
+            this.label4.Location = new System.Drawing.Point(302, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(58, 13);
             this.label4.TabIndex = 12;
@@ -307,7 +308,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(302, 0);
+            this.label5.Location = new System.Drawing.Point(402, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(34, 13);
             this.label5.TabIndex = 18;
@@ -315,7 +316,8 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.TimelineButton);
+            this.panel1.Controls.Add(this.LayoutLayerGraphButton);
+            this.panel1.Controls.Add(this.LayoutTimelineButton);
             this.panel1.Controls.Add(this.LayoutInitGraphButton);
             this.panel1.Controls.Add(this.ShowAllDependenciesCheckBox);
             this.panel1.Controls.Add(this.GraphIntermediateDependencies);
@@ -326,37 +328,37 @@
             this.panel1.Controls.Add(this.LayoutCallGraphButton);
             this.panel1.Location = new System.Drawing.Point(6, 17);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(114, 235);
+            this.panel1.Size = new System.Drawing.Size(211, 151);
             this.panel1.TabIndex = 21;
             // 
-            // TimelineButton
+            // LayoutTimelineButton
             // 
-            this.TimelineButton.AutoSize = true;
-            this.TimelineButton.Location = new System.Drawing.Point(3, 95);
-            this.TimelineButton.Name = "TimelineButton";
-            this.TimelineButton.Size = new System.Drawing.Size(80, 17);
-            this.TimelineButton.TabIndex = 34;
-            this.TimelineButton.TabStop = true;
-            this.TimelineButton.Text = "Threadlines";
-            this.TimelineButton.UseVisualStyleBackColor = true;
-            this.TimelineButton.CheckedChanged += new System.EventHandler(this.TimelineButton_CheckedChanged);
+            this.LayoutTimelineButton.AutoSize = true;
+            this.LayoutTimelineButton.Location = new System.Drawing.Point(3, 95);
+            this.LayoutTimelineButton.Name = "LayoutTimelineButton";
+            this.LayoutTimelineButton.Size = new System.Drawing.Size(80, 17);
+            this.LayoutTimelineButton.TabIndex = 34;
+            this.LayoutTimelineButton.TabStop = true;
+            this.LayoutTimelineButton.Text = "Threadlines";
+            this.LayoutTimelineButton.UseVisualStyleBackColor = true;
+            this.LayoutTimelineButton.CheckedChanged += new System.EventHandler(this.TimelineButton_CheckedChanged);
             // 
             // LayoutInitGraphButton
             // 
             this.LayoutInitGraphButton.AutoSize = true;
             this.LayoutInitGraphButton.Location = new System.Drawing.Point(3, 72);
             this.LayoutInitGraphButton.Name = "LayoutInitGraphButton";
-            this.LayoutInitGraphButton.Size = new System.Drawing.Size(71, 17);
+            this.LayoutInitGraphButton.Size = new System.Drawing.Size(79, 17);
             this.LayoutInitGraphButton.TabIndex = 33;
             this.LayoutInitGraphButton.TabStop = true;
-            this.LayoutInitGraphButton.Text = "Init Graph";
+            this.LayoutInitGraphButton.Text = "Initialization";
             this.LayoutInitGraphButton.UseVisualStyleBackColor = true;
             this.LayoutInitGraphButton.CheckedChanged += new System.EventHandler(this.LayoutInitGraphButton_CheckedChanged);
             // 
             // ShowAllDependenciesCheckBox
             // 
             this.ShowAllDependenciesCheckBox.AutoSize = true;
-            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(4, 170);
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(104, 51);
             this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
             this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(89, 17);
             this.ShowAllDependenciesCheckBox.TabIndex = 32;
@@ -367,7 +369,7 @@
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(3, 193);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(103, 74);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
             this.GraphIntermediateDependencies.Size = new System.Drawing.Size(90, 17);
             this.GraphIntermediateDependencies.TabIndex = 30;
@@ -379,7 +381,7 @@
             // GraphDependencies
             // 
             this.GraphDependencies.AutoSize = true;
-            this.GraphDependencies.Location = new System.Drawing.Point(4, 147);
+            this.GraphDependencies.Location = new System.Drawing.Point(104, 28);
             this.GraphDependencies.Name = "GraphDependencies";
             this.GraphDependencies.Size = new System.Drawing.Size(100, 17);
             this.GraphDependencies.TabIndex = 25;
@@ -391,7 +393,7 @@
             // MapDependencies
             // 
             this.MapDependencies.AutoSize = true;
-            this.MapDependencies.Location = new System.Drawing.Point(3, 124);
+            this.MapDependencies.Location = new System.Drawing.Point(103, 5);
             this.MapDependencies.Name = "MapDependencies";
             this.MapDependencies.Size = new System.Drawing.Size(92, 17);
             this.MapDependencies.TabIndex = 24;
@@ -405,10 +407,10 @@
             this.LayoutClassCallsButton.AutoSize = true;
             this.LayoutClassCallsButton.Location = new System.Drawing.Point(3, 49);
             this.LayoutClassCallsButton.Name = "LayoutClassCallsButton";
-            this.LayoutClassCallsButton.Size = new System.Drawing.Size(75, 17);
+            this.LayoutClassCallsButton.Size = new System.Drawing.Size(82, 17);
             this.LayoutClassCallsButton.TabIndex = 3;
             this.LayoutClassCallsButton.TabStop = true;
-            this.LayoutClassCallsButton.Text = "Class Calls";
+            this.LayoutClassCallsButton.Text = "Class Graph";
             this.LayoutClassCallsButton.UseVisualStyleBackColor = true;
             this.LayoutClassCallsButton.CheckedChanged += new System.EventHandler(this.LayoutClassCallsButton_CheckedChanged);
             // 
@@ -430,7 +432,7 @@
             this.panel2.Controls.Add(this.ShowHitButton);
             this.panel2.Controls.Add(this.ShowNotHitButton);
             this.panel2.Controls.Add(this.ShowInstancesButton);
-            this.panel2.Location = new System.Drawing.Point(205, 17);
+            this.panel2.Location = new System.Drawing.Point(305, 17);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(89, 137);
             this.panel2.TabIndex = 22;
@@ -451,7 +453,7 @@
             this.panel3.Controls.Add(this.CallsAllButton);
             this.panel3.Controls.Add(this.CallsRealTimeButton);
             this.panel3.Controls.Add(this.LayoutInOrder);
-            this.panel3.Location = new System.Drawing.Point(305, 17);
+            this.panel3.Location = new System.Drawing.Point(405, 17);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(77, 73);
             this.panel3.TabIndex = 23;
@@ -463,7 +465,7 @@
             this.panel4.Controls.Add(this.IncludeFields);
             this.panel4.Controls.Add(this.IncludeOutsideZoomButton);
             this.panel4.Controls.Add(this.IncludeNotXRayedButton);
-            this.panel4.Location = new System.Drawing.Point(393, 17);
+            this.panel4.Location = new System.Drawing.Point(493, 17);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(101, 151);
             this.panel4.TabIndex = 24;
@@ -509,7 +511,7 @@
             this.panel5.Controls.Add(this.SizeTimeInMethodButton);
             this.panel5.Controls.Add(this.SizeCallsButton);
             this.panel5.Controls.Add(this.SizeTimePerCallButton);
-            this.panel5.Location = new System.Drawing.Point(500, 17);
+            this.panel5.Location = new System.Drawing.Point(600, 17);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(111, 151);
             this.panel5.TabIndex = 25;
@@ -530,7 +532,7 @@
             this.panel6.Controls.Add(this.TrackingInstances);
             this.panel6.Controls.Add(this.TrackingMethodCalls);
             this.panel6.Controls.Add(this.TrackingClassCalls);
-            this.panel6.Location = new System.Drawing.Point(617, 17);
+            this.panel6.Location = new System.Drawing.Point(717, 17);
             this.panel6.Name = "panel6";
             this.panel6.Size = new System.Drawing.Size(107, 89);
             this.panel6.TabIndex = 27;
@@ -573,7 +575,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(614, 1);
+            this.label6.Location = new System.Drawing.Point(714, 1);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(57, 13);
             this.label6.TabIndex = 26;
@@ -584,7 +586,7 @@
             // 
             this.FpsLabel.AutoSize = true;
             this.FpsLabel.ForeColor = System.Drawing.Color.Gray;
-            this.FpsLabel.Location = new System.Drawing.Point(3, 139);
+            this.FpsLabel.Location = new System.Drawing.Point(3, 100);
             this.FpsLabel.Name = "FpsLabel";
             this.FpsLabel.Size = new System.Drawing.Size(47, 13);
             this.FpsLabel.TabIndex = 29;
@@ -597,15 +599,15 @@
             this.panel7.Controls.Add(this.RenderOpenGLButton);
             this.panel7.Controls.Add(this.RenderGibsonButton);
             this.panel7.Controls.Add(this.FpsLabel);
-            this.panel7.Location = new System.Drawing.Point(126, 16);
+            this.panel7.Location = new System.Drawing.Point(226, 16);
             this.panel7.Name = "panel7";
-            this.panel7.Size = new System.Drawing.Size(73, 236);
+            this.panel7.Size = new System.Drawing.Size(73, 152);
             this.panel7.TabIndex = 31;
             // 
             // PauseLink
             // 
             this.PauseLink.AutoSize = true;
-            this.PauseLink.Location = new System.Drawing.Point(3, 95);
+            this.PauseLink.Location = new System.Drawing.Point(3, 73);
             this.PauseLink.Name = "PauseLink";
             this.PauseLink.Size = new System.Drawing.Size(37, 13);
             this.PauseLink.TabIndex = 17;
@@ -653,11 +655,23 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(123, 0);
+            this.label7.Location = new System.Drawing.Point(223, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(65, 13);
             this.label7.TabIndex = 30;
             this.label7.Text = "Rendering";
+            // 
+            // LayoutLayerGraphButton
+            // 
+            this.LayoutLayerGraphButton.AutoSize = true;
+            this.LayoutLayerGraphButton.Location = new System.Drawing.Point(3, 118);
+            this.LayoutLayerGraphButton.Name = "LayoutLayerGraphButton";
+            this.LayoutLayerGraphButton.Size = new System.Drawing.Size(85, 17);
+            this.LayoutLayerGraphButton.TabIndex = 35;
+            this.LayoutLayerGraphButton.TabStop = true;
+            this.LayoutLayerGraphButton.Text = "Struct Graph";
+            this.LayoutLayerGraphButton.UseVisualStyleBackColor = true;
+            this.LayoutLayerGraphButton.CheckedChanged += new System.EventHandler(this.LayoutLayerGraphButton_CheckedChanged);
             // 
             // ViewPanel
             // 
@@ -679,7 +693,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(595, 220);
+            this.Size = new System.Drawing.Size(829, 172);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
@@ -744,12 +758,13 @@
         public System.Windows.Forms.CheckBox IncludeAnon;
         private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
         public System.Windows.Forms.RadioButton LayoutInitGraphButton;
-        public System.Windows.Forms.RadioButton TimelineButton;
+        public System.Windows.Forms.RadioButton LayoutTimelineButton;
         private System.Windows.Forms.Panel panel7;
         private System.Windows.Forms.Label label7;
         public System.Windows.Forms.RadioButton RenderGdiButton;
         public System.Windows.Forms.RadioButton RenderOpenGLButton;
         public System.Windows.Forms.RadioButton RenderGibsonButton;
         private System.Windows.Forms.LinkLabel PauseLink;
+        public System.Windows.Forms.RadioButton LayoutLayerGraphButton;
     }
 }

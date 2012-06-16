@@ -9,11 +9,9 @@ namespace XLibrary
 {
 	partial class ViewModel
     {
-        public List<Graph> Graphs = new List<Graph>();
-
         const int MinCallNodeSize = 5;
 
-        public GraphSet MainSet;
+        public GraphSet TopGraph;
 
 
         public void DrawCallGraph()
@@ -29,11 +27,11 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
-                MainSet = new GraphSet(this, CurrentRoot);
+                TopGraph = new GraphSet(this, CurrentRoot);
 
                 // combine position and center maps for graph tree
                 Utilities.RecurseTree(
-                    MainSet,
+                    TopGraph,
                     s =>
                     {
                         foreach (var kvp in s.PositionMap)
@@ -60,23 +58,23 @@ namespace XLibrary
             if (DoResize)
             {
                 Utilities.RecurseTree(
-                    MainSet,
+                    TopGraph,
                     s =>
                     {
                         foreach(var graph in s.Graphs)
                         {
-                            if (graph.ContainerNode == null)
+                            if (s.GraphContainer == null)
                                 ScaleGraph(graph, new RectangleF(ScreenOffset, ScreenSize));
 
-                            else if (graph.ContainerNode.XNode.External)
+                            else if (s.GraphContainer.XNode.External)
                             {
                                 // this is assuming the external node is a triangle
-                                var area = graph.ContainerNode.AreaF;
+                                var area = s.GraphContainer.AreaF;
                                 var inside = new RectangleF(area.X + area.Width / 4f, area.Y + area.Height / 2f, area.Width / 2f, area.Height / 2f);
                                 ScaleGraph(graph, inside);
                             }
                             else
-                                ScaleGraph(graph, graph.ContainerNode.AreaF);
+                                ScaleGraph(graph, s.GraphContainer.AreaF);
                         }
                     },
                     s => s.Subsets
@@ -211,21 +209,7 @@ namespace XLibrary
 
                     node.LabelRect.Height = textSize.Height;
                 }
-
-                /*if (label.Height < node.AreaF.Height + LabelPadding * 2 &&
-                    label.Width < node.AreaF.Width + LabelPadding * 2)
-                {
-                    label.X += LabelPadding;
-                    label.Y += LabelPadding;
-
-                    node.RoomForLabel = true;
-                    node.LabelRect = label;
-                }*/
             }
-        }
-
-        
+        } 
     }
-
-    
 }

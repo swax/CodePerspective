@@ -52,7 +52,7 @@ namespace XLibrary.Panels
             // layout
             LayoutTreeMapButton.Checked = Model.ViewLayout == LayoutType.TreeMap;
             LayoutCallGraphButton.Checked = Model.ViewLayout == LayoutType.CallGraph;
-            TimelineButton.Checked = Model.ViewLayout == LayoutType.Timeline;
+            LayoutTimelineButton.Checked = Model.ViewLayout == LayoutType.Timeline;
             LayoutInOrder.Checked = Model.SequenceOrder;
 
             // rendering
@@ -150,7 +150,7 @@ namespace XLibrary.Panels
 
         private void TimelineButton_CheckedChanged(object sender, EventArgs e)
         {
-            if (!TimelineButton.Checked)
+            if (!LayoutTimelineButton.Checked)
                 return;
 
             Model.ViewLayout = LayoutType.Timeline;
@@ -383,9 +383,15 @@ namespace XLibrary.Panels
                 PauseLink.Text = "Pause";
         }
 
-        private void panel7_Paint(object sender, PaintEventArgs e)
+        private void LayoutLayerGraphButton_CheckedChanged(object sender, EventArgs e)
         {
+            if (!LayoutLayerGraphButton.Checked)
+                return;
 
+            Model.ViewLayout = LayoutType.CallGraph;
+            Model.GraphMode = CallGraphMode.Layers;
+            Main.RefreshView();
+            SetRootToClass();
         }
     }
 }

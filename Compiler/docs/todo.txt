@@ -1,10 +1,23 @@
 ﻿breadcrumbs drop down not cleared when re-opened
 
+details ui
+	instance
+		click on field blink it
+		double click on field, pan over to it
+		back/forward button, pan to node
+	method profile
+		click on method, blink it and call line
+		double click method pan to it
+	click name title in details, select/pan to that node and bring it into zoom if not
+	field profile
+		show methods that call to/from field
+
 layer graph
+	figure out how node size is determined
+	have a max distance between ranks horizontal and vertical
 	expand nodes till they near fill available area
 	re-run xray on vsVim and see if it's a lot more understandable with the each component in a graph
-	turn inits by/of into int[] type like dependencies
-
+	outside zoom/not xrayed view
 	function to minimize node distance in graph?
 
 	don't draw node if smaller than point

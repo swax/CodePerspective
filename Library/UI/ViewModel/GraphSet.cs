@@ -73,7 +73,7 @@ namespace XLibrary
                 }
             }
 
-            else if ((GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init) &&
+            else if (GraphMode == CallGraphMode.Class &&
                      Model.ShowMethods &&
                      GraphContainer == null)
             {
@@ -135,7 +135,16 @@ namespace XLibrary
             }
             else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class && GraphContainer == null)
             {
-                AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
+                if (center)
+                    CenterMap.Add(node.ID);
+
+                PositionMap[node.ID] = node;
+
+                if (xNode.InitsBy != null)
+                    node.EdgesIn = xNode.InitsBy.ToArray();
+
+                if (xNode.InitsOf != null)
+                    node.EdgesOut = xNode.InitsOf.ToArray();
             }
             else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class && GraphContainer == null) ||
                      (GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
@@ -310,12 +319,13 @@ namespace XLibrary
                         return int.MaxValue;
                     });
 
-                    LayoutGraph(graph, unrankedNode, minRank.Value - 1, new List<int>());//, new List<string>());
+                    LayoutGraph(graph, unrankedNode, minRank.Value - 1, new List<int>());
                 }
 
-
                 // remove graphs with 1 element
-                if (graph.Count == 1 && !Model.ShowMethods && GraphMode != CallGraphMode.Layers)
+                if (graph.Count == 1 &&
+                    (GraphMode == CallGraphMode.Init || 
+                     (!Model.ShowMethods && GraphMode != CallGraphMode.Layers)))
                 {
                     var remove = graph.Values.First();
                     PositionMap.Remove(remove.ID);

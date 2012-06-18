@@ -724,8 +724,14 @@ namespace XLibrary
                 call = new FunctionCall() { Source = sourceClass.ID, Destination = node.ID };
                 InitMap.Add(hash, call);
 
-                node.AddFunctionCall(ref node.InitsBy, sourceClass.ID, call);
-                sourceClass.AddFunctionCall(ref sourceClass.InitsOf, node.ID, call);
+                if (node.InitsBy == null)
+                    node.InitsBy = new HashSet<int>();
+
+                if (sourceClass.InitsOf == null)
+                    sourceClass.InitsOf = new HashSet<int>();
+
+                node.InitsBy.Add(sourceClass.ID);
+                sourceClass.InitsOf.Add(node.ID);
             }
         }
 

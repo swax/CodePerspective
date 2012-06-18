@@ -130,8 +130,8 @@ namespace XLibrary
         internal SharedDictionary<FunctionCall> CallsOut;
 
         // class initializing another class
-        internal SharedDictionary<FunctionCall> InitsOf;
-        internal SharedDictionary<FunctionCall> InitsBy;
+        internal HashSet<int> InitsOf;
+        internal HashSet<int> InitsBy;
 
         // layer graph, graph for each depth from root
         internal HashSet<int> LayerIn;

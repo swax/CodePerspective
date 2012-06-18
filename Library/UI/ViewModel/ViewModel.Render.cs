@@ -131,7 +131,7 @@ namespace XLibrary
                     if (source.XNode.CallsOut == null)
                         continue;
 
-                    if (ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class)
+                    if (ViewLayout == LayoutType.TreeMap && source.ObjType == XObjType.Class && ShowMethods)
                         continue;
 
                     if (ViewLayout == LayoutType.CallGraph && source.ObjType == XObjType.Class && ShowMethods)

@@ -101,56 +101,40 @@ namespace XLibrary
                 // ignore node
             }
 
-            else if (GraphMode == CallGraphMode.Dependencies &&
-                     ((xNode.Independencies != null && xNode.Independencies.Length > 0) ||
-                      (xNode.Dependencies != null && xNode.Dependencies.Length > 0)))
+            else if (GraphMode == CallGraphMode.Dependencies)
             {
-                if (center)
-                    CenterMap.Add(node.ID);
-
-                // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
-                if (center || Model.DependentClasses.Contains(node.ID) || Model.IndependentClasses.Contains(node.ID))
-                {
-                    PositionMap[node.ID] = node;
-
-                    if (xNode.Independencies != null)
-                        node.EdgesIn = xNode.Independencies;
-
-                    if (xNode.Dependencies != null)
-                        node.EdgesOut = xNode.Dependencies;
-                }
+                if((xNode.Independencies != null && xNode.Independencies.Length > 0) ||
+                   (xNode.Dependencies != null && xNode.Dependencies.Length > 0))
+                    AddEdges(node, center, xNode.Independencies, xNode.Dependencies);
             }
             else if (GraphMode == CallGraphMode.Layers)
             {
-                if (center)
-                    CenterMap.Add(node.ID);
-
-                PositionMap[node.ID] = node;
-
-                if (xNode.LayerIn != null)
-                    node.EdgesIn = xNode.LayerIn.ToArray();
-
-                if (xNode.LayerOut != null)
-                    node.EdgesOut = xNode.LayerOut.ToArray();
+                AddEdges(node, center, xNode.LayerIn, xNode.LayerOut);
             }
-            else if (GraphMode == CallGraphMode.Init && node.ObjType == XObjType.Class && GraphContainer == null)
+            else if (GraphMode == CallGraphMode.Init) 
             {
-                if (center)
-                    CenterMap.Add(node.ID);
-
-                PositionMap[node.ID] = node;
-
-                if (xNode.InitsBy != null)
-                    node.EdgesIn = xNode.InitsBy.ToArray();
-
-                if (xNode.InitsOf != null)
-                    node.EdgesOut = xNode.InitsOf.ToArray();
+                if (xNode.InitsBy != null || xNode.InitsOf != null) // dont combine with above because we want to ignore nodes that arent classes
+                {
+                    if ((xNode.InitsBy != null && xNode.InitsBy.Count > 0) ||
+                        (xNode.InitsOf != null && xNode.InitsOf.Count > 0))
+                        AddEdges(node, center, xNode.InitsBy, xNode.InitsOf);
+                }
             }
             else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class && GraphContainer == null) ||
-                     (GraphMode == CallGraphMode.Method && node.ObjType != XObjType.Class) ||
-                     (GraphContainer != null && node.ObjType != XObjType.Class))
+                     (GraphMode == CallGraphMode.Class && node.ObjType != XObjType.Class && GraphContainer != null) ||
+                     (GraphMode == CallGraphMode.Method && 
+                      (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field)))
             {
-                AddEdges(node, center, xNode.CalledIn, xNode.CallsOut);
+                IEnumerable<int> callsIn = null;
+                IEnumerable<int> callsOut = null;
+
+                if(xNode.CalledIn != null && xNode.CalledIn.Length > 0)
+                    callsIn = xNode.CalledIn.Select(c => c.Source);
+
+                if(xNode.CallsOut != null && xNode.CallsOut.Length > 0)
+                    callsOut = xNode.CallsOut.Select(c => c.Destination);
+
+                AddEdges(node, center, callsIn, callsOut);
             }
 
             if (depth == 0)
@@ -163,27 +147,19 @@ namespace XLibrary
                     AddCalledNodes(sub, center, depth);
         }
 
-        private void AddEdges(NodeModel node, bool center, SharedDictionary<FunctionCall> callsIn, SharedDictionary<FunctionCall> callsOut)
+        private void AddEdges(NodeModel node, bool center, IEnumerable<int> callsIn, IEnumerable<int> callsOut)
         {
-            if ((callsIn == null || callsIn.Length == 0) &&
-                (callsOut == null || callsOut.Length == 0))
-                return;
-
-            if (center)
-                CenterMap.Add(node.ID);
-
-            // if not center then only add if connected to center, center=false called on second pass so centerMap is totally initd
             if (center ||
-                 (callsIn != null && callsIn.Any(c => CenterMap.Contains(c.Source))) ||
-                 (callsOut != null && callsOut.Any(c => CenterMap.Contains(c.Destination))))
+                ((callsIn != null && callsIn.Any(source => CenterMap.Contains(source))) ||
+                 (callsOut != null && callsOut.Any(dest => CenterMap.Contains(dest)))))
             {
                 PositionMap[node.ID] = node;
 
-                if (callsIn != null)
-                    node.EdgesIn = callsIn.Select(c => c.Source).ToArray();
+                if(center)
+                    CenterMap.Add(node.ID);
 
-                if (callsOut != null)
-                    node.EdgesOut = callsOut.Select(c => c.Destination).ToArray();
+                node.EdgesIn = (callsIn != null) ? callsIn.ToArray() : null;
+                node.EdgesOut = (callsOut != null) ? callsOut.ToArray() : null;
             }
         }
 
@@ -285,7 +261,6 @@ namespace XLibrary
 
         private void BuildGraphs()
         {
-            // group nodes in position map into graphs
             foreach (var node in PositionMap.Values)
                 node.Rank = null;
 
@@ -324,15 +299,15 @@ namespace XLibrary
 
                 // remove graphs with 1 element
                 if (graph.Count == 1 &&
-                    (GraphMode == CallGraphMode.Init || 
-                     (!Model.ShowMethods && GraphMode != CallGraphMode.Layers)))
+                    (GraphMode == CallGraphMode.Method ||
+                     ((GraphMode == CallGraphMode.Class && !Model.ShowMethods && !Model.ShowFields))))
                 {
-                    var remove = graph.Values.First();
-                    PositionMap.Remove(remove.ID);
-                    CenterMap.Remove(remove.ID);
-
+                    var onlyNode = graph.First().Value;
+                    PositionMap.Remove(onlyNode.ID);
+                    CenterMap.Remove(onlyNode.ID);
                     continue;
                 }
+            
 
                 // normalize ranks so sequential without any missing between
                 int nextSequentialRank = -1;

@@ -117,6 +117,9 @@ namespace XLibrary.Panels
             Model.ViewLayout = LayoutType.CallGraph;
             Model.GraphMode = CallGraphMode.Method;
             Main.RefreshView();
+
+            if (!IncludeMethods.Checked)
+                IncludeMethods.Checked = true;
         }
 
         private void LayoutInitGraphButton_CheckedChanged(object sender, EventArgs e)
@@ -155,6 +158,9 @@ namespace XLibrary.Panels
 
             Model.ViewLayout = LayoutType.Timeline;
             Main.RefreshView();
+
+            if (!IncludeMethods.Checked)
+                IncludeMethods.Checked = true;
         }
 
         private void MapAllDependencies_CheckedChanged(object sender, EventArgs e)

@@ -147,6 +147,8 @@ namespace XLibrary
 
                 button.DropDownOpening += (s1, e1) =>
                     {
+                        button.DropDownItems.Clear();
+
                         foreach (var sub in uiNode.Nodes.OrderBy(n => n, new CompareNodes()))
                         {
                             var subCopy = sub;

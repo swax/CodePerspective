@@ -735,11 +735,6 @@ namespace XLibrary
             }
         }
 
-        static void form_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         public static void Deconstructed(int index, Object obj)
         {
             // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state

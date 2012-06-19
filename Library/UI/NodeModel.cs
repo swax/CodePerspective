@@ -123,7 +123,5 @@ namespace XLibrary
             else
                 return Name;
         }
-
-
     }
 }

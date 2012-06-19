@@ -201,6 +201,8 @@ namespace XLibrary
 
                     if (node.LabelRect.Width < textSize.Width)
                         node.LabelClipped = true;
+                    else
+                        node.LabelRect.Width = textSize.Width; // trim label size
 
                     if (topFit)
                         node.LabelRect.Y = node.LabelRect.Bottom - textSize.Height;

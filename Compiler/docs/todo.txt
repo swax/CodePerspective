@@ -1,4 +1,9 @@
-﻿breadcrumbs drop down not cleared when re-opened
+﻿
+map out method field dependencies and calls for static analyis
+	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
+	draw code in node when zoomed close enough
+	show outside/zoom out in layer graph
+	can work on speeding up/debugging graphing with static analysis
 
 details ui
 	instance
@@ -13,21 +18,20 @@ details ui
 		show methods that call to/from field
 
 layer graph
-	figure out how node size is determined
-	have a max distance between ranks horizontal and vertical
-	expand nodes till they near fill available area
+	**outside zoom/not xrayed view
+	**expand nodes till they near fill available area
+		figure out how node size is determined
+		have a max distance between ranks horizontal and vertical
+		function to minimize node distance in graph?
+
 	re-run xray on vsVim and see if it's a lot more understandable with the each component in a graph
-	outside zoom/not xrayed view
-	function to minimize node distance in graph?
 
 	don't draw node if smaller than point
 		use same draw code as tree map?
     no matter what the size
 		set call point to center of parent node if too small to draw
 	have a 2 pix area inside node when drawing, if not engouh room then don't draw
-	
-Graph Direct -> Method map, does not re-add call dashed lines
-	
+
 graph optimizations
 	pan/zoom shouldnt have to call resize
 	apply pan/zoom in renderer can be option that opengl views turn off to do pan/zoom as transformation

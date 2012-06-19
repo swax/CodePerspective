@@ -177,8 +177,7 @@ namespace XLibrary
             if (root.Value == 0 && !ShowFields && !ShowMethods &&
                 (root.ObjType != XObjType.Method && root.ObjType != XObjType.Field) &&
                 (ViewLayout == LayoutType.TreeMap ||
-                 (ViewLayout == LayoutType.CallGraph &&
-                  (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Init))))
+                 (ViewLayout == LayoutType.CallGraph && GraphMode != CallGraphMode.Method)))
             {
                 root.Value = 1;
                 // on return to calling function causes root.show = true

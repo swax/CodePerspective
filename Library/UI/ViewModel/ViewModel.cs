@@ -114,7 +114,7 @@ namespace XLibrary
             root.Value = 0;
             root.SecondaryValue = 0;
 
-            // only leaves have usable value
+            // if a leaf node - method or field
             if (root.ObjType == XObjType.Method || root.ObjType == XObjType.Field)
             {
                 if (TwoDimensionalValues)
@@ -127,7 +127,16 @@ namespace XLibrary
                 }
                 else
                     root.Value = GetValueForLayout(root, SizeLayout);
+
+
+                if ((ShowLayout == ShowNodes.Hit && !XRay.CoveredNodes[root.ID]) ||
+                    (ShowLayout == ShowNodes.Unhit && XRay.CoveredNodes[root.ID]))
+                    root.Value = 0;
+
+                return;
             }
+
+            // else we're dealing with a file, namespace, or class type
 
             foreach (var node in root.Nodes)
             {
@@ -138,10 +147,10 @@ namespace XLibrary
                 {
                     nodeShow =
                         ShowLayout == ShowNodes.All ||
-                        (ShowLayout == ShowNodes.Hit && XRay.CoveredNodes[node.ID]) ||
-                        (ShowLayout == ShowNodes.Unhit && !XRay.CoveredNodes[node.ID]) ||
+                        ShowLayout == ShowNodes.Hit ||
+                        ShowLayout == ShowNodes.Unhit ||
                         (ShowLayout == ShowNodes.Instances &&
-                         (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Active.Count > 0)));
+                         (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Created > 0)));
 
                     if ((node.ObjType == XObjType.Field && !ShowFields) ||
                         (node.ObjType == XObjType.Method && !ShowMethods) ||
@@ -161,10 +170,10 @@ namespace XLibrary
                     root.Value += node.Value;
                     root.SecondaryValue += node.SecondaryValue;
 
-                    if (root.Value == 0)
+                    if (node.Value == 0)
                     {
                         nodeShow = false;
-                        Utilities.RecurseTree(root.Nodes, n => n.Show = false, n => n.Nodes);
+                        Utilities.RecurseTree(node, n => n.Show = false, n => n.Nodes);
                     }
                 }
 

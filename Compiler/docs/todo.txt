@@ -1,15 +1,5 @@
 ﻿
-'not executed' filter not working
-
-static analyis
-	map out method field dependencies and calls for 
-	zoom in on a class like the ViewModel class
-		see if it's easy to spot where class can be diveded
-	if class contains independent graphs, suggest to user that class can be reduced
-	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
-	draw code in node when zoomed close enough
-	show outside/zoom out in layer graph
-	can work on speeding up/debugging graphing with static analysis
+sort thread list by active first or have a submenu for inactive
 
 details ui
 	instance
@@ -22,6 +12,16 @@ details ui
 	click name title in details, select/pan to that node and bring it into zoom if not
 	field profile
 		show methods that call to/from field
+
+static analyis
+	map out method field dependencies and calls for 
+	zoom in on a class like the ViewModel class
+		see if it's easy to spot where class can be diveded
+	if class contains independent graphs, suggest to user that class can be reduced
+	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
+	draw code in node when zoomed close enough
+	show outside/zoom out in layer graph
+	can work on speeding up/debugging graphing with static analysis
 
 layer graph
 	**outside zoom/not xrayed view

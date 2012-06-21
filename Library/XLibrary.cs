@@ -776,20 +776,16 @@ namespace XLibrary
 
         static internal void LogError(string text, params object[] args)
         {
-            LogError2(text, true, args);
+            if (ErrorDupes.Contains(text.GetHashCode()))
+                return;
 
+            ErrorDupes.Add(text.GetHashCode());
+
+            ErrorLog.Add(string.Format(text, args));
         }
 
-        static internal void LogError2(string text, bool filterDupes, params object[] args)
+        static internal void LogError2(string text, params object[] args)
         {
-            if (filterDupes)
-            {
-                if (ErrorDupes.Contains(text.GetHashCode()))
-                    return;
-
-                ErrorDupes.Add(text.GetHashCode());
-            }
-
             ErrorLog.Add(string.Format(text, args));
         }
     }

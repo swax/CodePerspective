@@ -1,5 +1,11 @@
 ﻿
-map out method field dependencies and calls for static analyis
+'not executed' filter not working
+
+static analyis
+	map out method field dependencies and calls for 
+	zoom in on a class like the ViewModel class
+		see if it's easy to spot where class can be diveded
+	if class contains independent graphs, suggest to user that class can be reduced
 	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
 	draw code in node when zoomed close enough
 	show outside/zoom out in layer graph
@@ -19,10 +25,8 @@ details ui
 
 layer graph
 	**outside zoom/not xrayed view
-	**expand nodes till they near fill available area
-		figure out how node size is determined
-		have a max distance between ranks horizontal and vertical
-		function to minimize node distance in graph?
+	figure out top bottom of graph and give next graph more room
+	min horizontal distance
 
 	re-run xray on vsVim and see if it's a lot more understandable with the each component in a graph
 

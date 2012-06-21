@@ -183,6 +183,9 @@ namespace XLibrary
                 // on return to calling function causes root.show = true
             }
 
+            if (ViewLayout == LayoutType.CallGraph && SizeLayout == SizeLayouts.Constant)
+                root.Value = 1;
+
             //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
 
             //Debug.Assert(root.Value >= 0);

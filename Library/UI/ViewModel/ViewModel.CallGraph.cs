@@ -27,6 +27,10 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
+                /*var root = CurrentRoot;
+                if (root == InternalRoot && ShowExternal)
+                    root = TopRoot;*/
+
                 TopGraph = new GraphSet(this, CurrentRoot);
 
                 // combine position and center maps for graph tree
@@ -87,7 +91,7 @@ namespace XLibrary
 
         private void ScaleGraph(Graph graph, RectangleF area)
         {
-            float fullSize = (float)Math.Min(area.Width, area.Height) / 2;
+            float fullSize = (float)Math.Min(area.Width, area.Height);
 
             for (int i = 0; i < graph.Ranks.Length; i++)
             {
@@ -195,7 +199,8 @@ namespace XLibrary
                     node.LabelRect = new RectangleF(left, top, right - left, bottom - top);
                 }
 
-                if (textSize.Height < node.LabelRect.Height)// && textSize.Width < node.LabelRect.Width)
+                // if can fit height and 30% of the text label
+                if (textSize.Height < node.LabelRect.Height && textSize.Width * 0.3f < node.LabelRect.Width)
                 {
                     node.RoomForLabel = true;
 

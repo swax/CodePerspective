@@ -172,14 +172,14 @@
     <Compile Include="UI\TreeGrid\TreeGridNode.cs" />
     <Compile Include="UI\TreeGrid\TreeGridNodeCollection.cs" />
     <Compile Include="UI\TreeGrid\TreeGridView.cs" />
-    <Compile Include="UI\CalcTreeMap.cs" />
+    <Compile Include="UI\TreeMap.cs" />
     <Compile Include="UI\Rendering\GdiRenderer.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\Rendering\GdiRenderer.Designer.cs">
       <DependentUpon>GdiRenderer.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\ViewModel\GraphSet.cs" />
+    <Compile Include="UI\GraphSet.cs" />
     <Compile Include="UI\ViewModel\ViewModel.Render.cs" />
     <Compile Include="UI\ViewModel\ViewModel.Threadline.cs" />
     <Compile Include="UI\ViewModel\ViewModel.TreeMap.cs" />

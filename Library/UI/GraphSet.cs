@@ -22,6 +22,9 @@ namespace XLibrary
 
         public NodeModel GraphContainer;
 
+        float GraphFillSpace = 0.80f;
+        float GraphMinNodeProportion = 0.30f;
+
 
         public GraphSet(ViewModel model, NodeModel root, NodeModel container=null, int depth = -1)
         {
@@ -67,23 +70,15 @@ namespace XLibrary
             if (GraphMode == CallGraphMode.Layers)
             {
                 foreach (var child in root.Nodes)
-                {
-                    var set = new GraphSet(Model, child, child);
-                    Subsets.Add(set);
-                }
+                    Subsets.Add(new GraphSet(Model, child, child));
             }
 
             else if (GraphMode == CallGraphMode.Class &&
                      Model.ShowMethods &&
                      GraphContainer == null)
             {
-                var classNodes = PositionMap.Values.ToArray();
-
-                foreach (var classNode in classNodes)
-                {
-                    var set = new GraphSet(Model, classNode, classNode, 1);
-                    Subsets.Add(set);
-                }
+                foreach (var classNode in PositionMap.Values)
+                    Subsets.Add(new GraphSet(Model, classNode, classNode, 1));
             }
         }
 
@@ -122,8 +117,7 @@ namespace XLibrary
             }
             else if ((GraphMode == CallGraphMode.Class && node.ObjType == XObjType.Class && GraphContainer == null) ||
                      (GraphMode == CallGraphMode.Class && node.ObjType != XObjType.Class && GraphContainer != null) ||
-                     (GraphMode == CallGraphMode.Method && 
-                      (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field)))
+                     (GraphMode == CallGraphMode.Method && (node.ObjType == XObjType.Method || node.ObjType == XObjType.Field)))
             {
                 IEnumerable<int> callsIn = null;
                 IEnumerable<int> callsOut = null;
@@ -167,74 +161,71 @@ namespace XLibrary
         {
             Graphs = Graphs.OrderByDescending(g => g.Weight).ToList();
 
-
             float totalWeight = Graphs.Sum(g => g.Weight);
-            float totalArea = 1; // unit scalable area
+            float graphOffset = 0;
 
-            float weightToPix = totalArea / totalWeight * 0.5f; // reduction factor
-
-            Graphs.ForEach(g =>
-            {
-                foreach (var n in g.Nodes())
-                    n.ScaledSize = (float)Math.Sqrt(n.Value * weightToPix);
-            });
-
-
-            // sum the heights of the biggest ranks of each graph
-            float[] maxRankHeights = Graphs.Select(g => g.Ranks.Max(rank => rank.Column.Sum(n => n.ScaledSize))).ToArray();
-            float stackHeight = maxRankHeights.Sum();
-
-            float heightReduce = 1 / stackHeight;
-
-            // check x axis reduce, and if less use that one
-            // do for all graphs at once so proportions stay the same
-
-            // find graph with max width, buy summing max node in each rank
-            float[] maxRankWidths = Graphs.Select(g => g.Ranks.Sum(rank => rank.Column.Max(n => n.ScaledSize))).ToArray();
-
-            float widthReduce = 1 / maxRankWidths.Max(); ;
-
-            float reduce = (float)(Math.Min(heightReduce, widthReduce) * 0.75);
-
-            Graphs.ForEach(g =>
-            {
-                foreach (var n in g.Nodes())
-                    n.ScaledSize *= reduce;
-            });
-
-
-            // give each group a height proportional to their max rank height
-            float groupOffset = 0;
-
-            for (int i = 0; i < Graphs.Count; i++)
+            // foreach graph
+            for(int i = 0; i < Graphs.Count; i++)
             {
                 var graph = Graphs[i];
 
-                graph.ScaledHeight = maxRankHeights[i] / stackHeight;
-                graph.ScaledOffset = groupOffset;
+                // size graph height in proportion to weight
+                graph.ScaledHeight = graph.Weight / totalWeight;
+                graph.ScaledOffset = graphOffset;
+                graphOffset += graph.ScaledHeight;
+                
+                // iterate all nodes in graph for min/max value maybe sort...
+                float min = float.MaxValue;
+                float max = float.MinValue;
+                foreach (var node in graph.Nodes())
+                {
+                    if (node.Value < min)
+                        min = node.Value;
+                    if (node.Value > max)
+                        max = node.Value;
+                }
 
-                float xOffset = graph.Ranks[0].Column.Max(n => n.ScaledSize) / 2f; // 0.02f;
-                float freespace = 1 - xOffset;// -maxRankWidths[i] * reduce;
+                // find column with the most nodes
+                float maxNodeCount = graph.Ranks.Max(r => r.Column.Count);
+                if (graph.Ranks.Length > maxNodeCount)
+                    maxNodeCount = graph.Ranks.Length;
 
-                float spaceX = freespace / graph.Ranks.Length;
+                // base node size on the biggest node we can create for the graph
+                float fillSpace = graph.ScaledHeight * GraphFillSpace;
+                float maxNodeSize = fillSpace / maxNodeCount;
 
+                // assign nodes a size 
+                float sizeRange = max - min;
+
+                foreach (var node in graph.Nodes())
+                {
+                    node.ScaledSize = maxNodeSize;
+            
+                    if (sizeRange > 0)
+                    {
+                        // get 0 - 1 value for node value
+                        float value = ((float)node.Value - min) / sizeRange;
+
+                        // give the node a proportional size with 33% as the smallest
+                        float proportion = GraphMinNodeProportion + ((1 - GraphMinNodeProportion) * value);
+                        node.ScaledSize = maxNodeSize * proportion;
+                    }
+                }
+
+                // position columns
+                float spacePerColumn = 1.0f / (float)graph.Ranks.Length;
+                float xOffset = spacePerColumn / 2.0f;
 
                 for (int x = 0; x < graph.Ranks.Length; x++)
                 {
                     var rank = graph.Ranks[x];
 
-                    //float maxSize = rank.Column.Max(n => n.ScaledSize);
-
-                    // a good first guess at how nodes should be ordered to min crossing
-                    //rank.Column = rank.Column.OrderBy(n => n.XNode.HitSequence).ToList();
-
                     PositionRank(graph, rank, xOffset);// + maxSize / 2);
 
-                    xOffset += spaceX;
+                    xOffset += spacePerColumn;
                 }
 
-                groupOffset += graph.ScaledHeight;
-
+                // arrange nodes in each rank
                 if (Model.SequenceOrder)
                 {
                     for (int x = 0; x < 6; x++)
@@ -299,7 +290,8 @@ namespace XLibrary
 
                 // remove graphs with 1 element
                 if (graph.Count == 1 &&
-                    (GraphMode == CallGraphMode.Method ||
+                    (GraphMode == CallGraphMode.Dependencies ||
+                     GraphMode == CallGraphMode.Method ||
                      ((GraphMode == CallGraphMode.Class && !Model.ShowMethods && !Model.ShowFields))))
                 {
                     var onlyNode = graph.First().Value;
@@ -577,29 +569,42 @@ namespace XLibrary
                 {
                     var nodes = rank.Column;
 
+                    // divide the min space allotted for column by the number of nodes in it, *2 for top/bottom of node
+                    float minHeightSpace = graph.ScaledHeight * (1.0f - GraphFillSpace) / ((float) nodes.Count * 2);
+               
                     // foreach node average y pos form all connected edges
                     for (int x = 0; x < nodes.Count; x++)
                     {
                         var node = nodes[x];
 
-                        float halfSize = node.ScaledSize / 2;
+       
+                        float lowerbound = graph.ScaledOffset;
+                        if (x > 0)
+                        {
+                            var prevNode = nodes[x - 1];
+                            lowerbound = prevNode.ScaledLocation.Y + (prevNode.ScaledSize / 2);
+                        }
+                        lowerbound += minHeightSpace;
 
-                        float lowerbound = (x > 0) ? nodes[x - 1].ScaledLocation.Y + (nodes[x - 1].ScaledSize / 2) : 0;
-                        lowerbound += rank.MinHeightSpace;
-
-                        float upperbound = (x < nodes.Count - 1) ? nodes[x + 1].ScaledLocation.Y - (nodes[x + 1].ScaledSize / 2) : float.MaxValue;
-                        upperbound -= rank.MinHeightSpace;
+                        float upperbound = graph.ScaledOffset + graph.ScaledHeight;
+                        if (x < nodes.Count - 1)
+                        {
+                            var nextNode = nodes[x + 1];
+                            upperbound = nextNode.ScaledLocation.Y - (nextNode.ScaledSize / 2);
+                        }
+                        upperbound -= minHeightSpace;
 
                         //Debug.Assert(lowerbound <= upperbound);
                         if (lowerbound >= upperbound)
                         {
                             // usually if this happens they're very close
-                            XRay.LogError("lower bound greater than upper in layout. pos: {0}, nodeID: {1}, lower: {2}, upper: {3}, minheight: {4}", x, node.ID, lowerbound, upperbound, rank.MinHeightSpace);
+                            XRay.LogError("lower bound greater than upper in layout. pos: {0}, nodeID: {1}, lower: {2}, upper: {3}, minheight: {4}", x, node.ID, lowerbound, upperbound, minHeightSpace);
                             //continue;
                         }
 
 
                         float optimalY = AvgPos(node);
+                        float halfSize = node.ScaledSize / 2;
 
                         if (optimalY - halfSize < lowerbound)
                             optimalY = lowerbound + halfSize;
@@ -623,20 +628,15 @@ namespace XLibrary
 
             var nodes = rank.Column;
 
-            float totalHeight = nodes.Sum(n => n.ScaledSize);
-
-            float freespace = 1 * graph.ScaledHeight - totalHeight;
-
-            float ySpace = freespace / (nodes.Count + 1); // space between each block
-            rank.MinHeightSpace = ySpace;// (float)Math.Min(ySpace, 4.0 / (float)Height);
-            float yOffset = ySpace;
+            float spacePerRow = graph.ScaledHeight / (float)nodes.Count;
+            float yOffset = spacePerRow / 2.0f;
 
             foreach (var node in nodes)
             {
                 node.ScaledLocation.X = xOffset;
-                node.ScaledLocation.Y = 1 * graph.ScaledOffset + yOffset + node.ScaledSize / 2;
+                node.ScaledLocation.Y = graph.ScaledOffset + yOffset;
 
-                yOffset += node.ScaledSize + ySpace;
+                yOffset += spacePerRow;
             }
         }
 
@@ -843,7 +843,5 @@ namespace XLibrary
     public class Rank
     {
         internal List<NodeModel> Column = new List<NodeModel>();
-
-        internal float MinHeightSpace;
     }
 }

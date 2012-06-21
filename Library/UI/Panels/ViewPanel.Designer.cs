@@ -49,6 +49,7 @@
             this.CallsAllButton = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.LayoutLayerGraphButton = new System.Windows.Forms.RadioButton();
             this.LayoutTimelineButton = new System.Windows.Forms.RadioButton();
             this.LayoutInitGraphButton = new System.Windows.Forms.RadioButton();
             this.ShowAllDependenciesCheckBox = new System.Windows.Forms.CheckBox();
@@ -78,7 +79,6 @@
             this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
             this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
             this.label7 = new System.Windows.Forms.Label();
-            this.LayoutLayerGraphButton = new System.Windows.Forms.RadioButton();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -139,10 +139,10 @@
             this.SizeConstantButton.AutoSize = true;
             this.SizeConstantButton.Location = new System.Drawing.Point(3, 3);
             this.SizeConstantButton.Name = "SizeConstantButton";
-            this.SizeConstantButton.Size = new System.Drawing.Size(68, 17);
+            this.SizeConstantButton.Size = new System.Drawing.Size(67, 17);
             this.SizeConstantButton.TabIndex = 4;
             this.SizeConstantButton.TabStop = true;
-            this.SizeConstantButton.Text = "Elements";
+            this.SizeConstantButton.Text = "Constant";
             this.SizeConstantButton.UseVisualStyleBackColor = true;
             this.SizeConstantButton.CheckedChanged += new System.EventHandler(this.SizeConstantButton_CheckedChanged);
             // 
@@ -330,6 +330,18 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(211, 151);
             this.panel1.TabIndex = 21;
+            // 
+            // LayoutLayerGraphButton
+            // 
+            this.LayoutLayerGraphButton.AutoSize = true;
+            this.LayoutLayerGraphButton.Location = new System.Drawing.Point(3, 118);
+            this.LayoutLayerGraphButton.Name = "LayoutLayerGraphButton";
+            this.LayoutLayerGraphButton.Size = new System.Drawing.Size(85, 17);
+            this.LayoutLayerGraphButton.TabIndex = 35;
+            this.LayoutLayerGraphButton.TabStop = true;
+            this.LayoutLayerGraphButton.Text = "Struct Graph";
+            this.LayoutLayerGraphButton.UseVisualStyleBackColor = true;
+            this.LayoutLayerGraphButton.CheckedChanged += new System.EventHandler(this.LayoutLayerGraphButton_CheckedChanged);
             // 
             // LayoutTimelineButton
             // 
@@ -660,18 +672,6 @@
             this.label7.Size = new System.Drawing.Size(65, 13);
             this.label7.TabIndex = 30;
             this.label7.Text = "Rendering";
-            // 
-            // LayoutLayerGraphButton
-            // 
-            this.LayoutLayerGraphButton.AutoSize = true;
-            this.LayoutLayerGraphButton.Location = new System.Drawing.Point(3, 118);
-            this.LayoutLayerGraphButton.Name = "LayoutLayerGraphButton";
-            this.LayoutLayerGraphButton.Size = new System.Drawing.Size(85, 17);
-            this.LayoutLayerGraphButton.TabIndex = 35;
-            this.LayoutLayerGraphButton.TabStop = true;
-            this.LayoutLayerGraphButton.Text = "Struct Graph";
-            this.LayoutLayerGraphButton.UseVisualStyleBackColor = true;
-            this.LayoutLayerGraphButton.CheckedChanged += new System.EventHandler(this.LayoutLayerGraphButton_CheckedChanged);
             // 
             // ViewPanel
             // 

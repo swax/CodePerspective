@@ -207,6 +207,7 @@
             this.TabPanel.SelectedIndex = 0;
             this.TabPanel.Size = new System.Drawing.Size(550, 220);
             this.TabPanel.TabIndex = 0;
+            this.TabPanel.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.TabPanel_MouseDoubleClick);
             // 
             // tabPage1
             // 

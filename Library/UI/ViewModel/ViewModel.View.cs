@@ -23,7 +23,7 @@ namespace XLibrary
 
         Point MouseDownPoint;
         PointF PanStart;
-        float ZoomFactor = 1;
+        public float ZoomFactor = 1;
 
 
         public void SetRoot(NodeModel node, bool logHistory = true)

@@ -74,7 +74,7 @@ namespace XLibrary.Panels
 
             if (SelectedNode != null)
             {
-                SummaryLabel.Text = GetMethodName(SelectedNode.ID);
+                SummaryLabel.Text = Utilities.GetMethodName(SelectedNode, SelectedNode.ID);
 
                 if (SelectedNode.External)
                     DetailsLabel.Text = "Not XRayed";
@@ -93,38 +93,15 @@ namespace XLibrary.Panels
             InstructionMap.Clear();
             MsilView.Items.Clear();
 
-            if (SelectedNode == null || SelectedNode.MsilPos == 0)
+            if (SelectedNode == null || !SelectedNode.LoadMsil())
             {
                 MsilView.EndUpdate();
                 return;
             }
 
-            if (SelectedNode.Msil == null)
-                using (DatStream = new FileStream(XRay.DatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    DatStream.Position = SelectedNode.MsilPos;
-
-                    SelectedNode.Msil = new List<XInstruction>();
-
-                    for (int i = 0; i < SelectedNode.MsilLines; i++)
-                    {
-                        var inst = new XInstruction();
-                        inst.Offset = BitConverter.ToInt32(DatStream.Read(4), 0);
-                        inst.OpCode = XNodeIn.ReadString(DatStream);
-                        inst.Line = XNodeIn.ReadString(DatStream);
-                        inst.RefId = BitConverter.ToInt32(DatStream.Read(4), 0);
-
-                        SelectedNode.Msil.Add(inst);
-                    }
-                }
-
             foreach (var inst in SelectedNode.Msil)
             {
-                string line = inst.Line;
-                if (inst.RefId != 0 && !line.StartsWith("goto "))
-                    line = GetMethodName(inst.RefId);
-
-                var row = new CodeRow(inst, line);
+                var row = new CodeRow(inst);
                 MsilView.Items.Add(row);
 
                 InstructionMap[inst.Offset] = row;
@@ -133,37 +110,6 @@ namespace XLibrary.Panels
             MsilView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
 
             MsilView.EndUpdate();
-        }
-
-        string GetMethodName(int nodeID)
-        {
-            var node = XRay.Nodes[nodeID];
-
-            var parentClass = node.GetParentClass(false);
-            bool includeClass = (parentClass != SelectedNode.GetParentClass(false));
-
-            if (node.ObjType == XObjType.Field)
-            {
-                string name = node.UnformattedName;
-            
-                if (includeClass)
-                    name = parentClass.Name + "::" + name;
-
-                if (node.ReturnID != 0)
-                {
-                    var retNode = XRay.Nodes[node.ReturnID];
-                    name = retNode.Name + " " + name;
-                }
-
-                return name;
-            }
-
-            else if (node.ObjType == XObjType.Method)
-            {
-                return node.GetMethodName(includeClass);
-            }
-
-            return "unknown";
         }
 
         private void CodePanel_VisibleChanged(object sender, EventArgs e)
@@ -249,19 +195,11 @@ namespace XLibrary.Panels
 
         private void RefreshCSharpView()
         {
-            if(SelectedNode == null || SelectedNode.CSharpPos == 0)
+            if(SelectedNode == null || !SelectedNode.LoadCSharp())
             {
                 UpdateContent("Function not XRayed");
                 return;
             }
-
-            if (SelectedNode.CSharp == null)
-                using (DatStream = new FileStream(XRay.DatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    DatStream.Position = SelectedNode.CSharpPos;
-
-                    SelectedNode.CSharp = DatStream.Read(SelectedNode.CSharpLength);
-                }
 
             // read byte stream and build html
             var code = new StringBuilder();
@@ -359,7 +297,7 @@ namespace XLibrary.Panels
     {
         public XInstruction Inst;
    
-        public CodeRow(XInstruction inst, string line)
+        public CodeRow(XInstruction inst)
         {
             UseItemStyleForSubItems = false;
 
@@ -368,7 +306,7 @@ namespace XLibrary.Panels
             Text = Inst.Offset.ToString("X");
             SubItems.Add(Inst.OpCode);
             
-            var lineItem = SubItems.Add(line);
+            var lineItem = SubItems.Add(inst.Line);
       
             if (inst.RefId != 0)
                 lineItem.ForeColor = Color.Blue;

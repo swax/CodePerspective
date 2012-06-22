@@ -1,6 +1,19 @@
-﻿
-sort thread list by active first or have a submenu for inactive
+﻿double click tab bar to show/collapse
 
+add more tool tips
+	**why xtestapp code not being generated for linked dll
+
+xlibrary
+	**fix dupe nodes getting created for templated classes - Dictionary<>, etc..
+	move covered nodes into view model so different UIs dont share the same covered node set
+	
+	background tooltip color in opengl
+
+about tab 
+	put about panel in builder and viewer	
+	github address, swax homepage, donate/biitcoin account
+	thanks - opentk, quickfont, cecil, icsharp, stackoverflow
+	
 details ui
 	instance
 		click on field blink it
@@ -65,9 +78,7 @@ real source editing
 	allow user to drag nodes in rank and pin node positions in each rank static
 
 explore apps
-	**why xtestapp code not being generated for linked dll
 	turn on exception catching for code generation
-	do another asp test
 	upgrade ilspy/cecil
 
 fps view
@@ -105,18 +116,6 @@ threadline
 	add last run time to mouse over in threadline
 	if fields selected in thread line
 		show fields as row at bottom, at mid-point between accessing threads
-
-method/field dependency graph 
-	built on re-compile like class dependency graph
-
-xlibrary
-	**fix dupe nodes getting created for templated classes - Dictionary<>, etc..
-	move covered nodes into view model so different UIs dont share the same covered node set
-
-about tab 
-	put about panel in builder and viewer	
-	github address, swax homepage, donate/biitcoin account
-	thanks - opentk, quickfont, cecil, icsharp, stackoverflow
 
 Thread filter
 	Different colors for call lines when viewing multiple threads

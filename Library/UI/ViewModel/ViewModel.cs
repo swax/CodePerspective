@@ -49,6 +49,7 @@ namespace XLibrary
         public bool ShowCalls = true;
         public bool SequenceOrder = false;
         public bool ShowLabels = true;
+        public bool ShowCode = false;
         public HashSet<int> ShowThreads;
 
         public bool ShowAllDependencies = false;

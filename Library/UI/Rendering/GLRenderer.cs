@@ -32,6 +32,8 @@ namespace XLibrary
 
         Vector3 Normal = new Vector3(0, 1, 0);
 
+        RectangleF ClientRect;
+
 
         public GLRenderer(ViewModel model)
         {
@@ -49,6 +51,8 @@ namespace XLibrary
             KeyDown += new KeyEventHandler(GLRenderer_KeyDown);
             KeyUp += new KeyEventHandler(GLRenderer_KeyUp);
             MouseLeave += new EventHandler(GLRenderer_MouseLeave);
+
+            ClientRect = ClientRectangle;
         }
 
         public void Start()
@@ -85,6 +89,8 @@ namespace XLibrary
 
         private void SetupViewport()
         {
+            ClientRect = new RectangleF(0, 0, Width, Height);
+
             GL.Viewport(0, 0, Width, Height);
 
             GL.MatrixMode(MatrixMode.Projection);
@@ -213,20 +219,30 @@ namespace XLibrary
 
         public void DrawString(string text, Font font, Color color, float x, float y, float width, float height)
         {
+            var rect = new RectangleF(x, y, width, height);
+            if (!ClientRect.IntersectsWith(rect))
+                return;
+
             QFont qfont = GetQFont(font);
 
-            qfont.PrintToVBO(text, width, QFontAlignment.Left, new Vector3(x, y, 0), color);
+            qfont.PrintToVBO(text, QFontAlignment.Left, new Vector3(x, y, 0), color, new SizeF(width, height));
         }
 
         public void DrawNodeLabel(string text, Font font, Color color, RectangleF rect, NodeModel node, int depth)
         {
+            if (!ClientRect.IntersectsWith(rect))
+                return;
+
             QFont qfont = GetQFont(font);
 
-            qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, 0), color);
+            qfont.PrintToVBO(text, QFontAlignment.Left, new Vector3(rect.X, rect.Y, 0), color, rect.Size);
         }
 
         public void DrawNode(Color color, RectangleF area, bool outside, NodeModel node, int depth)
         {
+            if (!ClientRect.IntersectsWith(area))
+                return;
+
             var verticies = outside ? GetTriangleVerticies(area) : GetRectVerticies(area);
 
             Nodes.AddVerticies(color, Normal, verticies);
@@ -234,7 +250,11 @@ namespace XLibrary
 
         public void DrawTextBackground(Color color, float x, float y, float width, float height)
         {
-            Overlays.AddVerticies(color, Normal, GetRectVerticies(x, y, width, height));
+            var rect = new RectangleF(x, y, width, height);
+            if (!ClientRect.IntersectsWith(rect))
+                return;
+
+            Overlays.AddVerticies(color, Normal, GetRectVerticies(rect));
         }
 
         private Vector3[] GetRectVerticies(RectangleF rect)
@@ -263,6 +283,9 @@ namespace XLibrary
 
         public void DrawNodeOutline(Color color, int lineWidth, RectangleF area, bool outside, NodeModel node, int depth)
         {
+            if (!ClientRect.IntersectsWith(area))
+                return;
+
             float x = area.X, y = area.Y, width = area.Width, height = area.Height;
 
             var vbo = GetLineVbo(Outlines, lineWidth);
@@ -301,6 +324,10 @@ namespace XLibrary
 
         public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
         {
+            var lineRect = new RectangleF(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y), Math.Abs(end.X - start.X), Math.Abs(end.Y - start.Y));
+            if (!ClientRect.IntersectsWith(lineRect))
+                return;
+
             var a = new Vector3(start.X, start.Y, 0);
             var b = new Vector3(end.X, end.Y, 0);
 

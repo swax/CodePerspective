@@ -345,6 +345,8 @@ namespace XLibrary
 
             ThreadButton.DropDownItems.Add(new ToolStripSeparator());
 
+            var terminatedItems = new List<ToolStripMenuItem>();
+
             foreach (var flow in XRay.FlowMap)
             {
                 var menuItem = new ToolStripMenuItem(string.Format("Thread {0}: {1}", flow.ThreadID, flow.Name));
@@ -355,7 +357,20 @@ namespace XLibrary
                 menuItem.Checked = (Model.ShowThreads != null && Model.ShowThreads.Contains(flow.ThreadID));
                 menuItem.CheckedChanged += new EventHandler(ThreadMenuItem_CheckedChanged);
 
-                ThreadButton.DropDownItems.Add(menuItem);
+                if (flow.Handle.IsAlive)
+                    ThreadButton.DropDownItems.Add(menuItem);
+                else
+                    terminatedItems.Add(menuItem);
+            }
+
+            if (terminatedItems.Count > 0)
+            {
+                var terminatedMenu = new ToolStripMenuItem("Terminated");
+
+                foreach (var item in terminatedItems)
+                    terminatedMenu.DropDownItems.Add(item);
+
+                ThreadButton.DropDownItems.Add(terminatedMenu);
             }
         }
 
@@ -391,6 +406,23 @@ namespace XLibrary
 
             // do a refresh view
             RefreshView();
+        }
+
+        int SavedPanelHeight = 0;
+        int SavedBottomPos = int.MaxValue;
+
+        private void TabPanel_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+            if (splitContainer1.SplitterDistance >= SavedBottomPos)
+                splitContainer1.SplitterDistance = Height - SavedPanelHeight;
+
+            else
+            {
+                SavedPanelHeight = splitContainer1.Panel2.Height;
+                splitContainer1.SplitterDistance = splitContainer1.Height;
+                SavedBottomPos = splitContainer1.SplitterDistance; // after setting distance above, it is reset to the min distance
+            }
         }
     }
 

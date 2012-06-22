@@ -61,6 +61,7 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.ResetHitLink = new System.Windows.Forms.LinkLabel();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.ShowCodeButton = new System.Windows.Forms.CheckBox();
             this.panel4 = new System.Windows.Forms.Panel();
             this.IncludeAnon = new System.Windows.Forms.CheckBox();
             this.IncludeMethods = new System.Windows.Forms.CheckBox();
@@ -298,9 +299,9 @@
             this.CallsAllButton.AutoSize = true;
             this.CallsAllButton.Location = new System.Drawing.Point(3, 3);
             this.CallsAllButton.Name = "CallsAllButton";
-            this.CallsAllButton.Size = new System.Drawing.Size(37, 17);
+            this.CallsAllButton.Size = new System.Drawing.Size(48, 17);
             this.CallsAllButton.TabIndex = 19;
-            this.CallsAllButton.Text = "All";
+            this.CallsAllButton.Text = "Calls";
             this.CallsAllButton.UseVisualStyleBackColor = true;
             this.CallsAllButton.CheckedChanged += new System.EventHandler(this.CallsAllButton_CheckedChanged);
             // 
@@ -310,9 +311,9 @@
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(402, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(34, 13);
+            this.label5.Size = new System.Drawing.Size(38, 13);
             this.label5.TabIndex = 18;
-            this.label5.Text = "Calls";
+            this.label5.Text = "Show";
             // 
             // panel1
             // 
@@ -462,13 +463,25 @@
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.ShowCodeButton);
             this.panel3.Controls.Add(this.CallsAllButton);
             this.panel3.Controls.Add(this.CallsRealTimeButton);
             this.panel3.Controls.Add(this.LayoutInOrder);
             this.panel3.Location = new System.Drawing.Point(405, 17);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(77, 73);
+            this.panel3.Size = new System.Drawing.Size(77, 121);
             this.panel3.TabIndex = 23;
+            // 
+            // ShowCodeButton
+            // 
+            this.ShowCodeButton.AutoSize = true;
+            this.ShowCodeButton.Location = new System.Drawing.Point(3, 68);
+            this.ShowCodeButton.Name = "ShowCodeButton";
+            this.ShowCodeButton.Size = new System.Drawing.Size(51, 17);
+            this.ShowCodeButton.TabIndex = 22;
+            this.ShowCodeButton.Text = "Code";
+            this.ShowCodeButton.UseVisualStyleBackColor = true;
+            this.ShowCodeButton.CheckedChanged += new System.EventHandler(this.ShowCodeButton_CheckedChanged);
             // 
             // panel4
             // 
@@ -766,5 +779,6 @@
         public System.Windows.Forms.RadioButton RenderGibsonButton;
         private System.Windows.Forms.LinkLabel PauseLink;
         public System.Windows.Forms.RadioButton LayoutLayerGraphButton;
+        public System.Windows.Forms.CheckBox ShowCodeButton;
     }
 }

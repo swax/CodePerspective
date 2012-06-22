@@ -42,6 +42,8 @@ namespace XLibrary
 
         public List<XInstruction> Msil;
         public byte[] CSharp;
+        public string PlainCSharp;
+        public string PlainMsil;
 
 
         public string FullName(bool excludeFile=false)
@@ -328,6 +330,89 @@ namespace XLibrary
 
             ParentChain = chain.ToArray();
             return ParentChain;
+        }
+
+        internal bool LoadMsil()
+        {
+            if (MsilPos == 0 || MsilLines == 0)
+                return false;
+
+            if (Msil != null)
+                return true;
+
+            using (FileStream DatStream = new FileStream(XRay.DatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                DatStream.Position = MsilPos;
+
+                Msil = new List<XInstruction>();
+                var code = new StringBuilder();
+
+                for (int i = 0; i < MsilLines; i++)
+                {
+                    var inst = new XInstruction();
+                    inst.Offset = BitConverter.ToInt32(DatStream.Read(4), 0);
+                    inst.OpCode = XNodeIn.ReadString(DatStream);
+                    inst.Line = XNodeIn.ReadString(DatStream);
+                    inst.RefId = BitConverter.ToInt32(DatStream.Read(4), 0);
+
+                    if (inst.RefId != 0 && !inst.Line.StartsWith("goto "))
+                        inst.Line = Utilities.GetMethodName(this, inst.RefId);
+
+                    Msil.Add(inst);
+                    code.Append(inst.Offset.ToString("X") + ": " + inst.OpCode + " " + inst.Line + "\r\n");
+                }
+
+                PlainMsil = code.ToString();
+            }
+
+            return true;
+        }
+
+        internal bool LoadCSharp()
+        {
+            if (CSharpPos == 0 || CSharpLength == 0)
+                return false;
+
+            if (CSharp != null)
+                return true;
+
+            using (FileStream DatStream = new FileStream(XRay.DatPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                DatStream.Position = CSharpPos;
+
+                CSharp = DatStream.Read(CSharpLength);
+            }
+
+            // read byte stream and build html
+            var code = new StringBuilder();
+
+            // format - id, length, string
+            var stream = new MemoryStream(CSharp);
+
+            while (stream.Position < stream.Length)
+            {
+                var id = BitConverter.ToInt32(stream.Read(4), 0);
+                var strlen = BitConverter.ToInt32(stream.Read(4), 0);
+                string text = UTF8Encoding.UTF8.GetString(stream.Read(strlen));
+
+               code.Append(text);
+            }
+
+            PlainCSharp = code.ToString();
+
+            return true;
+        }
+
+        
+        internal string GetMethodCode()
+        {
+            if (LoadCSharp())
+                return PlainCSharp;
+
+            if (LoadMsil())
+                return PlainMsil;
+
+            return "Code not available";
         }
     }
 

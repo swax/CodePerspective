@@ -49,23 +49,25 @@ namespace XLibrary.Panels
             IncludeMethods.Checked = Model.ShowMethods;
             IncludeAnon.Checked = Model.ShowAnon;
 
-            // layout
+            // show
             LayoutTreeMapButton.Checked = Model.ViewLayout == LayoutType.TreeMap;
             LayoutCallGraphButton.Checked = Model.ViewLayout == LayoutType.CallGraph;
             LayoutTimelineButton.Checked = Model.ViewLayout == LayoutType.Timeline;
             LayoutInOrder.Checked = Model.SequenceOrder;
+            ShowCodeButton.Checked = Model.ShowCode;
 
             // rendering
             RenderGdiButton.Checked = Main.SelectedView is GdiRenderer;
             RenderOpenGLButton.Checked = Main.SelectedView is GLRenderer;
             RenderGibsonButton.Checked = Main.SelectedView is GibsonRenderer;
 
-            // show
+            // elements
             ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
             ShowHitButton.Checked = Model.ShowLayout == ShowNodes.Hit;
             ShowNotHitButton.Checked = Model.ShowLayout == ShowNodes.Unhit;
             ShowInstancesButton.Checked = Model.ShowLayout == ShowNodes.Instances;
 
+            // size
             SizeConstantButton.Checked = Model.SizeLayout == SizeLayouts.Constant;
             SizeLinesButton.Checked = Model.SizeLayout == SizeLayouts.MethodSize;
             SizeTimeInMethodButton.Checked = Model.SizeLayout == SizeLayouts.TimeInMethod;
@@ -398,6 +400,13 @@ namespace XLibrary.Panels
             Model.GraphMode = CallGraphMode.Layers;
             Main.RefreshView();
             SetRootToClass();
+        }
+
+        private void ShowCodeButton_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.ShowCode = ShowCodeButton.Checked;
+
+            Model.Renderer.ViewInvalidate();
         }
     }
 }

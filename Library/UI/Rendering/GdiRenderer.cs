@@ -165,6 +165,7 @@ namespace XLibrary
         public void DrawString(string text, Font font, Color color, float x, float y, float width, float height)
         {
             var rect = new RectangleF(x, y, width, height);
+
             CurrentBuffer.DrawString(text, font, GetBrush(color), rect, LabelFormat);
         }
 
@@ -195,7 +196,7 @@ namespace XLibrary
         }
 
         public void DrawCallLine(Color color, int lineWidth, PointF start, PointF end, bool dashed, NodeModel source, NodeModel destination)
-        {             
+        {
             var pen = GetPen(color, lineWidth, dashed);
 
             if(dashed)

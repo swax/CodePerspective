@@ -795,7 +795,7 @@ namespace XLibrary
         public long Created;
         public long Deleted;
         public List<ActiveRecord> Active = new List<ActiveRecord>();
-        
+
         /// <summary>
         /// Returns true if new instance created
         /// </summary>
@@ -835,6 +835,7 @@ namespace XLibrary
                 return (Active.Count == 0);
             }
         }
+
     }
 
     public class ActiveRecord

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Collections;
+using System.Reflection;
 
 namespace XLibrary
 {
@@ -123,5 +124,61 @@ namespace XLibrary
             else
                 return Name;
         }
+
+        internal IEnumerable<string> GetFieldValues()
+        {
+            var classNode = GetParentClass(false);
+
+            if (classNode != null && classNode.XNode.Record != null && classNode.XNode.Record.Active.Count > 0)
+            {
+                var record = classNode.XNode.Record;
+
+                lock (record.Active)
+                {
+                    FieldInfo field = null;
+
+                    for (int i = 0; i < record.Active.Count; i++)
+                    {
+                        var instance = record.Active[i];
+
+                        field = instance.GetField(XNode.UnformattedName);
+
+                        object target = null;
+                        if (instance != null && instance.Ref != null)
+                            target = instance.Ref.Target;
+
+                        // dont query the static class instance of the class for non-static fields
+                        if (field == null || !field.IsStatic && target == null)
+                            continue;
+
+                        string text = "";
+                        try
+                        {
+                            if (target == null)
+                                text += "(static) ";
+                            else
+                                text += "#" + instance.Number + ": ";
+
+                            object val = field.GetValue(target);
+
+                            text += (val != null) ? val.ToString() : "<null>";
+                        }
+                        catch (Exception ex)
+                        {
+                            text = ex.Message;
+                            //continue; 
+                        }
+
+                        yield return text;
+
+                        if (field.IsStatic)
+                            break;
+                    }
+                }
+            }
+        }
+
+
+
     }
 }

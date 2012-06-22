@@ -330,7 +330,7 @@ namespace XLibrary
                 SelectionMap[node.ID] = node;
                 color = Color.FromArgb((255 << 24) | node.ID);
 
-                var textArea = qfont.Measure(text, rect.Width, QFontAlignment.Left);
+                var textArea = qfont.Measure(text, rect.Size, QFontAlignment.Left);
 
                 var normal = new Vector3(0, 1, 0);
                 var v1 = new Vector3(rect.X, height, rect.Y);
@@ -341,7 +341,7 @@ namespace XLibrary
                 Nodes.AddVerticies(color, normal, v1, v2, v3, v1, v3, v4);
             }
             else
-                qfont.PrintToVBO(text, rect.Width, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color);
+                qfont.PrintToVBO(text, QFontAlignment.Left, new Vector3(rect.X, rect.Y, -height), color, rect.Size);
 
         }
 
@@ -608,7 +608,17 @@ namespace XLibrary
 
         void FpsRenderer_MouseWheel(object sender, MouseEventArgs e)
         {
-            float steps = (float)e.Delta / 120f;
+            /*float zoomAmount = (float)Math.Pow(1.3, e.Delta / 120.0);
+
+            Model.ZoomFactor *= zoomAmount;
+
+            if (Model.ZoomFactor < 1)
+                Model.ZoomFactor = 1;
+
+            Model.DoResize = true;
+            Invalidate();*/
+
+           float steps = (float)e.Delta / 120f;
 
             for(int i = 0; i < Math.Abs(steps); i++)
                 FpsCam.MoveWheelTick(e.Delta > 0);

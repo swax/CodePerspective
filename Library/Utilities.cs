@@ -137,5 +137,36 @@ namespace XLibrary
         {
             new ToolTip() { AutoPopDelay = 20000 }.SetToolTip(control, text);
         }
+
+        public static string GetMethodName(XNodeIn localNode, int nodeID)
+        {
+            var node = XRay.Nodes[nodeID];
+
+            var parentClass = node.GetParentClass(false);
+            bool includeClass = (parentClass != localNode.GetParentClass(false));
+
+            if (node.ObjType == XObjType.Field)
+            {
+                string name = node.UnformattedName;
+
+                if (includeClass)
+                    name = parentClass.Name + "::" + name;
+
+                if (node.ReturnID != 0)
+                {
+                    var retNode = XRay.Nodes[node.ReturnID];
+                    name = retNode.Name + " " + name;
+                }
+
+                return name;
+            }
+
+            else if (node.ObjType == XObjType.Method)
+            {
+                return node.GetMethodName(includeClass);
+            }
+
+            return "unknown";
+        }
     }
 }

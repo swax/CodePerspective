@@ -265,7 +265,7 @@ namespace XLibrary
 
             // set background of node base color
             Color background = XColors.EmptyColor;
-    
+
             // if selcted
             if (node.Hovered && ViewLayout == LayoutType.TreeMap)
             {
@@ -280,7 +280,7 @@ namespace XLibrary
             // if no overlay, draw the border color as the entire node cause its very small
             bool noBorder = area.Width < 3.0f || area.Height < 3.0f;
 
-            if(noBorder)  
+            if (noBorder)
                 background = XColors.ObjColors[(int)node.ObjType];
 
 
@@ -365,7 +365,7 @@ namespace XLibrary
                 if (FocusedNodes.Contains(node))
                     penWidth = 2;
 
-                Renderer.DrawNode(background, area, outside, node, depth);        
+                Renderer.DrawNode(background, area, outside, node, depth);
                 Renderer.DrawNodeOutline(pen, penWidth, area, outside, node, depth);
             }
 
@@ -375,9 +375,25 @@ namespace XLibrary
             {
                 Renderer.DrawTextBackground(XColors.LabelBgColor, labelArea.X, labelArea.Y, labelArea.Width, labelArea.Height);
                 Renderer.DrawNodeLabel(node.Name, TextFont, XColors.ObjColors[(int)node.ObjType], labelArea, node, depth);
+
+                // draw code inside node
+                if(ShowCode && node.AreaF.Width > 50 && node.AreaF.Height > 50)
+                    if (node.ObjType == XObjType.Method)
+                    {
+                        string code = node.XNode.GetMethodCode();
+                        
+                        Renderer.DrawString(code, TextFont, XColors.CodeColor, node.AreaF.X + 5, node.AreaF.Y + labelArea.Height + 5, node.AreaF.Width - 10, node.AreaF.Height - 10 - labelArea.Height);
+                    }
+                    // draw field values inside node
+                    else if (node.ObjType == XObjType.Field)
+                    {
+                        var summary = "";
+                        foreach (var value in node.GetFieldValues())
+                            summary += value + "\r\n";
+
+                        Renderer.DrawString(summary, TextFont, XColors.CodeColor, node.AreaF.X + 5, node.AreaF.Y + labelArea.Height + 5, node.AreaF.Width - 10, node.AreaF.Height - 10 - labelArea.Height);
+                    }
             }
-
-
             if (MapMode == TreeMapMode.Dependencies && node.ObjType == XObjType.Class)
                 drawChildren = false;
 
@@ -590,55 +606,8 @@ namespace XLibrary
 
             else if (lastNode.ObjType == XObjType.Field)
             {
-                var classNode = lastNode.GetParentClass(false);
-
-                if (classNode != null && classNode.XNode.Record != null && classNode.XNode.Record.Active.Count > 0)
-                {
-                    var record = classNode.XNode.Record;
-
-                    lock (record.Active)
-                    {
-                        FieldInfo field = null;
-
-                        for (int i = 0; i < record.Active.Count; i++)
-                        {
-                            var instance = record.Active[i];
-
-                            field = instance.GetField(lastNode.XNode.UnformattedName);
-
-                            object target = null;
-                            if (instance != null && instance.Ref != null)
-                                target = instance.Ref.Target;
-
-                            // dont query the static class instance of the class for non-static fields
-                            if (field == null || !field.IsStatic && target == null)
-                                continue;
-
-                            string text = "";
-                            try
-                            {
-                                if (target == null)
-                                    text += "(static) ";
-                                else
-                                    text += "#" + instance.Number + ": ";
-
-                                object val = field.GetValue(target);
-
-                                text += (val != null) ? val.ToString() : "<null>";
-                            }
-                            catch (Exception ex)
-                            {
-                                text = ex.Message;
-                                //continue; 
-                            }
-
-                            labels.Add(new Tuple<string, Color>(text, XColors.TextColor));
-
-                            if (field.IsStatic)
-                                break;
-                        }
-                    }
-                }
+                foreach (var value in lastNode.GetFieldValues())
+                    labels.Add(new Tuple<string, Color>(value, XColors.TextColor));
             }
 
             // find the size of the background box

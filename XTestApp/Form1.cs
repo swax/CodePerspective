@@ -109,13 +109,29 @@ namespace XTestApp
 
             public int DivideByZero()
             {
-                int x = 0;
+                var a = new ExtremeNested();
+
+                int x = a.ExtremeThings();
                 x++;
 
                 int y = 1;
                 y--;
 
                 return x / y;
+            }
+
+            public class ExtremeNested
+            {
+                int xx = 0;
+
+                public int ExtremeThings()
+                {
+                    xx++;
+                    xx += 5;
+                    xx -= 10;
+                    xx--;
+                    return xx;
+                }
             }
         }
 

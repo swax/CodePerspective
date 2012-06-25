@@ -1,14 +1,16 @@
-﻿double click tab bar to show/collapse
-
+﻿
+figure out why nested class added twice in test app, see if improves ilspy
+	filter empty classes in view, especially for ilspy
+background tooltip color in opengl
+add debug logging to catch why facebook github doesnt work
 add more tool tips
-	**why xtestapp code not being generated for linked dll
+need a class to parse type string into syntax tree, also use in field view to simplify thangzz
+   should the !!0 types be put somewhere?
 
 xlibrary
 	**fix dupe nodes getting created for templated classes - Dictionary<>, etc..
 	move covered nodes into view model so different UIs dont share the same covered node set
 	
-	background tooltip color in opengl
-
 about tab 
 	put about panel in builder and viewer	
 	github address, swax homepage, donate/biitcoin account

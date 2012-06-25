@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using OpenTK;
+using System.Reflection;
 
 
 namespace XLibrary
@@ -52,6 +53,9 @@ namespace XLibrary
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
             NamespaceTab.Visible = false;
+
+            //var x = Assembly.GetEntryAssembly();
+            Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Perspective";
 
         }
 

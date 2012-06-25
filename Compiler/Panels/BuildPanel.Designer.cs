@@ -156,9 +156,9 @@
             this.ShowOnStartCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.ShowOnStartCheckBox.Location = new System.Drawing.Point(13, 118);
             this.ShowOnStartCheckBox.Name = "ShowOnStartCheckBox";
-            this.ShowOnStartCheckBox.Size = new System.Drawing.Size(197, 17);
+            this.ShowOnStartCheckBox.Size = new System.Drawing.Size(165, 17);
             this.ShowOnStartCheckBox.TabIndex = 24;
-            this.ShowOnStartCheckBox.Text = "Show Ghost Viewer when app starts";
+            this.ShowOnStartCheckBox.Text = "Show viewer when app starts";
             this.ShowOnStartCheckBox.UseVisualStyleBackColor = true;
             // 
             // OutputLink
@@ -333,7 +333,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(13, 9);
+            this.label1.Location = new System.Drawing.Point(8, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(113, 13);
             this.label1.TabIndex = 17;

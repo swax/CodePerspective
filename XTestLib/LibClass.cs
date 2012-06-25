@@ -17,6 +17,12 @@ namespace XTestLib
     {
         public int TestMe;
 
+        public int[] arrayTest;
+        public int[][] arrayTest2;
+        public int[,] arrayTest3;
+
+        
+        int dummy = 0;
 
         public int PublicVar = 2;
         private int PrivateVar = 3;

@@ -87,6 +87,10 @@ namespace XBuilder
 
             AssemblyDefinition asm = AssemblyDefinition.ReadAssembly(assemblyPath);
 
+            var resolver = asm.MainModule.AssemblyResolver as DefaultAssemblyResolver;
+            if(resolver != null)
+                resolver.AddSearchDirectory(Path.GetDirectoryName(OriginalPath));
+
             // similar to using ilasm 4.0, adds // Metadata version: v4.0.30319 to disassembled version (though mscorlib ref stays original version)
             // lets us link xlibrary without error because it uses 4.0 runtime as well
             asm.MainModule.Runtime = TargetRuntime.Net_4_0; 
@@ -113,6 +117,12 @@ namespace XBuilder
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
             {
+                if (classDef.Namespace == "")
+                {
+                    Debug.WriteLine("Empty namespace ignored - " + classDef.ToString());
+                    continue;
+                }
+
                 CurrentNode = XFile.FileNode;
 
                 string[] namespaces = classDef.Namespace.Split('.');
@@ -242,7 +252,10 @@ namespace XBuilder
 
                     SetClassDependency(classNode, fieldDef.DeclaringType);
 
-                    fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
+                    if (fieldDef.FieldType.IsGenericParameter)
+                        Debug.Write("Generic parameter ignored - " + fieldDef.FieldType.ToString());
+                    else
+                        fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
                 }
 
             if(TrackCode)
@@ -272,10 +285,15 @@ namespace XBuilder
                             inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
                         {
                             var call = inst.Operand as MethodReference;
-                            var classRef = GetClassRef(call.DeclaringType);
-                            var methodRef = classRef.AddMethod(call);
+                            if (call != null)
+                            {
+                                var classRef = GetClassRef(call.DeclaringType);
+                                var methodRef = classRef.AddMethod(call);
 
-                            xInst.RefId = methodRef.ID;
+                                xInst.RefId = methodRef.ID;
+                            }
+                            else
+                                Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
                         }
                         else if (inst.OpCode == OpCodes.Stfld ||
                                   inst.OpCode == OpCodes.Stsfld ||
@@ -450,6 +468,12 @@ namespace XBuilder
                     {
                         var call = instruction.Operand as MethodReference;
 
+                        if (call == null)
+                        {
+                            Debug.WriteLine("Unable to track not xrayed: " + instruction.Operand.ToString());
+                            continue;
+                        }
+
                         SetClassDependency(classNode, call.ReturnType);
                         SetClassDependency(classNode, call.DeclaringType);
                         foreach(var p in call.Parameters)
@@ -576,8 +600,8 @@ namespace XBuilder
                 return null;
 
             var target = GetClassRef(declaringType);
-
             target = target.GetParentClass(true) as XNodeOut;
+
             dependentClass = dependentClass.GetParentClass(true) as XNodeOut; 
 
             if (dependentClass.ClassDependencies == null)
@@ -590,6 +614,9 @@ namespace XBuilder
 
         XNodeOut GetClassRef(TypeReference declaringType)
         {
+            if(!declaringType.IsGenericParameter && !declaringType.IsFunctionPointer)
+                XDef.ParseAndCheck(declaringType.ToString());
+
             var scope = declaringType.Scope;
 
             if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
@@ -624,6 +651,72 @@ namespace XBuilder
 
 
             return node.AddNode(className, XObjType.Class);
+
+            /*
+            var scope = declaringType.Scope;
+
+            if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
+            {
+                // is this scope type internal or external, should it be tracked externally?
+                Debug.Assert(false);
+                return null;
+            }
+
+            XNodeOut node = null;
+
+            // if xrayed internal
+            if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
+                node = XFile.FileNode;
+
+            // xrayed, but in diff module
+            else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
+                node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
+
+            // if not xrayed - map to external root
+            else
+            {
+                string moduleName = scope.Name;
+                node = ExtRoot.AddNode(moduleName, XObjType.File);
+            }
+
+            // DELETE
+            if (declaringType.IsGenericParameter)
+                return node.AddNode(declaringType.ToString(), XObjType.Class);
+            // 
+            XDef.ParseAndCheck(declaringType.ToString());
+
+            // declaring type toString() => namespace.namespace.class/nestedClass/nestedClass
+            string namespaces = declaringType.ToString();
+            string nested = null;
+
+            int pos = namespaces.IndexOf('/');
+            if (pos != -1)
+            {
+                nested = namespaces.Substring(pos + 1);
+                namespaces = namespaces.Substring(0, pos);
+            }
+
+            pos = namespaces.LastIndexOf('.');
+            if (pos == -1)
+            {
+                Debug.WriteLine("Error parsing type ref - " + declaringType.ToString());
+                return null;
+            }
+
+            string className = namespaces.Substring(pos + 1);
+            namespaces = namespaces.Substring(0, pos);
+  
+            // traverse or add namespace to root
+            foreach (var name in namespaces.Split('.'))
+                node = node.AddNode(name, XObjType.Namespace);
+
+            node = node.AddNode(className, XObjType.Class);
+
+            if(nested != null)
+                foreach (var name in nested.Split('/'))
+                    node = node.AddNode(name, XObjType.Class);
+
+            return node;*/
         }
 
         internal void AddInstruction(MethodDefinition method, int pos, Instruction instruction)

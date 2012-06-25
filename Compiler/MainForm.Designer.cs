@@ -118,7 +118,7 @@
             this.ClientSize = new System.Drawing.Size(385, 393);
             this.Controls.Add(this.MainTabs);
             this.Name = "MainForm";
-            this.Text = "Ghost in the Code";
+            this.Text = "Perspective";
             this.MainTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);

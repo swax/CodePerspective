@@ -21,7 +21,7 @@ namespace XBuilder
         public byte[] DecompileMethod(MethodDefinition method)
         {
             var binout = new BinaryOutput(this);
-
+            
             try
             {
                 DecompileMethod(method, binout);

@@ -206,7 +206,7 @@ namespace XLibrary
             var config = new QFontBuilderConfiguration() 
             {
                 UseVertexBuffer = true,
-                TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault 
+                TextGenerationRenderHint = TextGenerationRenderHint.AntiAliasGridFit 
             };
 
             qfont = new QFont(font, config);

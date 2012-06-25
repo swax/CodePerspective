@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
+using XLibrary;
 
 namespace XBuilder
 {
@@ -14,6 +15,8 @@ namespace XBuilder
         [STAThread]
         static void Main()
         {
+            XDef.Test();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());

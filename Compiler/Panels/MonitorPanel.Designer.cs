@@ -105,10 +105,10 @@
             this.ShowViewerLink.AutoSize = true;
             this.ShowViewerLink.Location = new System.Drawing.Point(20, 26);
             this.ShowViewerLink.Name = "ShowViewerLink";
-            this.ShowViewerLink.Size = new System.Drawing.Size(115, 13);
+            this.ShowViewerLink.Size = new System.Drawing.Size(69, 13);
             this.ShowViewerLink.TabIndex = 0;
             this.ShowViewerLink.TabStop = true;
-            this.ShowViewerLink.Text = "Show Ghost Viewer";
+            this.ShowViewerLink.Text = "Show Viewer";
             this.ShowViewerLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ShowViewerLink_LinkClicked);
             // 
             // label1
@@ -117,9 +117,9 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(3, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(172, 13);
+            this.label1.Size = new System.Drawing.Size(120, 13);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Running Ghost Viewable Processes";
+            this.label1.Text = "Viewable Processes";
             // 
             // RefreshTimer
             // 

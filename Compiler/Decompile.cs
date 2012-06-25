@@ -116,22 +116,7 @@ namespace XBuilder
 
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
-            {
-                if (classDef.Namespace == "")
-                {
-                    Debug.WriteLine("Empty namespace ignored - " + classDef.ToString());
-                    continue;
-                }
-
-                CurrentNode = XFile.FileNode;
-
-                string[] namespaces = classDef.Namespace.Split('.');
-
-                for (int i = 0; i < namespaces.Length; i++)
-                    CurrentNode = CurrentNode.AddNode(namespaces[i], XObjType.Namespace);
-
-                RecompileClass(classDef, CurrentNode);
-            }
+                RecompileClass(classDef, XFile.FileNode);
 
             // init xray at assembly entry point, do last so it comes before method enter
             if (asm.EntryPoint != null)
@@ -222,20 +207,53 @@ namespace XBuilder
             cctor.Body.OptimizeMacros();
         }
 
-        private XNodeOut RecompileClass(TypeDefinition classDef, XNodeOut parentNode)
+        XNodeOut SignatureToNodes(string signature, XNodeOut fileNode)
+        {
+            // create syntax tree for signature
+            XDef def = XDef.ParseAndCheck(signature);
+
+            // iterate syntax tree and add to our node map
+            XNodeOut currentNode = fileNode;
+
+            while (def != null)
+            {
+                if (def.DefType == XDef.XDefType.Namespace)
+                    currentNode = currentNode.AddNode(def.Name, XObjType.Namespace);
+
+                else if (def.DefType == XDef.XDefType.Class)
+                {
+                    currentNode = currentNode.AddNode(def.Name, XObjType.Class);
+
+                    if (def.Generics != null)
+                        foreach (var genericSig in def.Generics)
+                            SignatureToNodes(genericSig.GetFullName(), fileNode);
+                }
+
+                def = def.SubDef;
+            }
+
+            Debug.Assert(currentNode.ObjType == XObjType.Class);
+
+            return currentNode;
+        }
+
+        private XNodeOut RecompileClass(TypeDefinition classDef, XNodeOut fileNode)
         {
             if ( !TrackAnon && classDef.Name.StartsWith("<>") )
                 return null;
 
-            var classNode = parentNode.AddNode(classDef.Name, XObjType.Class);
+            var classNode = SignatureToNodes(classDef.ToString(), fileNode);
 
             if(classDef.BaseType != null)
                 SetClassDependency(classNode, classDef.BaseType);
 
             RecompileMethods(classDef, classNode);
 
-            foreach (var nestedDef in classDef.NestedTypes.Where(nt => nt.MetadataType == MetadataType.Class).ToArray())
-                RecompileClass(nestedDef, classNode);
+            foreach (var nestedDef in classDef.NestedTypes)
+                if (nestedDef.MetadataType == MetadataType.Class || nestedDef.MetadataType == MetadataType.ValueType)
+                    RecompileClass(nestedDef, fileNode);
+                else
+                    Debug.WriteLine("Ignored nested type - " + nestedDef.ToString());
 
             return classNode;
         }
@@ -253,7 +271,7 @@ namespace XBuilder
                     SetClassDependency(classNode, fieldDef.DeclaringType);
 
                     if (fieldDef.FieldType.IsGenericParameter)
-                        Debug.Write("Generic parameter ignored - " + fieldDef.FieldType.ToString());
+                        Debug.WriteLine("Generic parameter ignored - " + fieldDef.FieldType.ToString());
                     else
                         fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
                 }
@@ -614,109 +632,48 @@ namespace XBuilder
 
         XNodeOut GetClassRef(TypeReference declaringType)
         {
-            if(!declaringType.IsGenericParameter && !declaringType.IsFunctionPointer)
-                XDef.ParseAndCheck(declaringType.ToString());
+            //if(!declaringType.IsGenericParameter && !declaringType.IsFunctionPointer)
+            //    XDef.ParseAndCheck(declaringType.ToString());
+
+            if (declaringType.IsGenericParameter)
+                Debug.WriteLine("GetClassRef for Generic Param - " + declaringType.ToString());
+
+            if (declaringType.IsFunctionPointer)
+                Debug.WriteLine("GetClassRef for Function Pointer - " + declaringType.ToString());
 
             var scope = declaringType.Scope;
 
             if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
             {
                 // is this scope type internal or external, should it be tracked externally?
+                Debug.WriteLine("Skipped GetClassRef for - " + declaringType.ToString());
                 Debug.Assert(false);
                 return null;
             }
 
-            string moduleName = scope.Name;
-            string namespaces = (declaringType.DeclaringType != null) ? declaringType.DeclaringType.Namespace : declaringType.Namespace;
-            string className = declaringType.Name;
+           
+            //string namespaces = (declaringType.DeclaringType != null) ? declaringType.DeclaringType.Namespace : declaringType.Namespace;
+            //string className = declaringType.Name;
 
 
-            XNodeOut node = null;
-
-            // if xrayed internal
-            if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
-                node = XFile.FileNode;
-
-            // xrayed, but in diff module
-            else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
-                node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
-
-            // if not xrayed - map to external root
-            else
-                node = ExtRoot.AddNode(moduleName, XObjType.File);
-
-            // traverse or add namespace to root
-            foreach (var name in namespaces.Split('.'))
-                node = node.AddNode(name, XObjType.Namespace);
-
-
-            return node.AddNode(className, XObjType.Class);
-
-            /*
-            var scope = declaringType.Scope;
-
-            if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
-            {
-                // is this scope type internal or external, should it be tracked externally?
-                Debug.Assert(false);
-                return null;
-            }
-
-            XNodeOut node = null;
+            XNodeOut fileNode = null;
 
             // if xrayed internal
             if (scope.MetadataScopeType == MetadataScopeType.ModuleDefinition)
-                node = XFile.FileNode;
+                fileNode = XFile.FileNode;
 
             // xrayed, but in diff module
             else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
-                node = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
+                fileNode = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
 
             // if not xrayed - map to external root
             else
             {
                 string moduleName = scope.Name;
-                node = ExtRoot.AddNode(moduleName, XObjType.File);
+                fileNode = ExtRoot.AddNode(moduleName, XObjType.File);
             }
 
-            // DELETE
-            if (declaringType.IsGenericParameter)
-                return node.AddNode(declaringType.ToString(), XObjType.Class);
-            // 
-            XDef.ParseAndCheck(declaringType.ToString());
-
-            // declaring type toString() => namespace.namespace.class/nestedClass/nestedClass
-            string namespaces = declaringType.ToString();
-            string nested = null;
-
-            int pos = namespaces.IndexOf('/');
-            if (pos != -1)
-            {
-                nested = namespaces.Substring(pos + 1);
-                namespaces = namespaces.Substring(0, pos);
-            }
-
-            pos = namespaces.LastIndexOf('.');
-            if (pos == -1)
-            {
-                Debug.WriteLine("Error parsing type ref - " + declaringType.ToString());
-                return null;
-            }
-
-            string className = namespaces.Substring(pos + 1);
-            namespaces = namespaces.Substring(0, pos);
-  
-            // traverse or add namespace to root
-            foreach (var name in namespaces.Split('.'))
-                node = node.AddNode(name, XObjType.Namespace);
-
-            node = node.AddNode(className, XObjType.Class);
-
-            if(nested != null)
-                foreach (var name in nested.Split('/'))
-                    node = node.AddNode(name, XObjType.Class);
-
-            return node;*/
+            return SignatureToNodes(declaringType.ToString(), fileNode);
         }
 
         internal void AddInstruction(MethodDefinition method, int pos, Instruction instruction)

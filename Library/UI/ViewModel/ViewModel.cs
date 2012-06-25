@@ -134,10 +134,9 @@ namespace XLibrary
                     (ShowLayout == ShowNodes.Unhit && XRay.CoveredNodes[root.ID]))
                     root.Value = 0;
 
-                return;
+                // processs subnodes because methods/fields can have anon sub classes
             }
 
-            // else we're dealing with a file, namespace, or class type
 
             foreach (var node in root.Nodes)
             {
@@ -150,8 +149,7 @@ namespace XLibrary
                         ShowLayout == ShowNodes.All ||
                         ShowLayout == ShowNodes.Hit ||
                         ShowLayout == ShowNodes.Unhit ||
-                        (ShowLayout == ShowNodes.Instances &&
-                         (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Created > 0)));
+                        (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Created > 0)));
 
                     if ((node.ObjType == XObjType.Field && !ShowFields) ||
                         (node.ObjType == XObjType.Method && !ShowMethods) ||

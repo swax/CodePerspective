@@ -427,8 +427,6 @@ namespace XLibrary
             ParseAndCheck("System.Collections.Generic.KeyValuePair`2<TKey,TVal>[]");
             ParseAndCheck("System.Single[]&");
         }
-
-        // unit tests with common names, check output
     }
 
 

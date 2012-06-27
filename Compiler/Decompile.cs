@@ -207,7 +207,7 @@ namespace XBuilder
             cctor.Body.OptimizeMacros();
         }
 
-        XNodeOut SignatureToNodes(string signature, XNodeOut fileNode)
+        public static XNodeOut SignatureToClass(string signature, XNodeOut fileNode)
         {
             // create syntax tree for signature
             XDef def = XDef.ParseAndCheck(signature);
@@ -222,11 +222,12 @@ namespace XBuilder
 
                 else if (def.DefType == XDef.XDefType.Class)
                 {
-                    currentNode = currentNode.AddNode(def.Name, XObjType.Class);
+                    currentNode = currentNode.AddNode(def.GetShortName(), XObjType.Class);
 
+                    /* Cant map generic params because the fileNode is not right
                     if (def.Generics != null)
                         foreach (var genericSig in def.Generics)
-                            SignatureToNodes(genericSig.GetFullName(), fileNode);
+                            SignatureToClass(genericSig.GetFullName(), fileNode);*/
                 }
 
                 def = def.SubDef;
@@ -242,7 +243,7 @@ namespace XBuilder
             if ( !TrackAnon && classDef.Name.StartsWith("<>") )
                 return null;
 
-            var classNode = SignatureToNodes(classDef.ToString(), fileNode);
+            var classNode = SignatureToClass(classDef.ToString(), fileNode);
 
             if(classDef.BaseType != null)
                 SetClassDependency(classNode, classDef.BaseType);
@@ -673,7 +674,7 @@ namespace XBuilder
                 fileNode = ExtRoot.AddNode(moduleName, XObjType.File);
             }
 
-            return SignatureToNodes(declaringType.ToString(), fileNode);
+            return SignatureToClass(declaringType.ToString(), fileNode);
         }
 
         internal void AddInstruction(MethodDefinition method, int pos, Instruction instruction)

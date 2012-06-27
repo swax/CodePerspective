@@ -251,12 +251,6 @@ namespace XBuilder
 
             public void Write(string text, int id)
             {
-                if (text == "ms400")
-                {
-                    int i = 0;
-                    i++;
-                }
-
                 WriteIndent();
                 WriteOutput(text, id);
                 column += text.Length;

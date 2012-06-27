@@ -21,7 +21,7 @@ namespace XTestApp
 
         public static int[] StaticArray = new int[] { 11,22,33,44 };
 
-        Dictionary<int, string> TestMap = new Dictionary<int, string>();
+        Dictionary<int, Dictionary<string, float[]>>[] TestMap = new Dictionary<int, Dictionary<string, float[]>>[] { };
 
         TemplateClass<int, int> templateInt = new TemplateClass<int, int>();
         TemplateClass<string, string> templateString = new TemplateClass<string, string>();

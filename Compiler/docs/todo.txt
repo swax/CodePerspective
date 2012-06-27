@@ -1,20 +1,23 @@
 ﻿
-class graph - filter method nodes with no edges
-	filter class nodes with no methods
-show short simple name in field view
-
+filtering by thread doesnt prune classes in class graph view
 put ilspy in perspective and investigate
-
-
 background tooltip color in opengl
 add debug logging to catch why facebook github doesnt work
 add more tool tips
-Dont turn generic parameters like T and !0 into class types
+
+instance view
+	match field name with static analysis
+		use short name from there
+		if field found that not in static analysis, then log
+	simplify field name
+		run field name through xdef, modify to match real time value
+			save value
+			replace any instance of that value, with shorter value
 
 track nested enum types in RecompileClass?
+static analysis - figure class dependencies from lower field and method dependencies
 
 xlibrary
-	**fix dupe nodes getting created for templated classes - Dictionary<>, etc..
 	move covered nodes into view model so different UIs dont share the same covered node set
 	
 about tab 
@@ -40,7 +43,6 @@ static analyis
 		see if it's easy to spot where class can be diveded
 	if class contains independent graphs, suggest to user that class can be reduced
 	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
-	draw code in node when zoomed close enough
 	show outside/zoom out in layer graph
 	can work on speeding up/debugging graphing with static analysis
 

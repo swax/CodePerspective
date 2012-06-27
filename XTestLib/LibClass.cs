@@ -34,9 +34,17 @@ namespace XTestLib
 
         TestDelegate RunDelegate;
 
+
+        Dictionary<int, string> TestMap1 = new Dictionary<int, string>();
+        Dictionary<int, int> TestMap2 = new Dictionary<int, int>();
+
         public LibClass()
         {
             RunDelegate += DelegateTarget;
+
+
+            var x = TestMap1.Values;
+            var y = TestMap2.Values;
         }
 
         public void DoMoreStuff()

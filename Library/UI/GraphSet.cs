@@ -18,7 +18,7 @@ namespace XLibrary
         public HashSet<int> CenterMap = new HashSet<int>(); // used to filter calls into and out of center
 
         // sub sets are entire graphs within a subnode in the current graph 
-        public List<GraphSet> Subsets = new List<GraphSet>();
+        public Dictionary<int, GraphSet> Subsets = new Dictionary<int, GraphSet>();
 
         public NodeModel GraphContainer;
 
@@ -58,6 +58,22 @@ namespace XLibrary
                 }
             }
 
+            // process subsets before building graphs so we can prune empty subset graphs
+            if (GraphMode == CallGraphMode.Layers)
+            {
+                foreach (var child in root.Nodes)
+                    Subsets[child.ID] = new GraphSet(Model, child, child);
+            }
+
+            else if (GraphMode == CallGraphMode.Class &&
+                     Model.ShowMethods &&
+                     GraphContainer == null)
+            {
+                foreach (var classNode in PositionMap.Values)
+                    Subsets[classNode.ID] = new GraphSet(Model, classNode, classNode, 1);
+            }
+
+
             if (PositionMap.Count > 0)
             {
                 BuildGraphs();
@@ -66,20 +82,6 @@ namespace XLibrary
                     LayoutGraphs();
             }
 
-
-            if (GraphMode == CallGraphMode.Layers)
-            {
-                foreach (var child in root.Nodes)
-                    Subsets.Add(new GraphSet(Model, child, child));
-            }
-
-            else if (GraphMode == CallGraphMode.Class &&
-                     Model.ShowMethods &&
-                     GraphContainer == null)
-            {
-                foreach (var classNode in PositionMap.Values)
-                    Subsets.Add(new GraphSet(Model, classNode, classNode, 1));
-            }
         }
 
         public void AddCalledNodes(NodeModel node, bool center, int depth = -1)
@@ -289,15 +291,39 @@ namespace XLibrary
                 }
 
                 // remove graphs with 1 element
-                if (graph.Count == 1 &&
-                    (GraphMode == CallGraphMode.Dependencies ||
-                     GraphMode == CallGraphMode.Method ||
-                     ((GraphMode == CallGraphMode.Class && !Model.ShowMethods && !Model.ShowFields))))
+                if (graph.Count == 1)
                 {
+                    bool remove = false;
                     var onlyNode = graph.First().Value;
-                    PositionMap.Remove(onlyNode.ID);
-                    CenterMap.Remove(onlyNode.ID);
-                    continue;
+                    
+                    if (GraphMode == CallGraphMode.Dependencies || GraphMode == CallGraphMode.Method)
+                        remove = true;
+
+                    if(GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Layers)
+                    {
+                        // dont remove method/field if alone as a graph because it may be still connect to other classes
+                        if (onlyNode.ObjType == XObjType.Method || onlyNode.ObjType == XObjType.Field)
+                        {
+                            // in class mode edges between nodes set dynamically, in layers mode edges are based on calls
+                            if ((GraphMode == CallGraphMode.Layers && onlyNode.XNode.CalledIn == null && onlyNode.XNode.CallsOut == null) ||
+                                (GraphMode == CallGraphMode.Class && onlyNode.EdgesIn == null && onlyNode.EdgesOut == null))
+                                remove = true;
+                        }
+                        // remove empty lonesome classes
+                        else if (onlyNode.ObjType == XObjType.Class && !Model.ShowMethods && !Model.ShowFields)
+                            remove = true;
+
+                        // if node is by lonesome and has no sub-graphs inside of it
+                        else if (Subsets.ContainsKey(onlyNode.ID) && Subsets[onlyNode.ID].Graphs.Count == 0)
+                            remove = true;
+                    }
+
+                    if(remove)
+                    {
+                        PositionMap.Remove(onlyNode.ID);
+                        CenterMap.Remove(onlyNode.ID);
+                        continue;
+                    }
                 }
             
 

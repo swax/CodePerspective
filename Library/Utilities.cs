@@ -101,6 +101,21 @@ namespace XLibrary
             }
         }
 
+        public static T FindParent<T>(T node, Func<T,bool> evaluate, Func<T, T> traverseUp)
+        {
+            T parent = node;
+
+            while (parent != null)
+            {
+                if (evaluate(parent))
+                    return parent;
+
+                parent = traverseUp(parent);
+            }
+
+            return default(T);
+        }
+
         public static string TicksToString(long ticks)
         {
             if (ticks == 0)
@@ -426,6 +441,38 @@ namespace XLibrary
             ParseAndCheck("std._Tree_val<std::_Tmap_traits<CefStringBase<CefStringTraitsUTF16>,CefStringBase<CefStringTraitsUTF16>,std::less<CefStringBase<CefStringTraitsUTF16> >,std::allocator<std::pair<CefStringBase<CefStringTraitsUTF16> const ,CefStringBase<CefStringTraitsUTF16> > >,1> >* modopt(System.Runtime.CompilerServices.CallConvThiscall)");
             ParseAndCheck("System.Collections.Generic.KeyValuePair`2<TKey,TVal>[]");
             ParseAndCheck("System.Single[]&");
+        }
+
+        public string GetShortName()
+        {
+            // decompiler calls this to get name of class
+
+            // this method calls GetShortName to get short name for generics
+
+            XDef def = this;
+
+            if (DefType != XDefType.Class)
+            {
+                while (true)
+                {
+                    if (def.SubDef == null)
+                        break;
+
+                    def = def.SubDef;
+                }
+            }
+
+            Debug.Assert(def.DefType == XDefType.Class);
+
+            string shortName = def.Name;
+
+            if (def.Generics != null)
+                shortName += "<" + string.Join(",", def.Generics.Select(g => g.GetShortName())) + ">";
+
+            if (def.Arrays != null)
+                shortName += def.Arrays;
+
+            return shortName;
         }
     }
 

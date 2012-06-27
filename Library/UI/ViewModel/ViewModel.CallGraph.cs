@@ -44,7 +44,7 @@ namespace XLibrary
                         foreach (var id in s.CenterMap)
                             CenterMap.Add(id);
                     },
-                    s => s.Subsets
+                    s => s.Subsets.Values
                 );
 
                 XRay.CallChange = false;
@@ -81,7 +81,7 @@ namespace XLibrary
                                 ScaleGraph(graph, s.GraphContainer.AreaF);
                         }
                     },
-                    s => s.Subsets
+                    s => s.Subsets.Values
                 );
 
                 DoResize = false;

@@ -8,6 +8,7 @@ using Mono.Cecil;
 using XLibrary;
 using System.Runtime.Serialization;
 using Mono.Cecil.Cil;
+using System.Diagnostics;
 
 
 namespace XBuilder
@@ -214,7 +215,10 @@ namespace XBuilder
         internal XNodeOut AddField(FieldReference fieldDef)
         {
             // include namespace later for dynamic lookups - string name = fieldDef.FieldType.FullName + "::" + fieldDef.Name;
-            string name = fieldDef.FieldType.Name + " " + fieldDef.Name;
+
+            XDef fieldTypeDef = XDef.ParseAndCheck(fieldDef.FieldType.ToString());
+
+            string name = fieldTypeDef.GetShortName() + " " + fieldDef.Name;
 
             var node = AddNode(name, XObjType.Field);
 

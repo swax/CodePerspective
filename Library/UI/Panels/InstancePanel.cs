@@ -213,17 +213,6 @@ namespace XLibrary
                 //AutoSizeColumn(col);
         }
 
-        /*private void AutoSizeColumn(DataGridViewColumn col)
-        {
-            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-
-            var width = col.Width + 10;
-
-            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-
-            col.Width = Math.Min(width, 200);
-        }*/
-
         private void FieldGrid_NodeExpanding(object sender, ExpandingEventArgs e)
         {
             var row = e.Node as FieldRow;

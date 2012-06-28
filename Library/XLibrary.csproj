@@ -81,6 +81,7 @@
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Windows.Forms">
     </Reference>
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq">
     </Reference>
     <Reference Include="System.Data.DataSetExtensions">

@@ -1,6 +1,5 @@
 ﻿
-filtering by thread doesnt prune classes in class graph view
-put ilspy in perspective and investigate
+focus on why apps are failing and give user a quick reason why something didnt xray successfully
 background tooltip color in opengl
 add debug logging to catch why facebook github doesnt work
 add more tool tips
@@ -20,6 +19,9 @@ static analysis - figure class dependencies from lower field and method dependen
 xlibrary
 	move covered nodes into view model so different UIs dont share the same covered node set
 	
+scanner view
+	on select app, show in details below exactly what exe/dlls were xrayed
+
 about tab 
 	put about panel in builder and viewer	
 	github address, swax homepage, donate/biitcoin account

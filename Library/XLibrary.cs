@@ -106,6 +106,10 @@ namespace XLibrary
             }
             InstanceTracking = trackInstances;
 
+            //System.Windows.Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(Current_DispatcherUnhandledException);
+            //Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
+           // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            //AppDomain.CurrentDomain.FirstChanceException +=new EventHandler<System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs>(CurrentDomain_FirstChanceException);
             try
             {
                 // data file with node info should be along side ext
@@ -125,6 +129,35 @@ namespace XLibrary
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        static void Current_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogUnhandledException("Current_DispatcherUnhandledException: " + e.Exception.ToString());
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            LogUnhandledException("CurrentDomain_UnhandledException: " + e.ExceptionObject.ToString());
+        }
+
+        static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            LogUnhandledException("Application_ThreadException: " + e.Exception.ToString());
+
+            throw e.Exception;
+        }
+
+        static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs args)
+        {
+            LogUnhandledException("Application_ThreadException: " + args.Exception.ToString());
+        }
+
+        static void LogUnhandledException(string excString)
+        {
+            LogError2(excString);
+
+            File.AppendAllText("XError.log", excString);
         }
 
         static void StartResetThread()

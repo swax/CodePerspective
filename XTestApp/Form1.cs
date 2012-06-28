@@ -137,6 +137,8 @@ namespace XTestApp
 
         private void throwButton_Click(object sender, EventArgs e)
         {
+            //var y = 0;
+            //var x = 1 / y;
             TryStuff();
         }
 

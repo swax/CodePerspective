@@ -164,6 +164,12 @@ namespace XLibrary
  
                 RecalcCover(node, nodeShow);
 
+                // if filtering on threads, dont show empty classes in the class graph
+                if (ShowThreads != null &&
+                    (node.ObjType != XObjType.Method && node.ObjType != XObjType.Field) &&
+                    node.Nodes.All(n => !n.Show))
+                    nodeShow = false;
+
                 if (nodeShow)
                 {
                     root.Value += node.Value;

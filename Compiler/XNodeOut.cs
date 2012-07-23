@@ -9,6 +9,7 @@ using XLibrary;
 using System.Runtime.Serialization;
 using Mono.Cecil.Cil;
 using System.Diagnostics;
+using System.Reflection;
 
 
 namespace XBuilder
@@ -82,7 +83,7 @@ namespace XBuilder
             return sum;
         }
 
-        public long SaveTree(string path)
+        public long SaveTree(string path, Dictionary<string, string> settings)
         {
             long trackedObjects = 0;
 
@@ -92,10 +93,34 @@ namespace XBuilder
 
             using (FileStream stream = new FileStream(path, FileMode.Create))
             {
+                foreach (var setting in settings)
+                    WriteSetting(stream, setting.Key, setting.Value);
+
                 trackedObjects += WriteDat(stream);
             }
 
             return trackedObjects;
+        }
+
+        public void WriteSetting(FileStream stream, string name, string value)
+        {
+            long startPos = stream.Length;
+
+            // write empty size of packet to be set at the end of the function
+            stream.Write(BitConverter.GetBytes(0));
+
+            stream.WriteByte((byte)XPacketType.Setting);
+
+            // name
+            WriteString(stream, name);
+
+            // value
+            WriteString(stream, value);
+
+            // write size of packet
+            stream.Position = startPos;
+            stream.Write(BitConverter.GetBytes((int)(stream.Length - startPos)));
+            stream.Position = stream.Length;
         }
 
         public long WriteDat(FileStream stream)
@@ -121,6 +146,8 @@ namespace XBuilder
 
             // write empty size of packet to be set at the end of the function
             stream.Write(BitConverter.GetBytes(0));
+
+            stream.WriteByte((byte)XPacketType.Node);
 
             WriteString(stream, Name);
 

@@ -55,8 +55,10 @@ namespace XLibrary
             NamespaceTab.Visible = false;
 
             //var x = Assembly.GetEntryAssembly();
-            Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Perspective";
+            Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Code Perspective";
 
+            if (Pro.Verified)
+                Text += " Pro";
         }
 
         void RedrawTimer_Tick(object sender, EventArgs e)

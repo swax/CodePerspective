@@ -196,6 +196,7 @@
             this.TestCompile.TabIndex = 16;
             this.TestCompile.Text = "Test Recompile";
             this.TestCompile.UseVisualStyleBackColor = true;
+            this.TestCompile.Visible = false;
             this.TestCompile.Click += new System.EventHandler(this.TestCompile_Click);
             // 
             // TrackAnonCheckBox

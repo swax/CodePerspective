@@ -23,6 +23,12 @@ namespace XLibrary
         Method 
     }
 
+    public enum XPacketType
+    {
+        Node = 1, Setting = 2
+    }
+
+
     public class XNode
     {
         public int ID;
@@ -153,7 +159,25 @@ namespace XLibrary
         public int CSharpLength;
 
 
-        internal static XNodeIn Read(FileStream stream)
+        public static XPacketType ReadNextPacket(FileStream stream, out int totalSize)
+        {
+            totalSize = BitConverter.ToInt32(stream.Read(4), 0);
+
+            return (XPacketType) stream.ReadByte();
+        }
+
+        public static void ReadSetting(FileStream stream, out string name, out string value)
+        {
+            int totalSize = BitConverter.ToInt32(stream.Read(4), 0);
+
+            int packetType = stream.ReadByte();
+            Debug.Assert(packetType == (int)XPacketType.Setting);
+
+            name = ReadString(stream);
+            value = ReadString(stream);
+        }
+
+        public static XNodeIn ReadNode(FileStream stream)
         {
             // total size 4
             // name size 4
@@ -171,9 +195,11 @@ namespace XLibrary
 
             XNodeIn node = new XNodeIn();
 
-            long startPos = stream.Position;
-
             int totalSize = BitConverter.ToInt32(stream.Read(4), 0);
+
+            int packetType = stream.ReadByte();
+            Debug.Assert(packetType == (int)XPacketType.Node);
+
             node.Name = ReadString(stream);
 
             node.ObjType =(XObjType) BitConverter.ToInt32(stream.Read(4), 0);
@@ -230,8 +256,6 @@ namespace XLibrary
                 node.MsilPos = stream.Position;
             
             //stream.Position += node.MsilLines; // lines dont translate into bytes
-
-            stream.Position = startPos + totalSize;
 
             return node;
         }

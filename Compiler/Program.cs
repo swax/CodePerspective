@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
+
 using XLibrary;
+
 
 namespace XBuilder
 {
@@ -16,6 +19,10 @@ namespace XBuilder
         static void Main()
         {
             XDef.Test();
+
+            Pro.LoadFromDirectory(Application.StartupPath);
+
+            XRay.BuilderVersion = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

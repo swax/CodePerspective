@@ -184,8 +184,13 @@ namespace XLibrary
             var node = GuiHovered.LastOrDefault();
             if (node != null)
             {
-                if (ViewLayout == LayoutType.TreeMap && node.ObjType != XObjType.Class)
-                    node = node.GetParentClass(false);
+                if(node.ObjType == XObjType.Method || node.ObjType == XObjType.Field)
+                {
+                    if (ViewLayout == LayoutType.TreeMap || 
+                        ViewLayout == LayoutType.CallGraph &&
+                         (GraphMode == CallGraphMode.Class || GraphMode == CallGraphMode.Layers))
+                        node = node.GetParentClass(false);
+                }
 
                 SetRoot(node);
             }

@@ -57,7 +57,7 @@ namespace XLibrary
         internal static HashSet<int> ErrorDupes = new HashSet<int>();
         internal static List<string> ErrorLog = new List<string>();
 
-        static bool InitComplete;
+        public static bool InitComplete;
 
         public static Stopwatch Watch = new Stopwatch();
 
@@ -65,7 +65,7 @@ namespace XLibrary
 
         public static DateTime StartTime;
         //public static double BytesSent;
-
+        public static string BuilderVersion = "unknown";
         public static Random RndGen = new Random();
 
         public static int DashOffset;
@@ -112,6 +112,10 @@ namespace XLibrary
             //AppDomain.CurrentDomain.FirstChanceException +=new EventHandler<System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs>(CurrentDomain_FirstChanceException);
             try
             {
+                // reset path to root path if not found (user moved exe folder, or distributing demo
+                if (!File.Exists(datPath))
+                    datPath = "XRay.dat";
+
                 // data file with node info should be along side ext
                 LoadNodeMap(datPath);
 
@@ -270,36 +274,57 @@ namespace XLibrary
 
                 using (FileStream stream = new FileStream(DatPath, FileMode.Open))
                 {
-                    
                     while (stream.Position < stream.Length)
                     {
-                        XNodeIn node = XNodeIn.Read(stream);
-                        map[node.ID] = node;
+                        long startPos = stream.Position;
 
-                        // first node read is the root
-                        if (RootNode == null)
-                            RootNode = node;
+                        int totalSize;
+                        XPacketType type = XNodeIn.ReadNextPacket(stream, out totalSize);
 
-                        else if (map.ContainsKey(node.ParentID))
+                        stream.Position = startPos;
+
+                        if (type == XPacketType.Setting)
                         {
-                            node.Parent = map[node.ParentID];
-                            node.Parent.Nodes.Add(node);
+                            string name, value;
+                            XNodeIn.ReadSetting(stream, out name, out value);
+
+                            if (name == "Version")
+                                BuilderVersion = value;
+                            if (name == "Pro")
+                                Pro.LoadFromString(value);
                         }
-                        else
-                            LogError("Could not find parent {0} or {1}", node.Parent, node.Name);
+                        else if (type == XPacketType.Node)
+                        {
+                            XNodeIn node = XNodeIn.ReadNode(stream);
+                            map[node.ID] = node;
 
-                        if (node.ID > FunctionCount)
-                            FunctionCount = node.ID;
+                            // first node read is the root
+                            if (RootNode == null)
+                                RootNode = node;
 
-                        // create converse dependency edges
-                        if(node.Dependencies != null)
-                            foreach (var to in node.Dependencies)
+                            else if (map.ContainsKey(node.ParentID))
                             {
-                                if (!dependenciesFrom.ContainsKey(to))
-                                    dependenciesFrom[to] = new List<int>();
-
-                                dependenciesFrom[to].Add(node.ID);
+                                node.Parent = map[node.ParentID];
+                                node.Parent.Nodes.Add(node);
                             }
+                            else
+                                LogError("Could not find parent {0} or {1}", node.Parent, node.Name);
+
+                            if (node.ID > FunctionCount)
+                                FunctionCount = node.ID;
+
+                            // create converse dependency edges
+                            if (node.Dependencies != null)
+                                foreach (var to in node.Dependencies)
+                                {
+                                    if (!dependenciesFrom.ContainsKey(to))
+                                        dependenciesFrom[to] = new List<int>();
+
+                                    dependenciesFrom[to].Add(node.ID);
+                                }
+                        }
+
+                        stream.Position = startPos + totalSize;
                     }
                 }
 

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.BuildPanel = new XBuilder.BuildPanel();
@@ -35,10 +36,13 @@
             this.monitorPanel1 = new XBuilder.MonitorPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.ScannerPanel = new XBuilder.ScannerPanel();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
             this.MainTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainTabs
@@ -46,6 +50,7 @@
             this.MainTabs.Controls.Add(this.tabPage1);
             this.MainTabs.Controls.Add(this.tabPage2);
             this.MainTabs.Controls.Add(this.tabPage3);
+            this.MainTabs.Controls.Add(this.tabPage4);
             this.MainTabs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainTabs.Location = new System.Drawing.Point(0, 0);
             this.MainTabs.Name = "MainTabs";
@@ -110,6 +115,26 @@
             this.ScannerPanel.Size = new System.Drawing.Size(371, 361);
             this.ScannerPanel.TabIndex = 0;
             // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.aboutPanel1);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(377, 367);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "About";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // aboutPanel1
+            // 
+            this.aboutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.aboutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.aboutPanel1.Name = "aboutPanel1";
+            this.aboutPanel1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.aboutPanel1.Size = new System.Drawing.Size(371, 361);
+            this.aboutPanel1.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -117,12 +142,14 @@
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(385, 393);
             this.Controls.Add(this.MainTabs);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
-            this.Text = "Perspective";
+            this.Text = "Code Perspective";
             this.MainTabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -136,6 +163,8 @@
         public MonitorPanel monitorPanel1;
         public ScannerPanel ScannerPanel;
         public System.Windows.Forms.TabControl MainTabs;
+        private System.Windows.Forms.TabPage tabPage4;
+        private XLibrary.UI.Panels.AboutPanel aboutPanel1;
 
 
     }

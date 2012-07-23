@@ -55,6 +55,9 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>logo.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -101,8 +104,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Pro.cs" />
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="UI\ColorProfile.cs" />
+    <Compile Include="UI\Panels\AboutPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Panels\AboutPanel.Designer.cs">
+      <DependentUpon>AboutPanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\Rendering\FpsCamera.cs" />
     <Compile Include="UI\Rendering\GibsonRenderer.cs">
       <SubType>UserControl</SubType>
@@ -199,6 +209,9 @@
     <EmbeddedResource Include="UI\DetailsNav.resx">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\Panels\AboutPanel.resx">
+      <DependentUpon>AboutPanel.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\MethodPanel.resx">
       <DependentUpon>MethodPanel.cs</DependentUpon>
     </EmbeddedResource>
@@ -256,7 +269,9 @@
       <Name>QuickFont</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="logo.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -236,7 +236,15 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
                     // save node map before verifying because we dont want bogus verify 
                     // errors from preventing the dat file form being made
                     status("Saving Map", "");
-                    trackedObjects = root.SaveTree(DatPath);
+
+                    var settings = new Dictionary<string, string>();
+
+                    settings["Version"] = XRay.BuilderVersion;
+
+                    if (Pro.Verified)
+                        settings["Pro"] = Pro.SignedFile;
+
+                    trackedObjects = root.SaveTree(DatPath, settings);
 
 
                     // verify last and aggregate errors'

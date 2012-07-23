@@ -53,6 +53,8 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -62,6 +64,7 @@
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
             // RedrawTimer
@@ -201,6 +204,7 @@
             this.TabPanel.Controls.Add(this.tabPage1);
             this.TabPanel.Controls.Add(this.tabPage2);
             this.TabPanel.Controls.Add(this.tabPage5);
+            this.TabPanel.Controls.Add(this.tabPage3);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
             this.TabPanel.Name = "TabPanel";
@@ -285,14 +289,35 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.aboutPanel1);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(542, 194);
+            this.tabPage3.TabIndex = 5;
+            this.tabPage3.Text = "About";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // aboutPanel1
+            // 
+            this.aboutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.aboutPanel1.Location = new System.Drawing.Point(3, 3);
+            this.aboutPanel1.Name = "aboutPanel1";
+            this.aboutPanel1.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.aboutPanel1.Size = new System.Drawing.Size(536, 188);
+            this.aboutPanel1.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(550, 584);
             this.Controls.Add(this.splitContainer1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
-            this.Text = "Perspective";
+            this.Text = "Code Perspective Beta";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -304,6 +329,7 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -333,5 +359,7 @@
         private System.Windows.Forms.ToolStripMenuItem SubsSearchMenuItem;
         private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.ToolStripDropDownButton ThreadButton;
+        private System.Windows.Forms.TabPage tabPage3;
+        private UI.Panels.AboutPanel aboutPanel1;
     }
 }

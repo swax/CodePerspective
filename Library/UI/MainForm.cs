@@ -61,6 +61,10 @@ namespace XLibrary
 
             if (Pro.Verified)
                 Text += " Pro";
+
+            Show();
+            WindowState = FormWindowState.Normal;
+            BringToFront();
         }
 
         void RedrawTimer_Tick(object sender, EventArgs e)

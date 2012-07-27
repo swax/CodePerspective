@@ -186,7 +186,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="docs\apps.txt" />
-    <Content Include="docs\marketing.txt" />
     <Content Include="docs\done.txt" />
     <Content Include="docs\features.txt" />
     <Content Include="docs\todo.txt" />

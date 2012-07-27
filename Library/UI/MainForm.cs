@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using OpenTK;
 using System.Reflection;
+using System.Diagnostics;
 
 
 namespace XLibrary
@@ -55,7 +56,8 @@ namespace XLibrary
             NamespaceTab.Visible = false;
 
             //var x = Assembly.GetEntryAssembly();
-            Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Code Perspective";
+            //Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Code Perspective";
+            Text = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName) + " Code Perspective";
 
             if (Pro.Verified)
                 Text += " Pro";

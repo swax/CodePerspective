@@ -45,6 +45,8 @@ namespace XLibrary
         internal static bool FlowTracking = false; // must be compiled in, can be ignored later
         internal static bool ClassTracking = false;
         internal const int MaxStack = 512;
+        internal const int MaxThreadlineSize = 1000;
+
         internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
         internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
         internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
@@ -108,7 +110,7 @@ namespace XLibrary
 
             //System.Windows.Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(Current_DispatcherUnhandledException);
             //Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
-           // AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
             //AppDomain.CurrentDomain.FirstChanceException +=new EventHandler<System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs>(CurrentDomain_FirstChanceException);
             try
             {
@@ -949,7 +951,7 @@ namespace XLibrary
         public StackItem[] Stack = new StackItem[XRay.MaxStack];
 
         public int ThreadlinePos = -1;
-        public StackItem[] Threadline = new StackItem[200]; // 200 lines, 16px high, like 3000px record
+        public StackItem[] Threadline = new StackItem[XRay.MaxThreadlineSize]; // 200 lines, 16px high, like 3000px record
 
 
         public void AddStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
@@ -1049,16 +1051,22 @@ namespace XLibrary
             return Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
         }
 
+        public string GetLog(int count)
+        {
+            return string.Join("\r\n", XRay.ErrorLog.Last(50));
+        }
+
         public bool GuiVisible
         {
             get
             {
                 return XRay.UIs.Any();
             }
-            set
-            {
-                XRay.StartGui();
-            }
+        }
+
+        public void OpenViewer()
+        {
+            XRay.StartGui();
         }
 
         public bool Tracking

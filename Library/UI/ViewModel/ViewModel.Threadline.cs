@@ -55,20 +55,32 @@ namespace XLibrary
             LayoutThreadlines(currentTick);
         }
 
+        List<int> RemoveLines = new List<int>();
+
         private void CalcThreadline(long currentTick)
         {
             // clear thread map so order of items is kept and we dont get threads switching around
+            RemoveLines.Clear();
             foreach (var timeline in Threadlines.Values)
             {
                 timeline.Sequence.Clear();
                 timeline.DepthSet.Clear();
+
+                if (!timeline.Handle.IsAlive)
+                    RemoveLines.Add(timeline.ThreadID);
             }
+
+            foreach(var id in RemoveLines)
+                Threadlines.Remove(id);
 
             AddedNodes.Clear();
 
             foreach (var flow in XRay.FlowMap)
             {
                 if (ShowThreads != null && !ShowThreads.Contains(flow.ThreadID))
+                    continue;
+
+                if (ShowThreads == null && !flow.Handle.IsAlive)
                     continue;
 
                 UnfinishedItems.Clear();
@@ -175,7 +187,7 @@ namespace XLibrary
                 string label = "#" + timeline.ThreadID.ToString() + ": " + timeline.Name; 
                 float x = ScreenOffset.X + xOffset + 2;
                 float y = ScreenOffset.Y + yPos + nodeHeight + 2;
-                Renderer.DrawString(label, TextFont, timeline.Active ? Color.Black : Color.Gray, x, y, colWidth, 18);
+                Renderer.DrawString(label, TextFont, timeline.Handle.IsAlive ? Color.Black : Color.Gray, x, y, colWidth, 18);
 
                 foreach (var item in timeline.Sequence)
                 {
@@ -235,7 +247,7 @@ namespace XLibrary
     {
         public int ThreadID;
         public string Name;
-        public bool Active;
+        public Thread Handle;
 
         public int Order;
         public int Deepest; // dont reset, if we do columns start moving around whenever it changes
@@ -251,7 +263,7 @@ namespace XLibrary
             ThreadID = flow.ThreadID;
             Order = order;
             Name = flow.Name;
-            Active = flow.Handle.IsAlive;
+            Handle = flow.Handle;
         }
     }
 

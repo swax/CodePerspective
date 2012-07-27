@@ -9,6 +9,7 @@ using System.Windows.Forms;
 
 using XTestLib;
 using System.Reflection;
+using System.Threading;
 
 namespace XTestApp
 {
@@ -168,7 +169,8 @@ namespace XTestApp
 
         private void ProfileTestButton_Click(object sender, EventArgs e)
         {
-            ms100();
+            MessageBox.Show("hi");
+            new Thread(o => ms100()).Start();
         }
 
         private void ms100()

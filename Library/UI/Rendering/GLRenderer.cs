@@ -59,7 +59,9 @@ namespace XLibrary
         {
             Model.TwoDimensionalValues = false;
             Model.DrawSubpixel = false;
-            MakeCurrent();
+
+            if(GLLoaded)
+                MakeCurrent();
         }
 
         public void Stop()

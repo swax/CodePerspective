@@ -386,9 +386,15 @@ namespace XLibrary.Panels
             Model.Paused = !Model.Paused;
 
             if (Model.Paused)
+            {
                 PauseLink.Text = "Resume";
+                PauseLink.LinkColor = Color.DarkGreen;
+            }
             else
+            {
                 PauseLink.Text = "Pause";
+                PauseLink.LinkColor = Color.DarkRed;
+            }
         }
 
         private void LayoutLayerGraphButton_CheckedChanged(object sender, EventArgs e)

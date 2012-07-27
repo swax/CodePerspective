@@ -74,7 +74,6 @@
             this.RenderGibsonButton = new System.Windows.Forms.RadioButton();
             this.label7 = new System.Windows.Forms.Label();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
@@ -82,7 +81,6 @@
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel1.SuspendLayout();
-            this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
             this.flowLayoutPanel5.SuspendLayout();
@@ -356,7 +354,7 @@
             // ShowAllDependenciesCheckBox
             // 
             this.ShowAllDependenciesCheckBox.AutoSize = true;
-            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(3, 49);
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(102, 49);
             this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
             this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(89, 17);
             this.ShowAllDependenciesCheckBox.TabIndex = 32;
@@ -367,7 +365,7 @@
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(3, 72);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(102, 72);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
             this.GraphIntermediateDependencies.Size = new System.Drawing.Size(90, 17);
             this.GraphIntermediateDependencies.TabIndex = 30;
@@ -379,7 +377,7 @@
             // GraphDependencies
             // 
             this.GraphDependencies.AutoSize = true;
-            this.GraphDependencies.Location = new System.Drawing.Point(3, 26);
+            this.GraphDependencies.Location = new System.Drawing.Point(102, 26);
             this.GraphDependencies.Name = "GraphDependencies";
             this.GraphDependencies.Size = new System.Drawing.Size(100, 17);
             this.GraphDependencies.TabIndex = 25;
@@ -391,7 +389,7 @@
             // MapDependencies
             // 
             this.MapDependencies.AutoSize = true;
-            this.MapDependencies.Location = new System.Drawing.Point(3, 3);
+            this.MapDependencies.Location = new System.Drawing.Point(102, 3);
             this.MapDependencies.Name = "MapDependencies";
             this.MapDependencies.Size = new System.Drawing.Size(92, 17);
             this.MapDependencies.TabIndex = 24;
@@ -549,6 +547,7 @@
             // PauseLink
             // 
             this.PauseLink.AutoSize = true;
+            this.PauseLink.LinkColor = System.Drawing.Color.DarkRed;
             this.PauseLink.Location = new System.Drawing.Point(3, 69);
             this.PauseLink.Name = "PauseLink";
             this.PauseLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
@@ -612,23 +611,15 @@
             this.flowLayoutPanel1.Controls.Add(this.LayoutInitGraphButton);
             this.flowLayoutPanel1.Controls.Add(this.LayoutClassCallsButton);
             this.flowLayoutPanel1.Controls.Add(this.LayoutCallGraphButton);
+            this.flowLayoutPanel1.Controls.Add(this.MapDependencies);
+            this.flowLayoutPanel1.Controls.Add(this.GraphDependencies);
+            this.flowLayoutPanel1.Controls.Add(this.ShowAllDependenciesCheckBox);
+            this.flowLayoutPanel1.Controls.Add(this.GraphIntermediateDependencies);
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(6, 20);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(96, 146);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(204, 146);
             this.flowLayoutPanel1.TabIndex = 32;
-            // 
-            // flowLayoutPanel2
-            // 
-            this.flowLayoutPanel2.Controls.Add(this.MapDependencies);
-            this.flowLayoutPanel2.Controls.Add(this.GraphDependencies);
-            this.flowLayoutPanel2.Controls.Add(this.ShowAllDependenciesCheckBox);
-            this.flowLayoutPanel2.Controls.Add(this.GraphIntermediateDependencies);
-            this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel2.Location = new System.Drawing.Point(108, 20);
-            this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(102, 146);
-            this.flowLayoutPanel2.TabIndex = 33;
             // 
             // flowLayoutPanel3
             // 
@@ -719,7 +710,6 @@
             this.Controls.Add(this.flowLayoutPanel4);
             this.Controls.Add(this.flowLayoutPanel3);
             this.Controls.Add(this.flowLayoutPanel1);
-            this.Controls.Add(this.flowLayoutPanel2);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
@@ -727,12 +717,11 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.DoubleBuffered = true;
             this.Name = "ViewPanel";
             this.Size = new System.Drawing.Size(778, 170);
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
-            this.flowLayoutPanel2.ResumeLayout(false);
-            this.flowLayoutPanel2.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);
             this.flowLayoutPanel3.PerformLayout();
             this.flowLayoutPanel4.ResumeLayout(false);
@@ -798,7 +787,6 @@
         public System.Windows.Forms.RadioButton LayoutLayerGraphButton;
         public System.Windows.Forms.CheckBox ShowCodeButton;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;

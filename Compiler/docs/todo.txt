@@ -3,6 +3,9 @@ focus on why apps are failing and give user a quick reason why something didnt x
 background tooltip color in opengl
 add debug logging to catch why facebook github doesnt work
 add more tool tips
+Add thread details to class details so thread that touched class can be filtered on 
+Dead objs not cleared from flow map, should be, some sort of max or something?
+
 
 instance view
 	match field name with static analysis

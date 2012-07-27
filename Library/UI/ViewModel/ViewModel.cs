@@ -33,7 +33,7 @@ namespace XLibrary
         public bool ShowOutside;
         public bool ShowExternal;
 
-        public bool ShowFields = false;
+        public bool ShowFields = true;
         public bool ShowMethods = true;
         public bool ShowAnon = false;
 

@@ -81,11 +81,16 @@ namespace XBuilder
 
         private void ShowViewerLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            OpenViewer();
+        }
+
+        private void OpenViewer()
+        {
             var item = ProcessListView.SelectedItems.Cast<ProcessItem>().FirstOrDefault();
             if (item == null)
                 return;
 
-            item.GetProcess().GuiVisible = true;
+            item.GetProcess().OpenViewer();
         }
 
         private void ChangeTrackingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -105,8 +110,19 @@ namespace XBuilder
 
             SelectedGroupBox.Visible = (item != null);
 
-            if (item != null)
-                SelectedGroupBox.Text = item.Text;
+            if (item == null)
+                return;
+
+            SelectedGroupBox.Text = item.Text;
+
+            var process = item.GetProcess();
+
+            LogTextBox.Text = process.GetLog(50);
+        }
+
+        private void ProcessListView_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            OpenViewer();
         }
     }
 

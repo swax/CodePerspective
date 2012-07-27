@@ -61,17 +61,21 @@
   <ItemGroup>
     <Reference Include="OpenTK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Users\John Marshall\Documents\OpenTK\1.0\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
+      <HintPath>..\References\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\Users\John Marshall\Documents\OpenTK\1.0\Binaries\OpenTK\Release\OpenTK.GLControl.dll</HintPath>
+      <HintPath>..\References\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="PresentationFramework">
       <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="QuickFont, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\References\QuickFont.dll</HintPath>
     </Reference>
     <Reference Include="System">
     </Reference>
@@ -263,12 +267,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="UI\ViewModel\ViewModel.CallGraph.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\QuickFont\QuickFont\QuickFont.csproj">
-      <Project>{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}</Project>
-      <Name>QuickFont</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="logo.ico" />

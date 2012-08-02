@@ -25,7 +25,7 @@ namespace XLibrary
         {
             try
             {
-                string filepath = Directory.EnumerateFiles(dirpath, "*.pro", SearchOption.TopDirectoryOnly).FirstOrDefault();
+                string filepath = Directory.GetFiles(dirpath, "*.pro", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
                 if (filepath != null)
                     return LoadFromString(File.ReadAllText(filepath));

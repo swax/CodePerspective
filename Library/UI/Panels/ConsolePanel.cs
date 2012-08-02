@@ -192,7 +192,7 @@ stacks";
 
                 var results = XRay.Nodes.Where(n => n.Name.Contains(find)).Select(n => n.ID + ": " + n.Name);
 
-                return string.Join("\r\n", results);
+                return String2.Join("\r\n", results);
             }
 
             else

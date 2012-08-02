@@ -47,7 +47,6 @@
             this.FunctionPanel = new System.Windows.Forms.SplitContainer();
             this.AutoRefresh = new System.Windows.Forms.LinkLabel();
             this.RefreshTimer = new System.Windows.Forms.Timer(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.FunctionPanel)).BeginInit();
             this.FunctionPanel.Panel1.SuspendLayout();
             this.FunctionPanel.Panel2.SuspendLayout();
             this.FunctionPanel.SuspendLayout();
@@ -231,7 +230,6 @@
             this.Size = new System.Drawing.Size(600, 209);
             this.FunctionPanel.Panel1.ResumeLayout(false);
             this.FunctionPanel.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.FunctionPanel)).EndInit();
             this.FunctionPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

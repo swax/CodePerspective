@@ -1,10 +1,9 @@
 ﻿
-focus on why apps are failing and give user a quick reason why something didnt xray successfully
+
 background tooltip color in opengl
-add debug logging to catch why facebook github doesnt work
 add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 
-Dead objs not cleared from flow map, should be, some sort of max or something?
+Dead threads not cleared from flow map? should be, some sort of max or something?
 
 
 instance view
@@ -24,17 +23,30 @@ xlibrary
 	
 scanner view
 	on select app, show in details below exactly what exe/dlls were xrayed
+	show CLR version
+	show corflags, have to use corflags.exe?
 
-about tab 
-	put about panel in builder and viewer	
-	github address, swax homepage, donate/biitcoin account
-	thanks - opentk, quickfont, cecil, icsharp, stackoverflow
-	
+quantify xray overhead
+	checkout overhead with xray tracking on/off
+	tracking methods, class create, etc.. ms/sec spent in xray
+
+Put string value of arguments along the line of the call
+	For each function node have a last string arguments value
+	That gets drawn when the line gets updated
+	CallingFunction(x=4, y=3, msg='hello')
+	Watch state move through the app as well
+	Draw return values
+		Red for arguments, blue for return
+	need ID's per method call, hook up right to code
+		see how overhead changes
+
 details ui
 	instance
 		click on field blink it
 		double click on field, pan over to it
 		back/forward button, pan to node
+		!trap / auto-release modes - trap keeps handles to classes, auto-release uses weak refs
+
 	method profile
 		click on method, blink it and call line
 		double click method pan to it

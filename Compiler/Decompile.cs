@@ -19,6 +19,7 @@ namespace XBuilder
     partial class XDecompile
     {
         string OriginalPath;
+        public string BackupPath;
         string DasmPath;
         string ILPath;
         string ILPathOriginal;
@@ -93,14 +94,21 @@ namespace XBuilder
 
             // similar to using ilasm 4.0, adds // Metadata version: v4.0.30319 to disassembled version (though mscorlib ref stays original version)
             // lets us link xlibrary without error because it uses 4.0 runtime as well
-            asm.MainModule.Runtime = TargetRuntime.Net_4_0; 
+            // asm.MainModule.Runtime = TargetRuntime.Net_4_0; 
+
 
             var asmDef = asm.MainModule.Assembly.Name;
 
             var originalAsmName = asmDef.Name;
 
             asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
-            
+
+            /*var corlib = asm.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == "mscorlib");
+            corlib.Version = new Version("4.0.0.0");
+
+            var syslib = asm.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == "System");
+            syslib.Version = new Version("4.0.0.0");*/
+
             XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
 			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
             ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
@@ -112,6 +120,7 @@ namespace XBuilder
             VoidRef = asm.MainModule.Import(typeof(void));
             ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.Import(typeof(Object)));
             ObjectFinalizeRef.HasThis = true;  // call on the current instance
+            //(ObjectFinalizeRef.DeclaringType.Scope as AssemblyNameReference).Version = new Version("2.0.0.0");
             GetTypeFromHandleRef = asm.MainModule.Import(typeof(Type).GetMethod("GetTypeFromHandle"));
 
             // iterate class nodes
@@ -178,8 +187,8 @@ namespace XBuilder
                 var backupDir = Path.Combine(OutputDir, "xBackup");
                 Directory.CreateDirectory(backupDir);
 
-                var backupPath = Path.Combine(backupDir, newName);
-                File.Copy(OriginalPath, backupPath, true);
+                BackupPath = Path.Combine(backupDir, newName);
+                File.Copy(OriginalPath, BackupPath, true);      
             }
             
             XFile.RecompiledPath = Path.Combine(OutputDir, newName);
@@ -583,6 +592,20 @@ namespace XBuilder
                         var newObj = instruction.Operand as MethodReference;
                         SetClassDependency(classNode, newObj.DeclaringType);
                     }
+
+                    /* Still not really working - goal - to get side by side wpf apps to work
+                     * else if (instruction.OpCode == OpCodes.Ldstr && SideBySide)
+                    {
+                        // rename Pack URIs in WPF so resources can be found with an XRay.. namespace
+                        // ex:  "/MyApp;component/views/aboutview.xaml" ->  "/XRay.MyApp;component/views/aboutview.xaml"
+                        var packUri = instruction.Operand as String;
+
+                        foreach (var file in XRayedFiles)
+                            packUri = packUri.Replace("/" + file.AssemblyName + ";", "/XRay." + file.AssemblyName + ";");
+                            //packUri = packUri.Replace(file.AssemblyName, "XRay." + file.AssemblyName);
+
+                        instruction.Operand = packUri;
+                    }*/
 
                 } // end iterating through instructions
 

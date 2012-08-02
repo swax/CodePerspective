@@ -137,7 +137,7 @@ namespace XLibrary
             }
         }
 
-        static void Current_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        /* static void Current_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             LogUnhandledException("Current_DispatcherUnhandledException: " + e.Exception.ToString());
         }
@@ -152,12 +152,12 @@ namespace XLibrary
             LogUnhandledException("Application_ThreadException: " + e.Exception.ToString());
 
             throw e.Exception;
-        }
+        }*/
 
-        static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs args)
+        /*static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs args)
         {
             LogUnhandledException("Application_ThreadException: " + args.Exception.ToString());
-        }
+        }*/
 
         static void LogUnhandledException(string excString)
         {
@@ -1053,7 +1053,7 @@ namespace XLibrary
 
         public string GetLog(int count)
         {
-            return string.Join("\r\n", XRay.ErrorLog.Last(50));
+            return String2.Join("\r\n", XRay.ErrorLog.Last(50));
         }
 
         public bool GuiVisible

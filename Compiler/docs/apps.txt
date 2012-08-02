@@ -1,4 +1,14 @@
 ﻿
+GitHub
+	Where: Use process explorer to find run location
+			C:\Users\John\AppData\Local\Apps\2.0\0HG57M1J.KJY\J3TY8RHJ.LCL\gith..tion_8f45a2159c87c850_0001.0000_02255a9f8a8b6640
+	Type: WPF
+
+Facebook 
+	Where: Use process explorer to find run location
+			C:\Users\John\AppData\Local\Facebook\Messenger\2.1.4590.0\
+	Type: WPF
+
 NEXT
 	xray an app and all reffed MS dlls?
 	explore windows 8
@@ -30,3 +40,7 @@ TreeNodeAdv sample
 
 windows 8
 	hack it, uncover things, make youtube videos
+
+Debugging assemblies not working -
+	Load assembly as a project in visual studio and debug
+	Use Process Explorer see which version of the CLR is being loaded

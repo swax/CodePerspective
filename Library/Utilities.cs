@@ -204,5 +204,94 @@ namespace XLibrary
         }
     }
 
+    public static class String2
+    {
+        public static string Join(string separator, IEnumerable<string> items)
+        {
+            return string.Join(separator, items.ToArray());
+        }
+    }
+
+
+    public class Tuple<T1>
+    {
+        public T1 Item1;
+
+        public Tuple(T1 t1)
+        {
+            Item1 = t1;
+        }
+
+        public override string ToString()
+        {
+            return Item1.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return Item1.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1> tuple = obj as Tuple<T1>;
+
+            return Item1.Equals(tuple.Item1);
+        }
+    }
+
+    public class Tuple<T1, T2> : Tuple<T1>
+    {
+        public T2 Item2;
+
+        public Tuple(T1 t1, T2 t2)
+            : base(t1)
+        {
+            Item2 = t2;
+        }
+
+        public override string ToString()
+        {
+            return base.ToString() + " - " + Item2.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return Item2.GetHashCode() ^ base.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            Tuple<T1, T2> tuple = obj as Tuple<T1, T2>;
+
+            return Item2.Equals(tuple.Item2) && base.Equals(obj);
+        }
+    }
+
+    public class SortedSet<T> : IEnumerable<T>
+    {
+        HashSet<T> Set = new HashSet<T>();
+        
+        public IEnumerator<T> GetEnumerator()
+        {
+            foreach (T item in Set.OrderBy(i => i))
+                yield return item;
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        internal void Clear()
+        {
+            Set.Clear();
+        }
+
+        internal void Add(T item)
+        {
+            Set.Add(item);
+        }
+    }
 
 }

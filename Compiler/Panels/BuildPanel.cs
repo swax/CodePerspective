@@ -40,10 +40,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
            Namespaces are kept the same so referencing assemblies should still work.");
 
             DecompileCSharpCheckBox.AttachToolTip("Recompile time takes signifigantly longer with this option");
-
-            RunVerifyCheckbox.Visible = false;
-            DecompileAgainCheckbox.Visible = false;
-            MsToolsCheckbox.Visible = false;
         }
 
         private void AddLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -208,7 +204,8 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
 
                                 // create directories
                                 var dir = Path.Combine(Application.StartupPath, "recompile", filename, compiler + "_original");
-                                decompile.Decompile(item.FilePath, dir);
+                                var originalPath = decompile.BackupPath != null ? decompile.BackupPath : item.FilePath;
+                                decompile.Decompile(originalPath, dir);
 
                                 dir = Path.Combine(Application.StartupPath, "recompile", filename, compiler + "_new");
                                 decompile.Decompile(item.RecompiledPath, dir);
@@ -422,6 +419,8 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             // StringEval("y.xxx");
             ReCompile(true);
         }
+
+
     }
 
 

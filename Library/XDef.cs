@@ -223,7 +223,7 @@ namespace XLibrary
                 fullname += "`" + GenericCount.Value.ToString();
 
             if (Generics != null)
-                fullname += "<" + string.Join(",", Generics.Select(g => g.GetFullName())) + ">";
+                fullname += "<" + String2.Join(",", Generics.Select(g => g.GetFullName())) + ">";
 
             if (Arrays != null)
                 fullname += Arrays;
@@ -289,7 +289,7 @@ namespace XLibrary
             string shortName = def.Name;
 
             if (def.Generics != null)
-                shortName += "<" + string.Join(",", def.Generics.Select(g => g.GetShortName())) + ">";
+                shortName += "<" + String2.Join(",", def.Generics.Select(g => g.GetShortName())) + ">";
 
             if (def.Arrays != null)
                 shortName += def.Arrays;

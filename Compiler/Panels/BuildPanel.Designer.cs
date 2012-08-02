@@ -95,12 +95,13 @@
             // 
             this.MsToolsCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.MsToolsCheckbox.AutoSize = true;
-            this.MsToolsCheckbox.Location = new System.Drawing.Point(261, 165);
+            this.MsToolsCheckbox.Location = new System.Drawing.Point(261, 142);
             this.MsToolsCheckbox.Name = "MsToolsCheckbox";
             this.MsToolsCheckbox.Size = new System.Drawing.Size(189, 17);
             this.MsToolsCheckbox.TabIndex = 20;
             this.MsToolsCheckbox.Text = "Use MS toolchain instead of Mono";
             this.MsToolsCheckbox.UseVisualStyleBackColor = true;
+            this.MsToolsCheckbox.Visible = false;
             // 
             // RunVerifyCheckbox
             // 
@@ -112,6 +113,7 @@
             this.RunVerifyCheckbox.TabIndex = 19;
             this.RunVerifyCheckbox.Text = "Run verify on recompiled assemblies";
             this.RunVerifyCheckbox.UseVisualStyleBackColor = true;
+            this.RunVerifyCheckbox.Visible = false;
             // 
             // OptionsPanel
             // 
@@ -178,9 +180,8 @@
             // 
             // DecompileAgainCheckbox
             // 
-            this.DecompileAgainCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.DecompileAgainCheckbox.AutoSize = true;
-            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(261, 142);
+            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(13, 164);
             this.DecompileAgainCheckbox.Name = "DecompileAgainCheckbox";
             this.DecompileAgainCheckbox.Size = new System.Drawing.Size(238, 17);
             this.DecompileAgainCheckbox.TabIndex = 18;
@@ -205,7 +206,7 @@
             this.TrackAnonCheckBox.AutoSize = true;
             this.TrackAnonCheckBox.Checked = true;
             this.TrackAnonCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.TrackAnonCheckBox.Location = new System.Drawing.Point(261, 184);
+            this.TrackAnonCheckBox.Location = new System.Drawing.Point(261, 165);
             this.TrackAnonCheckBox.Name = "TrackAnonCheckBox";
             this.TrackAnonCheckBox.Size = new System.Drawing.Size(139, 17);
             this.TrackAnonCheckBox.TabIndex = 15;

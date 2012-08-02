@@ -1,0 +1,20 @@
+﻿
+Why is XLibrary set to .Net 3.5?
+	Paint.Net and Facebook Chat were not working with it set to 4.0
+	Error: This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded
+	Even though asm.MainModule.Runtime = TargetRuntime.Net_4_0; was recompiled, the 2.0 CLR was still being loaded
+	Use Process explorer to see what version of the runtime is loaded
+	.Net 3.5 uses the 2.0 runtime
+
+Exception: Unable to cast object of type 'System.Windows.Forms.SplitContainer' to type 'System.ComponentModel.ISupportInitialize'.
+	When changing project from .Net 4.0 to 3.5 this exception comes up
+	4.0 uses ISupportInitialize in generated forms code, 3.5 does not
+	Solution - Remove any references to ISupportInitialize to fix
+
+InvalidOperationException: Application exception mode cannot be changed once any Controls are created in the Application.
+	If the target application uses SetUnhandledExceptionMode to catch unhandled exceptions then starting
+		up the XRay viewer before the application starts up will prevent the target app from using SetUnhandledExceptionMode
+	Solution - Turn off open visualization on startup
+
+
+

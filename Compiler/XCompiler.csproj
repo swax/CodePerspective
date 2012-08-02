@@ -185,10 +185,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="docs\apps.txt" />
-    <Content Include="docs\done.txt" />
-    <Content Include="docs\features.txt" />
-    <Content Include="docs\todo.txt" />
     <Content Include="logo.ico" />
   </ItemGroup>
   <ItemGroup>

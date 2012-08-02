@@ -9,6 +9,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestApp", "XTestApp\XTestA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestLib", "XTestLib\XTestLib.csproj", "{880A0A2F-6740-4238-9472-7B0AFC43289D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3860C6C6-23F3-4645-ABD4-27734CC79DC1}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\apps.txt = Docs\apps.txt
+		Docs\done.txt = Docs\done.txt
+		Docs\features.txt = Docs\features.txt
+		Docs\notes.txt = Docs\notes.txt
+		Docs\todo.txt = Docs\todo.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

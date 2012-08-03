@@ -28,15 +28,15 @@ namespace XLibrary.UI.Panels
         {
             InitializeComponent();
 
-            // embed version as setting in dat file
+            // either version of running builder, or verseion that built this viewer
+            VersionLabel.Text = "Version: " + XRay.BuilderVersion;
 
             if (Pro.Verified)
             {
                 CodePerspectiveLink.Text = "Code Perspective Pro";
-                VersionLabel.Text = "Version: " + XRay.BuilderVersion;
+              
                 LicenseLabel.Text = "License: Pro";
                 GoProLink.Visible = false;
-
                 NameLabel.Text = "Name: " + Pro.Name;
                 CompanyLabel.Text = "Company: " + Pro.Company;
                 DateLabel.Text = "Date: " + Pro.Date;

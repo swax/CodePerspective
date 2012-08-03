@@ -2,6 +2,7 @@
 1.0.3
 	Added CLR version to scanner panel
 	Press return to search in scannel panel
+	Experimental support for stripping signatures
 
 1.0.2
 	Downgraded to .Net 3.5

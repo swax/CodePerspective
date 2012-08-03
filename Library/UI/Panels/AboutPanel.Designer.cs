@@ -39,9 +39,9 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
             this.GoProLink = new System.Windows.Forms.LinkLabel();
-            this.NewsBrowser = new DeOps.Interface.Views.WebBrowserEx();
-            this.CopyrightLink = new System.Windows.Forms.LinkLabel();
             this.NewsLink = new System.Windows.Forms.LinkLabel();
+            this.CopyrightLink = new System.Windows.Forms.LinkLabel();
+            this.NewsBrowser = new DeOps.Interface.Views.WebBrowserEx();
             this.ProBox.SuspendLayout();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -63,9 +63,9 @@
             this.VersionLabel.AutoSize = true;
             this.VersionLabel.Location = new System.Drawing.Point(18, 32);
             this.VersionLabel.Name = "VersionLabel";
-            this.VersionLabel.Size = new System.Drawing.Size(69, 13);
+            this.VersionLabel.Size = new System.Drawing.Size(60, 13);
             this.VersionLabel.TabIndex = 4;
-            this.VersionLabel.Text = "Version 1.0.2";
+            this.VersionLabel.Text = "Version 1.0";
             // 
             // NameLabel
             // 
@@ -177,6 +177,29 @@
             this.GoProLink.Text = "Go Pro";
             this.GoProLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.GoProLink_LinkClicked);
             // 
+            // NewsLink
+            // 
+            this.NewsLink.AutoSize = true;
+            this.NewsLink.Location = new System.Drawing.Point(5, 12);
+            this.NewsLink.Name = "NewsLink";
+            this.NewsLink.Size = new System.Drawing.Size(98, 13);
+            this.NewsLink.TabIndex = 3;
+            this.NewsLink.TabStop = true;
+            this.NewsLink.Text = "News and Updates";
+            this.NewsLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.NewsLink_LinkClicked);
+            // 
+            // CopyrightLink
+            // 
+            this.CopyrightLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.CopyrightLink.AutoSize = true;
+            this.CopyrightLink.Location = new System.Drawing.Point(193, 12);
+            this.CopyrightLink.Name = "CopyrightLink";
+            this.CopyrightLink.Size = new System.Drawing.Size(90, 13);
+            this.CopyrightLink.TabIndex = 2;
+            this.CopyrightLink.TabStop = true;
+            this.CopyrightLink.Text = "Copyright Notices";
+            this.CopyrightLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.CopyrightLink_LinkClicked);
+            // 
             // NewsBrowser
             // 
             this.NewsBrowser.AllowWebBrowserDrop = false;
@@ -191,29 +214,6 @@
             this.NewsBrowser.TabIndex = 0;
             this.NewsBrowser.Url = new System.Uri("", System.UriKind.Relative);
             this.NewsBrowser.WebBrowserShortcutsEnabled = false;
-            // 
-            // CopyrightLink
-            // 
-            this.CopyrightLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.CopyrightLink.AutoSize = true;
-            this.CopyrightLink.Location = new System.Drawing.Point(193, 12);
-            this.CopyrightLink.Name = "CopyrightLink";
-            this.CopyrightLink.Size = new System.Drawing.Size(90, 13);
-            this.CopyrightLink.TabIndex = 2;
-            this.CopyrightLink.TabStop = true;
-            this.CopyrightLink.Text = "Copyright Notices";
-            this.CopyrightLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.CopyrightLink_LinkClicked);
-            // 
-            // NewsLink
-            // 
-            this.NewsLink.AutoSize = true;
-            this.NewsLink.Location = new System.Drawing.Point(5, 12);
-            this.NewsLink.Name = "NewsLink";
-            this.NewsLink.Size = new System.Drawing.Size(98, 13);
-            this.NewsLink.TabIndex = 3;
-            this.NewsLink.TabStop = true;
-            this.NewsLink.Text = "News and Updates";
-            this.NewsLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.NewsLink_LinkClicked);
             // 
             // AboutPanel
             // 

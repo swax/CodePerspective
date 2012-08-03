@@ -1,4 +1,10 @@
 ﻿
+
+Debugging why an assembly is not working:
+	Load assembly.exe as a project in visual studio and start debugging
+	Use Process Explorer see which version of the CLR is being loaded
+	Use hidden option on Builder form to ildasm original and new assemblies
+
 Why is XLibrary set to .Net 3.5?
 	Paint.Net and Facebook Chat were not working with it set to 4.0
 	Error: This assembly is built by a runtime newer than the currently loaded runtime and cannot be loaded

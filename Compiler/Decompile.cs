@@ -44,7 +44,8 @@ namespace XBuilder
         public bool TrackFields = true;
         public bool TrackCode = true;
         public bool ShowUIonStart = true;
-        public bool DecompileCSharp = true;
+        public bool SaveMsil = true;
+        public bool DecompileCSharp = false;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -86,8 +87,15 @@ namespace XBuilder
             string assemblyPath = Path.Combine(buildDir, filename);
             File.Copy(OriginalPath, assemblyPath, true);
 
-            AssemblyDefinition asm = AssemblyDefinition.ReadAssembly(assemblyPath);
+            var asm = AssemblyDefinition.ReadAssembly(assemblyPath);
 
+            // don't remove strong name because in vs plugin and xaml files, assemblies are referenced by their public key (nuGet, ILSpy)
+            // no point either, what really needs to be done is to remove any signatures - strong names aren't signatures
+            //asm.Name.PublicKey = new byte[0];
+            //asm.Name.PublicKeyToken = new byte[0];
+            //asm.Name.HasPublicKey = false; 
+
+            // if we're decompiling a moved dll, then we need to point the resolver to its original path to resolve dependencies
             var resolver = asm.MainModule.AssemblyResolver as DefaultAssemblyResolver;
             if(resolver != null)
                 resolver.AddSearchDirectory(Path.GetDirectoryName(OriginalPath));
@@ -138,7 +146,7 @@ namespace XBuilder
             // change module names after class/method processing so we dont interfere with dependency lookup
             if (XRayedFiles.Any(f => f.AssemblyName == asmDef.Name))
             {
-                asmDef.HasPublicKey = false;
+                asmDef.HasPublicKey = false; //necessary? maybe if referencing strong signed.. are hashes put into references?
 
                 if (SideBySide)
                     asmDef.Name = "XRay." + asmDef.Name;
@@ -148,7 +156,7 @@ namespace XBuilder
             foreach (var asmRef in asm.MainModule.AssemblyReferences)
                 if (XRayedFiles.Any(f => f.AssemblyName == asmRef.Name))
                 {
-                    asmRef.HasPublicKey = false;
+                    asmRef.HasPublicKey = false; //necessary? maybe if referencing strong signed.. are hashes put into references?
 
                     if (SideBySide)
                         asmRef.Name = "XRay." + asmRef.Name;
@@ -298,56 +306,59 @@ namespace XBuilder
                         continue;
 
                     // record MSIL
-                    methodNode.Msil = new List<XInstruction>();
-                    foreach (var inst in method.Body.Instructions)
+                    if (SaveMsil)
                     {
-                        var xInst = new XInstruction();
-                        xInst.Offset = inst.Offset;
-                        xInst.OpCode = inst.OpCode.Name;
-                        xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
-
-                        if (inst.OpCode == OpCodes.Call ||
-                            inst.OpCode == OpCodes.Calli ||
-                            inst.OpCode == OpCodes.Callvirt ||
-                            inst.OpCode == OpCodes.Newobj ||
-                            inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
+                        methodNode.Msil = new List<XInstruction>();
+                        foreach (var inst in method.Body.Instructions)
                         {
-                            var call = inst.Operand as MethodReference;
-                            if (call != null)
+                            var xInst = new XInstruction();
+                            xInst.Offset = inst.Offset;
+                            xInst.OpCode = inst.OpCode.Name;
+                            xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
+
+                            if (inst.OpCode == OpCodes.Call ||
+                                inst.OpCode == OpCodes.Calli ||
+                                inst.OpCode == OpCodes.Callvirt ||
+                                inst.OpCode == OpCodes.Newobj ||
+                                inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
                             {
-                                var classRef = GetClassRef(call.DeclaringType);
-                                var methodRef = classRef.AddMethod(call);
+                                var call = inst.Operand as MethodReference;
+                                if (call != null)
+                                {
+                                    var classRef = GetClassRef(call.DeclaringType);
+                                    var methodRef = classRef.AddMethod(call);
 
-                                xInst.RefId = methodRef.ID;
+                                    xInst.RefId = methodRef.ID;
+                                }
+                                else
+                                    Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
                             }
-                            else
-                                Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
-                        }
-                        else if (inst.OpCode == OpCodes.Stfld ||
-                                  inst.OpCode == OpCodes.Stsfld ||
-                                  inst.OpCode == OpCodes.Ldfld ||
-                                  inst.OpCode == OpCodes.Ldflda ||
-                                  inst.OpCode == OpCodes.Ldsfld ||
-                                  inst.OpCode == OpCodes.Ldsflda)
-                        {
-                            var fieldDef = inst.Operand as FieldReference;
-                            var classRef = GetClassRef(fieldDef.DeclaringType);
-                            var fieldRef = classRef.AddField(fieldDef);
-                            xInst.RefId = fieldRef.ID;
-                        }
-                        else if (inst.OpCode.FlowControl == FlowControl.Branch ||
-                                 inst.OpCode.FlowControl == FlowControl.Cond_Branch)
-                        {
-                            var op = inst.Operand as Instruction;
-                            if (op != null)
+                            else if (inst.OpCode == OpCodes.Stfld ||
+                                      inst.OpCode == OpCodes.Stsfld ||
+                                      inst.OpCode == OpCodes.Ldfld ||
+                                      inst.OpCode == OpCodes.Ldflda ||
+                                      inst.OpCode == OpCodes.Ldsfld ||
+                                      inst.OpCode == OpCodes.Ldsflda)
                             {
-                                int offset = op.Offset;
-                                xInst.Line = "goto " + offset.ToString("X");
-                                xInst.RefId = offset;
+                                var fieldDef = inst.Operand as FieldReference;
+                                var classRef = GetClassRef(fieldDef.DeclaringType);
+                                var fieldRef = classRef.AddField(fieldDef);
+                                xInst.RefId = fieldRef.ID;
                             }
-                        }
+                            else if (inst.OpCode.FlowControl == FlowControl.Branch ||
+                                     inst.OpCode.FlowControl == FlowControl.Cond_Branch)
+                            {
+                                var op = inst.Operand as Instruction;
+                                if (op != null)
+                                {
+                                    int offset = op.Offset;
+                                    xInst.Line = "goto " + offset.ToString("X");
+                                    xInst.RefId = offset;
+                                }
+                            }
 
-                        methodNode.Msil.Add(xInst);
+                            methodNode.Msil.Add(xInst);
+                        }
                     }
                 }
 

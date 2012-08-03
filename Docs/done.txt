@@ -1,4 +1,15 @@
-﻿show real-time calls between nodes on init graph
+﻿
+1.0.3
+	Added CLR version to scanner panel
+	Press return to search in scannel panel
+
+1.0.2
+	Downgraded to .Net 3.5
+
+1.0.1
+	Initial release
+
+show real-time calls between nodes on init graph
 instantiation graph
 	when new object is created, created an edge from creating class to new class
 

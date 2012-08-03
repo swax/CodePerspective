@@ -1,5 +1,9 @@
 ﻿
+see if when i can remove signatures i can xray system dlls
+commit and try to open/build/recompile with mono runtime
 
+Error trying to find common link between BuildContent and BuildContent, common had 0 index
+option not to record MSIL, check that stuff like deOps is way faster at compiling
 background tooltip color in opengl
 add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 
@@ -48,6 +52,8 @@ details ui
 		!trap / auto-release modes - trap keeps handles to classes, auto-release uses weak refs
 
 	method profile
+		**light up cell red for increase, green for decrease
+		**1 second refresh with pause button
 		click on method, blink it and call line
 		double click method pan to it
 	click name title in details, select/pan to that node and bring it into zoom if not

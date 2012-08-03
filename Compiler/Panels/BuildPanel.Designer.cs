@@ -34,6 +34,7 @@
             this.MsToolsCheckbox = new System.Windows.Forms.CheckBox();
             this.RunVerifyCheckbox = new System.Windows.Forms.CheckBox();
             this.OptionsPanel = new System.Windows.Forms.Panel();
+            this.SaveMsilCheckBox = new System.Windows.Forms.CheckBox();
             this.DecompileCSharpCheckBox = new System.Windows.Forms.CheckBox();
             this.ShowOnStartCheckBox = new System.Windows.Forms.CheckBox();
             this.OutputLink = new System.Windows.Forms.LinkLabel();
@@ -119,6 +120,7 @@
             // 
             this.OptionsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.OptionsPanel.Controls.Add(this.SaveMsilCheckBox);
             this.OptionsPanel.Controls.Add(this.DecompileCSharpCheckBox);
             this.OptionsPanel.Controls.Add(this.ShowOnStartCheckBox);
             this.OptionsPanel.Controls.Add(this.TrackInstancesCheckBox);
@@ -136,15 +138,28 @@
             this.OptionsPanel.Controls.Add(this.LaunchButton);
             this.OptionsPanel.Controls.Add(this.ShowMapButton);
             this.OptionsPanel.Controls.Add(this.TrackFlowCheckBox);
-            this.OptionsPanel.Location = new System.Drawing.Point(6, 112);
+            this.OptionsPanel.Location = new System.Drawing.Point(6, 118);
             this.OptionsPanel.Name = "OptionsPanel";
             this.OptionsPanel.Size = new System.Drawing.Size(322, 250);
             this.OptionsPanel.TabIndex = 21;
             // 
+            // SaveMsilCheckBox
+            // 
+            this.SaveMsilCheckBox.AutoSize = true;
+            this.SaveMsilCheckBox.Checked = true;
+            this.SaveMsilCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.SaveMsilCheckBox.Location = new System.Drawing.Point(261, 188);
+            this.SaveMsilCheckBox.Name = "SaveMsilCheckBox";
+            this.SaveMsilCheckBox.Size = new System.Drawing.Size(51, 17);
+            this.SaveMsilCheckBox.TabIndex = 26;
+            this.SaveMsilCheckBox.Text = "MSIL";
+            this.SaveMsilCheckBox.UseVisualStyleBackColor = true;
+            this.SaveMsilCheckBox.Visible = false;
+            // 
             // DecompileCSharpCheckBox
             // 
             this.DecompileCSharpCheckBox.AutoSize = true;
-            this.DecompileCSharpCheckBox.Location = new System.Drawing.Point(13, 94);
+            this.DecompileCSharpCheckBox.Location = new System.Drawing.Point(13, 96);
             this.DecompileCSharpCheckBox.Name = "DecompileCSharpCheckBox";
             this.DecompileCSharpCheckBox.Size = new System.Drawing.Size(105, 17);
             this.DecompileCSharpCheckBox.TabIndex = 25;
@@ -156,7 +171,7 @@
             this.ShowOnStartCheckBox.AutoSize = true;
             this.ShowOnStartCheckBox.Checked = true;
             this.ShowOnStartCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ShowOnStartCheckBox.Location = new System.Drawing.Point(13, 118);
+            this.ShowOnStartCheckBox.Location = new System.Drawing.Point(13, 119);
             this.ShowOnStartCheckBox.Name = "ShowOnStartCheckBox";
             this.ShowOnStartCheckBox.Size = new System.Drawing.Size(165, 17);
             this.ShowOnStartCheckBox.TabIndex = 24;
@@ -181,12 +196,13 @@
             // DecompileAgainCheckbox
             // 
             this.DecompileAgainCheckbox.AutoSize = true;
-            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(13, 164);
+            this.DecompileAgainCheckbox.Location = new System.Drawing.Point(13, 165);
             this.DecompileAgainCheckbox.Name = "DecompileAgainCheckbox";
             this.DecompileAgainCheckbox.Size = new System.Drawing.Size(238, 17);
             this.DecompileAgainCheckbox.TabIndex = 18;
             this.DecompileAgainCheckbox.Text = "Decompile produced assembly for debugging";
             this.DecompileAgainCheckbox.UseVisualStyleBackColor = true;
+            this.DecompileAgainCheckbox.Visible = false;
             // 
             // TestCompile
             // 
@@ -217,7 +233,7 @@
             // ReplaceOriginalCheckBox
             // 
             this.ReplaceOriginalCheckBox.AutoSize = true;
-            this.ReplaceOriginalCheckBox.Location = new System.Drawing.Point(13, 141);
+            this.ReplaceOriginalCheckBox.Location = new System.Drawing.Point(13, 142);
             this.ReplaceOriginalCheckBox.Name = "ReplaceOriginalCheckBox";
             this.ReplaceOriginalCheckBox.Size = new System.Drawing.Size(221, 17);
             this.ReplaceOriginalCheckBox.TabIndex = 11;
@@ -292,7 +308,7 @@
             this.FileList.Location = new System.Drawing.Point(6, 25);
             this.FileList.Name = "FileList";
             this.FileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.FileList.Size = new System.Drawing.Size(322, 81);
+            this.FileList.Size = new System.Drawing.Size(322, 87);
             this.FileList.TabIndex = 16;
             // 
             // RemoveLink
@@ -352,7 +368,7 @@
             this.Controls.Add(this.ResetLink);
             this.Controls.Add(this.label1);
             this.Name = "BuildPanel";
-            this.Size = new System.Drawing.Size(331, 365);
+            this.Size = new System.Drawing.Size(331, 371);
             this.OptionsPanel.ResumeLayout(false);
             this.OptionsPanel.PerformLayout();
             this.ResumeLayout(false);
@@ -385,5 +401,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox ShowOnStartCheckBox;
         private System.Windows.Forms.CheckBox DecompileCSharpCheckBox;
+        private System.Windows.Forms.CheckBox SaveMsilCheckBox;
     }
 }

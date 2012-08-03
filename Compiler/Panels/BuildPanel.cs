@@ -13,6 +13,7 @@ using System.Runtime.Remoting;
 using XLibrary;
 using System.Diagnostics;
 using System.Runtime.Remoting.Channels;
+using XLibrary.Meta;
 
 namespace XBuilder
 {
@@ -115,6 +116,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             bool compileWithMS = MsToolsCheckbox.Checked;
             bool decompileAgain = DecompileAgainCheckbox.Checked;
             bool showUiOnStart = ShowOnStartCheckBox.Checked;
+            bool saveMsil = SaveMsilCheckBox.Checked;
             bool decompileCSharp = DecompileCSharpCheckBox.Checked;
 
 
@@ -168,6 +170,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
                             TrackFields = trackFields,
                             TrackInstances = trackInstances,
                             ShowUIonStart = showUiOnStart,
+                            SaveMsil = saveMsil,
                             DecompileCSharp = decompileCSharp
                         };
 
@@ -196,7 +199,15 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
                                 status("Recompiling", item.FileName);
                                 decompile.MonoRecompile();
                             }
+                            
+                            // remove signature
+                            // files that arent signed are coming up as signed meaning this would probably corrupt a file
+                            // also not sure if checked anymore - http://msdn.microsoft.com/en-us/library/cc713694.aspx
+                            //var meta = new MetaInfo(item.RecompiledPath);
+                            //if (meta.Load())
+                            //    meta.RemoveSignature();
 
+                            // decompile to check
                             if (decompileAgain)
                             {
                                 string filename = Path.GetFileName(item.FilePath);

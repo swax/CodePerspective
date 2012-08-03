@@ -10,6 +10,10 @@ using XLibrary;
 using System.IO;
 using System.Threading;
 using System.Reflection;
+using Mono.Cecil;
+using XLibrary.Meta;
+using System.Collections;
+
 
 namespace XBuilder
 {
@@ -49,6 +53,7 @@ namespace XBuilder
             string path = PathTextBox.Text;
 
             var info = new DirectoryInfo(path);
+            bool subdirs = SubDirCheckBox.Checked;
 
             FilesList.Items.Clear();
 
@@ -59,30 +64,38 @@ namespace XBuilder
 
             ScanThread = new Thread(o =>
             {
-                ScanDirectory(info);
+                ScanDirectory(info, subdirs);
 
                 StopThread = false;
                 ScanThread = null;
 
-                BeginInvoke(new Action(() =>
-                {
-                    ScanButton.Text = "Scan";
-                    //MessageBox.Show("Scan Finished\r\n" + ErrorLog.ToString());
-                }));
+                BeginInvoke(new Action(() => FinishScan()));
                 
             });
             ScanThread.Start();
         }
 
-        private void ScanDirectory(DirectoryInfo info)
+        void FinishScan()
+        {
+            ScanButton.Text = "Scan";
+
+            if (ErrorLog.Length > 0)
+            {
+                ErrorLog.Length = 1000;
+                MessageBox.Show("Scan Finished\r\n" + ErrorLog.ToString());
+            }
+        }
+
+        private void ScanDirectory(DirectoryInfo info, bool subdirs)
         {
             if (StopThread)
                 return;
 
             try
             {
-                foreach(var dir in info.GetDirectories())
-                    ScanDirectory(dir);
+                if (subdirs) 
+                    foreach (var dir in info.GetDirectories())
+                        ScanDirectory(dir, subdirs);
 
                 foreach (var file in info.GetFiles())
                 {
@@ -105,18 +118,23 @@ namespace XBuilder
         {
             try
             {
-                Assembly asm = Assembly.LoadFrom(file.FullName);
-                byte[] asmToken = asm.GetName().GetPublicKeyToken();
+                //Assembly asm = Assembly.LoadFrom(file.FullName);
+                //var asm = AssemblyDefinition.ReadAssembly(file.FullName);
+                var meta = new MetaInfo(file.FullName);
 
-                FoundCount++;
-
-                BeginInvoke(new Action(() =>
+                if (meta.Load())
                 {
-                    FilesList.Items.Add(new ListViewItem(new string[] { 
+                    FoundCount++;
+
+                    BeginInvoke(new Action(() =>
+                    {
+                        FilesList.Items.Add(new ListViewItem(new string[] { 
                         file.Name, 
-                        (asmToken.Length > 0) ? "Yes" : "No", 
+                        (meta.strongNameSignatureOffset != 0) ? "Yes" : "No", 
+                        meta.compiledRuntimeVersion,
                         file.FullName }));
-                }));
+                    }));
+                }
             }
             catch (Exception ex)
             {
@@ -151,6 +169,12 @@ namespace XBuilder
             Main.BuildPanel.AddFilesToList(paths);
 
             Main.MainTabs.SelectedTab = Main.MainTabs.TabPages[0];
+        }
+
+        private void PathTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 13)
+                ScanButton_Click(this, new EventArgs());
         }
     }
 }

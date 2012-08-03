@@ -51,7 +51,7 @@ namespace XLibrary.UI.Panels
         private void ShowNews()
         {
             var mode = XRay.InitComplete ? "viewer" : "builder";
-            var url = string.Format("http://www.codeperspective.com/Client/Update?Mode={0}&Version={1}&Pro={2}", mode, XRay.BuilderVersion, Pro.Verified);
+            var url = string.Format("http://static.codeperspective.com/client/update.html?Mode={0}&Version={1}&Pro={2}", mode, XRay.BuilderVersion, Pro.Verified);
             NewsBrowser.Navigate(url);
         }
 

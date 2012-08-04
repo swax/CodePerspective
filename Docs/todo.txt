@@ -1,4 +1,5 @@
 ﻿
+test that handles to structs are released
 see if when i can remove signatures i can xray system dlls
 commit and try to open/build/recompile with mono runtime
 

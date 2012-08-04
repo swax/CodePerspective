@@ -22,5 +22,8 @@ InvalidOperationException: Application exception mode cannot be changed once any
 		up the XRay viewer before the application starts up will prevent the target app from using SetUnhandledExceptionMode
 	Solution - Turn off open visualization on startup
 
-
+Why not tracking struct creation?
+	Structs do not have parameterless .ctor functions
+	Structs do not have deconstructors
+	In MCForge it was causing a System.ExecutionEngineException
 

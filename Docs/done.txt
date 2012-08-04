@@ -1,4 +1,7 @@
-﻿
+﻿1.0.4
+	Fixed bug in adding assemblies from scanner panel
+	Removed instance tracking from structs - causing crashes
+
 1.0.3
 	Added CLR version to scanner panel
 	Press return to search in scannel panel

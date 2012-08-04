@@ -362,7 +362,7 @@ namespace XBuilder
                     }
                 }
 
-            if (TrackInstances)
+            if (TrackInstances && !classDef.IsValueType)
             {
                 bool hasCtor = false;
 

@@ -29,6 +29,7 @@ namespace XTestApp
 
         NestedClass x = new NestedClass();
 
+        TestStruct MyStruct = new TestStruct();
 
         public Form1()
         {
@@ -36,6 +37,7 @@ namespace XTestApp
 
             ButtonAsObject = button1;
             ButtonAsControl = button1;
+
         }
 
         public void TryStuff()
@@ -138,6 +140,9 @@ namespace XTestApp
 
         private void throwButton_Click(object sender, EventArgs e)
         {
+
+            MyStruct = new TestStruct() { A = 11, B = 22 };
+            
             //var y = 0;
             //var x = 1 / y;
             TryStuff();
@@ -204,5 +209,17 @@ namespace XTestApp
             System.Threading.Thread.Sleep(101);
         }
         
+    }
+
+    public struct TestStruct
+    {
+        public int A;
+        public int B;
+
+        public TestStruct(int a, int b)
+        {
+            A = a;
+            B = b;
+        }
     }
 }

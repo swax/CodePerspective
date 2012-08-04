@@ -164,7 +164,7 @@ namespace XBuilder
 
         private void AddToBuildLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var paths = FilesList.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[2].Text).ToArray();
+            var paths = FilesList.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[3].Text).ToArray();
 
             Main.BuildPanel.AddFilesToList(paths);
 

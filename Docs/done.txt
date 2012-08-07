@@ -1,4 +1,7 @@
-﻿1.0.4
+﻿1.0.5 
+	Fixed bug that caused crash on systems with windows themes turned off
+
+1.0.4
 	Fixed bug in adding assemblies from scanner panel
 	Removed instance tracking from structs - causing crashes
 
@@ -12,6 +15,8 @@
 
 1.0.1
 	Initial release
+
+
 
 show real-time calls between nodes on init graph
 instantiation graph

@@ -192,16 +192,6 @@ error handling
 	try to handle paint.net crashing with xray
 	maybe first pass source show's MSIL
 
-apps
-	facebook - no longer working - mixed mode assembly error
-	deOps - problem expanding dictionaries keyvalue elements in some classes
-	openTK - gives an assembly reference not found on compile
-	github - not working
-	test app - 'trystuff' in test app not decompiling, unresolved ref
-	xlibrary - method dependency graph to see if ViewModel can be refactored
-	paint.net photshop.dll recompile/view not working..
-	vsvim - works but rediculously complicated, i think if apps are built with xray from the start they'd look better, idk
-
 instance view
 	click title in instance view - focus on node in under current root, if zoomed into far, zoom out, or make outside visible
 	show fields in instance view even if no instances created

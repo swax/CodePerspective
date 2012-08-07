@@ -5,6 +5,15 @@ NuGet
 	Notes: All files are signed, XRay replaced to remove sigs
 	Problem: Replaced PublicKeyTokens in NuGet.Tools.pkgdef with null because no longer signed, but still giving an error while loading
 
+Expression Encoder
+	Licensing dll has a field type - method System.Void *() - that isn't parsed correctly
+	I think 'method' might be a field attribute and maybe a cecil bug - investigate
+
+
+	deOps - problem expanding dictionaries keyvalue elements in some classes
+	openTK - gives an assembly reference not found on compile
+	xlibrary - method dependency graph to see if ViewModel can be refactored
+
 banshee
 	Need to start xray in admin mode
 	Need to run nereid in admin mode
@@ -13,9 +22,6 @@ banshee
 		This is likely because the managed PInvoke signature does not match the unmanaged target signature. 
 		Check that the calling convention and parameters of the PInvoke signature match the target unmanaged signature.
 	
-mcforge
-	working
-
 windows 8
 	use scanner, see what's out there
 

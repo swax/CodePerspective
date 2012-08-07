@@ -263,6 +263,7 @@ namespace XLibrary
             ParseAndCheck("std._Tree_val<std::_Tmap_traits<CefStringBase<CefStringTraitsUTF16>,CefStringBase<CefStringTraitsUTF16>,std::less<CefStringBase<CefStringTraitsUTF16> >,std::allocator<std::pair<CefStringBase<CefStringTraitsUTF16> const ,CefStringBase<CefStringTraitsUTF16> > >,1> >* modopt(System.Runtime.CompilerServices.CallConvThiscall)");
             ParseAndCheck("System.Collections.Generic.KeyValuePair`2<TKey,TVal>[]");
             ParseAndCheck("System.Single[]&");
+            //ParseAndCheck("method System.Void *()");
         }
 
         public string GetShortName()

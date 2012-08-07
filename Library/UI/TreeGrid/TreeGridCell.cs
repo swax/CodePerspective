@@ -250,14 +250,47 @@ namespace AdvancedDataGridView
                 }
             }
 
-            if (node.HasChildren || node._grid.VirtualNodes)
+            /*if (node.HasChildren || node._grid.VirtualNodes)
             {
                 // Paint node glyphs				
                 if (node.IsExpanded)
                     node._grid.rOpen.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10));
                 else
                     node._grid.rClosed.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10));
-            }
+            }*/
+
+            if (node.HasChildren || node._grid.VirtualNodes)
+            {
+                // Ensure that visual styles are supported. 
+                if (Application.RenderWithVisualStyles)
+                {
+                    VisualStyleRenderer rOpen = new VisualStyleRenderer(VisualStyleElement.TreeView.Glyph.Opened);
+                    VisualStyleRenderer rClosed = new VisualStyleRenderer(VisualStyleElement.TreeView.Glyph.Closed);
+
+                    // Paint node glyphs	
+                    if (node.IsExpanded)
+                        //node._grid.rOpen.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10)); 
+                        rOpen.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10));
+                    else
+                        //node._grid.rClosed.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10)); 
+                        rClosed.DrawBackground(graphics, new Rectangle(glyphRect.X, glyphRect.Y + (glyphRect.Height / 2) - 4, 10, 10));
+                }
+                else
+                {
+                    int h = 8;
+                    int w = 8;
+                    int x = glyphRect.X;
+                    int y = glyphRect.Y + (glyphRect.Height / 2) - 4;
+                    //MessageBox.Show("x = " + x.ToString() + ", y= " + y.ToString()); 
+
+                    graphics.DrawRectangle(new Pen(SystemBrushes.ControlDark), x, y, w, h);
+                    graphics.FillRectangle(new SolidBrush(Color.White), x + 1, y + 1, w - 1, h - 1);
+                    graphics.DrawLine(new Pen(new SolidBrush(Color.Black)), x + 2, y + 4, x + w - 2, y + 4);
+
+                    if (!node.IsExpanded)
+                        graphics.DrawLine(new Pen(new SolidBrush(Color.Black)), x + 4, y + 2, x + 4, y + h - 2);
+                }
+            } 
 
 
 		}

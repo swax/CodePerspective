@@ -1,4 +1,7 @@
-﻿1.0.5 
+﻿1.0.6
+	Fixed bug with model not being set first in GdiRenderer
+
+1.0.5 
 	Fixed bug that caused crash on systems with windows themes turned off
 
 1.0.4

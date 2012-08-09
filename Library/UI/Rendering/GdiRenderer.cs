@@ -30,6 +30,8 @@ namespace XLibrary
 
         public GdiRenderer(ViewModel model)
         {
+            Model = model;
+
             InitializeComponent();
 
             MouseWheel += GdiRenderer_MouseWheel;
@@ -37,8 +39,6 @@ namespace XLibrary
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-
-            Model = model;
 
             LabelFormat.Trimming = StringTrimming.EllipsisCharacter;
             LabelFormat.FormatFlags |= StringFormatFlags.NoWrap;

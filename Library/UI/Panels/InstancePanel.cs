@@ -543,7 +543,14 @@ namespace XLibrary
             if (showUpdate && currentValue != null)
             {
                 if (currentValue.CompareTo(newValue) != 0)
-                    cell.Style.BackColor = Color.PeachPuff;
+                {
+                    double currentD, newD;
+
+                    if (double.TryParse(currentValue, out currentD) && double.TryParse(newValue, out newD))
+                        cell.Style.BackColor = (newD > currentD) ? Color.LightGreen : Color.LightCoral;
+                    else
+                        cell.Style.BackColor = Color.LightBlue;
+                }
                 else
                     cell.Style.BackColor = cell.OwningRow.DefaultCellStyle.BackColor;
             }

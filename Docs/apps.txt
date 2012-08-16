@@ -9,10 +9,9 @@ Expression Encoder
 	Licensing dll has a field type - method System.Void *() - that isn't parsed correctly
 	I think 'method' might be a field attribute and maybe a cecil bug - investigate
 
-
-	deOps - problem expanding dictionaries keyvalue elements in some classes
-	openTK - gives an assembly reference not found on compile
-	xlibrary - method dependency graph to see if ViewModel can be refactored
+deOps - problem expanding dictionaries keyvalue elements in some classes
+openTK - gives an assembly reference not found on compile
+xlibrary - method dependency graph to see if ViewModel can be refactored
 
 banshee
 	Need to start xray in admin mode

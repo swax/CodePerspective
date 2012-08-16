@@ -48,7 +48,7 @@ Put string value of arguments along the line of the call
 details ui
 	instance
 		click on field blink it
-		double click on field, pan over to it
+		double click on  field, pan over to it
 		back/forward button, pan to node
 		!trap / auto-release modes - trap keeps handles to classes, auto-release uses weak refs
 

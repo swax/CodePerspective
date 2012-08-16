@@ -31,6 +31,10 @@ namespace XTestApp
 
         TestStruct MyStruct = new TestStruct();
 
+        int RandNum = 0;
+        string RandString = "";
+
+
         public Form1()
         {
             InitializeComponent();
@@ -42,6 +46,9 @@ namespace XTestApp
 
         public void TryStuff()
         {
+            RandNum = new Random().Next(100);
+            RandString = RandNum.ToString() + "abc";
+
             // checks whats been added to il for static constructor
 
             // read in static consructor with decompiler and see what load field value is set to

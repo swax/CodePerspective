@@ -104,6 +104,7 @@ help
 id <#>
 inits
 log
+network
 settings
 stacks";
             }
@@ -193,6 +194,14 @@ stacks";
                 var results = XRay.Nodes.Where(n => n.Name.Contains(find)).Select(n => n.ID + ": " + n.Name);
 
                 return String2.Join("\r\n", results);
+            }
+
+            else if (string.Compare(input, "network", true) == 0)
+            {
+                foreach (string error in XRay.Remote.DebugLog)
+                    output.AppendLine(error);
+
+                return output.ToString();
             }
 
             else

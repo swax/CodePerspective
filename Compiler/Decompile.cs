@@ -117,7 +117,7 @@ namespace XBuilder
             var syslib = asm.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == "System");
             syslib.Version = new Version("4.0.0.0");*/
 
-            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
+            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool), typeof(bool) }));
 			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
             ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
             CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
@@ -216,6 +216,7 @@ namespace XBuilder
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, ShowUIonStart ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackFlow ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackInstances ? 1 : 0));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, 0)); // remote client (false)
             AddInstruction(cctor, i++, processor.Create(OpCodes.Call, XRayInitRef));
 
             if(created)

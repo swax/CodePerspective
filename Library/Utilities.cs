@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Windows.Forms;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace XLibrary
 {
@@ -201,6 +203,76 @@ namespace XLibrary
             }
 
             return temp;
+        }
+
+        public static byte[] ExtractBytes(byte[] buffer, int offset, int length)
+        {
+            byte[] extracted = new byte[length];
+
+            Buffer.BlockCopy(buffer, offset, extracted, 0, length);
+
+            return extracted;
+        }
+
+        public static string BytestoHex(byte[] data)
+        {
+            return Utilities.BytestoHex(data, 0, data.Length, false);
+        }
+
+        public static string BytestoHex(byte[] data, int offset, int size, bool space)
+        {
+            StringBuilder hex = new StringBuilder();
+
+            for (int i = offset; i < offset + size; i++)
+            {
+                hex.Append(String.Format("{0:x2}", data[i]));
+
+                if (space)
+                    hex.Append(" ");
+            }
+
+            return hex.ToString();
+        }
+
+        public static byte[] HextoBytes(string hex)
+        {
+            if (hex.Length % 2 != 0)
+                return null;
+
+            byte[] bin = new byte[hex.Length / 2];
+
+            hex = hex.ToUpper();
+
+            for (int i = 0; i < hex.Length; i++)
+            {
+                int val = hex[i];
+                val -= 48; // 0 - 9
+
+                if (val > 9) // A - F
+                    val -= 7;
+
+                if (val > 15) // invalid char read
+                    return null;
+
+                if (i % 2 == 0)
+                    bin[i / 2] = (byte)(val << 4);
+                else
+                    bin[(i - 1) / 2] |= (byte)val;
+            }
+
+            return bin;
+        }
+
+        public static string MD5HashFile(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            {
+                var md5 = new MD5CryptoServiceProvider();
+
+                var hash = md5.ComputeHash(stream);
+
+                return BytestoHex(hash);
+            }
         }
     }
 

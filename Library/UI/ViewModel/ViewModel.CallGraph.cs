@@ -27,11 +27,11 @@ namespace XLibrary
                 PositionMap.Clear();
                 CenterMap.Clear();
 
-                /*var root = CurrentRoot;
+                var root = CurrentRoot;
                 if (root == InternalRoot && ShowExternal)
-                    root = TopRoot;*/
+                    root = TopRoot;
 
-                TopGraph = new GraphSet(this, CurrentRoot);
+                TopGraph = new GraphSet(this, root);
 
                 // combine position and center maps for graph tree
                 Utilities.RecurseTree(

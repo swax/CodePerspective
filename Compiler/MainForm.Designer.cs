@@ -38,11 +38,14 @@
             this.ScannerPanel = new XBuilder.ScannerPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.remotePanel1 = new XBuilder.Panels.RemotePanel();
             this.MainTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainTabs
@@ -50,6 +53,7 @@
             this.MainTabs.Controls.Add(this.tabPage1);
             this.MainTabs.Controls.Add(this.tabPage2);
             this.MainTabs.Controls.Add(this.tabPage3);
+            this.MainTabs.Controls.Add(this.tabPage5);
             this.MainTabs.Controls.Add(this.tabPage4);
             this.MainTabs.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainTabs.Location = new System.Drawing.Point(0, 0);
@@ -135,6 +139,24 @@
             this.aboutPanel1.Size = new System.Drawing.Size(371, 361);
             this.aboutPanel1.TabIndex = 0;
             // 
+            // tabPage5
+            // 
+            this.tabPage5.Controls.Add(this.remotePanel1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(377, 367);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Remote";
+            this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // remotePanel1
+            // 
+            this.remotePanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.remotePanel1.Location = new System.Drawing.Point(0, 0);
+            this.remotePanel1.Name = "remotePanel1";
+            this.remotePanel1.Size = new System.Drawing.Size(377, 367);
+            this.remotePanel1.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -150,6 +172,7 @@
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -165,6 +188,8 @@
         public System.Windows.Forms.TabControl MainTabs;
         private System.Windows.Forms.TabPage tabPage4;
         private XLibrary.UI.Panels.AboutPanel aboutPanel1;
+        private System.Windows.Forms.TabPage tabPage5;
+        private Panels.RemotePanel remotePanel1;
 
 
     }

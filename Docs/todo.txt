@@ -1,14 +1,51 @@
 ﻿
-test that handles to structs are released
 see if when i can remove signatures i can xray system dlls
 commit and try to open/build/recompile with mono runtime
 
-Error trying to find common link between BuildContent and BuildContent, common had 0 index
+**Error trying to find common link between BuildContent and BuildContent, common had 0 index
 option not to record MSIL, check that stuff like deOps is way faster at compiling
 background tooltip color in opengl
 add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 
 Dead threads not cleared from flow map? should be, some sort of max or something?
+
+Remote
+	commit
+	support for sending download file
+
+	receive in temp file
+	hash
+	change name
+
+	keep status of events on remote tab
+	load viewer button enabled when ready
+	
+	when send is ready set event, add packets
+	when data sent, do from core thread, use action queue
+
+	on connect to server
+		request dat hash
+		on receive dat hash, check if we already have it
+		if not, download dat as temp and rename to dat once downloaded and hash verified
+		open xray viewer with dat path
+
+	Test function for generic packet
+
+	Server
+		listen on port
+		simple auth dummy
+		If enabled, xlib starts a listen socket
+		Simple fixed size protocol or g2, eh probably g2
+		Serve dat file to client
+
+	Client
+		Built into builder, remote tab
+		Enter in server ip/port
+		Connect, viewer opens
+		Viewer is sent dat file over the network
+		State updates
+			NodesHit
+				Zip hit node map and send periodically
 
 
 instance view
@@ -28,7 +65,6 @@ xlibrary
 	
 scanner view
 	on select app, show in details below exactly what exe/dlls were xrayed
-	show CLR version
 	show corflags, have to use corflags.exe?
 
 quantify xray overhead

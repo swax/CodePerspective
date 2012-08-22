@@ -108,6 +108,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Pro.cs" />
+    <Compile Include="Remote\BandwidthLog.cs" />
+    <Compile Include="Remote\CircularBuffer.cs" />
+    <Compile Include="Remote\G2Header.cs" />
+    <Compile Include="Remote\G2Protocol.cs" />
+    <Compile Include="Remote\Packets.cs" />
+    <Compile Include="Remote\XConnection.cs" />
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="Meta\AssemblyReference.cs" />
     <Compile Include="Meta\FileViewer.cs" />
@@ -219,6 +225,7 @@
     <Compile Include="XLibrary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XNode.cs" />
+    <Compile Include="Remote\XRemote.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="UI\DetailsNav.resx">

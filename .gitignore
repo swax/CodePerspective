@@ -1,0 +1,9 @@
+*.suo
+Compiler/bin/
+Compiler/obj/
+Library/bin/
+Library/obj/
+XTestApp/bin/
+XTestApp/obj/
+XTestLib/bin/
+XTestLib/obj/

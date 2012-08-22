@@ -28,6 +28,9 @@ namespace XLibrary.UI.Panels
         {
             InitializeComponent();
 
+            if (DesignMode)
+                return;
+
             // either version of running builder, or verseion that built this viewer
             VersionLabel.Text = "Version: " + XRay.BuilderVersion;
 

@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Reflection;
+using XLibrary.Remote;
+using System.Security.Cryptography;
 
 
 namespace XLibrary
@@ -22,7 +24,7 @@ namespace XLibrary
         internal static Dictionary<int, Thread> UIs = new Dictionary<int, Thread>();
 
         internal static XNodeIn RootNode;
-        internal static XNodeIn[] Nodes;
+        internal static XNodeIn[] Nodes = new XNodeIn[] {};
 
         public static int FunctionCount;
 
@@ -34,9 +36,11 @@ namespace XLibrary
 
         internal static BitArray CoveredNodes;
 
+        // core thread
         internal const int HitFrames = 30;
         internal const int ShowTicks = HitFrames - 1; // first index
-        static System.Threading.Timer ResetTimer;
+        static Thread CoreThread;
+        public static Queue<Action> CoreMessages = new Queue<Action>();
 
         internal static bool InstanceTracking = false; // must be compiled in, can be ignored later
        
@@ -55,6 +59,8 @@ namespace XLibrary
         internal static bool ThreadlineEnabled = true;
 
         internal static string DatPath;
+        internal static string DatHash;
+
         //internal static bool CallLogging;
         internal static HashSet<int> ErrorDupes = new HashSet<int>();
         internal static List<string> ErrorLog = new List<string>();
@@ -72,6 +78,9 @@ namespace XLibrary
 
         public static int DashOffset;
 
+        // Remote Connections
+        public static XRemote Remote = new XRemote();
+
 
         // opens xray from the builder exe to analyze the dat
         public static void Analyze(string path)
@@ -81,10 +90,10 @@ namespace XLibrary
                 MainForm = new MainForm();
                 MainForm.Show();
             }
-        }           
-            
+        }
+
         // called from re-compiled app's entrypoint
-        public static void Init(string datPath, bool showUiOnStart, bool trackFlow, bool trackInstances)
+        public static void Init(string datPath, bool showUiOnStart, bool trackFlow, bool trackInstances, bool remoteClient)
         {
             LogError("Entry point Init");
 
@@ -119,22 +128,38 @@ namespace XLibrary
                     datPath = "XRay.dat";
 
                 // data file with node info should be along side ext
+                DatHash = Utilities.MD5HashFile(datPath);
                 LoadNodeMap(datPath);
 
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);
 
-                StartResetThread();
+                if (!remoteClient)
+                {
+                    InitCoreThread();
 
-                StartIpcServer();
+                    StartIpcServer();
 
-                if(showUiOnStart)
-                    StartGui();
+                    Remote.StartListening();
+
+                    if (showUiOnStart)
+                        StartGui();
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        public static void InitCoreThread()
+        {
+            if (CoreThread != null)
+                return;
+
+            CoreThread = new Thread(RunCoreThread);
+            CoreThread.IsBackground = true;
+            CoreThread.Start();
         }
 
         /* static void Current_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
@@ -161,18 +186,73 @@ namespace XLibrary
 
         static void LogUnhandledException(string excString)
         {
-            LogError2(excString);
+            LogMessage(excString);
 
             File.AppendAllText("XError.log", excString);
         }
 
-        static void StartResetThread()
+        public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
+
+        static void RunCoreThread(object state)
         {
-            int period = 1000 / HitFrames;
-            ResetTimer = new System.Threading.Timer(ResetFunctionHits, null, period, period);
+            int frameMS = 1000 / HitFrames;
+
+            var resetWatch = new Stopwatch();
+            var secondWatch = new Stopwatch();
+
+            resetWatch.Start();
+            secondWatch.Start();
+
+            while (true)
+            {
+                RunCoreEvent.WaitOne(frameMS);
+
+                if(resetWatch.ElapsedMilliseconds >= frameMS)
+                {
+                    ResetFunctionHits();
+
+                    resetWatch.Reset();
+                    resetWatch.Start();
+                }
+
+                if (secondWatch.ElapsedMilliseconds >= 1000)
+                {
+                    Remote.SecondTimer();
+
+                    secondWatch.Reset();
+                    secondWatch.Start();
+                }
+
+                lock (CoreMessages)
+                    if (CoreMessages.Count > 0)
+                        CoreMessages.Dequeue().Invoke();
+            }
         }
 
-        static void  ResetFunctionHits(object state)
+        public static bool IsInvokeRequired()
+        {
+            if (CoreThread == null)
+                return false;
+
+            return CoreThread.ManagedThreadId != Thread.CurrentThread.ManagedThreadId;
+        }
+
+        // be careful if calling this with loop objects, reference will be changed by the time async executes
+        public static void RunInCoreAsync(Action code)
+        {
+            lock (CoreMessages)
+            {
+                if (CoreMessages.Count < 1000)
+                    CoreMessages.Enqueue(code);
+                else
+                    LogError("CoreMessages Overload");
+            }
+
+            RunCoreEvent.Set();
+        }
+
+
+        static void  ResetFunctionHits()
         {
             // save cpu when no UIs active
             if (UIs.Count == 0)
@@ -844,7 +924,7 @@ namespace XLibrary
             ErrorLog.Add(string.Format(text, args));
         }
 
-        static internal void LogError2(string text, params object[] args)
+        static internal void LogMessage(string text, params object[] args)
         {
             ErrorLog.Add(string.Format(text, args));
         }

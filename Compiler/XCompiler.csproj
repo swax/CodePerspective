@@ -116,6 +116,12 @@
     <Compile Include="Panels\MonitorPanel.Designer.cs">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Panels\RemotePanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\RemotePanel.Designer.cs">
+      <DependentUpon>RemotePanel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\ScannerPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -140,6 +146,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\MonitorPanel.resx">
       <DependentUpon>MonitorPanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\RemotePanel.resx">
+      <DependentUpon>RemotePanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\ScannerPanel.resx">
       <DependentUpon>ScannerPanel.cs</DependentUpon>

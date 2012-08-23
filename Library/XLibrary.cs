@@ -161,7 +161,7 @@ namespace XLibrary
             if (CoreThread != null)
                 return;
 
-            CoreThread = new Thread(RunCoreThread);
+            CoreThread = new Thread(RunEventLoop);
             CoreThread.IsBackground = true;
             CoreThread.Start();
         }
@@ -196,7 +196,7 @@ namespace XLibrary
         }
 
 
-        static void RunCoreThread(object state)
+        static void RunEventLoop(object state)
         {
             int frameMS = 1000 / HitFrames;
 
@@ -228,9 +228,7 @@ namespace XLibrary
                         secondWatch.Start();
                     }
 
-                    Remote.ProcessDownloads();
-
-                    Remote.RunSyncClients();
+                    Remote.RunEventLoop();
                 }
 
                 lock (CoreMessages)

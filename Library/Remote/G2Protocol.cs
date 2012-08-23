@@ -15,10 +15,10 @@ namespace XLibrary.Remote
 	/// </summary>
 	public class G2Protocol
 	{
-		const int MAX_FRAMES     = 500;
-		const int MAX_WRITE_SIZE = 32768;
-		const int MAX_FINAL_SIZE = 65536;
-		const int G2_PACKET_BUFF = (65536+1024);
+		const int MAX_FRAMES     = 100000;
+		const int MAX_WRITE_SIZE = 512 * 1024;
+		const int MAX_FINAL_SIZE = 512 * 1024;
+        const int G2_PACKET_BUFF = (MAX_FINAL_SIZE + 1024);
 
 		int    WriteOffset;
 		byte[] WriteData = new byte[MAX_WRITE_SIZE];

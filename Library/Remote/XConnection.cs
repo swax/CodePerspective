@@ -34,7 +34,7 @@ namespace XLibrary.Remote
 
         int SecondsDead;
 
-        public const int BUFF_SIZE = 16 * 1024;
+        public const int BUFF_SIZE = 512 * 1024; // so we can queue up and receive big packets
 
         // sending
         ICryptoTransform Encryptor;
@@ -42,7 +42,7 @@ namespace XLibrary.Remote
         int SendBuffSize;
         byte[] FinalSendBuffer;
         int FinalSendBuffSize;
-        public int SendBufferBytesAvailable { get { return BUFF_SIZE - FinalSendBuffSize; } }
+        public bool SendReady { get { return (FinalSendBuffSize == 0); } }
 
         // receiving
         ICryptoTransform Decryptor;
@@ -124,9 +124,6 @@ namespace XLibrary.Remote
                 CleanClose("Minute dead");
                 return;
             }
-
-            // flush send buffer
-            TrySend();
         }
 
         public void Socket_Connect(IAsyncResult asyncResult)
@@ -149,8 +146,6 @@ namespace XLibrary.Remote
             Log("OnConnect", "Connected to " + ToString());
 
             SetConnected();
-
-            CreateEncryptor();
 
             Remote.OnConnected(this);
         }
@@ -240,53 +235,21 @@ namespace XLibrary.Remote
             if (State != TcpState.Connected)
                 return 0;
 
-            if (Encryptor == null)
-                CreateEncryptor();
-
             try
             {
                 byte[] encoded = packet.Encode(Protocol);
                 PacketLogEntry logEntry = new PacketLogEntry(DateTime.Now, DirectionType.Out, ToString(), encoded);
                 LogPacket(logEntry);
 
+                // fill up final buffer, keep encrypt buffer clear
+                if (BUFF_SIZE - SendBuffSize < encoded.Length + 128)
+                    throw new Exception("SendBuff Full"); 
 
-                lock (FinalSendBuffer)
-                {
-                    // fill up final buffer, keep encrypt buffer clear
-                    if (BUFF_SIZE - FinalSendBuffSize < encoded.Length + 128)
-                        return -1;
+                // encrypt
+                encoded.CopyTo(SendBuffer, SendBuffSize);
+                SendBuffSize += encoded.Length;
 
-                    // encrypt
-                    encoded.CopyTo(SendBuffer, SendBuffSize);
-                    SendBuffSize += encoded.Length;
-
-                    int remainder = SendBuffSize % Encryptor.InputBlockSize;
-                    if (remainder > 0)
-                    {
-                        CryptPadding padding = new CryptPadding();
-
-                        int fillerNeeded = Encryptor.InputBlockSize - remainder;
-
-                        if (fillerNeeded > 2)
-                            padding.Filler = new byte[fillerNeeded - 2];
-
-                        encoded = padding.Encode(Protocol);
-                        encoded.CopyTo(SendBuffer, SendBuffSize);
-                        SendBuffSize += encoded.Length;
-                    }
-
-                    int tryTransform = SendBuffSize - (SendBuffSize % Encryptor.InputBlockSize);
-                    if (tryTransform == 0)
-                        return 0;
-
-                    int tranformed = Encryptor.TransformBlock(SendBuffer, 0, tryTransform, FinalSendBuffer, FinalSendBuffSize);
-                    if (tranformed == 0)
-                        return 0;
-
-                    FinalSendBuffSize += tranformed;
-                    SendBuffSize -= tranformed;
-                    Buffer.BlockCopy(SendBuffer, tranformed, SendBuffer, 0, SendBuffSize);
-                }
+                OnlyFillerInSendBuffer = false;
 
                 TrySend();
 
@@ -312,8 +275,49 @@ namespace XLibrary.Remote
             }
         }
 
+        bool OnlyFillerInSendBuffer = false;
+
         public void TrySend()
         {
+            // cant send if we're in the process of sending
+            if (FinalSendBuffSize > 0 || State != TcpState.Connected || OnlyFillerInSendBuffer)
+                return;
+
+            if (Encryptor == null)
+                CreateEncryptor();
+
+            // try to move from send buff to final buff
+            lock (FinalSendBuffer)
+            {
+                int remainder = SendBuffSize % Encryptor.InputBlockSize;
+                if (remainder > 0)
+                {
+                    CryptPadding padding = new CryptPadding();
+
+                    int fillerNeeded = Encryptor.InputBlockSize - remainder;
+
+                    if (fillerNeeded > 2)
+                        padding.Filler = new byte[fillerNeeded - 2];
+
+                    var filler = padding.Encode(Protocol);
+                    filler.CopyTo(SendBuffer, SendBuffSize);
+                    SendBuffSize += filler.Length;
+                    OnlyFillerInSendBuffer = true;
+                }
+
+                int tryTransform = SendBuffSize - (SendBuffSize % Encryptor.InputBlockSize);
+                if (tryTransform > 0)
+                {
+                    int tranformed = Encryptor.TransformBlock(SendBuffer, 0, tryTransform, FinalSendBuffer, FinalSendBuffSize);
+                    if (tranformed > 0)
+                    {
+                        FinalSendBuffSize += tranformed;
+                        SendBuffSize -= tranformed;
+                        Buffer.BlockCopy(SendBuffer, tranformed, SendBuffer, 0, SendBuffSize);
+                    }
+                }
+            }
+
             if (FinalSendBuffSize == 0)
                 return;
 
@@ -322,30 +326,11 @@ namespace XLibrary.Remote
                 lock (FinalSendBuffer)
                 {
                     //Core.UpdateConsole("Begin Send " + SendBufferSize.ToString());
-
-                    //TcpSocket.BeginSend(FinalSendBuffer, 0, FinalSendBuffSize, SocketFlags.None, new AsyncCallback(Socket_Send), TcpSocket);
-
-                    TcpSocket.Blocking = false;
-                    int bytesSent = TcpSocket.Send(FinalSendBuffer, FinalSendBuffSize, SocketFlags.None);
-
-                    if (bytesSent == 0)
-                        return;
-
-                    lock (FinalSendBuffer)
-                    {
-                        FinalSendBuffSize -= bytesSent;
-                        BytesSentinSec += bytesSent;
-
-                        Bandwidth.OutPerSec += bytesSent;
-
-                        if (FinalSendBuffSize < 0)
-                            throw new Exception("Tcp SendBuff size less than zero: " + FinalSendBuffSize.ToString());
-
-                        // realign send buffer
-                        if (FinalSendBuffSize > 0)
-                            lock (FinalSendBuffer)
-                                Buffer.BlockCopy(FinalSendBuffer, bytesSent, FinalSendBuffer, 0, FinalSendBuffSize);
-                    }
+                
+                    //TcpSocket.Blocking = false
+                    Log("x", "Sending " + FinalSendBuffSize.ToString() + " bytes");
+                    TcpSocket.BeginSend(FinalSendBuffer, 0, FinalSendBuffSize, SocketFlags.None, new AsyncCallback(Socket_Send), TcpSocket);
+                    //bytesSent = TcpSocket.Send(FinalSendBuffer, FinalSendBuffSize, SocketFlags.None);                                 
                 }
             }
 
@@ -361,6 +346,7 @@ namespace XLibrary.Remote
             try
             {
                 int bytesSent = TcpSocket.EndSend(asyncResult);
+                Log("x", "Sent " + bytesSent.ToString() + " bytes");
 
                 if (bytesSent == 0)
                     return;
@@ -381,9 +367,8 @@ namespace XLibrary.Remote
                             Buffer.BlockCopy(FinalSendBuffer, bytesSent, FinalSendBuffer, 0, FinalSendBuffSize);
                 }
 
-                TrySend();
-
-                XRay.RunCoreEvent.Set(); // get download or sync or whatever to send more data
+                if (FinalSendBuffSize == 0)
+                    XRay.RunCoreEvent.Set(); // run try send again from core thread
             }
             catch (Exception ex)
             {

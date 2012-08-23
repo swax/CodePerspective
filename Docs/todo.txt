@@ -10,6 +10,18 @@ Add thread details to class details so thread that touched class can be filtered
 Dead threads not cleared from flow map? should be, some sort of max or something?
 
 Remote	
+	new send
+		replace send buff with packet buff
+		function to check if can send packet
+
+		keep a stat of the largest packet sent/received
+
+		send packet
+			encodes packet to bytes
+			tries to send until final buffer filled
+			
+			when send is complete event is set that tries send, clears packet buffer, sets event
+
 	Test function for generic packet
 
 	investigate nodes hit

@@ -31,7 +31,7 @@ namespace XLibrary.Remote
 
         // downloading
         List<Download> Downloads = new List<Download>();
-        const int DownloadChunkSize = XConnection.BUFF_SIZE / 2; // should be 8kb
+        const int DownloadChunkSize = 8 * 1024; // should be 8kb
        
         // sync
         public List<SyncState> SyncClients = new List<SyncState>();
@@ -252,6 +252,7 @@ namespace XLibrary.Remote
 
         void Receive_Ping(XConnection connection, GenericPacket ping)
         {
+            Log("Pong Sent");
             connection.SendPacket(new GenericPacket("Pong"));
         }
 
@@ -347,7 +348,7 @@ namespace XLibrary.Remote
                 }
 
                 // while connection has 8kb in buffer free
-                while (download.Connection.SendBufferBytesAvailable > DownloadChunkSize + 200) // read 8k, 200b overflow buffer
+                while (download.Connection.SendReady) // read 8k, 200b overflow buffer
                 {
                     // read 8k of file
                     long readSize = XRay.DatSize - download.FilePos;
@@ -446,7 +447,7 @@ namespace XLibrary.Remote
 
         internal void RunSyncClients()
         {
-            /*foreach (var state in SyncClients)
+            foreach (var state in SyncClients)
             {
                 if (state.Connection.State != TcpState.Connected)
                     continue;
@@ -456,8 +457,18 @@ namespace XLibrary.Remote
                 state.HitArrayAlt = new HashSet<int>();
 
                 // check that there's space in the send buffer to send state
-                state.Connection.SendPacket(
-            }*/
+                //state.Connection.SendPacket(
+            }
+        }
+
+        internal void RunEventLoop()
+        {
+            foreach (var connection in Connections)
+                connection.TrySend();
+
+            ProcessDownloads();
+
+            RunSyncClients();
         }
     }
 

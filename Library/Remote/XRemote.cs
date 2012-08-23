@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Security.Cryptography;
 using System.IO;
+using System.Collections;
 
 
 namespace XLibrary.Remote
@@ -28,6 +29,14 @@ namespace XLibrary.Remote
 
         Dictionary<string, Action<XConnection, GenericPacket>> RouteGeneric = new Dictionary<string, Action<XConnection, GenericPacket>>();
 
+        // downloading
+        List<Download> Downloads = new List<Download>();
+        const int DownloadChunkSize = XConnection.BUFF_SIZE / 2; // should be 8kb
+       
+        // sync
+        public List<SyncState> SyncClients = new List<SyncState>();
+
+
         // client specific
         public string RemoteStatus = "";
         public string RemoteCachePath;
@@ -36,6 +45,7 @@ namespace XLibrary.Remote
         public string LocalDatPath;
         public string LocalDatTempPath;
         public Stream LocalTempFile;
+
 
         public XRemote()
         {
@@ -306,8 +316,6 @@ namespace XLibrary.Remote
             }
         }
 
-        List<Download> Downloads = new List<Download>();
-
         void Receive_DatFileRequest(XConnection connection, GenericPacket request)
         {
             // received by server from client
@@ -323,19 +331,18 @@ namespace XLibrary.Remote
             
         }
 
-        const int DownloadChunkSize = XConnection.BUFF_SIZE / 2; // should be 8kb
-        List<Download> RemoveDownloads = new List<Download>();
-
         public void ProcessDownloads()
         {
             if (Downloads.Count == 0)
                 return;
 
+            var removeDownloads = new List<Download>();
+
             foreach (var download in Downloads)
             {
                 if (download.Connection.State != TcpState.Connected)
                 {
-                    RemoveDownloads.Add(download);
+                    removeDownloads.Add(download);
                     continue;
                 }
 
@@ -348,29 +355,33 @@ namespace XLibrary.Remote
                         readSize = DownloadChunkSize;
 
                     var chunk = new DatPacket(download.FilePos, download.Stream.Read((int)readSize));
-                    download.FilePos += chunk.Data.Length;
-
+       
                     Log("Sending dat pos: {0}, length: {1}", chunk.Pos, chunk.Data.Length); //todo delete
 
                     // send
                     if(chunk.Data.Length > 0)
-                        download.Connection.SendPacket(chunk);
+                    {
+                        int bytesSent = download.Connection.SendPacket(chunk);
+                        if(bytesSent < 0)
+                            break;
+                    }
+
+                    download.FilePos += chunk.Data.Length;
 
                     // remove when complete
                     if (download.FilePos >= XRay.DatSize)
                     {
-                        RemoveDownloads.Add(download);
+                        removeDownloads.Add(download);
                         break;
                     }
                 }
             }
 
-            foreach (var download in RemoveDownloads)
+            foreach (var download in removeDownloads)
             {
                 download.Stream.Close();
                 Downloads.Remove(download);
             }
-            RemoveDownloads.Clear();
         }
 
         void ReceiveDatPacket(XConnection connection, G2ReceivedPacket packet)
@@ -425,11 +436,28 @@ namespace XLibrary.Remote
 
         void Receive_StartSync(XConnection connection, GenericPacket packet)
         {
-            // send cover maps
+            var state = new SyncState();
+            state.Connection = connection;
+            state.HitArray = new BitArray(XRay.Nodes.Length);
+            state.HitArrayAlt = new HashSet<int>();
 
-            // on cover change, diff last sent cover map with current, zip and send
+            SyncClients.Add(state);
+        }
 
-            // limit to 10 fps, have bandwidth counters
+        internal void RunSyncClients()
+        {
+            /*foreach (var state in SyncClients)
+            {
+                if (state.Connection.State != TcpState.Connected)
+                    continue;
+
+                // save current set and create a new one so other threads dont get tripped up
+                var sendSet = state.HitArrayAlt;
+                state.HitArrayAlt = new HashSet<int>();
+
+                // check that there's space in the send buffer to send state
+                state.Connection.SendPacket(
+            }*/
         }
     }
 
@@ -438,5 +466,12 @@ namespace XLibrary.Remote
         public XConnection Connection;
         public FileStream Stream;
         public long FilePos;
+    }
+
+    public class SyncState
+    {
+        public XConnection Connection;
+        public BitArray HitArray;
+        public HashSet<int> HitArrayAlt;
     }
 }

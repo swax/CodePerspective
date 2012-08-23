@@ -9,44 +9,20 @@ add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 
 Dead threads not cleared from flow map? should be, some sort of max or something?
 
-Remote
-	support for sending download file
-
-	receive in temp file
-	hash
-	change name
-
-	keep status of events on remote tab
-	load viewer button enabled when ready
-	
-	when send is ready set event, add packets
-	when data sent, do from core thread, use action queue
-
-	on connect to server
-		request dat hash
-		on receive dat hash, check if we already have it
-		if not, download dat as temp and rename to dat once downloaded and hash verified
-		open xray viewer with dat path
-
+Remote	
 	Test function for generic packet
 
-	free signup monitor xrayed apps
+	investigate nodes hit
 
-	Server
-		listen on port
-		simple auth dummy
-		If enabled, xlib starts a listen socket
-		Simple fixed size protocol or g2, eh probably g2
-		Serve dat file to client
+	figure out on recv end how sync is applied, then implement on send end
 
-	Client
-		Built into builder, remote tab
-		Enter in server ip/port
-		Connect, viewer opens
-		Viewer is sent dat file over the network
-		State updates
-			NodesHit
-				Zip hit node map and send periodically
+	continually send bitarray
+	show bandwidth stat, show updates/s stat
+	use compression and continually send
+	flag to turn compression on and off, record bandwidth and cpu
+
+	test sending bitarry
+	test sending of id that's been hit
 
 
 instance view

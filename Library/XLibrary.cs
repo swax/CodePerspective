@@ -229,6 +229,8 @@ namespace XLibrary
                     }
 
                     Remote.ProcessDownloads();
+
+                    Remote.RunSyncClients();
                 }
 
                 lock (CoreMessages)
@@ -521,6 +523,13 @@ namespace XLibrary
             }
 
             node.FunctionHit = ShowTicks;
+
+            if (Remote != null)
+                foreach (var sync in Remote.SyncClients)
+                {
+                    sync.HitArray[nodeID] = true;
+                    sync.HitArrayAlt.Add(nodeID);
+                }
 
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);

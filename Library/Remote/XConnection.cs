@@ -254,7 +254,7 @@ namespace XLibrary.Remote
                 {
                     // fill up final buffer, keep encrypt buffer clear
                     if (BUFF_SIZE - FinalSendBuffSize < encoded.Length + 128)
-                        throw new Exception("SendBuff Full"); //crit check packet log
+                        return -1;
 
                     // encrypt
                     encoded.CopyTo(SendBuffer, SendBuffSize);

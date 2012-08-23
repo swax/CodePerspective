@@ -10,7 +10,6 @@ Add thread details to class details so thread that touched class can be filtered
 Dead threads not cleared from flow map? should be, some sort of max or something?
 
 Remote
-	commit
 	support for sending download file
 
 	receive in temp file
@@ -30,6 +29,8 @@ Remote
 		open xray viewer with dat path
 
 	Test function for generic packet
+
+	free signup monitor xrayed apps
 
 	Server
 		listen on port

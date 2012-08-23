@@ -41,7 +41,8 @@ namespace XLibrary
         public static byte[] Read(this Stream stream, int size)
         {
             byte[] buffer = new byte[size];
-            stream.Read(buffer, 0, size);
+            int check = stream.Read(buffer, 0, size);
+            Debug.Assert(size == check);
             return buffer;
         }
 

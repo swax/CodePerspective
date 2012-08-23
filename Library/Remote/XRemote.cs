@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Security.Cryptography;
+using System.IO;
 
 
 namespace XLibrary.Remote
@@ -27,6 +28,14 @@ namespace XLibrary.Remote
 
         Dictionary<string, Action<XConnection, GenericPacket>> RouteGeneric = new Dictionary<string, Action<XConnection, GenericPacket>>();
 
+        // client specific
+        public string RemoteStatus = "";
+        public string RemoteCachePath;
+        public string RemoteDatHash;
+        public long RemoteDatSize;
+        public string LocalDatPath;
+        public string LocalDatTempPath;
+        public Stream LocalTempFile;
 
         public XRemote()
         {
@@ -36,8 +45,7 @@ namespace XLibrary.Remote
             RouteGeneric["DatHashRequest"] = DatHashRequest;
             RouteGeneric["DatHashResponse"] = DatHashResponse;
 
-            RouteGeneric["FileRequest"] = FileRequest;
-            RouteGeneric["FileResponse"] = FileResponse;
+            RouteGeneric["DatFileRequest"] = DatFileRequest;
         }
 
         public void StartListening()
@@ -116,7 +124,7 @@ namespace XLibrary.Remote
         {
             try
             {
-                var outbound = new XConnection(this, address, tcpPort);
+               var outbound = new XConnection(this, address, tcpPort);
                Log("Attempting Connection to " + address.ToString() + ":" + tcpPort.ToString());
 
                 lock (Connections)
@@ -190,6 +198,7 @@ namespace XLibrary.Remote
                 return;
             }
             // runs when client connects to server, not the other way around (that's what OnAccept is for)
+            RemoteStatus = "Requesting Dat Hash";
 
             connection.SendPacket(new GenericPacket("DatHashRequest"));
         }
@@ -216,6 +225,10 @@ namespace XLibrary.Remote
                        Log("Unknown generic packet: " + generic.Name);
 
                     break;
+
+                case PacketType.Dat:
+                    ReceiveDatPacket(connection, packet);
+                    break;
             }
         }
 
@@ -235,8 +248,11 @@ namespace XLibrary.Remote
 
             response.Data = new Dictionary<string, string>
             {
-                {"Hash", XRay.DatHash}
+                {"Hash", XRay.DatHash},
+                {"Size", XRay.DatSize.ToString()}
             };
+
+            Log("Sending Dat Hash");
 
             connection.SendPacket(response);
         }
@@ -244,45 +260,148 @@ namespace XLibrary.Remote
         void DatHashResponse(XConnection connection, GenericPacket response)
         {
             // check if we have this hash.dat file locally, if not then request download
+            RemoteDatHash = response.Data["Hash"];
+            RemoteDatSize = long.Parse(response.Data["Size"]);
 
-            var request = new GenericPacket("FileRequest");
+            LocalDatPath = Path.Combine(RemoteCachePath, RemoteDatHash + ".dat");
+            LocalDatTempPath = Path.Combine(RemoteCachePath, RemoteDatHash + ".tmp");
 
-            request.Data = new Dictionary<string, string>
+            if (RemoteDatSize == 0)
+                RemoteStatus = "Error - Remote Dat Empty";
+
+            else if (File.Exists(LocalDatPath))
+                StartSync();
+            
+            else
             {
-                {"Hash", XRay.DatHash}
-            };
+                Log("Requesting Dat File, size: " + RemoteDatSize.ToString());
 
-            connection.SendPacket(request);
+                RemoteStatus = "Requesting Dat File";
+
+                var request = new GenericPacket("DatFileRequest");
+
+                connection.SendPacket(request);
+            }
         }
 
         List<Download> Downloads = new List<Download>();
 
-        void FileRequest(XConnection connection, GenericPacket request)
+        void DatFileRequest(XConnection connection, GenericPacket request)
         {
             // received by server from client
 
-            // create map entry for connection and file pos, when time ticks, try to send more data
-
-            // move packet processing and timer to same thread
+            Log("Creating download for connection, size: " + XRay.DatSize.ToString());
 
             Downloads.Add(new Download()
             {
                 Connection = connection,
+                Stream = File.OpenRead(XRay.DatPath),
                 FilePos = 0
             });
             
         }
 
-        void FileResponse(XConnection connection, GenericPacket response)
+        const int DownloadChunkSize = XConnection.BUFF_SIZE / 2; // should be 8kb
+        List<Download> RemoveDownloads = new List<Download>();
+
+        public void ProcessDownloads()
+        {
+            if (Downloads.Count == 0)
+                return;
+
+            foreach (var download in Downloads)
+            {
+                if (download.Connection.State != TcpState.Connected)
+                {
+                    RemoveDownloads.Add(download);
+                    continue;
+                }
+
+                // while connection has 8kb in buffer free
+                while (download.Connection.SendBufferBytesAvailable > DownloadChunkSize + 200) // read 8k, 200b overflow buffer
+                {
+                    // read 8k of file
+                    long readSize = XRay.DatSize - download.FilePos;
+                    if (readSize > DownloadChunkSize)
+                        readSize = DownloadChunkSize;
+
+                    var chunk = new DatPacket(download.FilePos, download.Stream.Read((int)readSize));
+                    download.FilePos += chunk.Data.Length;
+
+                    Log("Sending dat pos: {0}, length: {1}", chunk.Pos, chunk.Data.Length); //todo delete
+
+                    // send
+                    if(chunk.Data.Length > 0)
+                        download.Connection.SendPacket(chunk);
+
+                    // remove when complete
+                    if (download.FilePos >= XRay.DatSize)
+                    {
+                        RemoveDownloads.Add(download);
+                        break;
+                    }
+                }
+            }
+
+            foreach (var download in RemoveDownloads)
+            {
+                download.Stream.Close();
+                Downloads.Remove(download);
+            }
+            RemoveDownloads.Clear();
+        }
+
+        void ReceiveDatPacket(XConnection connection, G2ReceivedPacket packet)
         {
             // received by client from server
-           
+            var chunk = DatPacket.Decode(packet.Root);
+
+            // write to tmp file
+            if (LocalTempFile == null)
+            {
+                LocalTempFile = File.Create(LocalDatTempPath);
+                LocalTempFile.SetLength(0);
+            }
+
+            Log("Received dat pos: {0}, length: {1}", chunk.Pos, chunk.Data.Length); //todo delete
+
+            LocalTempFile.Write(chunk.Data);
+
+            var percentComplete = LocalTempFile.Length * 100 / RemoteDatSize;
+
+            RemoteStatus = string.Format("Downloading Dat File - {0}% Complete", percentComplete);
+
+            // hash when complete
+            if (LocalTempFile.Length >= RemoteDatSize)
+            {
+                LocalTempFile.Close();
+                LocalTempFile = null;
+
+                var checkHash = Utilities.MD5HashFile(LocalDatTempPath);
+
+                if (checkHash == RemoteDatHash)
+                {
+                    File.Move(LocalDatTempPath, LocalDatPath);
+                    StartSync();
+                }
+                else
+                    RemoteStatus = string.Format("Dat integrity check failed - Expecting {0}, got {1}", RemoteDatHash, checkHash);
+            }
+
+        }
+
+        void StartSync()
+        {
+            RemoteStatus = "Starting Sync";
+
+            // send packet telling server to start syncing us
         }
     }
 
     class Download
     {
         public XConnection Connection;
+        public FileStream Stream;
         public long FilePos;
     }
 }

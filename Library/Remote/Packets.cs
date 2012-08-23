@@ -10,6 +10,7 @@ namespace XLibrary.Remote
     {
         public const byte Padding = 0x10;
         public const byte Generic = 0x20;
+        public const byte Dat = 0x30;
     }
 
     public class GenericPacket : G2Packet
@@ -91,6 +92,63 @@ namespace XLibrary.Remote
         }
     }
 
+    public class DatPacket : G2Packet
+    {
+        const byte Packet_Pos = 0x10;
+        const byte Packet_Data = 0x20;
+
+        public long Pos;
+        public byte[] Data;
+
+        public DatPacket()
+        {
+        }
+
+        public DatPacket(long pos, byte[] data)
+        {
+            Pos = pos;
+            Data = data;
+        }
+
+        public override byte[] Encode(G2Protocol protocol)
+        {
+            lock (protocol.WriteSection)
+            {
+                var dat = protocol.WritePacket(null, PacketType.Dat, null);
+
+                protocol.WritePacket(dat, Packet_Pos, BitConverter.GetBytes(Pos));
+                protocol.WritePacket(dat, Packet_Data, Data);
+
+                return protocol.WriteFinish();
+            }
+        }
+
+        public static DatPacket Decode(G2Header root)
+        {
+            var dat = new DatPacket();
+
+            G2Header child = new G2Header(root.Data);
+
+            while (G2Protocol.ReadNextChild(root, child) == G2ReadResult.PACKET_GOOD)
+            {
+                if (!G2Protocol.ReadPayload(child))
+                    continue;
+
+                switch (child.Name)
+                {
+                    case Packet_Pos:
+                        dat.Pos = BitConverter.ToInt64(child.Data, child.PayloadPos);
+                        break;
+
+                    case Packet_Data:
+                        dat.Data = Utilities.ExtractBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+                }
+            }
+
+            return dat;
+        }
+    }
     /*public class PingPacket : G2Packet
     {
         const byte Packet_RemoteIP = 0x10;

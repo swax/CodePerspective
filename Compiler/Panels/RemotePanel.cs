@@ -11,6 +11,7 @@ using XLibrary;
 using System.Net;
 using XLibrary.Remote;
 using System.Security.Cryptography;
+using System.IO;
 
 
 namespace XBuilder.Panels
@@ -25,6 +26,9 @@ namespace XBuilder.Panels
             InitializeComponent();
             AddressTextBox.Text = "127.0.0.1:4566";
             KeyTextBox.Text = "43a6e878b76fc485698f2d3b2cfbd93b9f90907e1c81e8821dceac82d45252f3";
+
+            XRay.Remote.RemoteCachePath = Path.Combine(Application.StartupPath, "Remote");
+            Directory.CreateDirectory(XRay.Remote.RemoteCachePath);
         }
 
         private void ConnectButton_Click(object sender, EventArgs e)
@@ -60,7 +64,7 @@ namespace XBuilder.Panels
             if (Connection == null)
                 StatusLabel.Text = "";
             else
-                StatusLabel.Text = Connection.ToString() + " - " + Connection.State.ToString();
+                StatusLabel.Text = Connection.ToString() + " - " + Connection.State.ToString() + " - " + XRay.Remote.RemoteStatus;
 
             ConnectButton.Enabled = (Connection == null);
             OpenButton.Enabled = (Connection != null);

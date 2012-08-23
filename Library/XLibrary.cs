@@ -21,49 +21,52 @@ namespace XLibrary
     {
         static MainForm MainForm;
 
-        internal static Dictionary<int, Thread> UIs = new Dictionary<int, Thread>();
+        public static Dictionary<int, Thread> UIs = new Dictionary<int, Thread>();
 
-        internal static XNodeIn RootNode;
-        internal static XNodeIn[] Nodes = new XNodeIn[] {};
+        public static XNodeIn RootNode;
+        public static XNodeIn[] Nodes = new XNodeIn[] {};
 
         public static int FunctionCount;
 
         public static bool XRayEnabled = true;
 
-        internal static bool CoverChange;
-        internal static bool CallChange;
-        internal static bool InstanceChange;
+        public static bool CoverChange;
+        public static bool CallChange;
+        public static bool InstanceChange;
 
-        internal static BitArray CoveredNodes;
+        public static BitArray CoveredNodes;
 
         // core thread
-        internal const int HitFrames = 30;
-        internal const int ShowTicks = HitFrames - 1; // first index
-        static Thread CoreThread;
+        public const int HitFrames = 30;
+        public const int ShowTicks = HitFrames - 1; // first index
+        public static Thread CoreThread;
+        public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
         public static Queue<Action> CoreMessages = new Queue<Action>();
 
-        internal static bool InstanceTracking = false; // must be compiled in, can be ignored later
+        // tracking
+        public static bool InstanceTracking = false; // must be compiled in, can be ignored later
        
-        internal static bool ThreadTracking = false; // can be turned off library side
+        public static bool ThreadTracking = false; // can be turned off library side
         
-        internal static bool FlowTracking = false; // must be compiled in, can be ignored later
-        internal static bool ClassTracking = false;
-        internal const int MaxStack = 512;
-        internal const int MaxThreadlineSize = 1000;
+        public static bool FlowTracking = false; // must be compiled in, can be ignored later
+        public static bool ClassTracking = false;
+        public const int MaxStack = 512;
+        public const int MaxThreadlineSize = 1000;
 
-        internal static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
-        internal static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
-        internal static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
-        internal static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
+        public static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
+        public static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
+        public static SharedDictionary<FunctionCall> ClassCallMap = new SharedDictionary<FunctionCall>(1000);
+        public static SharedDictionary<FunctionCall> InitMap = new SharedDictionary<FunctionCall>(1000);
 
-        internal static bool ThreadlineEnabled = true;
+        public static bool ThreadlineEnabled = true;
 
-        internal static string DatPath;
-        internal static string DatHash;
+        public static string DatPath;
+        public static string DatHash;
+        public static long DatSize;
 
-        //internal static bool CallLogging;
-        internal static HashSet<int> ErrorDupes = new HashSet<int>();
-        internal static List<string> ErrorLog = new List<string>();
+        //public static bool CallLogging;
+        public static HashSet<int> ErrorDupes = new HashSet<int>();
+        public static List<string> ErrorLog = new List<string>();
 
         public static bool InitComplete;
 
@@ -129,6 +132,7 @@ namespace XLibrary
 
                 // data file with node info should be along side ext
                 DatHash = Utilities.MD5HashFile(datPath);
+                DatSize = new FileInfo(datPath).Length;
                 LoadNodeMap(datPath);
 
                 // init tracking structures
@@ -148,7 +152,7 @@ namespace XLibrary
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("XRay::Init Exception: " + ex.Message);
             }
         }
 
@@ -191,7 +195,6 @@ namespace XLibrary
             File.AppendAllText("XError.log", excString);
         }
 
-        public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
 
         static void RunCoreThread(object state)
         {
@@ -215,17 +218,32 @@ namespace XLibrary
                     resetWatch.Start();
                 }
 
-                if (secondWatch.ElapsedMilliseconds >= 1000)
+                if (Remote != null)
                 {
-                    Remote.SecondTimer();
+                    if (secondWatch.ElapsedMilliseconds >= 1000)
+                    {
+                        Remote.SecondTimer();
 
-                    secondWatch.Reset();
-                    secondWatch.Start();
+                        secondWatch.Reset();
+                        secondWatch.Start();
+                    }
+
+                    Remote.ProcessDownloads();
                 }
 
                 lock (CoreMessages)
                     if (CoreMessages.Count > 0)
-                        CoreMessages.Dequeue().Invoke();
+                    {
+                        try
+                        {
+                            var method = CoreMessages.Dequeue();
+                            method.Invoke();
+                        }
+                        catch (Exception ex)
+                        {
+                            LogError("Error Processing Message", ex.Message);
+                        }
+                    }
             }
         }
 

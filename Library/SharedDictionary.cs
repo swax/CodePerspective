@@ -9,25 +9,25 @@ namespace XLibrary
     // this is a dictionary where values can be added, for fast look up dynamically without needing a lock
     // one thread needs to be able to write values fast
     // while another threads need to be able to read values fast
-    class SharedDictionary<T> : IEnumerable<T>
+    public class SharedDictionary<T> : IEnumerable<T>
         where T : class
     {
-        internal int Length;
-        internal T[] Values;
+        public int Length;
+        public T[] Values;
 
         Dictionary<int, int> Map = new Dictionary<int, int>();
 
-        internal SharedDictionary(int keyMax)
+        public SharedDictionary(int keyMax)
         {
             Values = new T[keyMax];
         }
 
-        internal bool Contains(int hash)
+        public bool Contains(int hash)
         {
             return Map.ContainsKey(hash);
         }
 
-        internal bool TryGetValue(int hash, out T call)
+        public bool TryGetValue(int hash, out T call)
         {
             int index;
             if (Map.TryGetValue(hash, out index))
@@ -40,7 +40,7 @@ namespace XLibrary
             return false;
         }
 
-        internal void Add(int hash, T call)
+        public void Add(int hash, T call)
         {
             // locking isnt so bad because once app is running, add won't be called so much
             lock (this)

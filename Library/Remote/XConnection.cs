@@ -34,7 +34,7 @@ namespace XLibrary.Remote
 
         int SecondsDead;
 
-        const int BUFF_SIZE = 16 * 1024;
+        public const int BUFF_SIZE = 16 * 1024;
 
         // sending
         ICryptoTransform Encryptor;
@@ -42,7 +42,7 @@ namespace XLibrary.Remote
         int SendBuffSize;
         byte[] FinalSendBuffer;
         int FinalSendBuffSize;
-
+        public int SendBufferBytesAvailable { get { return BUFF_SIZE - FinalSendBuffSize; } }
 
         // receiving
         ICryptoTransform Decryptor;
@@ -319,15 +319,17 @@ namespace XLibrary.Remote
             {
                 lock (FinalSendBuffer)
                 {
-                    int bytesSent = 0;
-
                     //Core.UpdateConsole("Begin Send " + SendBufferSize.ToString());
-                
+
+                    //TcpSocket.BeginSend(FinalSendBuffer, 0, FinalSendBuffSize, SocketFlags.None, new AsyncCallback(Socket_Send), TcpSocket);
+
                     TcpSocket.Blocking = false;
-                    bytesSent = TcpSocket.Send(FinalSendBuffer, FinalSendBuffSize, SocketFlags.None);
+                    int bytesSent = TcpSocket.Send(FinalSendBuffer, FinalSendBuffSize, SocketFlags.None);
 
+                    if (bytesSent == 0)
+                        return;
 
-                    if (bytesSent > 0)
+                    lock (FinalSendBuffer)
                     {
                         FinalSendBuffSize -= bytesSent;
                         BytesSentinSec += bytesSent;
@@ -335,7 +337,7 @@ namespace XLibrary.Remote
                         Bandwidth.OutPerSec += bytesSent;
 
                         if (FinalSendBuffSize < 0)
-                            throw new Exception("Tcp SendBuff size less than zero");
+                            throw new Exception("Tcp SendBuff size less than zero: " + FinalSendBuffSize.ToString());
 
                         // realign send buffer
                         if (FinalSendBuffSize > 0)
@@ -352,6 +354,41 @@ namespace XLibrary.Remote
             }
         }
 
+        void Socket_Send(IAsyncResult asyncResult)
+        {
+            try
+            {
+                int bytesSent = TcpSocket.EndSend(asyncResult);
+
+                if (bytesSent == 0)
+                    return;
+
+                lock (FinalSendBuffer)
+                {
+                    FinalSendBuffSize -= bytesSent;
+                    BytesSentinSec += bytesSent;
+
+                    Bandwidth.OutPerSec += bytesSent;
+
+                    if (FinalSendBuffSize < 0)
+                        throw new Exception("Tcp SendBuff size less than zero: " + FinalSendBuffSize.ToString());
+
+                    // realign send buffer
+                    if (FinalSendBuffSize > 0)
+                        lock (FinalSendBuffer)
+                            Buffer.BlockCopy(FinalSendBuffer, bytesSent, FinalSendBuffer, 0, FinalSendBuffSize);
+                }
+
+                TrySend();
+
+                XRay.RunCoreEvent.Set(); // get download or sync or whatever to send more data
+            }
+            catch (Exception ex)
+            {
+                Log("Socket_Send:1", ex.Message);
+                Disconnect();
+            }
+        }
 
         void Socket_Receive(IAsyncResult asyncResult)
         {
@@ -443,8 +480,6 @@ namespace XLibrary.Remote
             ReceivePackets();
         }
 
-        G2ReceivedPacket LastPacket; //crit delete
-
         void ReceivePackets()
         {
             int Start = 0;
@@ -466,8 +501,6 @@ namespace XLibrary.Remote
                 byte[] extracted = Utilities.ExtractBytes(packet.Root.Data, packet.Root.PacketPos, packet.Root.PacketSize);
                 packet.Root = new G2Header(extracted);
                 G2Protocol.ReadPacket(packet.Root);
-
-                LastPacket = packet;
 
                 PacketLogEntry logEntry = new PacketLogEntry(DateTime.Now, DirectionType.In, ToString(), packet.Root.Data);
                 LogPacket(logEntry);

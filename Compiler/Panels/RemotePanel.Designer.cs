@@ -53,7 +53,7 @@
             // 
             this.AddressTextBox.Location = new System.Drawing.Point(60, 17);
             this.AddressTextBox.Name = "AddressTextBox";
-            this.AddressTextBox.Size = new System.Drawing.Size(138, 20);
+            this.AddressTextBox.Size = new System.Drawing.Size(157, 20);
             this.AddressTextBox.TabIndex = 1;
             // 
             // ConnectButton
@@ -70,7 +70,7 @@
             // 
             this.StatusLabel.AutoSize = true;
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.StatusLabel.Location = new System.Drawing.Point(142, 74);
+            this.StatusLabel.Location = new System.Drawing.Point(58, 104);
             this.StatusLabel.Name = "StatusLabel";
             this.StatusLabel.Size = new System.Drawing.Size(94, 13);
             this.StatusLabel.TabIndex = 3;
@@ -78,9 +78,9 @@
             // 
             // OpenButton
             // 
-            this.OpenButton.Location = new System.Drawing.Point(61, 112);
+            this.OpenButton.Location = new System.Drawing.Point(61, 131);
             this.OpenButton.Name = "OpenButton";
-            this.OpenButton.Size = new System.Drawing.Size(116, 23);
+            this.OpenButton.Size = new System.Drawing.Size(156, 23);
             this.OpenButton.TabIndex = 4;
             this.OpenButton.Text = "Open Viewer";
             this.OpenButton.UseVisualStyleBackColor = true;
@@ -99,12 +99,12 @@
             // 
             this.KeyTextBox.Location = new System.Drawing.Point(61, 43);
             this.KeyTextBox.Name = "KeyTextBox";
-            this.KeyTextBox.Size = new System.Drawing.Size(138, 20);
+            this.KeyTextBox.Size = new System.Drawing.Size(156, 20);
             this.KeyTextBox.TabIndex = 6;
             // 
             // DisconnectButton
             // 
-            this.DisconnectButton.Location = new System.Drawing.Point(61, 154);
+            this.DisconnectButton.Location = new System.Drawing.Point(142, 69);
             this.DisconnectButton.Name = "DisconnectButton";
             this.DisconnectButton.Size = new System.Drawing.Size(75, 23);
             this.DisconnectButton.TabIndex = 7;
@@ -115,7 +115,7 @@
             // ConnectionTimer
             // 
             this.ConnectionTimer.Enabled = true;
-            this.ConnectionTimer.Interval = 1000;
+            this.ConnectionTimer.Interval = 500;
             this.ConnectionTimer.Tick += new System.EventHandler(this.ConnectionTimer_Tick);
             // 
             // RemotePanel

@@ -68,17 +68,19 @@
             // 
             // StatusLabel
             // 
-            this.StatusLabel.AutoSize = true;
+            this.StatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StatusLabel.Location = new System.Drawing.Point(58, 104);
             this.StatusLabel.Name = "StatusLabel";
-            this.StatusLabel.Size = new System.Drawing.Size(94, 13);
+            this.StatusLabel.Size = new System.Drawing.Size(274, 47);
             this.StatusLabel.TabIndex = 3;
             this.StatusLabel.Text = "Connect Status";
             // 
             // OpenButton
             // 
-            this.OpenButton.Location = new System.Drawing.Point(61, 131);
+            this.OpenButton.Location = new System.Drawing.Point(60, 154);
             this.OpenButton.Name = "OpenButton";
             this.OpenButton.Size = new System.Drawing.Size(156, 23);
             this.OpenButton.TabIndex = 4;

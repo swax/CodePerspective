@@ -57,7 +57,12 @@ namespace XLibrary
 
             //var x = Assembly.GetEntryAssembly();
             //Text = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location) + " Code Perspective";
-            Text = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName) + " Code Perspective";
+            //Text = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName) + " Code Perspective";
+
+            Text = "Code Perspective";
+
+            if (XRay.Remote != null && XRay.Remote.RemoteDatHash != null)
+                Text = "Remote " + Text;
 
             if (Pro.Verified)
                 Text += " Pro";

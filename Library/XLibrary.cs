@@ -138,17 +138,17 @@ namespace XLibrary
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);
 
+                InitCoreThread();
+
                 if (!remoteClient)
                 {
-                    InitCoreThread();
-
                     StartIpcServer();
 
                     Remote.StartListening();
-
-                    if (showUiOnStart)
-                        StartGui();
                 }
+
+                if (showUiOnStart)
+                    StartGui();
             }
             catch (Exception ex)
             {

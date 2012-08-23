@@ -39,13 +39,17 @@ namespace XLibrary.Remote
 
         public XRemote()
         {
-            RouteGeneric["Ping"] = Ping;
-            RouteGeneric["Pong"] = Pong;
+            RouteGeneric["Ping"] = Receive_Ping;
+            RouteGeneric["Pong"] = Receive_Pong;
 
-            RouteGeneric["DatHashRequest"] = DatHashRequest;
-            RouteGeneric["DatHashResponse"] = DatHashResponse;
+            RouteGeneric["Bye"] = Receive_Bye;
 
-            RouteGeneric["DatFileRequest"] = DatFileRequest;
+            RouteGeneric["DatHashRequest"] = Receive_DatHashRequest;
+            RouteGeneric["DatHashResponse"] = Receive_DatHashResponse;
+
+            RouteGeneric["DatFileRequest"] = Receive_DatFileRequest;
+
+            RouteGeneric["StartSync"] = Receive_StartSync;
         }
 
         public void StartListening()
@@ -122,6 +126,10 @@ namespace XLibrary.Remote
 
         public XConnection MakeOutbound(IPAddress address, ushort tcpPort)
         {
+            // only allow 1 outbound connection at a time
+            if (Connections.Count != 0)
+                return null;
+
             try
             {
                var outbound = new XConnection(this, address, tcpPort);
@@ -232,17 +240,23 @@ namespace XLibrary.Remote
             }
         }
 
-        void Ping(XConnection connection, GenericPacket ping)
+        void Receive_Ping(XConnection connection, GenericPacket ping)
         {
             connection.SendPacket(new GenericPacket("Pong"));
         }
 
-        void Pong(XConnection connection, GenericPacket pong)
+        void Receive_Pong(XConnection connection, GenericPacket pong)
         {
             // lower level socket on receiving data marks connection as alive
         }
 
-        void DatHashRequest(XConnection connection, GenericPacket request)
+        void Receive_Bye(XConnection connection, GenericPacket bye)
+        {
+            Log("Received bye from {0}: {1}", connection, bye.Data["Reason"]);
+            connection.Disconnect();
+        }
+
+        void Receive_DatHashRequest(XConnection connection, GenericPacket request)
         {
             var response = new GenericPacket("DatHashResponse");
 
@@ -257,8 +271,16 @@ namespace XLibrary.Remote
             connection.SendPacket(response);
         }
 
-        void DatHashResponse(XConnection connection, GenericPacket response)
+        void Receive_DatHashResponse(XConnection connection, GenericPacket response)
         {
+            // only one instance type per builder instance because xray is static
+            if (XRay.InitComplete && RemoteDatHash != null && RemoteDatHash != response.Data["Hash"])
+            {
+                RemoteStatus = "Open a new builder instance to connect to a new server";
+                connection.Disconnect();
+                return;
+            }
+
             // check if we have this hash.dat file locally, if not then request download
             RemoteDatHash = response.Data["Hash"];
             RemoteDatSize = long.Parse(response.Data["Size"]);
@@ -270,7 +292,7 @@ namespace XLibrary.Remote
                 RemoteStatus = "Error - Remote Dat Empty";
 
             else if (File.Exists(LocalDatPath))
-                StartSync();
+                Send_StartSync(connection);
             
             else
             {
@@ -286,7 +308,7 @@ namespace XLibrary.Remote
 
         List<Download> Downloads = new List<Download>();
 
-        void DatFileRequest(XConnection connection, GenericPacket request)
+        void Receive_DatFileRequest(XConnection connection, GenericPacket request)
         {
             // received by server from client
 
@@ -382,7 +404,7 @@ namespace XLibrary.Remote
                 if (checkHash == RemoteDatHash)
                 {
                     File.Move(LocalDatTempPath, LocalDatPath);
-                    StartSync();
+                    Send_StartSync(connection);
                 }
                 else
                     RemoteStatus = string.Format("Dat integrity check failed - Expecting {0}, got {1}", RemoteDatHash, checkHash);
@@ -390,11 +412,24 @@ namespace XLibrary.Remote
 
         }
 
-        void StartSync()
+        void Send_StartSync(XConnection connection)
         {
             RemoteStatus = "Starting Sync";
 
             // send packet telling server to start syncing us
+
+            XRay.Init(LocalDatPath, true, true, true, true);
+
+            connection.SendPacket(new GenericPacket("StartSync"));
+        }
+
+        void Receive_StartSync(XConnection connection, GenericPacket packet)
+        {
+            // send cover maps
+
+            // on cover change, diff last sent cover map with current, zip and send
+
+            // limit to 10 fps, have bandwidth counters
         }
     }
 

@@ -205,12 +205,14 @@ namespace XLibrary.Remote
 
                 bye.Data = new Dictionary<string, string>
                 {
-                    {"Message", reason}
+                    {"Reason", reason}
                 };
 
                 SendPacket(bye);
 
                 Log("CleanClose", "Closing connection: " + reason);
+
+                TcpSocket.Close();
             }
 
             State = TcpState.Closed;

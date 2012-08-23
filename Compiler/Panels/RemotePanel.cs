@@ -66,8 +66,8 @@ namespace XBuilder.Panels
             else
                 StatusLabel.Text = Connection.ToString() + " - " + Connection.State.ToString() + " - " + XRay.Remote.RemoteStatus;
 
-            ConnectButton.Enabled = (Connection == null);
-            OpenButton.Enabled = (Connection != null);
+            ConnectButton.Enabled = (XRay.Remote.Connections.Count == 0);
+            OpenButton.Enabled = XRay.InitComplete; // dat loaded
             DisconnectButton.Enabled = (Connection != null);
 
         }
@@ -85,7 +85,7 @@ namespace XBuilder.Panels
 
         private void OpenButton_Click(object sender, EventArgs e)
         {
-
+            XRay.StartGui();
         }
     }
 }

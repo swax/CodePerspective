@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 using XLibrary;
+using XLibrary.Remote;
 
 
 namespace XBuilder
@@ -19,6 +20,7 @@ namespace XBuilder
         static void Main()
         {
             XDef.Test();
+            HashSetExt.Test();
 
             Pro.LoadFromDirectory(Application.StartupPath);
 

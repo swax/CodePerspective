@@ -42,7 +42,7 @@ namespace XLibrary.Remote
         int SendBuffSize;
         byte[] FinalSendBuffer;
         int FinalSendBuffSize;
-        public bool SendReady { get { return (FinalSendBuffSize == 0); } }
+        public bool SendReady { get { return (FinalSendBuffSize == 0); } } // dont use SendBuffSize=0 because final buff can fill to 512kb
 
         // receiving
         ICryptoTransform Decryptor;
@@ -328,7 +328,7 @@ namespace XLibrary.Remote
                     //Core.UpdateConsole("Begin Send " + SendBufferSize.ToString());
                 
                     //TcpSocket.Blocking = false
-                    Log("x", "Sending " + FinalSendBuffSize.ToString() + " bytes");
+                    //Log("x", "Sending " + FinalSendBuffSize.ToString() + " bytes");
                     TcpSocket.BeginSend(FinalSendBuffer, 0, FinalSendBuffSize, SocketFlags.None, new AsyncCallback(Socket_Send), TcpSocket);
                     //bytesSent = TcpSocket.Send(FinalSendBuffer, FinalSendBuffSize, SocketFlags.None);                                 
                 }
@@ -346,7 +346,7 @@ namespace XLibrary.Remote
             try
             {
                 int bytesSent = TcpSocket.EndSend(asyncResult);
-                Log("x", "Sent " + bytesSent.ToString() + " bytes");
+                //Log("x", "Sent " + bytesSent.ToString() + " bytes");
 
                 if (bytesSent == 0)
                     return;
@@ -401,7 +401,7 @@ namespace XLibrary.Remote
             try
             {
                 if (State == TcpState.Connected)
-                    TcpSocket.BeginReceive(RecvBuffer, RecvBuffSize, RecvBuffer.Length, SocketFlags.None, new AsyncCallback(Socket_Receive), TcpSocket);
+                    TcpSocket.BeginReceive(RecvBuffer, RecvBuffSize, RecvBuffer.Length - RecvBuffSize, SocketFlags.None, new AsyncCallback(Socket_Receive), TcpSocket);
             }
             catch (Exception ex)
             {

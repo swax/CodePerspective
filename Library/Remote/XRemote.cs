@@ -35,7 +35,8 @@ namespace XLibrary.Remote
        
         // sync
         public List<SyncState> SyncClients = new List<SyncState>();
-
+        public int SyncsPerSecond;
+        public int SyncCount;
 
         // client specific
         public string RemoteStatus = "";
@@ -107,6 +108,10 @@ namespace XLibrary.Remote
 
         public void SecondTimer()
         {
+            // sync stat
+            SyncsPerSecond = SyncCount;
+            SyncCount = 0;
+
             // Run through socket connections
             var deadSockets = new List<XConnection>();
 
@@ -245,7 +250,15 @@ namespace XLibrary.Remote
                     break;
 
                 case PacketType.Dat:
-                    ReceiveDatPacket(connection, packet);
+                    Receive_DatPacket(connection, packet);
+                    break;
+
+                case PacketType.Sync:
+                    Receive_Sync(connection, packet);
+                    break;
+
+                default:
+                    Log("Unknown Packet Type: " + packet.Root.Name.ToString());
                     break;
             }
         }
@@ -385,7 +398,7 @@ namespace XLibrary.Remote
             }
         }
 
-        void ReceiveDatPacket(XConnection connection, G2ReceivedPacket packet)
+        void Receive_DatPacket(XConnection connection, G2ReceivedPacket packet)
         {
             // received by client from server
             var chunk = DatPacket.Decode(packet.Root);
@@ -442,23 +455,44 @@ namespace XLibrary.Remote
             state.HitArray = new BitArray(XRay.Nodes.Length);
             state.HitArrayAlt = new HashSet<int>();
 
+            Log("Sync client added");
             SyncClients.Add(state);
         }
 
         internal void RunSyncClients()
         {
-            foreach (var state in SyncClients)
+            foreach (var client in SyncClients)
             {
-                if (state.Connection.State != TcpState.Connected)
+                if (client.Connection.State != TcpState.Connected)
                     continue;
 
-                // save current set and create a new one so other threads dont get tripped up
-                var sendSet = state.HitArrayAlt;
-                state.HitArrayAlt = new HashSet<int>();
+                if (client.Connection.SendReady)
+                {
+                    // save current set and create a new one so other threads dont get tripped up
+                    var sync = new SyncPacket();
 
-                // check that there's space in the send buffer to send state
-                //state.Connection.SendPacket(
+                    if(client.HitArrayAlt.Count == 0)
+                        return;
+
+                    sync.Hits = client.HitArrayAlt;
+
+                    client.HitArrayAlt = new HashSet<int>();
+
+                    // check that there's space in the send buffer to send state
+                    client.Connection.SendPacket(sync);
+                }
             }
+        }
+
+        private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
+        {
+            var sync = SyncPacket.Decode(packet.Root);
+
+            SyncCount++;
+
+            if(sync.Hits != null)
+            foreach (var id in sync.Hits)
+                XRay.Nodes[id].FunctionHit = XRay.ShowTicks;
         }
 
         internal void RunEventLoop()

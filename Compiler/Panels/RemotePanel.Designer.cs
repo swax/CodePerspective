@@ -38,6 +38,8 @@
             this.KeyTextBox = new System.Windows.Forms.TextBox();
             this.DisconnectButton = new System.Windows.Forms.Button();
             this.ConnectionTimer = new System.Windows.Forms.Timer(this.components);
+            this.BandwidthLabel = new System.Windows.Forms.Label();
+            this.SyncSpeedLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -74,7 +76,7 @@
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StatusLabel.Location = new System.Drawing.Point(58, 104);
             this.StatusLabel.Name = "StatusLabel";
-            this.StatusLabel.Size = new System.Drawing.Size(274, 47);
+            this.StatusLabel.Size = new System.Drawing.Size(274, 90);
             this.StatusLabel.TabIndex = 3;
             this.StatusLabel.Text = "Connect Status";
             // 
@@ -120,10 +122,30 @@
             this.ConnectionTimer.Interval = 500;
             this.ConnectionTimer.Tick += new System.EventHandler(this.ConnectionTimer_Tick);
             // 
+            // BandwidthLabel
+            // 
+            this.BandwidthLabel.AutoSize = true;
+            this.BandwidthLabel.Location = new System.Drawing.Point(58, 194);
+            this.BandwidthLabel.Name = "BandwidthLabel";
+            this.BandwidthLabel.Size = new System.Drawing.Size(57, 13);
+            this.BandwidthLabel.TabIndex = 8;
+            this.BandwidthLabel.Text = "Bandwidth";
+            // 
+            // SyncSpeedLabel
+            // 
+            this.SyncSpeedLabel.AutoSize = true;
+            this.SyncSpeedLabel.Location = new System.Drawing.Point(58, 219);
+            this.SyncSpeedLabel.Name = "SyncSpeedLabel";
+            this.SyncSpeedLabel.Size = new System.Drawing.Size(94, 13);
+            this.SyncSpeedLabel.TabIndex = 9;
+            this.SyncSpeedLabel.Text = "Syncs per Second";
+            // 
             // RemotePanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.SyncSpeedLabel);
+            this.Controls.Add(this.BandwidthLabel);
             this.Controls.Add(this.DisconnectButton);
             this.Controls.Add(this.KeyTextBox);
             this.Controls.Add(this.label2);
@@ -133,7 +155,7 @@
             this.Controls.Add(this.AddressTextBox);
             this.Controls.Add(this.label1);
             this.Name = "RemotePanel";
-            this.Size = new System.Drawing.Size(335, 212);
+            this.Size = new System.Drawing.Size(335, 255);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -150,5 +172,7 @@
         private System.Windows.Forms.TextBox KeyTextBox;
         private System.Windows.Forms.Button DisconnectButton;
         private System.Windows.Forms.Timer ConnectionTimer;
+        private System.Windows.Forms.Label BandwidthLabel;
+        private System.Windows.Forms.Label SyncSpeedLabel;
     }
 }

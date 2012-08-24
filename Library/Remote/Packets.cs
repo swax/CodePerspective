@@ -11,6 +11,7 @@ namespace XLibrary.Remote
         public const byte Padding = 0x10;
         public const byte Generic = 0x20;
         public const byte Dat = 0x30;
+        public const byte Sync = 0x40;
     }
 
     public class GenericPacket : G2Packet
@@ -149,36 +150,28 @@ namespace XLibrary.Remote
             return dat;
         }
     }
-    /*public class PingPacket : G2Packet
-    {
-        const byte Packet_RemoteIP = 0x10;
-        const byte Packet_Response = 0x20; // pong
 
-        public IPAddress RemoteIP;
-        public bool Response;
+    public class SyncPacket : G2Packet
+    {
+        const byte Packet_Hits = 0x10;
+
+        public HashSet<int> Hits;
 
         public override byte[] Encode(G2Protocol protocol)
         {
             lock (protocol.WriteSection)
             {
-                G2Frame ping = protocol.WritePacket(null, PacketTypes.Ping, null);
+                var sync = protocol.WritePacket(null, PacketType.Sync, null);
 
-                //protocol.WritePacket(ping, Packet_RemoteIP, RemoteIP.GetAddressBytes());
-                protocol.WritePacket(ping, Packet_Response, BitConverter.GetBytes(Response));
+                protocol.WritePacket(sync, Packet_Hits, Hits.ToBytes());
 
                 return protocol.WriteFinish();
             }
         }
 
-        public static PingPacket Decode(G2Header root)
+        public static SyncPacket Decode(G2Header root)
         {
-            var ping = new PingPacket();
-
-            //if (G2Protocol.ReadPayload(root))
-            //    gn.InternalData = Utilities.ExtractBytes(root.Data, root.PayloadPos, root.PayloadSize);
-
-            G2Protocol.ResetPacket(root);
-
+            var sync = new SyncPacket();
 
             G2Header child = new G2Header(root.Data);
 
@@ -189,19 +182,52 @@ namespace XLibrary.Remote
 
                 switch (child.Name)
                 {
-                    //case Packet_RemoteIP:
-                    //    ping.RemoteIP = new IPAddress(Utilities.ExtractBytes(child.Data, child.PayloadPos, child.PayloadSize));
-                    //    break;
-
-                    case Packet_Response:
-                        ping.Response = BitConverter.ToBoolean(child.Data, child.PayloadPos);
+                    case Packet_Hits:
+                        sync.Hits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
                 }
             }
 
-            return ping;
+            return sync;
         }
-    }*/
+    }
+
+    public static class HashSetExt
+    {
+        public static byte[] ToBytes(this HashSet<int> set)
+        {
+            byte[] result = new byte[set.Count * 4];
+            int i = 0;
+
+            foreach (int id in set)
+            {
+                BitConverter.GetBytes(id).CopyTo(result, i * 4);
+                i++;
+            }
+
+            return result;
+        }
+
+        public static HashSet<int> FromBytes(byte[] data, int pos, int size)
+        {
+            HashSet<int> result = new HashSet<int>();
+
+            for (int i = pos; i < size; i += 4)
+                result.Add(BitConverter.ToInt32(data, i));
+
+            return result;
+        }
+
+                public static void Test()
+        {
+            HashSet<int> set = new HashSet<int>();
+            set.Add(1); set.Add(22); set.Add(433); set.Add(766);
+
+            var bytes = set.ToBytes();
+
+            var checkSet = FromBytes(bytes, 0, bytes.Length);
+        }
+    }
 
     public class CryptPadding : G2Packet
     {

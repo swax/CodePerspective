@@ -70,6 +70,11 @@ namespace XBuilder.Panels
             OpenButton.Enabled = XRay.InitComplete; // dat loaded
             DisconnectButton.Enabled = (Connection != null);
 
+            if (Connection != null)
+            {
+                BandwidthLabel.Text = string.Format("In: {0} b/s, Out: {1} b/s", Connection.Bandwidth.InAvg(), Connection.Bandwidth.OutAvg());
+                SyncSpeedLabel.Text = "Syncs per Second: " + XRay.Remote.SyncsPerSecond.ToString();
+            }
         }
 
         private void DisconnectButton_Click(object sender, EventArgs e)

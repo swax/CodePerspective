@@ -153,9 +153,16 @@ namespace XLibrary.Remote
 
     public class SyncPacket : G2Packet
     {
-        const byte Packet_Hits = 0x10;
+        const byte Packet_FunctionHit = 0x10;
+        const byte Packet_ExceptionHit = 0x20;
+        const byte Packet_ConstructedHit = 0x30;
+        const byte Packet_DisposedHit = 0x40;
 
-        public HashSet<int> Hits;
+        public HashSet<int> FunctionHit;
+        public HashSet<int> ExceptionHit;
+        public HashSet<int> ConstructedHit;
+        public HashSet<int> DisposeHit;
+
 
         public override byte[] Encode(G2Protocol protocol)
         {
@@ -163,10 +170,19 @@ namespace XLibrary.Remote
             {
                 var sync = protocol.WritePacket(null, PacketType.Sync, null);
 
-                protocol.WritePacket(sync, Packet_Hits, Hits.ToBytes());
+                AddSetIfNotEmpty(protocol, sync, Packet_FunctionHit, FunctionHit);
+                AddSetIfNotEmpty(protocol, sync, Packet_ExceptionHit, ExceptionHit);
+                AddSetIfNotEmpty(protocol, sync, Packet_ConstructedHit, ConstructedHit);
+                AddSetIfNotEmpty(protocol, sync, Packet_DisposedHit, DisposeHit);
 
                 return protocol.WriteFinish();
             }
+        }
+
+        private void AddSetIfNotEmpty(G2Protocol protocol, G2Frame sync, byte name, HashSet<int> set)
+        {
+            if (set != null && set.Count > 0)
+                protocol.WritePacket(sync, name, set.ToBytes());
         }
 
         public static SyncPacket Decode(G2Header root)
@@ -182,8 +198,20 @@ namespace XLibrary.Remote
 
                 switch (child.Name)
                 {
-                    case Packet_Hits:
-                        sync.Hits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                    case Packet_FunctionHit:
+                        sync.FunctionHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_ExceptionHit:
+                        sync.ExceptionHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_ConstructedHit:
+                        sync.ConstructedHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_DisposedHit:
+                        sync.DisposeHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
                 }
             }
@@ -196,6 +224,9 @@ namespace XLibrary.Remote
     {
         public static byte[] ToBytes(this HashSet<int> set)
         {
+            if (set.Count == 0)
+                return null;
+
             byte[] result = new byte[set.Count * 4];
             int i = 0;
 
@@ -212,7 +243,7 @@ namespace XLibrary.Remote
         {
             HashSet<int> result = new HashSet<int>();
 
-            for (int i = pos; i < size; i += 4)
+            for (int i = pos; i < pos + size; i += 4)
                 result.Add(BitConverter.ToInt32(data, i));
 
             return result;

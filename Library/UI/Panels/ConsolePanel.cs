@@ -198,8 +198,9 @@ stacks";
 
             else if (string.Compare(input, "network", true) == 0)
             {
-                foreach (string error in XRay.Remote.DebugLog)
-                    output.AppendLine(error);
+                lock (XRay.Remote.DebugLog)
+                    foreach (string error in XRay.Remote.DebugLog)
+                        output.AppendLine(error);
 
                 return output.ToString();
             }

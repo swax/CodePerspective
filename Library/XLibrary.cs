@@ -216,6 +216,10 @@ namespace XLibrary
 
                     resetWatch.Reset();
                     resetWatch.Start();
+
+                    if(Remote != null)
+                        foreach (var client in Remote.SyncClients)
+                            client.DoSync();
                 }
 
                 if (Remote != null)
@@ -228,7 +232,10 @@ namespace XLibrary
                         secondWatch.Start();
                     }
 
-                    Remote.RunEventLoop();
+                    foreach (var connection in Remote.Connections)
+                        connection.TrySend();
+
+                    Remote.ProcessDownloads();
                 }
 
                 lock (CoreMessages)
@@ -507,32 +514,32 @@ namespace XLibrary
 
             // mark covered
             if (!CoveredNodes[nodeID])
-            {
-                node.HitSequence = CurrentSequence++;
-
-                CoverChange = true;
-
-                Utilities.IterateParents<XNode>(
-                    node, 
-                    n => CoveredNodes[n.ID] = true, 
-                    n => n.Parent);
-
-                // clear cover change on paint
-            }
+                SetCovered(node);
 
             node.FunctionHit = ShowTicks;
 
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                {
-                    sync.HitArray[nodeID] = true;
-                    sync.HitArrayAlt.Add(nodeID);
-                }
+                    sync.FunctionHit.Add(nodeID);
 
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);
 
             return node;
+        }
+
+        private static void SetCovered(XNodeIn node)
+        {
+            node.HitSequence = CurrentSequence++;
+
+            CoverChange = true;
+
+            Utilities.IterateParents<XNode>(
+                node,
+                n => CoveredNodes[n.ID] = true,
+                n => n.Parent);
+
+            // clear cover change on paint
         }
 
         private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread)
@@ -787,6 +794,9 @@ namespace XLibrary
                             exited.Call.TotalCallTime += ticks - exited.StartTick;
 
                             Nodes[exited.NodeID].ExceptionHit = ShowTicks;
+                            if (Remote != null)
+                                foreach (var sync in Remote.SyncClients)
+                                    sync.ExceptionHit.Add(exited.NodeID);
 
                             if (exited.Call != null)
                                 exited.Call.StillInside--;
@@ -811,6 +821,9 @@ namespace XLibrary
                 return;
 
             node.ConstructedHit = ShowTicks;
+            if (Remote != null)
+                foreach (var sync in Remote.SyncClients)
+                    sync.ConstructedHit.Add(node.ID);
 
             // of obj is system.runtimeType thats the flag that this is a static class's constructor running
 
@@ -914,6 +927,9 @@ namespace XLibrary
             }
 
             node.DisposeHit = ShowTicks;
+            if (Remote != null)
+                foreach (var sync in Remote.SyncClients)
+                    sync.DisposeHit.Add(index);
 
             if (node.Record.Remove(obj))
                 InstanceChange = true;
@@ -952,6 +968,33 @@ namespace XLibrary
         static internal void LogMessage(string text, params object[] args)
         {
             ErrorLog.Add(string.Format(text, args));
+        }
+
+        internal static void RemoteSync(SyncPacket packet)
+        {
+            if (packet.FunctionHit != null)
+                foreach (var id in packet.FunctionHit)
+                {
+                    var node = Nodes[id];
+
+                    node.FunctionHit = ShowTicks;
+
+                    // mark covered
+                    if (!CoveredNodes[id])
+                        SetCovered(node);
+                }
+
+            if (packet.ExceptionHit != null)
+                foreach (var id in packet.ExceptionHit)
+                    Nodes[id].ExceptionHit = ShowTicks;
+
+            if (packet.ConstructedHit != null)
+                foreach (var id in packet.ConstructedHit)
+                    Nodes[id].ConstructedHit = ShowTicks;
+
+            if (packet.DisposeHit != null)
+                foreach (var id in packet.DisposeHit)
+                    Nodes[id].DisposeHit = ShowTicks;
         }
     }
 

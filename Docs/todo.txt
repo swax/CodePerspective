@@ -10,25 +10,12 @@ Add thread details to class details so thread that touched class can be filtered
 Dead threads not cleared from flow map? should be, some sort of max or something?
 
 Remote	
-
-	remove dead sync clients
-
-	new send
-		replace send buff with packet buff
-		function to check
+	Remove dead sync clients
 	Test function for generic packet
+	Give message and error logs max sizes like 1000, change to queue type
 
-	show bandwidth stat, show updates/s stat
-	use compression and continually send
-	flag to turn compression on and off, record bandwidth and cpu
-
-	test sending bitarry
-	test sending of id that's been hit
-
-	apply patch
-
-	give message and error logs max sizes like 1000, change to queue type
-
+	Set cover map
+	Send function calls
 
 instance view
 	match field name with static analysis

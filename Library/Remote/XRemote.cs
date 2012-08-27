@@ -17,7 +17,7 @@ namespace XLibrary.Remote
 
         public List<XConnection> Connections = new List<XConnection>();
 
-        public List<string> DebugLog = new List<string>();
+        public LinkedList<string> DebugLog = new LinkedList<string>();
 
         // listening
         int ListenPort = 4566;
@@ -34,7 +34,7 @@ namespace XLibrary.Remote
         const int DownloadChunkSize = 8 * 1024; // should be 8kb
        
         // sync
-        public List<SyncState> SyncClients = new List<SyncState>();
+        public List<SyncClient> SyncClients = new List<SyncClient>();
         public int SyncsPerSecond;
         public int SyncCount;
 
@@ -164,7 +164,13 @@ namespace XLibrary.Remote
 
         internal void Log(string text, params object[] args)
         {
-            DebugLog.Add(string.Format(text, args));
+            lock (DebugLog)
+            {
+                DebugLog.AddFirst(string.Format(text, args));
+
+                while (DebugLog.Count > 100)
+                    DebugLog.RemoveLast();
+            }
         }
 
         void ListenSocket_Accept(IAsyncResult asyncResult)
@@ -236,6 +242,10 @@ namespace XLibrary.Remote
 
             switch (packet.Root.Name)
             {
+                case PacketType.Padding:
+                    Log("Crypt Padding Received");
+                    break;
+
                 case PacketType.Generic:
 
                     var generic = GenericPacket.Decode(packet.Root);
@@ -450,59 +460,22 @@ namespace XLibrary.Remote
 
         void Receive_StartSync(XConnection connection, GenericPacket packet)
         {
-            var state = new SyncState();
+            var state = new SyncClient();
             state.Connection = connection;
-            state.HitArray = new BitArray(XRay.Nodes.Length);
-            state.HitArrayAlt = new HashSet<int>();
 
             Log("Sync client added");
             SyncClients.Add(state);
-        }
-
-        internal void RunSyncClients()
-        {
-            foreach (var client in SyncClients)
-            {
-                if (client.Connection.State != TcpState.Connected)
-                    continue;
-
-                if (client.Connection.SendReady)
-                {
-                    // save current set and create a new one so other threads dont get tripped up
-                    var sync = new SyncPacket();
-
-                    if(client.HitArrayAlt.Count == 0)
-                        return;
-
-                    sync.Hits = client.HitArrayAlt;
-
-                    client.HitArrayAlt = new HashSet<int>();
-
-                    // check that there's space in the send buffer to send state
-                    client.Connection.SendPacket(sync);
-                }
-            }
         }
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
         {
             var sync = SyncPacket.Decode(packet.Root);
 
+            Log("Sync packet received");
+
             SyncCount++;
 
-            if(sync.Hits != null)
-            foreach (var id in sync.Hits)
-                XRay.Nodes[id].FunctionHit = XRay.ShowTicks;
-        }
-
-        internal void RunEventLoop()
-        {
-            foreach (var connection in Connections)
-                connection.TrySend();
-
-            ProcessDownloads();
-
-            RunSyncClients();
+            XRay.RemoteSync(sync);
         }
     }
 
@@ -513,10 +486,45 @@ namespace XLibrary.Remote
         public long FilePos;
     }
 
-    public class SyncState
+    public class SyncClient
     {
         public XConnection Connection;
-        public BitArray HitArray;
-        public HashSet<int> HitArrayAlt;
+
+        public HashSet<int> FunctionHit = new HashSet<int>();
+        public HashSet<int> ExceptionHit = new HashSet<int>();
+        public HashSet<int> ConstructedHit = new HashSet<int>();
+        public HashSet<int> DisposeHit = new HashSet<int>();
+
+        public void DoSync()
+        {
+
+            if (Connection.State != TcpState.Connected)
+                return;
+
+            if (!Connection.SendReady)
+                return;
+
+            {
+                // save current set and create a new one so other threads dont get tripped up
+                var packet = new SyncPacket();
+
+                AddSet(ref FunctionHit, ref packet.FunctionHit);
+                AddSet(ref ExceptionHit, ref packet.ExceptionHit);
+                AddSet(ref ConstructedHit, ref packet.ConstructedHit);
+                AddSet(ref DisposeHit, ref packet.DisposeHit);
+
+                // check that there's space in the send buffer to send state
+                Connection.SendPacket(packet);
+            }
+        }
+
+        void AddSet(ref HashSet<int> localSet, ref HashSet<int> packetSet)
+        {
+            if (localSet.Count > 0)
+            {
+                packetSet = localSet;
+                localSet = new HashSet<int>();
+            }
+        }
     }
 }

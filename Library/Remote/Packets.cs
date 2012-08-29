@@ -143,6 +143,9 @@ namespace XLibrary.Remote
         const byte Packet_Inits = 0x70;
         const byte Packet_NewThreads = 0x80;
         const byte Packet_ThreadChanges = 0x90;
+        const byte Packet_NodeThreads = 0xA0;
+        const byte Packet_CallThreads = 0xB0;
+        const byte Packet_ClassCallThreads = 0xC0;
 
         const byte Packet_ThreadID = 0x10;
         const byte Packet_ThreadName = 0x20;
@@ -161,7 +164,9 @@ namespace XLibrary.Remote
 
         public Dictionary<int, Tuple<string, bool>> NewThreads;
         public Dictionary<int, bool> ThreadChanges;
-
+        public PairList NodeThreads;
+        public PairList CallThreads;
+        
 
         public override byte[] Encode(G2Protocol protocol)
         {
@@ -195,6 +200,9 @@ namespace XLibrary.Remote
                         protocol.WritePacket(keyValuePair, Packet_ThreadID, BitConverter.GetBytes(item.Key));
                         protocol.WritePacket(keyValuePair, Packet_ThreadAlive, BitConverter.GetBytes(item.Value));
                     }
+
+                AddPairs(protocol, sync, Packet_NodeThreads, NodeThreads);
+                AddPairs(protocol, sync, Packet_CallThreads, CallThreads);
 
                 return protocol.WriteFinish();
             }
@@ -281,6 +289,14 @@ namespace XLibrary.Remote
                                 alive2 = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
 
                         sync.ThreadChanges[id2] = alive2;
+                        break;
+
+                    case Packet_NodeThreads:
+                        sync.NodeThreads = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_CallThreads:
+                        sync.CallThreads = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
                 }
             }

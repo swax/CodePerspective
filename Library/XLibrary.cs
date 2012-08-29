@@ -529,7 +529,15 @@ namespace XLibrary
            
             if (node.ThreadIDs == null)
                 node.ThreadIDs = new HashSet<int>();
-            node.ThreadIDs.Add(thread);
+
+            if (!node.ThreadIDs.Contains(thread))
+            {
+                node.ThreadIDs.Add(thread);
+
+                if (Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.NodeThreads.Add(new Tuple<int, int>(node.ID, thread));
+            }
 
             //if (CallLogging)
             //    LogError("Thread {0}, Func {1}, Enter\r\n", thread, nodeID);
@@ -619,9 +627,18 @@ namespace XLibrary
             if (source != call.Source || nodeID != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
 
-            call.ThreadIDs.Add(thread);
+      
             call.Hit = ShowTicks;
             call.TotalHits++;
+
+            if (!call.ThreadIDs.Contains(thread))
+            {
+                call.ThreadIDs.Add(thread);
+
+                if (Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.CallThreads.Add(new Tuple<int, int>(call.ID, thread));
+            }
 
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
@@ -639,7 +656,7 @@ namespace XLibrary
 
         public static FunctionCall CreateNewCall(int hash, int sourceID, XNodeIn dest)
         {
-            var call = new FunctionCall() { Source = sourceID, Destination = dest.ID };
+            var call = new FunctionCall() { ID = hash, Source = sourceID, Destination = dest.ID };
             CallMap.Add(hash, call);
 
             // add link to node that its been called
@@ -683,7 +700,7 @@ namespace XLibrary
 
             //LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
 
-            var classCall = new FunctionCall() { Source = sourceClass.ID, Destination = destClass.ID };
+            var classCall = new FunctionCall() { ID = hash, Source = sourceClass.ID, Destination = destClass.ID };
             ClassCallMap.Add(hash, classCall);
 
             destClass.AddFunctionCall(ref destClass.CalledIn, sourceClass.ID, classCall);
@@ -749,12 +766,12 @@ namespace XLibrary
             if (RemoteClient)
                 return;
 
-            call.ThreadIDs.Add(thread);
             call.TotalHits++;
-
-            if (Remote != null)
-                foreach (var sync in Remote.SyncClients)
-                    sync.CallHits.Add(functionCall.ClassCallHash);
+            
+            if (!RemoteClient && !call.ThreadIDs.Contains(thread))
+                call.ThreadIDs.Add(thread);
+    
+            // remote infers class hit and thread by the function to function call
         }
 
         public static void MethodExit(int nodeID)
@@ -957,7 +974,7 @@ namespace XLibrary
             {
                 //LogError("Adding to init map {0} -> {1} with hash {2}", sourceClass.ID, node.ID, hash);
 
-                call = new FunctionCall() { Source = sourceClass.ID, Destination = classNode.ID };
+                call = new FunctionCall() { ID = hash, Source = sourceClass.ID, Destination = classNode.ID };
                 InitMap.Add(hash, call);
 
                 if (classNode.InitsBy == null)
@@ -1067,6 +1084,8 @@ namespace XLibrary
 
                     if (!CallMap.Contains(hash))
                         CreateNewCall(hash, source, Nodes[dest]);
+                    else
+                        Debug.Assert(false, "New call already added in sync");
                 }
 
             if (packet.CallHits != null)
@@ -1074,7 +1093,10 @@ namespace XLibrary
                 {
                     FunctionCall call;
                     if (!CallMap.TryGetValue(hash, out call))
+                    {
+                        Debug.Assert(false, "Call not found in sync");
                         continue;
+                    }
 
                     call.Hit = ShowTicks;
 
@@ -1100,6 +1122,8 @@ namespace XLibrary
 
                     if (!FlowMap.Contains(id))
                         FlowMap.Add(id, new ThreadFlow() { ThreadID = id, Name = name, IsAlive = alive });
+                    else
+                        Debug.Assert(false, "Flow already contains thread on sync");
                 }
 
             if(packet.ThreadChanges != null)
@@ -1108,8 +1132,45 @@ namespace XLibrary
                     ThreadFlow flow;
                     if (FlowMap.TryGetValue(thread.Key, out flow))
                         flow.IsAlive = thread.Value;
+                    else
+                        Debug.Assert(false, "Thread not found on sync");
                 }
-                    
+
+            if(packet.NodeThreads != null)
+                foreach (var nodeThread in packet.NodeThreads)
+                {
+                    var node = Nodes[nodeThread.Item1];
+
+                    if (node.ThreadIDs == null)
+                        node.ThreadIDs = new HashSet<int>();
+
+                    node.ThreadIDs.Add(nodeThread.Item2);
+                }
+
+            if (packet.CallThreads != null)
+                foreach (var callThread in packet.CallThreads)
+                {
+                    FunctionCall call;
+                    if (!CallMap.TryGetValue(callThread.Item1, out call))
+                    {
+                        Debug.Assert(false, "Call thread not found on sync");
+                        continue;
+                    }
+
+                    if (call.ThreadIDs == null)
+                        call.ThreadIDs = new HashSet<int>();
+
+                    call.ThreadIDs.Add(callThread.Item2);
+
+                    // add thread to class class (might not exist for internal calls)
+                    if (!ClassCallMap.TryGetValue(call.ClassCallHash, out call))
+                        continue;
+
+                    if (call.ThreadIDs == null)
+                        call.ThreadIDs = new HashSet<int>();
+
+                    call.ThreadIDs.Add(callThread.Item2);
+                }      
         }
     }
 
@@ -1275,6 +1336,7 @@ namespace XLibrary
 
     public class FunctionCall
     {
+        public int ID; // hash of source and dest
         public int Source;
         public int Destination;
 

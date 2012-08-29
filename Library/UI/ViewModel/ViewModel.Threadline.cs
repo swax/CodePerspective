@@ -80,7 +80,7 @@ namespace XLibrary
                 if (ShowThreads != null && !ShowThreads.Contains(flow.ThreadID))
                     continue;
 
-                if (ShowThreads == null && !flow.Handle.IsAlive)
+                if (ShowThreads == null && !flow.IsAlive)
                     continue;
 
                 UnfinishedItems.Clear();

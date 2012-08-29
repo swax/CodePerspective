@@ -141,6 +141,13 @@ namespace XLibrary.Remote
         const byte Packet_NewCalls = 0x50;
         const byte Packet_CallHits = 0x60;
         const byte Packet_Inits = 0x70;
+        const byte Packet_NewThreads = 0x80;
+        const byte Packet_ThreadChanges = 0x90;
+
+        const byte Packet_ThreadID = 0x10;
+        const byte Packet_ThreadName = 0x20;
+        const byte Packet_ThreadAlive = 0x30;
+
 
         public HashSet<int> FunctionHits;
         public HashSet<int> ExceptionHits;
@@ -151,6 +158,9 @@ namespace XLibrary.Remote
         public HashSet<int> CallHits;
 
         public PairList Inits;
+
+        public Dictionary<int, Tuple<string, bool>> NewThreads;
+        public Dictionary<int, bool> ThreadChanges;
 
 
         public override byte[] Encode(G2Protocol protocol)
@@ -168,6 +178,23 @@ namespace XLibrary.Remote
                 AddSet(protocol, sync, Packet_CallHits, CallHits);
 
                 AddPairs(protocol, sync, Packet_Inits, Inits);
+
+                if (NewThreads != null)
+                    foreach (var item in NewThreads)
+                    {
+                        var keyValuePair = protocol.WritePacket(sync, Packet_NewThreads, null);
+                        protocol.WritePacket(keyValuePair, Packet_ThreadID, BitConverter.GetBytes(item.Key));
+                        protocol.WritePacket(keyValuePair, Packet_ThreadName, UTF8Encoding.UTF8.GetBytes(item.Value.Item1));
+                        protocol.WritePacket(keyValuePair, Packet_ThreadAlive, BitConverter.GetBytes(item.Value.Item2));
+                    }
+
+                if (ThreadChanges != null)
+                    foreach (var item in ThreadChanges)
+                    {
+                        var keyValuePair = protocol.WritePacket(sync, Packet_ThreadChanges, null);
+                        protocol.WritePacket(keyValuePair, Packet_ThreadID, BitConverter.GetBytes(item.Key));
+                        protocol.WritePacket(keyValuePair, Packet_ThreadAlive, BitConverter.GetBytes(item.Value));
+                    }
 
                 return protocol.WriteFinish();
             }
@@ -219,6 +246,41 @@ namespace XLibrary.Remote
 
                     case Packet_Inits:
                         sync.Inits = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_NewThreads:
+                        if (sync.NewThreads == null)
+                            sync.NewThreads = new Dictionary<int, Tuple<string, bool>>(); 
+
+                        int id = 0;
+                        string name = null;
+                        bool alive = false;
+
+                        foreach (var sub in G2Protocol.EnumerateChildren(child))
+                            if (sub.Name == Packet_ThreadID)
+                                id = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
+                            else if (sub.Name == Packet_ThreadName)
+                                name = UTF8Encoding.UTF8.GetString(sub.Data, sub.PayloadPos, sub.PayloadSize);
+                            else if (sub.Name == Packet_ThreadAlive)
+                                alive = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
+
+                        sync.NewThreads[id] = new Tuple<string,bool>(name, alive);
+                        break;
+
+                    case Packet_ThreadChanges:
+                        if (sync.ThreadChanges == null)
+                            sync.ThreadChanges = new Dictionary<int, bool>();
+
+                        int id2 = 0;
+                        bool alive2 = false;
+
+                        foreach (var sub in G2Protocol.EnumerateChildren(child))
+                            if (sub.Name == Packet_ThreadID)
+                                id2 = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
+                            else if (sub.Name == Packet_ThreadAlive)
+                                alive2 = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
+
+                        sync.ThreadChanges[id2] = alive2;
                         break;
                 }
             }

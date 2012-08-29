@@ -224,16 +224,20 @@ namespace XLibrary
                             client.DoSync();
                 }
 
-                if (Remote != null)
+                if (secondWatch.ElapsedMilliseconds >= 1000)
                 {
-                    if (secondWatch.ElapsedMilliseconds >= 1000)
-                    {
+                    if(Remote != null)
                         Remote.SecondTimer();
 
-                        secondWatch.Reset();
-                        secondWatch.Start();
-                    }
+                    if (!RemoteClient) 
+                        UpdateThreadAlive();
 
+                    secondWatch.Reset();
+                    secondWatch.Start();
+                }
+
+                if (Remote != null)
+                {
                     foreach (var connection in Remote.Connections)
                         connection.TrySend();
 
@@ -253,6 +257,22 @@ namespace XLibrary
                             LogError("Error Processing Message", ex.Message);
                         }
                     }
+            }
+        }
+
+        private static void UpdateThreadAlive()
+        {
+            foreach (var thread in FlowMap)
+            {
+                if (thread.IsAlive == thread.Handle.IsAlive)
+                    continue;
+
+                thread.IsAlive = thread.Handle.IsAlive;
+
+                // check if state is diff from sync
+                if (Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.ThreadChanges.Add(thread.ThreadID, thread.IsAlive);
             }
         }
 
@@ -550,8 +570,19 @@ namespace XLibrary
             ThreadFlow flow;
             if (!FlowMap.TryGetValue(thread, out flow))
             {
-                flow = new ThreadFlow() { ThreadID = thread, Name = node.Name };
+                flow = new ThreadFlow()
+                {
+                    ThreadID = thread,
+                    Name = node.Name,
+                    Handle = Thread.CurrentThread,
+                    IsAlive = true
+                };
+
                 FlowMap.Add(thread, flow);
+
+                if (Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.NewThreads[flow.ThreadID] = new Tuple<string,bool>(flow.Name, flow.IsAlive);
             }
 
             bool isMethod = (node.ObjType == XObjType.Method);
@@ -621,7 +652,7 @@ namespace XLibrary
 
             CreateLayerCall(source, dest);
 
-            if (!RemoteClient && Remote != null)
+            if (Remote != null)
                 foreach (var client in Remote.SyncClients)
                     client.NewCalls.Add(new Tuple<int, int>(sourceID, dest.ID));
 
@@ -938,7 +969,7 @@ namespace XLibrary
                 classNode.InitsBy.Add(sourceClass.ID);
                 sourceClass.InitsOf.Add(classNode.ID);
 
-                if (!RemoteClient && Remote != null)
+                if (Remote != null)
                     foreach (var client in Remote.SyncClients)
                         client.Inits.Add(new Tuple<int, int>(sourceClass.ID, classNode.ID));
             }
@@ -1034,7 +1065,7 @@ namespace XLibrary
                     int dest = newCall.Item2;
                     int hash = source * FunctionCount + dest;
 
-                    if (!CallMap.Map.ContainsKey(hash))
+                    if (!CallMap.Contains(hash))
                         CreateNewCall(hash, source, Nodes[dest]);
                 }
 
@@ -1059,6 +1090,26 @@ namespace XLibrary
 
                     CheckCreateInit(source, initClass);
                 }
+
+            if(packet.NewThreads != null)
+                foreach (var thread in packet.NewThreads)
+                {
+                    int id = thread.Key;
+                    string name = thread.Value.Item1;
+                    bool alive = thread.Value.Item2;
+
+                    if (!FlowMap.Contains(id))
+                        FlowMap.Add(id, new ThreadFlow() { ThreadID = id, Name = name, IsAlive = alive });
+                }
+
+            if(packet.ThreadChanges != null)
+                foreach (var thread in packet.ThreadChanges)
+                {
+                    ThreadFlow flow;
+                    if (FlowMap.TryGetValue(thread.Key, out flow))
+                        flow.IsAlive = thread.Value;
+                }
+                    
         }
     }
 
@@ -1158,6 +1209,7 @@ namespace XLibrary
         public int ThreadID;
         public string Name;
         public Thread Handle;
+        public bool IsAlive;
 
         public int Pos = -1; // current position on the stack
         public StackItem[] Stack = new StackItem[XRay.MaxStack];
@@ -1170,7 +1222,7 @@ namespace XLibrary
         {
             Pos++;
 
-            Handle = Thread.CurrentThread;  
+            Handle = Thread.CurrentThread; // not sure if id can stay the same while handle object changes if thread id resurrected  
 
             if (Pos >= XRay.MaxStack)
                 return;

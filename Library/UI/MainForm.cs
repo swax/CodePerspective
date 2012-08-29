@@ -368,13 +368,13 @@ namespace XLibrary
             {
                 var menuItem = new ToolStripMenuItem(string.Format("Thread {0}: {1}", flow.ThreadID, flow.Name));
 
-                menuItem.ForeColor = flow.Handle.IsAlive ? Color.Black : Color.Gray;
+                menuItem.ForeColor = flow.IsAlive ? Color.Black : Color.Gray;
                 menuItem.Tag = flow;
                 menuItem.CheckOnClick = true;
                 menuItem.Checked = (Model.ShowThreads != null && Model.ShowThreads.Contains(flow.ThreadID));
                 menuItem.CheckedChanged += new EventHandler(ThreadMenuItem_CheckedChanged);
 
-                if (flow.Handle.IsAlive)
+                if (flow.IsAlive)
                     ThreadButton.DropDownItems.Add(menuItem);
                 else
                     terminatedItems.Add(menuItem);

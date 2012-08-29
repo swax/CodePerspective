@@ -472,6 +472,9 @@ namespace XLibrary.Remote
 
             foreach (var init in XRay.InitMap)
                 state.Inits.Add(new Tuple<int, int>(init.Source, init.Destination));
+
+            foreach (var thread in XRay.FlowMap)
+                state.NewThreads.Add(thread.ThreadID, new Tuple<string, bool>(thread.Name, thread.IsAlive));
         }
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
@@ -507,6 +510,9 @@ namespace XLibrary.Remote
 
         public PairList Inits = new PairList();
 
+        public Dictionary<int, Tuple<string, bool>> NewThreads = new Dictionary<int, Tuple<string, bool>>();
+        public Dictionary<int, bool> ThreadChanges = new Dictionary<int, bool>();
+
 
         public void DoSync()
         {
@@ -530,6 +536,18 @@ namespace XLibrary.Remote
                 AddSet(ref CallHits, ref packet.CallHits);
 
                 AddPairs(ref Inits, ref packet.Inits);
+
+                if (NewThreads.Count > 0)
+                {
+                    packet.NewThreads = NewThreads;
+                    NewThreads = new Dictionary<int, Tuple<string, bool>>();
+                }
+
+                if (ThreadChanges.Count > 0)
+                {
+                    packet.ThreadChanges = ThreadChanges;
+                    ThreadChanges = new Dictionary<int, bool>();
+                }
 
                 // check that there's space in the send buffer to send state
                 Connection.SendPacket(packet);

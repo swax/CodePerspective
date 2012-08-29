@@ -15,7 +15,8 @@ namespace XLibrary
         public int Length;
         public T[] Values;
 
-        public Dictionary<int, int> Map = new Dictionary<int, int>();
+        Dictionary<int, int> Map = new Dictionary<int, int>();
+
 
         public SharedDictionary(int keyMax)
         {

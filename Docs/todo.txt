@@ -1,10 +1,15 @@
 ﻿
+does filtering by thread work in layer graph?
+	does thread id need to be added to all parents of method?
+
+redo options panel
+
 Remote	
 	Remove dead sync clients
 	Test function for generic packet
 	test multiple connected clients
 
-	send thread create/status change info
+	send update to client when thread added to object
 	send entry/holding point info
 	send thread lines info
 

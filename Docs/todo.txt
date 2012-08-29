@@ -1,4 +1,24 @@
 ﻿
+Remote	
+	Remove dead sync clients
+	Test function for generic packet
+	test multiple connected clients
+
+	send thread create/status change info
+	send entry/holding point info
+	send thread lines info
+
+Put string value of arguments along the line of the call
+	For each function node have a last string arguments value
+	That gets drawn when the line gets updated
+	CallingFunction(x=4, y=3, msg='hello')
+	Watch state move through the app as well
+	Draw return values
+		Red for arguments, blue for return
+	need ID's per method call, hook up right to code
+		see how overhead changes
+
+
 see if when i can remove signatures i can xray system dlls
 commit and try to open/build/recompile with mono runtime
 
@@ -9,13 +29,6 @@ add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 
 Dead threads not cleared from flow map? should be, some sort of max or something?
 
-Remote	
-	Remove dead sync clients
-	Test function for generic packet
-
-	send init graph
-
-	Send function calls - hopefully entry exit will fall into place
 
 instance view
 	match field name with static analysis
@@ -40,15 +53,6 @@ quantify xray overhead
 	checkout overhead with xray tracking on/off
 	tracking methods, class create, etc.. ms/sec spent in xray
 
-Put string value of arguments along the line of the call
-	For each function node have a last string arguments value
-	That gets drawn when the line gets updated
-	CallingFunction(x=4, y=3, msg='hello')
-	Watch state move through the app as well
-	Draw return values
-		Red for arguments, blue for return
-	need ID's per method call, hook up right to code
-		see how overhead changes
 
 details ui
 	instance

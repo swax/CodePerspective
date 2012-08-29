@@ -297,6 +297,8 @@ namespace XLibrary.Remote
 			while( streamStatus == G2ReadResult.PACKET_GOOD )
 				streamStatus = ReadNextChild(packet, child);
 
+            bool found = false;
+
 			if(streamStatus == G2ReadResult.STREAM_END)
 			{
 				if( packet.NextBytesLeft > 0)
@@ -304,7 +306,7 @@ namespace XLibrary.Remote
 					packet.PayloadPos  = packet.NextBytePos;
 					packet.PayloadSize = packet.NextBytesLeft;
 
-					return true;
+                    found = true;
 				}
 			}
 			else if( packet.NextBytesLeft > 0)
@@ -313,7 +315,10 @@ namespace XLibrary.Remote
 				//m_pG2Comm->m_pCore->DebugLog("G2 Network", "Payload Read Error: " + HexDump(packet.Packet, packet.PacketSize));
 			}
 
-			return false;
+            packet.NextBytePos = packet.InternalPos;
+            packet.NextBytesLeft = packet.InternalSize;
+
+			return found;
 		}
 
 		public static void ResetPacket(G2Header packet)
@@ -332,6 +337,19 @@ namespace XLibrary.Remote
 
 			return ReadNextPacket(child, ref root.NextBytePos, ref root.NextBytesLeft);
 		}
+
+        public static IEnumerable<G2Header> EnumerateChildren(G2Header root)
+        {
+             G2Header child = new G2Header(root.Data);
+
+             while (G2Protocol.ReadNextChild(root, child) == G2ReadResult.PACKET_GOOD)
+             {
+                 // set payload pos vars
+                 G2Protocol.ReadPayload(child);
+
+                 yield return child;
+             }
+        }
 
         public static bool ReadPacket(G2Header root)
         {

@@ -58,33 +58,19 @@ namespace XLibrary.Remote
             if (G2Protocol.ReadPayload(root))
                 generic.Name = UTF8Encoding.UTF8.GetString(root.Data, root.PayloadPos, root.PayloadSize);
 
-            G2Protocol.ResetPacket(root);
-
-            G2Header child = new G2Header(root.Data);
-
-            while (G2Protocol.ReadNextChild(root, child) == G2ReadResult.PACKET_GOOD)
+            foreach(var child in G2Protocol.EnumerateChildren(root))
             {
-                if (child.Name != Packet_Item)
-                    continue;
-                
                 if(generic.Data == null)
                     generic.Data = new Dictionary<string, string>();
 
                 string key = null;
                 string value = null;
 
-                G2Header sub = new G2Header(child.Data);
-
-                while (G2Protocol.ReadNextChild(child, sub) == G2ReadResult.PACKET_GOOD)
-                {
-                    if (!G2Protocol.ReadPayload(sub))
-                        continue;
-
+                foreach(var sub in G2Protocol.EnumerateChildren(child))
                     if (sub.Name == Packet_Key)
                         key = UTF8Encoding.UTF8.GetString(sub.Data, sub.PayloadPos, sub.PayloadSize);
                     else if(sub.Name == Packet_Value)
                         value = UTF8Encoding.UTF8.GetString(sub.Data, sub.PayloadPos, sub.PayloadSize);
-                }
 
                 generic.Data[key] = value;           
             }
@@ -128,13 +114,8 @@ namespace XLibrary.Remote
         {
             var dat = new DatPacket();
 
-            G2Header child = new G2Header(root.Data);
-
-            while (G2Protocol.ReadNextChild(root, child) == G2ReadResult.PACKET_GOOD)
+            foreach(var child in G2Protocol.EnumerateChildren(root))
             {
-                if (!G2Protocol.ReadPayload(child))
-                    continue;
-
                 switch (child.Name)
                 {
                     case Packet_Pos:
@@ -208,13 +189,8 @@ namespace XLibrary.Remote
         {
             var sync = new SyncPacket();
 
-            G2Header child = new G2Header(root.Data);
-
-            while (G2Protocol.ReadNextChild(root, child) == G2ReadResult.PACKET_GOOD)
+            foreach(var child in G2Protocol.EnumerateChildren(root))
             {
-                if (!G2Protocol.ReadPayload(child))
-                    continue;
-
                 switch (child.Name)
                 {
                     case Packet_FunctionHit:

@@ -157,11 +157,17 @@ namespace XLibrary.Remote
         const byte Packet_ExceptionHit = 0x20;
         const byte Packet_ConstructedHit = 0x30;
         const byte Packet_DisposedHit = 0x40;
+        const byte Packet_NewCalls = 0x50;
+        const byte Packet_CallHits = 0x60;
 
-        public HashSet<int> FunctionHit;
-        public HashSet<int> ExceptionHit;
-        public HashSet<int> ConstructedHit;
-        public HashSet<int> DisposeHit;
+
+        public HashSet<int> FunctionHits;
+        public HashSet<int> ExceptionHits;
+        public HashSet<int> ConstructedHits;
+        public HashSet<int> DisposeHits;
+
+        public List<Tuple<int, int>> NewCalls;
+        public HashSet<int> CallHits;
 
 
         public override byte[] Encode(G2Protocol protocol)
@@ -170,10 +176,27 @@ namespace XLibrary.Remote
             {
                 var sync = protocol.WritePacket(null, PacketType.Sync, null);
 
-                AddSetIfNotEmpty(protocol, sync, Packet_FunctionHit, FunctionHit);
-                AddSetIfNotEmpty(protocol, sync, Packet_ExceptionHit, ExceptionHit);
-                AddSetIfNotEmpty(protocol, sync, Packet_ConstructedHit, ConstructedHit);
-                AddSetIfNotEmpty(protocol, sync, Packet_DisposedHit, DisposeHit);
+                AddSetIfNotEmpty(protocol, sync, Packet_FunctionHit, FunctionHits);
+                AddSetIfNotEmpty(protocol, sync, Packet_ExceptionHit, ExceptionHits);
+                AddSetIfNotEmpty(protocol, sync, Packet_ConstructedHit, ConstructedHits);
+                AddSetIfNotEmpty(protocol, sync, Packet_DisposedHit, DisposeHits);
+
+                AddSetIfNotEmpty(protocol, sync, Packet_CallHits, CallHits);
+
+                if (NewCalls != null)
+                {
+                    byte[] payload = new byte[8 * NewCalls.Count];
+
+                    for (int i = 0; i < NewCalls.Count; i++)
+                    {
+                        var call = NewCalls[i];
+
+                        BitConverter.GetBytes(call.Item1).CopyTo(payload, 8 * i);
+                        BitConverter.GetBytes(call.Item2).CopyTo(payload, 8 * i + 4);
+                    }
+
+                    protocol.WritePacket(sync, Packet_NewCalls, payload);
+                }
 
                 return protocol.WriteFinish();
             }
@@ -199,19 +222,34 @@ namespace XLibrary.Remote
                 switch (child.Name)
                 {
                     case Packet_FunctionHit:
-                        sync.FunctionHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.FunctionHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ExceptionHit:
-                        sync.ExceptionHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ExceptionHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ConstructedHit:
-                        sync.ConstructedHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ConstructedHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_DisposedHit:
-                        sync.DisposeHit = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.DisposeHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_NewCalls:
+                        sync.NewCalls = new List<Tuple<int, int>>(); 
+                        for (int i = child.PayloadPos; i < child.PayloadPos + child.PayloadSize; i += 8)
+                        {
+                            int source = BitConverter.ToInt32(child.Data, i);
+                            int dest = BitConverter.ToInt32(child.Data, i + 4);
+
+                            sync.NewCalls.Add(new Tuple<int,int>(source, dest));
+                        }
+                        break;
+
+                    case Packet_CallHits:
+                        sync.CallHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
                 }
             }

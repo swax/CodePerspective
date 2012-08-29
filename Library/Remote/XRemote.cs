@@ -465,6 +465,10 @@ namespace XLibrary.Remote
 
             Log("Sync client added");
             SyncClients.Add(state);
+
+            // do after state added so new calls get queued to be sent as well
+            foreach(var call in XRay.CallMap)
+                state.NewCalls.Add(new Tuple<int, int>(call.Source, call.Destination));
         }
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
@@ -490,10 +494,14 @@ namespace XLibrary.Remote
     {
         public XConnection Connection;
 
-        public HashSet<int> FunctionHit = new HashSet<int>();
-        public HashSet<int> ExceptionHit = new HashSet<int>();
-        public HashSet<int> ConstructedHit = new HashSet<int>();
-        public HashSet<int> DisposeHit = new HashSet<int>();
+        public HashSet<int> FunctionHits = new HashSet<int>();
+        public HashSet<int> ExceptionHits = new HashSet<int>();
+        public HashSet<int> ConstructedHits = new HashSet<int>();
+        public HashSet<int> DisposeHits = new HashSet<int>();
+
+        public List<Tuple<int, int>> NewCalls = new List<Tuple<int, int>>();
+        public HashSet<int> CallHits = new HashSet<int>();
+        
 
         public void DoSync()
         {
@@ -508,10 +516,18 @@ namespace XLibrary.Remote
                 // save current set and create a new one so other threads dont get tripped up
                 var packet = new SyncPacket();
 
-                AddSet(ref FunctionHit, ref packet.FunctionHit);
-                AddSet(ref ExceptionHit, ref packet.ExceptionHit);
-                AddSet(ref ConstructedHit, ref packet.ConstructedHit);
-                AddSet(ref DisposeHit, ref packet.DisposeHit);
+                AddSet(ref FunctionHits, ref packet.FunctionHits);
+                AddSet(ref ExceptionHits, ref packet.ExceptionHits);
+                AddSet(ref ConstructedHits, ref packet.ConstructedHits);
+                AddSet(ref DisposeHits, ref packet.DisposeHits);
+
+                if (NewCalls.Count > 0)
+                {
+                    packet.NewCalls = NewCalls;
+                    NewCalls = new List<Tuple<int, int>>();
+                }
+
+                AddSet(ref CallHits, ref packet.CallHits);
 
                 // check that there's space in the send buffer to send state
                 Connection.SendPacket(packet);

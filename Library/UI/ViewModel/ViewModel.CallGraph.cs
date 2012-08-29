@@ -28,8 +28,9 @@ namespace XLibrary
                 CenterMap.Clear();
 
                 var root = CurrentRoot;
-                if (root == InternalRoot && ShowExternal)
-                    root = TopRoot;
+                //causes method graph with ShowExternal on to show nothing
+                //if (root == InternalRoot && ShowExternal)
+                //    root = TopRoot; 
 
                 TopGraph = new GraphSet(this, root);
 

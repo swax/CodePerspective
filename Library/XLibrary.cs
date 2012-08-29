@@ -82,6 +82,7 @@ namespace XLibrary
         public static int DashOffset;
 
         // Remote Connections
+        public static bool RemoteClient; // if false then this instance is a server (linked directly to xrayed code)
         public static XRemote Remote = new XRemote();
 
 
@@ -107,6 +108,7 @@ namespace XLibrary
             }
             InitComplete = true;
 
+            RemoteClient = remoteClient;
             StartTime = DateTime.Now;
 
             Watch.Start();
@@ -520,7 +522,7 @@ namespace XLibrary
 
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.FunctionHit.Add(nodeID);
+                    sync.FunctionHits.Add(nodeID);
 
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);
@@ -590,6 +592,10 @@ namespace XLibrary
             call.Hit = ShowTicks;
             call.TotalHits++;
 
+            if (Remote != null)
+                foreach (var sync in Remote.SyncClients)
+                    sync.CallHits.Add(hash);
+
             // if a method
             if (isMethod) 
                 call.StillInside++;
@@ -597,7 +603,7 @@ namespace XLibrary
             flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
-                TrackClassCall(node, source, thread);
+                TrackClassCall(call, thread);
         }
 
         public static FunctionCall CreateNewCall(int hash, int sourceID, XNodeIn dest)
@@ -615,8 +621,42 @@ namespace XLibrary
 
             CreateLayerCall(source, dest);
 
+            if (!RemoteClient && Remote != null)
+                foreach (var client in Remote.SyncClients)
+                    client.NewCalls.Add(new Tuple<int, int>(sourceID, dest.ID));
 
             CallChange = true;
+
+            if (!ClassTracking)
+                return call;
+
+            var srcNode = Nodes[call.Source];
+            if (srcNode == null)
+                return call;
+
+            var sourceClass = GetContainingClass(srcNode) as XNodeIn;
+            var destClass = GetContainingClass(dest) as XNodeIn;
+
+            if (sourceClass == destClass)
+                return call;
+
+            if (destClass.ObjType != XObjType.Class || sourceClass.ObjType != XObjType.Class)
+            {
+                LogError("parent not class type, {0} and {1}", destClass.ObjType, sourceClass.ObjType);
+                return call;
+            }
+
+            hash = sourceClass.ID * FunctionCount + destClass.ID;
+
+            call.ClassCallHash = hash;
+
+            //LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
+
+            var classCall = new FunctionCall() { Source = sourceClass.ID, Destination = destClass.ID };
+            ClassCallMap.Add(hash, classCall);
+
+            destClass.AddFunctionCall(ref destClass.CalledIn, sourceClass.ID, classCall);
+            sourceClass.AddFunctionCall(ref sourceClass.CallsOut, destClass.ID, classCall);
 
             return call;
         }
@@ -665,42 +705,26 @@ namespace XLibrary
             return null;
         }
 
-        public static void TrackClassCall(XNodeIn node, int source, int thread)
+        public static void TrackClassCall(FunctionCall functionCall, int thread)
         {
-            var srcNode = Nodes[source];
-            if (srcNode == null)
-                return;
-
-            var sourceClass = GetContainingClass(srcNode) as XNodeIn;
-            var destClass = GetContainingClass(node) as XNodeIn;
-
-            if (sourceClass == destClass)
-                return;
-
-            if (destClass.ObjType != XObjType.Class || sourceClass.ObjType != XObjType.Class)
-            {
-                LogError("parent not class type, {0} and {1}", destClass.ObjType, sourceClass.ObjType);
-                return;
-            }
-
-            int hash = sourceClass.ID * FunctionCount + destClass.ID;
-
+            // save class hash in call to avoid lookup
             FunctionCall call;
-            if (!ClassCallMap.TryGetValue(hash, out call))
-            {
-                //LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
 
-                call = new FunctionCall() { Source = sourceClass.ID, Destination = destClass.ID };
-                ClassCallMap.Add(hash, call);
+            if(!ClassCallMap.TryGetValue(functionCall.ClassCallHash, out call))
+                return;
 
-                destClass.AddFunctionCall(ref destClass.CalledIn, sourceClass.ID, call);
-               
-                sourceClass.AddFunctionCall(ref sourceClass.CallsOut, destClass.ID, call);
-            }
+
+            call.Hit = ShowTicks;
+
+            if (RemoteClient)
+                return;
 
             call.ThreadIDs.Add(thread);
-            call.Hit = ShowTicks;
             call.TotalHits++;
+
+            if (Remote != null)
+                foreach (var sync in Remote.SyncClients)
+                    sync.CallHits.Add(functionCall.ClassCallHash);
         }
 
         public static void MethodExit(int nodeID)
@@ -796,7 +820,7 @@ namespace XLibrary
                             Nodes[exited.NodeID].ExceptionHit = ShowTicks;
                             if (Remote != null)
                                 foreach (var sync in Remote.SyncClients)
-                                    sync.ExceptionHit.Add(exited.NodeID);
+                                    sync.ExceptionHits.Add(exited.NodeID);
 
                             if (exited.Call != null)
                                 exited.Call.StillInside--;
@@ -823,7 +847,7 @@ namespace XLibrary
             node.ConstructedHit = ShowTicks;
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.ConstructedHit.Add(node.ID);
+                    sync.ConstructedHits.Add(node.ID);
 
             // of obj is system.runtimeType thats the flag that this is a static class's constructor running
 
@@ -929,7 +953,7 @@ namespace XLibrary
             node.DisposeHit = ShowTicks;
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.DisposeHit.Add(index);
+                    sync.DisposeHits.Add(index);
 
             if (node.Record.Remove(obj))
                 InstanceChange = true;
@@ -972,8 +996,8 @@ namespace XLibrary
 
         internal static void RemoteSync(SyncPacket packet)
         {
-            if (packet.FunctionHit != null)
-                foreach (var id in packet.FunctionHit)
+            if (packet.FunctionHits != null)
+                foreach (var id in packet.FunctionHits)
                 {
                     var node = Nodes[id];
 
@@ -984,17 +1008,42 @@ namespace XLibrary
                         SetCovered(node);
                 }
 
-            if (packet.ExceptionHit != null)
-                foreach (var id in packet.ExceptionHit)
+            if (packet.ExceptionHits != null)
+                foreach (var id in packet.ExceptionHits)
                     Nodes[id].ExceptionHit = ShowTicks;
 
-            if (packet.ConstructedHit != null)
-                foreach (var id in packet.ConstructedHit)
+            if (packet.ConstructedHits != null)
+                foreach (var id in packet.ConstructedHits)
                     Nodes[id].ConstructedHit = ShowTicks;
 
-            if (packet.DisposeHit != null)
-                foreach (var id in packet.DisposeHit)
+            if (packet.DisposeHits != null)
+                foreach (var id in packet.DisposeHits)
                     Nodes[id].DisposeHit = ShowTicks;
+
+            if (packet.NewCalls != null)
+                foreach (var newCall in packet.NewCalls)
+                {
+                    int source = newCall.Item1;
+                    int dest = newCall.Item2;
+                    int hash = source * FunctionCount + dest;
+
+                    if (!CallMap.Map.ContainsKey(hash))
+                        CreateNewCall(hash, source, Nodes[dest]);
+
+                }
+
+            if (packet.CallHits != null)
+                foreach (var hash in packet.CallHits)
+                {
+                    FunctionCall call;
+                    if (!CallMap.TryGetValue(hash, out call))
+                        continue;
+
+                    call.Hit = ShowTicks;
+
+                    if (ClassTracking)
+                        TrackClassCall(call, 0);
+                }
         }
     }
 
@@ -1168,6 +1217,8 @@ namespace XLibrary
         public int TotalHits;
         public long TotalCallTime;
         public long TotalTimeOutsideDest;
+
+        public int ClassCallHash;
 
         public HashSet<int> ThreadIDs = new HashSet<int>();
 

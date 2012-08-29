@@ -12,10 +12,10 @@ Dead threads not cleared from flow map? should be, some sort of max or something
 Remote	
 	Remove dead sync clients
 	Test function for generic packet
-	Give message and error logs max sizes like 1000, change to queue type
 
-	Set cover map
-	Send function calls
+	send init graph
+
+	Send function calls - hopefully entry exit will fall into place
 
 instance view
 	match field name with static analysis

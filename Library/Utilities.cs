@@ -366,4 +366,38 @@ namespace XLibrary
         }
     }
 
+
+    public class PairList : List<Tuple<int, int>>
+    {
+
+        internal byte[] ToBytes()
+        {
+            byte[] payload = new byte[8 * Count];
+
+            for (int i = 0; i < Count; i++)
+            {
+                var call = this[i];
+
+                BitConverter.GetBytes(call.Item1).CopyTo(payload, 8 * i);
+                BitConverter.GetBytes(call.Item2).CopyTo(payload, 8 * i + 4);
+            }
+
+            return payload;
+        }
+
+        internal static PairList FromBytes(byte[] data, int pos, int size)
+        {
+            var result = new PairList();
+
+            for (int i = pos; i < pos + size; i += 8)
+            {
+                int source = BitConverter.ToInt32(data, i);
+                int dest = BitConverter.ToInt32(data, i + 4);
+
+                result.Add(new Tuple<int, int>(source, dest));
+            }
+
+            return result;
+        }
+    }
 }

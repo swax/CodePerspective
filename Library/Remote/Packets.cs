@@ -159,15 +159,17 @@ namespace XLibrary.Remote
         const byte Packet_DisposedHit = 0x40;
         const byte Packet_NewCalls = 0x50;
         const byte Packet_CallHits = 0x60;
-
+        const byte Packet_Inits = 0x70;
 
         public HashSet<int> FunctionHits;
         public HashSet<int> ExceptionHits;
         public HashSet<int> ConstructedHits;
         public HashSet<int> DisposeHits;
 
-        public List<Tuple<int, int>> NewCalls;
+        public PairList NewCalls;
         public HashSet<int> CallHits;
+
+        public PairList Inits;
 
 
         public override byte[] Encode(G2Protocol protocol)
@@ -176,36 +178,30 @@ namespace XLibrary.Remote
             {
                 var sync = protocol.WritePacket(null, PacketType.Sync, null);
 
-                AddSetIfNotEmpty(protocol, sync, Packet_FunctionHit, FunctionHits);
-                AddSetIfNotEmpty(protocol, sync, Packet_ExceptionHit, ExceptionHits);
-                AddSetIfNotEmpty(protocol, sync, Packet_ConstructedHit, ConstructedHits);
-                AddSetIfNotEmpty(protocol, sync, Packet_DisposedHit, DisposeHits);
+                AddSet(protocol, sync, Packet_FunctionHit, FunctionHits);
+                AddSet(protocol, sync, Packet_ExceptionHit, ExceptionHits);
+                AddSet(protocol, sync, Packet_ConstructedHit, ConstructedHits);
+                AddSet(protocol, sync, Packet_DisposedHit, DisposeHits);
 
-                AddSetIfNotEmpty(protocol, sync, Packet_CallHits, CallHits);
+                AddPairs(protocol, sync, Packet_NewCalls, NewCalls);
+                AddSet(protocol, sync, Packet_CallHits, CallHits);
 
-                if (NewCalls != null)
-                {
-                    byte[] payload = new byte[8 * NewCalls.Count];
-
-                    for (int i = 0; i < NewCalls.Count; i++)
-                    {
-                        var call = NewCalls[i];
-
-                        BitConverter.GetBytes(call.Item1).CopyTo(payload, 8 * i);
-                        BitConverter.GetBytes(call.Item2).CopyTo(payload, 8 * i + 4);
-                    }
-
-                    protocol.WritePacket(sync, Packet_NewCalls, payload);
-                }
+                AddPairs(protocol, sync, Packet_Inits, Inits);
 
                 return protocol.WriteFinish();
             }
         }
 
-        private void AddSetIfNotEmpty(G2Protocol protocol, G2Frame sync, byte name, HashSet<int> set)
+        private void AddSet(G2Protocol protocol, G2Frame sync, byte name, HashSet<int> set)
         {
             if (set != null && set.Count > 0)
                 protocol.WritePacket(sync, name, set.ToBytes());
+        }
+
+        private void AddPairs(G2Protocol protocol, G2Frame sync, byte name, PairList pairs)
+        {
+            if (pairs != null && pairs.Count > 0)
+                protocol.WritePacket(sync, name, pairs.ToBytes());
         }
 
         public static SyncPacket Decode(G2Header root)
@@ -238,18 +234,15 @@ namespace XLibrary.Remote
                         break;
 
                     case Packet_NewCalls:
-                        sync.NewCalls = new List<Tuple<int, int>>(); 
-                        for (int i = child.PayloadPos; i < child.PayloadPos + child.PayloadSize; i += 8)
-                        {
-                            int source = BitConverter.ToInt32(child.Data, i);
-                            int dest = BitConverter.ToInt32(child.Data, i + 4);
-
-                            sync.NewCalls.Add(new Tuple<int,int>(source, dest));
-                        }
+                        sync.NewCalls = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_CallHits:
                         sync.CallHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_Inits:
+                        sync.Inits = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
                 }
             }

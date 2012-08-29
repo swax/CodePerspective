@@ -713,7 +713,6 @@ namespace XLibrary
             if(!ClassCallMap.TryGetValue(functionCall.ClassCallHash, out call))
                 return;
 
-
             call.Hit = ShowTicks;
 
             if (RemoteClient)
@@ -915,25 +914,33 @@ namespace XLibrary
                 return;
             }
 
-            // link 
-            int hash = sourceClass.ID * FunctionCount + node.ID;
+            CheckCreateInit(sourceClass, node);
+        }
+
+        private static void CheckCreateInit(XNodeIn sourceClass, XNodeIn classNode)
+        {
+            int hash = sourceClass.ID * FunctionCount + classNode.ID;
 
             FunctionCall call;
             if (!InitMap.TryGetValue(hash, out call))
             {
                 //LogError("Adding to init map {0} -> {1} with hash {2}", sourceClass.ID, node.ID, hash);
 
-                call = new FunctionCall() { Source = sourceClass.ID, Destination = node.ID };
+                call = new FunctionCall() { Source = sourceClass.ID, Destination = classNode.ID };
                 InitMap.Add(hash, call);
 
-                if (node.InitsBy == null)
-                    node.InitsBy = new HashSet<int>();
+                if (classNode.InitsBy == null)
+                    classNode.InitsBy = new HashSet<int>();
 
                 if (sourceClass.InitsOf == null)
                     sourceClass.InitsOf = new HashSet<int>();
 
-                node.InitsBy.Add(sourceClass.ID);
-                sourceClass.InitsOf.Add(node.ID);
+                classNode.InitsBy.Add(sourceClass.ID);
+                sourceClass.InitsOf.Add(classNode.ID);
+
+                if (!RemoteClient && Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.Inits.Add(new Tuple<int, int>(sourceClass.ID, classNode.ID));
             }
         }
 
@@ -1029,7 +1036,6 @@ namespace XLibrary
 
                     if (!CallMap.Map.ContainsKey(hash))
                         CreateNewCall(hash, source, Nodes[dest]);
-
                 }
 
             if (packet.CallHits != null)
@@ -1043,6 +1049,15 @@ namespace XLibrary
 
                     if (ClassTracking)
                         TrackClassCall(call, 0);
+                }
+
+            if (packet.Inits != null)
+                foreach (var init in packet.Inits)
+                {
+                    var source = Nodes[init.Item1];
+                    var initClass = Nodes[init.Item2];
+
+                    CheckCreateInit(source, initClass);
                 }
         }
     }

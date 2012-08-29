@@ -469,6 +469,9 @@ namespace XLibrary.Remote
             // do after state added so new calls get queued to be sent as well
             foreach(var call in XRay.CallMap)
                 state.NewCalls.Add(new Tuple<int, int>(call.Source, call.Destination));
+
+            foreach (var init in XRay.InitMap)
+                state.Inits.Add(new Tuple<int, int>(init.Source, init.Destination));
         }
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
@@ -499,9 +502,11 @@ namespace XLibrary.Remote
         public HashSet<int> ConstructedHits = new HashSet<int>();
         public HashSet<int> DisposeHits = new HashSet<int>();
 
-        public List<Tuple<int, int>> NewCalls = new List<Tuple<int, int>>();
+        public PairList NewCalls = new PairList();  
         public HashSet<int> CallHits = new HashSet<int>();
-        
+
+        public PairList Inits = new PairList();
+
 
         public void DoSync()
         {
@@ -520,14 +525,11 @@ namespace XLibrary.Remote
                 AddSet(ref ExceptionHits, ref packet.ExceptionHits);
                 AddSet(ref ConstructedHits, ref packet.ConstructedHits);
                 AddSet(ref DisposeHits, ref packet.DisposeHits);
-
-                if (NewCalls.Count > 0)
-                {
-                    packet.NewCalls = NewCalls;
-                    NewCalls = new List<Tuple<int, int>>();
-                }
-
+     
+                AddPairs(ref NewCalls, ref packet.NewCalls);
                 AddSet(ref CallHits, ref packet.CallHits);
+
+                AddPairs(ref Inits, ref packet.Inits);
 
                 // check that there's space in the send buffer to send state
                 Connection.SendPacket(packet);
@@ -540,6 +542,15 @@ namespace XLibrary.Remote
             {
                 packetSet = localSet;
                 localSet = new HashSet<int>();
+            }
+        }
+
+        void AddPairs(ref PairList localPairs, ref PairList packetPairs)
+        {
+            if (localPairs.Count > 0)
+            {
+                packetPairs = localPairs;
+                localPairs = new PairList();
             }
         }
     }

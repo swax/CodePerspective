@@ -146,11 +146,12 @@ namespace XLibrary.Remote
         const byte Packet_NodeThreads = 0xA0;
         const byte Packet_CallThreads = 0xB0;
         const byte Packet_ClassCallThreads = 0xC0;
+        const byte Packet_Threadlines = 0xD0;
 
-        const byte Packet_ThreadID = 0x10;
-        const byte Packet_ThreadName = 0x20;
-        const byte Packet_ThreadAlive = 0x30;
-
+        const byte ChildPacket_ThreadID = 0x10;
+        const byte ChildPacket_ThreadName = 0x20;
+        const byte ChildPacket_ThreadAlive = 0x30;
+        const byte ChildPacket_Threadline = 0x40;
 
         public HashSet<int> FunctionHits;
         public HashSet<int> ExceptionHits;
@@ -166,6 +167,7 @@ namespace XLibrary.Remote
         public Dictionary<int, bool> ThreadChanges;
         public PairList NodeThreads;
         public PairList CallThreads;
+        public Dictionary<int, PairList> Threadlines;
         
 
         public override byte[] Encode(G2Protocol protocol)
@@ -188,21 +190,29 @@ namespace XLibrary.Remote
                     foreach (var item in NewThreads)
                     {
                         var keyValuePair = protocol.WritePacket(sync, Packet_NewThreads, null);
-                        protocol.WritePacket(keyValuePair, Packet_ThreadID, BitConverter.GetBytes(item.Key));
-                        protocol.WritePacket(keyValuePair, Packet_ThreadName, UTF8Encoding.UTF8.GetBytes(item.Value.Item1));
-                        protocol.WritePacket(keyValuePair, Packet_ThreadAlive, BitConverter.GetBytes(item.Value.Item2));
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadID, BitConverter.GetBytes(item.Key));
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadName, UTF8Encoding.UTF8.GetBytes(item.Value.Item1));
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadAlive, BitConverter.GetBytes(item.Value.Item2));
                     }
 
                 if (ThreadChanges != null)
                     foreach (var item in ThreadChanges)
                     {
                         var keyValuePair = protocol.WritePacket(sync, Packet_ThreadChanges, null);
-                        protocol.WritePacket(keyValuePair, Packet_ThreadID, BitConverter.GetBytes(item.Key));
-                        protocol.WritePacket(keyValuePair, Packet_ThreadAlive, BitConverter.GetBytes(item.Value));
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadID, BitConverter.GetBytes(item.Key));
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadAlive, BitConverter.GetBytes(item.Value));
                     }
 
                 AddPairs(protocol, sync, Packet_NodeThreads, NodeThreads);
                 AddPairs(protocol, sync, Packet_CallThreads, CallThreads);
+
+                if (Threadlines != null)
+                    foreach (var threadline in Threadlines)
+                    {
+                        var keyValuePair = protocol.WritePacket(sync, Packet_Threadlines, null);
+                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadID, BitConverter.GetBytes(threadline.Key));
+                        protocol.WritePacket(keyValuePair, ChildPacket_Threadline, threadline.Value.ToBytes());
+                    }
 
                 return protocol.WriteFinish();
             }
@@ -229,19 +239,19 @@ namespace XLibrary.Remote
                 switch (child.Name)
                 {
                     case Packet_FunctionHit:
-                        sync.FunctionHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.FunctionHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ExceptionHit:
-                        sync.ExceptionHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ExceptionHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ConstructedHit:
-                        sync.ConstructedHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ConstructedHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_DisposedHit:
-                        sync.DisposeHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.DisposeHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_NewCalls:
@@ -249,7 +259,7 @@ namespace XLibrary.Remote
                         break;
 
                     case Packet_CallHits:
-                        sync.CallHits = HashSetExt.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.CallHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_Inits:
@@ -265,11 +275,11 @@ namespace XLibrary.Remote
                         bool alive = false;
 
                         foreach (var sub in G2Protocol.EnumerateChildren(child))
-                            if (sub.Name == Packet_ThreadID)
+                            if (sub.Name == ChildPacket_ThreadID)
                                 id = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
-                            else if (sub.Name == Packet_ThreadName)
+                            else if (sub.Name == ChildPacket_ThreadName)
                                 name = UTF8Encoding.UTF8.GetString(sub.Data, sub.PayloadPos, sub.PayloadSize);
-                            else if (sub.Name == Packet_ThreadAlive)
+                            else if (sub.Name == ChildPacket_ThreadAlive)
                                 alive = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
 
                         sync.NewThreads[id] = new Tuple<string,bool>(name, alive);
@@ -283,9 +293,9 @@ namespace XLibrary.Remote
                         bool alive2 = false;
 
                         foreach (var sub in G2Protocol.EnumerateChildren(child))
-                            if (sub.Name == Packet_ThreadID)
+                            if (sub.Name == ChildPacket_ThreadID)
                                 id2 = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
-                            else if (sub.Name == Packet_ThreadAlive)
+                            else if (sub.Name == ChildPacket_ThreadAlive)
                                 alive2 = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
 
                         sync.ThreadChanges[id2] = alive2;
@@ -298,6 +308,22 @@ namespace XLibrary.Remote
                     case Packet_CallThreads:
                         sync.CallThreads = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
+
+                    case Packet_Threadlines:
+                        if (sync.Threadlines == null)
+                            sync.Threadlines = new Dictionary<int, PairList>();
+
+                        int id3 = 0;
+                        PairList list3 = new PairList();
+
+                        foreach (var sub in G2Protocol.EnumerateChildren(child))
+                            if (sub.Name == ChildPacket_ThreadID)
+                                id3 = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
+                            else if (sub.Name == ChildPacket_Threadline)
+                                list3 = PairList.FromBytes(sub.Data, sub.PayloadPos, sub.PayloadSize);
+
+                        sync.Threadlines[id3] = list3;
+                        break;
                 }
             }
 
@@ -305,9 +331,9 @@ namespace XLibrary.Remote
         }
     }
 
-    public static class HashSetExt
+    public static class PacketSetExt
     {
-        public static byte[] ToBytes(this HashSet<int> set)
+        public static byte[] ToBytes(this ICollection<int> set)
         {
             if (set.Count == 0)
                 return null;
@@ -324,9 +350,9 @@ namespace XLibrary.Remote
             return result;
         }
 
-        public static HashSet<int> FromBytes(byte[] data, int pos, int size)
+        public static HashSet<int> HashSetFromBytes(byte[] data, int pos, int size)
         {
-            HashSet<int> result = new HashSet<int>();
+            var result = new HashSet<int>();
 
             for (int i = pos; i < pos + size; i += 4)
                 result.Add(BitConverter.ToInt32(data, i));
@@ -334,14 +360,24 @@ namespace XLibrary.Remote
             return result;
         }
 
-                public static void Test()
+        public static List<int> ListFromBytes(byte[] data, int pos, int size)
+        {
+            var result = new List<int>();
+
+            for (int i = pos; i < pos + size; i += 4)
+                result.Add(BitConverter.ToInt32(data, i));
+
+            return result;
+        }
+
+        public static void Test()
         {
             HashSet<int> set = new HashSet<int>();
             set.Add(1); set.Add(22); set.Add(433); set.Add(766);
 
             var bytes = set.ToBytes();
 
-            var checkSet = FromBytes(bytes, 0, bytes.Length);
+            var checkSet = HashSetFromBytes(bytes, 0, bytes.Length);
         }
     }
 

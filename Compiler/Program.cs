@@ -20,7 +20,7 @@ namespace XBuilder
         static void Main()
         {
             XDef.Test();
-            HashSetExt.Test();
+            PacketSetExt.Test();
 
             Pro.LoadFromDirectory(Application.StartupPath);
 

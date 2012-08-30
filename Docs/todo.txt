@@ -6,11 +6,14 @@ Remote
 	Remove dead sync clients
 	Test function for generic packet
 	test multiple connected clients
+	test when app is stable, that no extra data is being sent
 
-	send update to client when thread added to object
 	send entry/holding point info
-	send thread lines info
 	redo options panel - add network settings, ability to disable UI entirely
+
+	test with low threadline max, normal client side stack looses track of pos 0
+	threadline - way to keep items with lower pos in stack - also buys way to decrease threadline sizes
+		maybe a static array the size of the max stack with items on it that if no other in that position those are used
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value

@@ -66,7 +66,7 @@ namespace XLibrary
                 timeline.Sequence.Clear();
                 timeline.DepthSet.Clear();
 
-                if (!timeline.Handle.IsAlive)
+                if (!timeline.IsAlive)
                     RemoveLines.Add(timeline.ThreadID);
             }
 
@@ -85,21 +85,10 @@ namespace XLibrary
 
                 UnfinishedItems.Clear();
 
-                // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
-                int startPos = flow.ThreadlinePos; // start with the newest position
-                if (startPos == -1)// havent started, or disabled
-                    return;
-
-                int i = startPos;
                 long startTick = 0;
 
-                while (true)
+                foreach(var item in flow.EnumerateThreadline())
                 {
-                    // iterate to next node
-                    var item = flow.Threadline[i];
-                    if (item == null)
-                        break;
-
                     if (startTick == 0)
                         startTick = item.StartTick;
 
@@ -116,6 +105,8 @@ namespace XLibrary
                         timeline = new Threadline(flow, ThreadOrder++);
                         Threadlines[flow.ThreadID] = timeline;
                     }
+
+                    timeline.IsAlive = flow.IsAlive; // update
 
                     var node = NodeModels[item.NodeID];
 
@@ -134,14 +125,6 @@ namespace XLibrary
 
                         timeline.DepthSet.Add(item.Depth);
                     }
-
-                    // iterate to previous item in time
-                    i--;
-                    if (i < 0)
-                        i = flow.Threadline.Length - 1;
-
-                    if (i == startPos)
-                        break;
                 }
 
                 // add unfinshed items, we do this separetly because they are out of time order in xray
@@ -187,7 +170,7 @@ namespace XLibrary
                 string label = "#" + timeline.ThreadID.ToString() + ": " + timeline.Name; 
                 float x = ScreenOffset.X + xOffset + 2;
                 float y = ScreenOffset.Y + yPos + nodeHeight + 2;
-                Renderer.DrawString(label, TextFont, timeline.Handle.IsAlive ? Color.Black : Color.Gray, x, y, colWidth, 18);
+                Renderer.DrawString(label, TextFont, timeline.IsAlive ? Color.Black : Color.Gray, x, y, colWidth, 18);
 
                 foreach (var item in timeline.Sequence)
                 {
@@ -247,7 +230,7 @@ namespace XLibrary
     {
         public int ThreadID;
         public string Name;
-        public Thread Handle;
+        public bool IsAlive;
 
         public int Order;
         public int Deepest; // dont reset, if we do columns start moving around whenever it changes
@@ -263,7 +246,7 @@ namespace XLibrary
             ThreadID = flow.ThreadID;
             Order = order;
             Name = flow.Name;
-            Handle = flow.Handle;
+            IsAlive = flow.IsAlive;
         }
     }
 

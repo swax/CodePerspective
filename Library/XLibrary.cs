@@ -602,7 +602,7 @@ namespace XLibrary
             // if the first entry, return here
             if (flow.Pos == -1)
             {
-                flow.AddStackItem(nodeID, null, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
+                flow.CreateStackItem(nodeID, null, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
                 node.EntryPoint++;
                 return;
             }
@@ -648,7 +648,7 @@ namespace XLibrary
             if (isMethod) 
                 call.StillInside++;
 
-            flow.AddStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
+            flow.CreateStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
                 TrackClassCall(call, thread);
@@ -1171,6 +1171,48 @@ namespace XLibrary
 
                     call.ThreadIDs.Add(callThread.Item2);
                 }      
+
+            if(packet.Threadlines != null)
+                foreach (var threadline in packet.Threadlines)
+                {
+                    ThreadFlow flow;
+                    if (!FlowMap.TryGetValue(threadline.Key, out flow))
+                        Debug.Assert(false, "Thread not found on sync");
+
+                    // list sent to us latest first, add oldest first
+                    threadline.Value.Reverse();
+
+                    foreach (var itemPos in threadline.Value)
+                    {
+                        int id = itemPos.Item1;
+                        int pos = itemPos.Item2;
+
+                        FunctionCall call = null;
+                        int nodeID = 0;
+
+                        if (pos == 0)
+                        {
+                            nodeID = id;
+                        }
+                        else
+                        {
+                            if (!CallMap.TryGetValue(id, out call))
+                                Debug.Assert(false, "Thread call not found on sync");
+
+                            nodeID = call.Destination;
+                        }
+
+                        var newItem = new StackItem()
+                        {
+                            NodeID = nodeID,
+                            Call = call,
+                            StartTick = XRay.Watch.ElapsedTicks,
+                            Depth = pos
+                        };
+
+                        flow.AddStackItem(newItem);
+                    }
+                }
         }
     }
 
@@ -1277,9 +1319,9 @@ namespace XLibrary
 
         public int ThreadlinePos = -1;
         public StackItem[] Threadline = new StackItem[XRay.MaxThreadlineSize]; // 200 lines, 16px high, like 3000px record
+        public int NewItems;
 
-
-        public void AddStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
+        public void CreateStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
         {
             Pos++;
 
@@ -1307,6 +1349,11 @@ namespace XLibrary
             if (!ThreadlineEnabled)
                 return;
 
+            AddStackItem(newItem);
+        }
+
+        public void AddStackItem(StackItem newItem)
+        {
             // dont over write items in timeline that haven't ended yet
             while (true)
             {
@@ -1319,8 +1366,43 @@ namespace XLibrary
                 if (overwrite == null || overwrite.EndTick != 0)
                 {
                     Threadline[ThreadlinePos] = newItem;
+                    NewItems++;
                     break;
                 }
+            }
+        }
+
+        public IEnumerable<StackItem> EnumerateThreadline(int max = int.MaxValue)
+        {
+            // iterate back from current pos timeline until back to start, or start time is newer than start pos start time
+
+            int startPos = ThreadlinePos; // start with the newest position
+            if (startPos == -1)// havent started, or disabled
+                yield break;
+
+            int i = startPos;
+            int count = 0;
+
+            while (true)
+            {
+                // iterate to next node
+                var item = Threadline[i];
+                if (item == null)
+                    break;
+
+                yield return item;
+
+                count++;
+                if (count >= max)
+                    break;
+
+                // iterate to previous item in time
+                i--;
+                if (i < 0)
+                    i = Threadline.Length - 1;
+
+                if (i == startPos)
+                    break;
             }
         }
     }

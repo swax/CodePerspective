@@ -460,31 +460,33 @@ namespace XLibrary.Remote
 
         void Receive_StartSync(XConnection connection, GenericPacket packet)
         {
-            var state = new SyncClient();
-            state.Connection = connection;
+            var client = new SyncClient();
+            client.Connection = connection;
 
             Log("Sync client added");
-            SyncClients.Add(state);
+            SyncClients.Add(client);
 
             // do after state added so new calls get queued to be sent as well
             foreach(var call in XRay.CallMap)
-                state.NewCalls.Add(new Tuple<int, int>(call.Source, call.Destination));
+                client.NewCalls.Add(new Tuple<int, int>(call.Source, call.Destination));
 
             foreach (var init in XRay.InitMap)
-                state.Inits.Add(new Tuple<int, int>(init.Source, init.Destination));
+                client.Inits.Add(new Tuple<int, int>(init.Source, init.Destination));
 
-            foreach (var thread in XRay.FlowMap)
-                state.NewThreads.Add(thread.ThreadID, new Tuple<string, bool>(thread.Name, thread.IsAlive));
+            foreach (var flow in XRay.FlowMap)
+                client.NewThreads.Add(flow.ThreadID, new Tuple<string, bool>(flow.Name, flow.IsAlive));
 
             foreach (var node in XRay.Nodes)
                 if (node.ThreadIDs != null)
                     foreach (var id in node.ThreadIDs)
-                        state.NodeThreads.Add(new Tuple<int, int>(node.ID, id));
+                        client.NodeThreads.Add(new Tuple<int, int>(node.ID, id));
 
             foreach (var call in XRay.CallMap)
                 if (call.ThreadIDs != null)
                     foreach (var id in call.ThreadIDs)
-                        state.CallThreads.Add(new Tuple<int, int>(call.ID, id));
+                        client.CallThreads.Add(new Tuple<int, int>(call.ID, id));
+
+            // past threadlines will be added automatically when sync packet is sent
         }
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
@@ -524,7 +526,8 @@ namespace XLibrary.Remote
         public Dictionary<int, bool> ThreadChanges = new Dictionary<int, bool>();
         public PairList NodeThreads = new PairList();
         public PairList CallThreads = new PairList();
-
+        public Dictionary<int, PairList> Threadlines = new Dictionary<int, PairList>();
+        const int MaxStackItemsPerThreadSent = 100;
 
         public void DoSync()
         {
@@ -563,7 +566,9 @@ namespace XLibrary.Remote
 
                 AddPairs(ref NodeThreads, ref packet.NodeThreads);
                 AddPairs(ref CallThreads, ref packet.CallThreads);
-                
+
+                AddThreadlines(packet);
+
                 // check that there's space in the send buffer to send state
                 Connection.SendPacket(packet);
             }
@@ -584,6 +589,36 @@ namespace XLibrary.Remote
             {
                 packetPairs = localPairs;
                 localPairs = new PairList();
+            }
+        }
+
+        internal void AddThreadlines(SyncPacket packet)
+        {
+            foreach (var flow in XRay.FlowMap)
+            {
+                if (flow.NewItems == 0)
+                    continue;
+
+                PairList threadline;
+                if (!Threadlines.TryGetValue(flow.ThreadID, out threadline))
+                {
+                    threadline = new PairList();
+                    Threadlines[flow.ThreadID] = threadline;
+                }
+
+                int sendCount = Math.Min(flow.NewItems, MaxStackItemsPerThreadSent);
+                foreach (var item in flow.EnumerateThreadline(sendCount))
+                    threadline.Add(new Tuple<int,int>((item.Call == null) ? item.NodeID : item.Call.ID, item.Depth));
+
+
+                // set new items to 0, iterate new items on threadline add
+                flow.NewItems = 0;
+            }
+
+            if (Threadlines.Count > 0)
+            {
+                packet.Threadlines = Threadlines;
+                Threadlines = new Dictionary<int, PairList>();
             }
         }
     }

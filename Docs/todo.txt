@@ -1,7 +1,4 @@
 ﻿
-does filtering by thread work in layer graph?
-	does thread id need to be added to all parents of method?
-
 Remote	
 	Remove dead sync clients
 	Test function for generic packet
@@ -11,9 +8,10 @@ Remote
 	send entry/holding point info
 	redo options panel - add network settings, ability to disable UI entirely
 
-	test with low threadline max, normal client side stack looses track of pos 0
-	threadline - way to keep items with lower pos in stack - also buys way to decrease threadline sizes
-		maybe a static array the size of the max stack with items on it that if no other in that position those are used
+	threadline -
+		when threadline is updated, send stack update to remote client
+		just need to include down min stackpos that client did not send
+		test full stack kept in remote xtestapp when button clicked
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value

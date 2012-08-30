@@ -51,7 +51,7 @@ namespace XLibrary
         public static bool FlowTracking = false; // must be compiled in, can be ignored later
         public static bool ClassTracking = false;
         public const int MaxStack = 512;
-        public const int MaxThreadlineSize = 1000;
+        public const int MaxThreadlineSize = 500;
 
         public static SharedDictionary<ThreadFlow> FlowMap = new SharedDictionary<ThreadFlow>(100);
         public static SharedDictionary<FunctionCall> CallMap = new SharedDictionary<FunctionCall>(1000);
@@ -536,7 +536,8 @@ namespace XLibrary
 
                 if (Remote != null)
                     foreach (var client in Remote.SyncClients)
-                        client.NodeThreads.Add(new Tuple<int, int>(node.ID, thread));
+                        lock(client.NodeThreads)
+                            client.NodeThreads.Add(new Tuple<int, int>(node.ID, thread));
             }
 
             //if (CallLogging)
@@ -550,7 +551,8 @@ namespace XLibrary
 
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.FunctionHits.Add(nodeID);
+                    lock(sync.FunctionHits)
+                        sync.FunctionHits.Add(nodeID);
 
             if (FlowTracking)
                 TrackFunctionCall(nodeID, node, thread);
@@ -590,7 +592,8 @@ namespace XLibrary
 
                 if (Remote != null)
                     foreach (var client in Remote.SyncClients)
-                        client.NewThreads[flow.ThreadID] = new Tuple<string,bool>(flow.Name, flow.IsAlive);
+                        lock(client.NewThreads)
+                            client.NewThreads[flow.ThreadID] = new Tuple<string,bool>(flow.Name, flow.IsAlive);
             }
 
             bool isMethod = (node.ObjType == XObjType.Method);
@@ -637,12 +640,14 @@ namespace XLibrary
 
                 if (Remote != null)
                     foreach (var client in Remote.SyncClients)
-                        client.CallThreads.Add(new Tuple<int, int>(call.ID, thread));
+                        lock(client.CallThreads)
+                            client.CallThreads.Add(new Tuple<int, int>(call.ID, thread));
             }
 
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.CallHits.Add(hash);
+                    lock(sync.CallHits)
+                        sync.CallHits.Add(hash);
 
             // if a method
             if (isMethod) 
@@ -671,7 +676,8 @@ namespace XLibrary
 
             if (Remote != null)
                 foreach (var client in Remote.SyncClients)
-                    client.NewCalls.Add(new Tuple<int, int>(sourceID, dest.ID));
+                    lock(client.NewCalls)
+                        client.NewCalls.Add(new Tuple<int, int>(sourceID, dest.ID));
 
             CallChange = true;
 
@@ -867,7 +873,8 @@ namespace XLibrary
                             Nodes[exited.NodeID].ExceptionHit = ShowTicks;
                             if (Remote != null)
                                 foreach (var sync in Remote.SyncClients)
-                                    sync.ExceptionHits.Add(exited.NodeID);
+                                    lock(sync.ExceptionHits)
+                                        sync.ExceptionHits.Add(exited.NodeID);
 
                             if (exited.Call != null)
                                 exited.Call.StillInside--;
@@ -894,7 +901,8 @@ namespace XLibrary
             node.ConstructedHit = ShowTicks;
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.ConstructedHits.Add(node.ID);
+                    lock(sync.ConstructedHits)
+                        sync.ConstructedHits.Add(node.ID);
 
             // of obj is system.runtimeType thats the flag that this is a static class's constructor running
 
@@ -988,7 +996,8 @@ namespace XLibrary
 
                 if (Remote != null)
                     foreach (var client in Remote.SyncClients)
-                        client.Inits.Add(new Tuple<int, int>(sourceClass.ID, classNode.ID));
+                        lock(client.Inits)
+                            client.Inits.Add(new Tuple<int, int>(sourceClass.ID, classNode.ID));
             }
         }
 
@@ -1008,7 +1017,8 @@ namespace XLibrary
             node.DisposeHit = ShowTicks;
             if (Remote != null)
                 foreach (var sync in Remote.SyncClients)
-                    sync.DisposeHits.Add(index);
+                    lock(sync.DisposeHits)
+                        sync.DisposeHits.Add(index);
 
             if (node.Record.Remove(obj))
                 InstanceChange = true;
@@ -1170,7 +1180,22 @@ namespace XLibrary
                         call.ThreadIDs = new HashSet<int>();
 
                     call.ThreadIDs.Add(callThread.Item2);
-                }      
+                }
+
+            if (packet.ThreadStacks != null)
+                foreach (var threadstack in packet.ThreadStacks)
+                {
+                    ThreadFlow flow;
+                    if (!FlowMap.TryGetValue(threadstack.Key, out flow))
+                        Debug.Assert(false, "Thread not found on sync");
+
+                    foreach (var itemPos in threadstack.Value)
+                    {
+                        var item = GetStackItem(itemPos);
+
+                        flow.Stack[item.Depth] = item;
+                    }
+                }
 
             if(packet.Threadlines != null)
                 foreach (var threadline in packet.Threadlines)
@@ -1184,35 +1209,41 @@ namespace XLibrary
 
                     foreach (var itemPos in threadline.Value)
                     {
-                        int id = itemPos.Item1;
-                        int pos = itemPos.Item2;
+                        var item = GetStackItem(itemPos);
 
-                        FunctionCall call = null;
-                        int nodeID = 0;
-
-                        if (pos == 0)
-                        {
-                            nodeID = id;
-                        }
-                        else
-                        {
-                            if (!CallMap.TryGetValue(id, out call))
-                                Debug.Assert(false, "Thread call not found on sync");
-
-                            nodeID = call.Destination;
-                        }
-
-                        var newItem = new StackItem()
-                        {
-                            NodeID = nodeID,
-                            Call = call,
-                            StartTick = XRay.Watch.ElapsedTicks,
-                            Depth = pos
-                        };
-
-                        flow.AddStackItem(newItem);
+                        flow.AddStackItem(item);
                     }
                 }
+        }
+
+        private static StackItem GetStackItem(Tuple<int, int> itemPos)
+        {
+            int id = itemPos.Item1;
+            int pos = itemPos.Item2;
+
+            FunctionCall call = null;
+            int nodeID = 0;
+
+            if (pos == 0)
+            {
+                nodeID = id;
+            }
+            else
+            {
+                if (!CallMap.TryGetValue(id, out call))
+                    Debug.Assert(false, "Thread call not found on sync");
+
+                nodeID = call.Destination;
+            }
+
+            var newItem = new StackItem()
+            {
+                NodeID = nodeID,
+                Call = call,
+                StartTick = XRay.Watch.ElapsedTicks,
+                Depth = pos
+            };
+            return newItem;
         }
     }
 
@@ -1321,6 +1352,7 @@ namespace XLibrary
         public StackItem[] Threadline = new StackItem[XRay.MaxThreadlineSize]; // 200 lines, 16px high, like 3000px record
         public int NewItems;
 
+
         public void CreateStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
         {
             Pos++;
@@ -1354,22 +1386,12 @@ namespace XLibrary
 
         public void AddStackItem(StackItem newItem)
         {
-            // dont over write items in timeline that haven't ended yet
-            while (true)
-            {
-                ThreadlinePos++;
-                if (ThreadlinePos >= Threadline.Length)
-                    ThreadlinePos = 0;
+            ThreadlinePos++;
+            if (ThreadlinePos >= Threadline.Length)
+                ThreadlinePos = 0;
 
-                var overwrite = Threadline[ThreadlinePos];
-
-                if (overwrite == null || overwrite.EndTick != 0)
-                {
-                    Threadline[ThreadlinePos] = newItem;
-                    NewItems++;
-                    break;
-                }
-            }
+            Threadline[ThreadlinePos] = newItem;
+            NewItems++;
         }
 
         public IEnumerable<StackItem> EnumerateThreadline(int max = int.MaxValue)

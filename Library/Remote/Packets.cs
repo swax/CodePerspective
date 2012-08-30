@@ -147,11 +147,12 @@ namespace XLibrary.Remote
         const byte Packet_CallThreads = 0xB0;
         const byte Packet_ClassCallThreads = 0xC0;
         const byte Packet_Threadlines = 0xD0;
+        const byte Packet_ThreadStacks = 0xE0;
 
         const byte ChildPacket_ThreadID = 0x10;
         const byte ChildPacket_ThreadName = 0x20;
         const byte ChildPacket_ThreadAlive = 0x30;
-        const byte ChildPacket_Threadline = 0x40;
+        const byte ChildPacket_PairList = 0x40;
 
         public HashSet<int> FunctionHits;
         public HashSet<int> ExceptionHits;
@@ -168,7 +169,8 @@ namespace XLibrary.Remote
         public PairList NodeThreads;
         public PairList CallThreads;
         public Dictionary<int, PairList> Threadlines;
-        
+        public Dictionary<int, PairList> ThreadStacks;
+
 
         public override byte[] Encode(G2Protocol protocol)
         {
@@ -206,13 +208,8 @@ namespace XLibrary.Remote
                 AddPairs(protocol, sync, Packet_NodeThreads, NodeThreads);
                 AddPairs(protocol, sync, Packet_CallThreads, CallThreads);
 
-                if (Threadlines != null)
-                    foreach (var threadline in Threadlines)
-                    {
-                        var keyValuePair = protocol.WritePacket(sync, Packet_Threadlines, null);
-                        protocol.WritePacket(keyValuePair, ChildPacket_ThreadID, BitConverter.GetBytes(threadline.Key));
-                        protocol.WritePacket(keyValuePair, ChildPacket_Threadline, threadline.Value.ToBytes());
-                    }
+                AddPairMap(protocol, sync, Packet_Threadlines, Threadlines);
+                AddPairMap(protocol, sync, Packet_ThreadStacks, ThreadStacks);
 
                 return protocol.WriteFinish();
             }
@@ -230,11 +227,22 @@ namespace XLibrary.Remote
                 protocol.WritePacket(sync, name, pairs.ToBytes());
         }
 
+        private void AddPairMap(G2Protocol protocol, G2Frame sync, byte name, Dictionary<int, PairList> map)
+        {
+            if (map != null && map.Count > 0)
+                foreach (var pairList in map)
+                {
+                    var keyValuePair = protocol.WritePacket(sync, name, null);
+                    protocol.WritePacket(keyValuePair, ChildPacket_ThreadID, BitConverter.GetBytes(pairList.Key));
+                    protocol.WritePacket(keyValuePair, ChildPacket_PairList, pairList.Value.ToBytes());
+                }
+        }
+
         public static SyncPacket Decode(G2Header root)
         {
             var sync = new SyncPacket();
 
-            foreach(var child in G2Protocol.EnumerateChildren(root))
+            foreach (var child in G2Protocol.EnumerateChildren(root))
             {
                 switch (child.Name)
                 {
@@ -268,7 +276,7 @@ namespace XLibrary.Remote
 
                     case Packet_NewThreads:
                         if (sync.NewThreads == null)
-                            sync.NewThreads = new Dictionary<int, Tuple<string, bool>>(); 
+                            sync.NewThreads = new Dictionary<int, Tuple<string, bool>>();
 
                         int id = 0;
                         string name = null;
@@ -282,7 +290,7 @@ namespace XLibrary.Remote
                             else if (sub.Name == ChildPacket_ThreadAlive)
                                 alive = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
 
-                        sync.NewThreads[id] = new Tuple<string,bool>(name, alive);
+                        sync.NewThreads[id] = new Tuple<string, bool>(name, alive);
                         break;
 
                     case Packet_ThreadChanges:
@@ -310,24 +318,33 @@ namespace XLibrary.Remote
                         break;
 
                     case Packet_Threadlines:
-                        if (sync.Threadlines == null)
-                            sync.Threadlines = new Dictionary<int, PairList>();
+                        ReadPairListMap(ref sync.Threadlines, sync, child);
+                        break;
 
-                        int id3 = 0;
-                        PairList list3 = new PairList();
-
-                        foreach (var sub in G2Protocol.EnumerateChildren(child))
-                            if (sub.Name == ChildPacket_ThreadID)
-                                id3 = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
-                            else if (sub.Name == ChildPacket_Threadline)
-                                list3 = PairList.FromBytes(sub.Data, sub.PayloadPos, sub.PayloadSize);
-
-                        sync.Threadlines[id3] = list3;
+                    case Packet_ThreadStacks:
+                        ReadPairListMap(ref sync.ThreadStacks, sync, child);
                         break;
                 }
             }
 
             return sync;
+        }
+
+        private static void ReadPairListMap(ref Dictionary<int, PairList> map, SyncPacket sync, G2Header child)
+        {
+            if (map == null)
+                map = new Dictionary<int, PairList>();
+
+            int id = 0;
+            PairList list = new PairList();
+
+            foreach (var sub in G2Protocol.EnumerateChildren(child))
+                if (sub.Name == ChildPacket_ThreadID)
+                    id = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
+                else if (sub.Name == ChildPacket_PairList)
+                    list = PairList.FromBytes(sub.Data, sub.PayloadPos, sub.PayloadSize);
+
+            map[id] = list;
         }
     }
 

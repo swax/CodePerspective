@@ -526,12 +526,12 @@ namespace XLibrary.Remote
         public Dictionary<int, bool> ThreadChanges = new Dictionary<int, bool>();
         public PairList NodeThreads = new PairList();
         public PairList CallThreads = new PairList();
-        public Dictionary<int, PairList> Threadlines = new Dictionary<int, PairList>();
+        public Dictionary<int, PairList> Threadlines = new Dictionary<int, PairList>(); // history of the thread
+        public Dictionary<int, PairList> ThreadStacks = new Dictionary<int, PairList>(); // current stack of thread, top level unchanged and pushed off history so we have to sync it
         const int MaxStackItemsPerThreadSent = 100;
 
         public void DoSync()
         {
-
             if (Connection.State != TcpState.Connected)
                 return;
 
@@ -606,19 +606,43 @@ namespace XLibrary.Remote
                     Threadlines[flow.ThreadID] = threadline;
                 }
 
+                int minDepth = int.MaxValue;
                 int sendCount = Math.Min(flow.NewItems, MaxStackItemsPerThreadSent);
+
                 foreach (var item in flow.EnumerateThreadline(sendCount))
-                    threadline.Add(new Tuple<int,int>((item.Call == null) ? item.NodeID : item.Call.ID, item.Depth));
+                {
+                    if (item.Depth < minDepth)
+                        minDepth = item.Depth;
 
-
+                    threadline.Add(new Tuple<int, int>((item.Call == null) ? item.NodeID : item.Call.ID, item.Depth));
+                }
                 // set new items to 0, iterate new items on threadline add
                 flow.NewItems = 0;
+
+                // send top level of stack, so remote node is in sync (these are often pushed off the threadline)
+                PairList threadstack;
+                if (!ThreadStacks.TryGetValue(flow.ThreadID, out threadstack))
+                {
+                    threadstack = new PairList();
+                    ThreadStacks[flow.ThreadID] = threadstack;
+                }
+                for (int i = minDepth - 1; i >= 0; i--)
+                {
+                    var item = flow.Stack[i];
+                    threadstack.Add(new Tuple<int, int>((item.Call == null) ? item.NodeID : item.Call.ID, item.Depth));
+                }
             }
 
             if (Threadlines.Count > 0)
             {
                 packet.Threadlines = Threadlines;
                 Threadlines = new Dictionary<int, PairList>();
+            }
+
+            if (ThreadStacks.Count > 0)
+            {
+                packet.ThreadStacks = ThreadStacks;
+                ThreadStacks = new Dictionary<int, PairList>();
             }
         }
     }

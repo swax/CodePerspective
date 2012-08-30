@@ -14,7 +14,6 @@ namespace XLibrary
         public Dictionary<int, Threadline> Threadlines = new Dictionary<int, Threadline>();
         public List<ThreadlineNode> ThreadlineNodes = new List<ThreadlineNode>();
         public HashSet<int> AddedNodes = new HashSet<int>();
-        public List<StackItem> UnfinishedItems = new List<StackItem>();
 
         public NodeModel CurrentThreadlineZoom;
         public bool Paused;
@@ -83,9 +82,8 @@ namespace XLibrary
                 if (ShowThreads == null && !flow.IsAlive)
                     continue;
 
-                UnfinishedItems.Clear();
-
                 long startTick = 0;
+                int startDepth = int.MaxValue;
 
                 foreach(var item in flow.EnumerateThreadline())
                 {
@@ -98,45 +96,57 @@ namespace XLibrary
                     if (item.StartTick > startTick)
                         break;
 
-                    // do stuff with item
-                    Threadline timeline;
-                    if (!Threadlines.TryGetValue(flow.ThreadID, out timeline))
-                    {
-                        timeline = new Threadline(flow, ThreadOrder++);
-                        Threadlines[flow.ThreadID] = timeline;
-                    }
-
-                    timeline.IsAlive = flow.IsAlive; // update
-
-                    var node = NodeModels[item.NodeID];
-
-                    if (node.Show &&
-                        (CenterMap.Contains(node.ID) ||
-                         (ShowOutside && !node.XNode.External) ||
-                         (ShowExternal && node.XNode.External) ))
-                    {
-                        if (item.EndTick == 0)
-                            UnfinishedItems.Add(item);
-                        else
-                            timeline.Sequence.Add(item);
-
-                        if (item.Depth > timeline.Deepest)
-                            timeline.Deepest = item.Depth;
-
-                        timeline.DepthSet.Add(item.Depth);
-                    }
+                    if(AddToTimeline(flow, item))
+                        if (item.Depth < startDepth)
+                            startDepth = item.Depth;
                 }
 
-                // add unfinshed items, we do this separetly because they are out of time order in xray
-                foreach (var item in UnfinishedItems.OrderByDescending(ui => ui.StartTick))
-                    Threadlines[flow.ThreadID].Sequence.Add(item);
-            }
+                // add stack items that have been pushed off threadline (functions that haven't exited yet)
+                for (int i = startDepth - 1; i >= 0; i--)
+                {
+                    var item = flow.Stack[i];
 
+                    if (item != null)
+                        AddToTimeline(flow, item);
+                }
+            }
 
             // remove empty threads
             var removeTimelines = Threadlines.Values.Where(t => t.Sequence.Count == 0).ToArray();
             foreach (var timeline in removeTimelines)
                 Threadlines.Remove(timeline.ThreadID);
+        }
+
+        private bool AddToTimeline(ThreadFlow flow, StackItem item)
+        {
+            // do stuff with item
+            Threadline timeline;
+            if (!Threadlines.TryGetValue(flow.ThreadID, out timeline))
+            {
+                timeline = new Threadline(flow, ThreadOrder++);
+                Threadlines[flow.ThreadID] = timeline;
+            }
+
+            timeline.IsAlive = flow.IsAlive; // update
+
+            var node = NodeModels[item.NodeID];
+
+            if (node.Show &&
+                (CenterMap.Contains(node.ID) ||
+                 (ShowOutside && !node.XNode.External) ||
+                 (ShowExternal && node.XNode.External)))
+            {
+                timeline.Sequence.Add(item);
+
+                if (item.Depth > timeline.Deepest)
+                    timeline.Deepest = item.Depth;
+
+                timeline.DepthSet.Add(item.Depth);
+
+                return true;
+            }
+            else
+                return false;
         }
 
         private void LayoutThreadlines(long currentTick)

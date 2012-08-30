@@ -346,7 +346,7 @@ namespace XLibrary.Remote
             try
             {
                 int bytesSent = TcpSocket.EndSend(asyncResult);
-                Log("x", "Sent " + bytesSent.ToString() + " bytes");
+                //Log("x", "Sent " + bytesSent.ToString() + " bytes");
 
                 if (bytesSent == 0)
                     return;

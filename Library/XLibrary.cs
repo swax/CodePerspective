@@ -1350,7 +1350,6 @@ namespace XLibrary
 
         public int ThreadlinePos = -1;
         public StackItem[] Threadline = new StackItem[XRay.MaxThreadlineSize]; // 200 lines, 16px high, like 3000px record
-        public int NewItems;
 
 
         public void CreateStackItem(int nodeID, FunctionCall call, long startTick, bool isMethod, bool ThreadlineEnabled)
@@ -1391,7 +1390,13 @@ namespace XLibrary
                 ThreadlinePos = 0;
 
             Threadline[ThreadlinePos] = newItem;
-            NewItems++;
+
+            if (XRay.Remote != null && !XRay.RemoteClient)
+                foreach (var client in XRay.Remote.SyncClients)
+                    if (client.NewStackItems.ContainsKey(ThreadID))
+                        client.NewStackItems[ThreadID]++;
+                    else
+                        client.NewStackItems[ThreadID] = 0;
         }
 
         public IEnumerable<StackItem> EnumerateThreadline(int max = int.MaxValue)

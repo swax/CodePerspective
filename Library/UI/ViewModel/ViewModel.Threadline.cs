@@ -83,7 +83,7 @@ namespace XLibrary
                     continue;
 
                 long startTick = 0;
-                int startDepth = int.MaxValue;
+                int startDepth = XRay.MaxStack;
 
                 foreach(var item in flow.EnumerateThreadline())
                 {

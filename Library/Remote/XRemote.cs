@@ -34,7 +34,7 @@ namespace XLibrary.Remote
         const int DownloadChunkSize = 8 * 1024; // should be 8kb
        
         // sync
-        public List<SyncClient> SyncClients = new List<SyncClient>();
+        public SharedDictionary<SyncClient> SyncClients = new SharedDictionary<SyncClient>(10); // special cause it can be iterated without being locked
         public int SyncsPerSecond;
         public int SyncCount;
 
@@ -113,17 +113,13 @@ namespace XLibrary.Remote
             SyncCount = 0;
 
             // Run through socket connections
-            var deadSockets = new List<XConnection>();
+        
 
             lock (Connections)
                 foreach (var socket in Connections)
-                {
                     socket.SecondTimer();
 
-                    // only let socket linger in connecting state for 10 secs
-                    if (socket.State == TcpState.Closed)
-                        deadSockets.Add(socket);
-                }
+            var deadSockets = Connections.Where(c => c.State == TcpState.Closed).ToList();
 
             foreach (var socket in deadSockets)
             {
@@ -136,6 +132,16 @@ namespace XLibrary.Remote
                Log(message);
 
                 // socket.TcpSocket = null; causing endrecv to fail on disconnect
+            }
+
+
+            // prune syncs
+            var deadClients = SyncClients.Where(s => s.Connection.State == TcpState.Closed).ToList();
+
+            foreach (var client in deadClients)
+            {
+                SyncClients.Remove(client);
+                Log("Removed sync to {0}", client.Connection);
             }
         }
 
@@ -166,10 +172,10 @@ namespace XLibrary.Remote
         {
             lock (DebugLog)
             {
-                DebugLog.AddFirst(string.Format(text, args));
+                DebugLog.AddLast(string.Format(text, args));
 
                 while (DebugLog.Count > 100)
-                    DebugLog.RemoveLast();
+                    DebugLog.RemoveFirst();
             }
         }
 
@@ -512,6 +518,8 @@ namespace XLibrary.Remote
     {
         public XConnection Connection;
 
+        bool DataToSend;
+
         public HashSet<int> FunctionHits = new HashSet<int>();
         public HashSet<int> ExceptionHits = new HashSet<int>();
         public HashSet<int> ConstructedHits = new HashSet<int>();
@@ -529,6 +537,8 @@ namespace XLibrary.Remote
         public Dictionary<int, PairList> Threadlines = new Dictionary<int, PairList>(); // history of the thread
         public Dictionary<int, PairList> ThreadStacks = new Dictionary<int, PairList>(); // current stack of thread, top level unchanged and pushed off history so we have to sync it
         const int MaxStackItemsPerThreadSent = 100;
+        public Dictionary<int, int> NewStackItems = new Dictionary<int, int>();
+
 
         public void DoSync()
         {
@@ -538,40 +548,43 @@ namespace XLibrary.Remote
             if (!Connection.SendReady)
                 return;
 
+            DataToSend = false;
+
+            // save current set and create a new one so other threads dont get tripped up
+            var packet = new SyncPacket();
+
+            AddSet(ref FunctionHits, ref packet.FunctionHits);
+            AddSet(ref ExceptionHits, ref packet.ExceptionHits);
+            AddSet(ref ConstructedHits, ref packet.ConstructedHits);
+            AddSet(ref DisposeHits, ref packet.DisposeHits);
+
+            AddPairs(ref NewCalls, ref packet.NewCalls);
+            AddSet(ref CallHits, ref packet.CallHits);
+
+            AddPairs(ref Inits, ref packet.Inits);
+
+            if (NewThreads.Count > 0)
             {
-                // save current set and create a new one so other threads dont get tripped up
-                var packet = new SyncPacket();
-
-                AddSet(ref FunctionHits, ref packet.FunctionHits);
-                AddSet(ref ExceptionHits, ref packet.ExceptionHits);
-                AddSet(ref ConstructedHits, ref packet.ConstructedHits);
-                AddSet(ref DisposeHits, ref packet.DisposeHits);
-     
-                AddPairs(ref NewCalls, ref packet.NewCalls);
-                AddSet(ref CallHits, ref packet.CallHits);
-
-                AddPairs(ref Inits, ref packet.Inits);
-
-                if (NewThreads.Count > 0)
-                {
-                    packet.NewThreads = NewThreads;
-                    NewThreads = new Dictionary<int, Tuple<string, bool>>();
-                }
-
-                if (ThreadChanges.Count > 0)
-                {
-                    packet.ThreadChanges = ThreadChanges;
-                    ThreadChanges = new Dictionary<int, bool>();
-                }
-
-                AddPairs(ref NodeThreads, ref packet.NodeThreads);
-                AddPairs(ref CallThreads, ref packet.CallThreads);
-
-                AddThreadlines(packet);
-
-                // check that there's space in the send buffer to send state
-                Connection.SendPacket(packet);
+                packet.NewThreads = NewThreads;
+                NewThreads = new Dictionary<int, Tuple<string, bool>>();
+                DataToSend = true;
             }
+
+            if (ThreadChanges.Count > 0)
+            {
+                packet.ThreadChanges = ThreadChanges;
+                ThreadChanges = new Dictionary<int, bool>();
+                DataToSend = true;
+            }
+
+            AddPairs(ref NodeThreads, ref packet.NodeThreads);
+            AddPairs(ref CallThreads, ref packet.CallThreads);
+
+            AddThreadlines(packet);
+
+            // check that there's space in the send buffer to send state
+            if(DataToSend)
+                Connection.SendPacket(packet);
         }
 
         void AddSet(ref HashSet<int> localSet, ref HashSet<int> packetSet)
@@ -580,6 +593,7 @@ namespace XLibrary.Remote
             {
                 packetSet = localSet;
                 localSet = new HashSet<int>();
+                DataToSend = true;
             }
         }
 
@@ -589,6 +603,7 @@ namespace XLibrary.Remote
             {
                 packetPairs = localPairs;
                 localPairs = new PairList();
+                DataToSend = true;
             }
         }
 
@@ -596,7 +611,7 @@ namespace XLibrary.Remote
         {
             foreach (var flow in XRay.FlowMap)
             {
-                if (flow.NewItems == 0)
+                if(!NewStackItems.ContainsKey(flow.ThreadID) || NewStackItems[flow.ThreadID] == 0)
                     continue;
 
                 PairList threadline;
@@ -606,8 +621,9 @@ namespace XLibrary.Remote
                     Threadlines[flow.ThreadID] = threadline;
                 }
 
+                int newItems = NewStackItems[flow.ThreadID];
                 int minDepth = int.MaxValue;
-                int sendCount = Math.Min(flow.NewItems, MaxStackItemsPerThreadSent);
+                int sendCount = Math.Min(newItems, MaxStackItemsPerThreadSent);
 
                 foreach (var item in flow.EnumerateThreadline(sendCount))
                 {
@@ -617,7 +633,7 @@ namespace XLibrary.Remote
                     threadline.Add(new Tuple<int, int>((item.Call == null) ? item.NodeID : item.Call.ID, item.Depth));
                 }
                 // set new items to 0, iterate new items on threadline add
-                flow.NewItems = 0;
+                NewStackItems[flow.ThreadID] = 0;
 
                 // send top level of stack, so remote node is in sync (these are often pushed off the threadline)
                 PairList threadstack;
@@ -637,12 +653,14 @@ namespace XLibrary.Remote
             {
                 packet.Threadlines = Threadlines;
                 Threadlines = new Dictionary<int, PairList>();
+                DataToSend = true;
             }
 
             if (ThreadStacks.Count > 0)
             {
                 packet.ThreadStacks = ThreadStacks;
                 ThreadStacks = new Dictionary<int, PairList>();
+                DataToSend = true;
             }
         }
     }

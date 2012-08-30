@@ -1,17 +1,14 @@
 ﻿
 Remote	
-	Remove dead sync clients
 	Test function for generic packet
-	test multiple connected clients
-	test when app is stable, that no extra data is being sent
+	Send entry/holding point info
 
-	send entry/holding point info
+	Track what happens when instance is clicked, think about how to send data
+
 	redo options panel - add network settings, ability to disable UI entirely
+		page based, first add files, then set options, then buid, test, launch
 
-	threadline -
-		when threadline is updated, send stack update to remote client
-		just need to include down min stackpos that client did not send
-		test full stack kept in remote xtestapp when button clicked
+	remote panel - show bandwidth, allow user to turn off node/thread/tracking to have min bandwidth to just see instances
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value

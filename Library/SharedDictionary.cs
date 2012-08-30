@@ -43,6 +43,16 @@ namespace XLibrary
 
         public void Add(int hash, T call)
         {
+            lock (this)
+            {
+                int index = Add(call);
+
+                Map[hash] = index;
+            }
+        }
+
+        public int Add(T call)
+        {
             // locking isnt so bad because once app is running, add won't be called so much
             lock (this)
             {
@@ -54,10 +64,33 @@ namespace XLibrary
                 }
 
                 int index = Length;
-                Map[hash] = index;
+              
                 Values[index] = call;
-
                 Length++;
+
+                return index;
+            }
+        }
+
+        public void Remove(T remove)
+        {
+            // this is not really optimized - best for small lists that arent removed from often
+
+            lock (this)
+            {
+                int newLength = 0;
+                T[] copy = new T[Values.Length];
+
+                for (int i = 0; i < Length; i++)
+                {
+                    T val = Values[i];
+
+                    if (val != remove)
+                        copy[newLength++] = val;
+                }
+
+                Length = newLength;
+                Values = copy;
             }
         }
 

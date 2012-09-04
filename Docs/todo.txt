@@ -1,9 +1,24 @@
-﻿
-Remote	
-	Test function for generic packet
-	Send entry/holding point info
+﻿Implement attributes in cp website
+http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
+Remote	
 	Track what happens when instance is clicked, think about how to send data
+		query server for udpate to node model
+		server sends back current node model view
+		grid updates with node model
+			sets columns
+			sets rows
+
+		side line grid building
+		replace
+
+		common function that returns a grid object
+		object passed over network, or directly to grid 
+		opening node creates sub-grid object that is added or passed over network
+		profile info could also be sent as a grid object
+
+	Test function for generic packet
+	Send entry/holding point info - send with stack data, extra bitfield?
 
 	redo options panel - add network settings, ability to disable UI entirely
 		page based, first add files, then set options, then buid, test, launch

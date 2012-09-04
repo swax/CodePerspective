@@ -127,6 +127,7 @@
     <Compile Include="Meta\TableStream.cs" />
     <Compile Include="Meta\Utility.cs" />
     <Compile Include="UI\ColorProfile.cs" />
+    <Compile Include="UI\FieldModel.cs" />
     <Compile Include="UI\Panels\AboutPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>

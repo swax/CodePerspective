@@ -15,7 +15,6 @@ namespace XLibrary.Panels
     {
         XNodeIn SelectedNode;
         XNodeIn CurrentDisplay;
-        FileStream DatStream;
         ViewModel Model;
         MainForm Main;
 

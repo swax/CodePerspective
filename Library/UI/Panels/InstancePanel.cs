@@ -11,6 +11,7 @@ using AdvancedDataGridView;
 using System.Reflection;
 using System.Collections;
 using XLibrary.UI.Panels;
+using System.Diagnostics;
 
 
 namespace XLibrary
@@ -25,6 +26,8 @@ namespace XLibrary
         IColorProfile ColorProfile = new BrightColorProfile();
 
         GridModel Model;
+
+        Dictionary<IFieldModel, FieldRow> ModelRowMap = new Dictionary<IFieldModel, FieldRow>();
 
 
         public InstancePanel()
@@ -70,32 +73,26 @@ namespace XLibrary
                 return;
             }
 
-            Model = new GridModel(SelectedNode, FieldFilter);
+            Model = new GridModel(SelectedNode, FieldFilter, GridModel_UpdateTree, GridModel_ExpandedField);
 
-            if (Visible)
-                RefreshTree();
-
-            RefreshSubnodesView();
-        }
-
-        void RefreshTree()
-        {
-            Model.RefreshTree();
+            if (!Visible)
+                return;
 
             CurrentDisplay = SelectedNode;
 
             FieldGrid.Nodes.Clear();
             FieldGrid.Columns.Clear();
 
-            UpdateTree();
+            ModelRowMap = new Dictionary<IFieldModel, FieldRow>();
+
+            Model.BeginUpdateTree();
+
+            RefreshSubnodesView();
         }
 
-        void UpdateTree()
+        void GridModel_UpdateTree()
         {
             // if remote then function that calls this should call a diff function with this as a callback
-
-            Model.UpdateTree();
-
             if (SelectedNode == null)
                 return;
 
@@ -136,6 +133,9 @@ namespace XLibrary
                 {
                     row = new FieldRow(model);
                     viewNodes.Add(row);
+
+                    XRay.LogMessage("Row added");
+                    ModelRowMap[model] = row;
                     
                     if (model.PossibleSubNodes)
                         row.Nodes.Add("Loading...");
@@ -153,6 +153,17 @@ namespace XLibrary
                 return;
 
             row.Model.ExpandField();
+        }
+
+        private void GridModel_ExpandedField(IFieldModel fieldModel)
+        {
+            FieldRow row;
+            if (!ModelRowMap.TryGetValue(fieldModel, out row))
+            {
+                XRay.LogError("Row not found for model size {0}", ModelRowMap.Count);
+                return;
+            }
+
             row.Nodes.Clear();
 
             SyncRows(row.Model.Nodes, row.Nodes);
@@ -164,9 +175,9 @@ namespace XLibrary
         private void RefreshTimer_Tick(object sender, EventArgs e)
         {
             RefreshTimer.Enabled = false;
-
-            if (Visible) 
-                UpdateTree();
+            
+            if (Visible && Model != null) 
+                Model.BeginUpdateTree();
 
             // start next refrseh a second after the time it took to do the actual refresh
             RefreshTimer.Enabled = AutoRefreshOn;
@@ -175,12 +186,7 @@ namespace XLibrary
         private void InstancePanel_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible && SelectedNode != CurrentDisplay)
-                RefreshTree();
-        }
-
-        private void SummaryLabel_Click(object sender, EventArgs e)
-        {
-
+                NavigateTo(SelectedNode);
         }
 
         bool AutoRefreshOn = true;

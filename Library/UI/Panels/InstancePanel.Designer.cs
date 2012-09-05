@@ -59,7 +59,6 @@
             this.SummaryLabel.Size = new System.Drawing.Size(37, 13);
             this.SummaryLabel.TabIndex = 11;
             this.SummaryLabel.Text = "Class";
-            this.SummaryLabel.Click += new System.EventHandler(this.SummaryLabel_Click);
             // 
             // RefreshTimer
             // 

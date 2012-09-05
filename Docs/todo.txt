@@ -2,6 +2,13 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote	
+	on set selected node 
+		send selected node to server
+		server returns with list of root field models
+
+		on expand field model
+			client queries server for sub field models
+
 	Track what happens when instance is clicked, think about how to send data
 		query server for udpate to node model
 		server sends back current node model view

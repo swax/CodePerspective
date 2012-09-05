@@ -19,31 +19,27 @@ namespace XLibrary
         public List<IFieldModel> RootNodes = new List<IFieldModel>();
         public List<string> Columns = new List<string>();
 
-        public Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap;
+        public Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
 
         public const int MaxInstances = 20;
         public const int MaxCellChars = 50;
 
+        public Action UpdatedTree;
+        public Action<IFieldModel> ExpandedField;
 
-        public GridModel(NodeModel node, string filter)
+
+        public GridModel(NodeModel node, string filter, Action updatedTree, Action<IFieldModel> expandedField)
         {
             SelectedNode = node;
             FieldFilter = filter;
-        }
+            UpdatedTree = updatedTree;
+            ExpandedField = expandedField;
 
-        public void RefreshTree()
-        {
-            RootNodes.Clear();
-            Columns.Clear();
-
-            // type col
             Columns.Add("Type");
             Columns.Add("Name");
-
-            GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
         }
 
-        public void UpdateTree() 
+        public void BeginUpdateTree() 
         {
             if (SelectedNode == null)
                 return;
@@ -141,7 +137,7 @@ namespace XLibrary
                     continue;
                 }
 
-                model = new FieldModel(null, RowTypes.Root);
+                model = new FieldModel(this, null, RowTypes.Root);
                 model.GenericName = recordInstance.Key;
                 model.FieldType = recordInstance.Value.Item1; // instance type that matches selected node
                 model.Instances = recordInstance.Value.Item2; // list of instances
@@ -154,8 +150,11 @@ namespace XLibrary
                 model.ExpandField(FieldFilter);
             }
 
-            foreach (var generic in RootNodes)
-                generic.ExpandField();
+            //foreach (var generic in RootNodes)
+            //    generic.ExpandField();
+
+
+            UpdatedTree();
         }
     }
 
@@ -192,6 +191,7 @@ namespace XLibrary
 
     public class FieldModel : IFieldModel
     {
+        public GridModel Grid;
         public FieldModel ParentField;
         public string GenericName;
         public bool Expanded;
@@ -218,8 +218,9 @@ namespace XLibrary
         public bool PossibleSubNodes { get { return _possibleSubNodes; } }
 
 
-        public FieldModel(FieldModel parent, RowTypes type)
+        public FieldModel(GridModel grid, FieldModel parent, RowTypes type)
         {
+            Grid = grid;
             RowType = type;
             if (parent == null)
                 return;
@@ -228,20 +229,20 @@ namespace XLibrary
             Instances = parent.Instances;
         }
 
-        public FieldModel(FieldModel parent, RowTypes rowType, Type type)
-            : this(parent, rowType)
+        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, Type type)
+            : this(grid, parent, rowType)
         {
             FieldType = type;
         }
 
-        public FieldModel(FieldModel parent, RowTypes rowType, Type type, int elementIndex)
-            : this(parent, rowType, type)
+        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, Type type, int elementIndex)
+            : this(grid, parent, rowType, type)
         {
             ElementIndex = elementIndex;
         }
 
-        public FieldModel(FieldModel parent, RowTypes rowType, FieldInfo info)
-            : this(parent, rowType, info.FieldType)
+        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, FieldInfo info)
+            : this(grid, parent, rowType, info.FieldType)
         {
             TypeInfo = info;
         }
@@ -309,7 +310,10 @@ namespace XLibrary
         public void ExpandField(string fieldFilter = null)
         {
             if (Expanded)
+            {
+                Grid.ExpandedField(this);
                 return;
+            }
 
             Expanded = true;
 
@@ -319,10 +323,10 @@ namespace XLibrary
             {
                 if (RowType == RowTypes.Root && fieldFilter == null)
                 {
-                    AddRow(new FieldModel(this, RowTypes.Declared));
-                    AddRow(new FieldModel(this, RowTypes.Selected, FieldType));
-                    AddRow(new FieldModel(this, RowTypes.Number));
-                    AddRow(new FieldModel(this, RowTypes.Age));
+                    AddRow(new FieldModel(Grid, this, RowTypes.Declared));
+                    AddRow(new FieldModel(Grid, this, RowTypes.Selected, FieldType));
+                    AddRow(new FieldModel(Grid, this, RowTypes.Number));
+                    AddRow(new FieldModel(Grid, this, RowTypes.Age));
                 }
 
                 if (fieldFilter == null)
@@ -334,7 +338,7 @@ namespace XLibrary
                     {
                         XRay.LogError("Field " + fieldFilter + " found on " + FieldType.ToString());
 
-                        var row = new FieldModel(this, RowTypes.Field, field);
+                        var row = new FieldModel(Grid, this, RowTypes.Field, field);
                         AddRow(row);
                         row.ExpandField();
                     }
@@ -344,6 +348,8 @@ namespace XLibrary
             }
 
             RefreshField();
+
+            Grid.ExpandedField(this);
         }
 
         public void AddRow(FieldModel row)
@@ -355,13 +361,13 @@ namespace XLibrary
         private void AddFieldMembers()
         {
             if (FieldType.BaseType != null)
-                AddRow(new FieldModel(this, RowTypes.Base, FieldType.BaseType));
+                AddRow(new FieldModel(Grid, this, RowTypes.Base, FieldType.BaseType));
 
             if (FieldType.GetInterface("ICollection") != null)
-                AddRow(new FieldModel(this, RowTypes.Enumerate));
+                AddRow(new FieldModel(Grid, this, RowTypes.Enumerate));
 
             foreach (var field in FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
-                AddRow(new FieldModel(this, RowTypes.Field, field));
+                AddRow(new FieldModel(Grid, this, RowTypes.Field, field));
         }
 
         internal void RefreshField()
@@ -376,7 +382,7 @@ namespace XLibrary
             if (RowType == RowTypes.Enumerate && Expanded)
                 RefreshFieldEnumerations();
 
-            if (RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
+            if (RowType == RowTypes.Root || RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
                 if (!Expanded && _nodes.Count == 0)
                     _possibleSubNodes = true;
 
@@ -539,7 +545,7 @@ namespace XLibrary
                 var indexValue = e.Current;
 
                 if (_nodes.Count <= i)
-                    AddRow(new FieldModel(this, RowTypes.Element, indexValue.GetType(), i));
+                    AddRow(new FieldModel(Grid, this, RowTypes.Element, indexValue.GetType(), i));
 
                 if (i > 100)
                     break;

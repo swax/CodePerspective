@@ -4,20 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Collections;
+using XLibrary.Remote;
+using System.Threading;
 
 namespace XLibrary
 {
     public enum RowTypes { Root, Number, Age, Base, Declared, Selected, Enumerate, Element, Field }
 
-    public class GridModel
+    public class InstanceModel
     {
-        public NodeModel SelectedNode;
+        public XNodeIn SelectedNode;
 
         public string DetailsLabel;
         public string FieldFilter = "";
+        public Random RndGen = new Random();
 
         public List<IFieldModel> RootNodes = new List<IFieldModel>();
         public List<string> Columns = new List<string>();
+        public Dictionary<int, IFieldModel> FieldMap = new Dictionary<int, IFieldModel>();
 
         public Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
 
@@ -28,7 +32,7 @@ namespace XLibrary
         public Action<IFieldModel> ExpandedField;
 
 
-        public GridModel(NodeModel node, string filter, Action updatedTree, Action<IFieldModel> expandedField)
+        public InstanceModel(XNodeIn node, string filter, Action updatedTree=null, Action<IFieldModel> expandedField=null)
         {
             SelectedNode = node;
             FieldFilter = filter;
@@ -44,12 +48,34 @@ namespace XLibrary
             if (SelectedNode == null)
                 return;
 
-            var nodeTypeName = SelectedNode.XNode.UnformattedName;
-            var record = SelectedNode.XNode.Record;
+            if (XRay.RemoteClient)
+            {
+                if (XRay.Remote.ServerConnection == null)
+                {
+                    DetailsLabel = "Not connected to server to get instance information";
+                    return;
+                }
+
+                // send request for grid info to remote client
+                var packet = new GenericPacket("RequestInstance");
+                packet.Data = new Dictionary<string, string>();
+                packet.Data["ThreadID"] = Thread.CurrentThread.ManagedThreadId.ToString();
+                packet.Data["NodeID"] = SelectedNode.ID.ToString();
+
+                if (FieldFilter != null)
+                    packet.Data["Filter"] = FieldFilter;
+
+                XRay.RunInCoreAsync(() => XRay.Remote.ServerConnection.SendPacket(packet));
+
+                return;
+            }
+
+            var nodeTypeName = SelectedNode.UnformattedName;
+            var record = SelectedNode.Record;
 
             if (record == null)
             {
-                if (SelectedNode.XNode.External)
+                if (SelectedNode.External)
                     DetailsLabel = "Not XRayed";
                 else
                     DetailsLabel = "No record of being created";
@@ -150,48 +176,52 @@ namespace XLibrary
                 model.ExpandField(FieldFilter);
             }
 
-            //foreach (var generic in RootNodes)
-            //    generic.ExpandField();
-
-
-            UpdatedTree();
+            if(UpdatedTree != null)
+                UpdatedTree();
         }
     }
 
     public interface IFieldModel
     {
+        int ID { get; }
         List<string> Cells { get; }
-        List<IFieldModel> Nodes { get; }
+        List<IFieldModel> Nodes { set; get; }
         bool PossibleSubNodes { get; }
         void ExpandField(string fieldFilter = null);
     }
 
     public class RemoteFieldModel : IFieldModel
     {
-        public List<string> Cells
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public int ID { get; set; }
 
-        public List<IFieldModel> Nodes
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public List<string> Cells { get; set; }
 
-        public bool PossibleSubNodes
-        {
-            get { throw new NotImplementedException(); }
-        }
+        public List<IFieldModel> Nodes { get; set; }
+
+        public bool PossibleSubNodes { get; set; }
 
         public void ExpandField(string fieldFilter = null)
         {
-            throw new NotImplementedException();
+            if (!XRay.RemoteClient)
+                return;
+
+            if (XRay.Remote.ServerConnection == null)
+                return;
+
+            // send request for grid info to remote client
+            var packet = new GenericPacket("RequestField");
+
+            packet.Data = new Dictionary<string, string>();
+            packet.Data["ThreadID"] = Thread.CurrentThread.ManagedThreadId.ToString();
+            packet.Data["FieldID"] = ID.ToString();
+
+            XRay.RunInCoreAsync(() => XRay.Remote.ServerConnection.SendPacket(packet));
         }
     }
 
     public class FieldModel : IFieldModel
     {
-        public GridModel Grid;
+        public InstanceModel Instance;
         public FieldModel ParentField;
         public string GenericName;
         public bool Expanded;
@@ -208,20 +238,24 @@ namespace XLibrary
         const int MAX_INSTANCES = 30;
         const int MAX_CELL_CHARS = 70;
 
-        public List<IFieldModel> _nodes = new List<IFieldModel>();
-        public List<IFieldModel> Nodes { get { return _nodes; } }
-
-        public List<string> _cells = new List<string>();
-        public List<string> Cells { get { return _cells; } }
-
-        public bool _possibleSubNodes;
-        public bool PossibleSubNodes { get { return _possibleSubNodes; } }
+        // interface
+        public int ID { get; set; }
+        public List<IFieldModel> Nodes { get; set; }
+        public List<string> Cells { get; set; }
+        public bool PossibleSubNodes { get; set; }
 
 
-        public FieldModel(GridModel grid, FieldModel parent, RowTypes type)
+        public FieldModel(InstanceModel instance, FieldModel parent, RowTypes type)
         {
-            Grid = grid;
+            Instance = instance;
             RowType = type;
+
+            Nodes = new List<IFieldModel>();
+            Cells = new List<string>();
+
+            ID = Instance.RndGen.Next();
+            Instance.FieldMap[ID] = this;
+
             if (parent == null)
                 return;
 
@@ -229,19 +263,19 @@ namespace XLibrary
             Instances = parent.Instances;
         }
 
-        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, Type type)
+        public FieldModel(InstanceModel grid, FieldModel parent, RowTypes rowType, Type type)
             : this(grid, parent, rowType)
         {
             FieldType = type;
         }
 
-        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, Type type, int elementIndex)
+        public FieldModel(InstanceModel grid, FieldModel parent, RowTypes rowType, Type type, int elementIndex)
             : this(grid, parent, rowType, type)
         {
             ElementIndex = elementIndex;
         }
 
-        public FieldModel(GridModel grid, FieldModel parent, RowTypes rowType, FieldInfo info)
+        public FieldModel(InstanceModel grid, FieldModel parent, RowTypes rowType, FieldInfo info)
             : this(grid, parent, rowType, info.FieldType)
         {
             TypeInfo = info;
@@ -300,33 +334,34 @@ namespace XLibrary
 
         void InitCells(string type, string value)
         {
-            while (_cells.Count < 2)
-                _cells.Add("");
+            while (Cells.Count < 2)
+                Cells.Add("");
 
-            _cells[0] = type;
-            _cells[1] = value;
+            Cells[0] = type;
+            Cells[1] = value;
         }
 
         public void ExpandField(string fieldFilter = null)
         {
             if (Expanded)
             {
-                Grid.ExpandedField(this);
+                if(Instance.ExpandedField != null)
+                    Instance.ExpandedField(this);
                 return;
             }
 
             Expanded = true;
 
-            _nodes.Clear();
+            Nodes.Clear();
 
             if (FieldType != null)
             {
                 if (RowType == RowTypes.Root && fieldFilter == null)
                 {
-                    AddRow(new FieldModel(Grid, this, RowTypes.Declared));
-                    AddRow(new FieldModel(Grid, this, RowTypes.Selected, FieldType));
-                    AddRow(new FieldModel(Grid, this, RowTypes.Number));
-                    AddRow(new FieldModel(Grid, this, RowTypes.Age));
+                    AddRow(new FieldModel(Instance, this, RowTypes.Declared));
+                    AddRow(new FieldModel(Instance, this, RowTypes.Selected, FieldType));
+                    AddRow(new FieldModel(Instance, this, RowTypes.Number));
+                    AddRow(new FieldModel(Instance, this, RowTypes.Age));
                 }
 
                 if (fieldFilter == null)
@@ -338,7 +373,7 @@ namespace XLibrary
                     {
                         XRay.LogError("Field " + fieldFilter + " found on " + FieldType.ToString());
 
-                        var row = new FieldModel(Grid, this, RowTypes.Field, field);
+                        var row = new FieldModel(Instance, this, RowTypes.Field, field);
                         AddRow(row);
                         row.ExpandField();
                     }
@@ -349,25 +384,26 @@ namespace XLibrary
 
             RefreshField();
 
-            Grid.ExpandedField(this);
+            if (Instance.ExpandedField != null)
+                Instance.ExpandedField(this);
         }
 
         public void AddRow(FieldModel row)
         {
-            _nodes.Add(row);
+            Nodes.Add(row);
             row.Init();
         }
 
         private void AddFieldMembers()
         {
             if (FieldType.BaseType != null)
-                AddRow(new FieldModel(Grid, this, RowTypes.Base, FieldType.BaseType));
+                AddRow(new FieldModel(Instance, this, RowTypes.Base, FieldType.BaseType));
 
             if (FieldType.GetInterface("ICollection") != null)
-                AddRow(new FieldModel(Grid, this, RowTypes.Enumerate));
+                AddRow(new FieldModel(Instance, this, RowTypes.Enumerate));
 
             foreach (var field in FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
-                AddRow(new FieldModel(Grid, this, RowTypes.Field, field));
+                AddRow(new FieldModel(Instance, this, RowTypes.Field, field));
         }
 
         internal void RefreshField()
@@ -376,17 +412,17 @@ namespace XLibrary
             for (i = 0; i < Instances.Count && i < MAX_INSTANCES; i++)
                 RefreshCell(2 + i, Instances[i]);
 
-            for (; i < _cells.Count - 2; i++)
+            for (; i < Cells.Count - 2; i++)
                 SetCellValue(2 + i, "");
 
             if (RowType == RowTypes.Enumerate && Expanded)
                 RefreshFieldEnumerations();
 
             if (RowType == RowTypes.Root || RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
-                if (!Expanded && _nodes.Count == 0)
-                    _possibleSubNodes = true;
+                if (!Expanded && Nodes.Count == 0)
+                    PossibleSubNodes = true;
 
-            foreach (var n in _nodes.Cast<FieldModel>())
+            foreach (var n in Nodes.Cast<FieldModel>())
                 n.RefreshField();
         }
 
@@ -452,13 +488,13 @@ namespace XLibrary
 
         public void SetCellValue(int i, string newValue)
         {
-            while (_cells.Count <= i)
-                _cells.Add("");
+            while (Cells.Count <= i)
+                Cells.Add("");
 
             if (newValue.Length > MAX_CELL_CHARS)
                 newValue = newValue.Substring(0, MAX_CELL_CHARS) + "...";
 
-            _cells[i] = newValue;
+            Cells[i] = newValue;
         }
 
         public object GetFieldValue(object rootInstanceValue)
@@ -544,8 +580,8 @@ namespace XLibrary
             {
                 var indexValue = e.Current;
 
-                if (_nodes.Count <= i)
-                    AddRow(new FieldModel(Grid, this, RowTypes.Element, indexValue.GetType(), i));
+                if (Nodes.Count <= i)
+                    AddRow(new FieldModel(Instance, this, RowTypes.Element, indexValue.GetType(), i));
 
                 if (i > 100)
                     break;

@@ -82,7 +82,7 @@ namespace XBuilder.Panels
             if (Connection == null)
                 return;
 
-            Connection.CleanClose("Forced Disconnect");
+            XRay.RunInCoreAsync(() => Connection.CleanClose("Forced Disconnect"));
             Connection = null;
 
             ConnectionTimer_Tick(this, null);

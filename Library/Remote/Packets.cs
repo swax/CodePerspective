@@ -12,6 +12,7 @@ namespace XLibrary.Remote
         public const byte Generic = 0x20;
         public const byte Dat = 0x30;
         public const byte Sync = 0x40;
+        public const byte Instance = 0x50;
     }
 
     public class GenericPacket : G2Packet
@@ -247,19 +248,19 @@ namespace XLibrary.Remote
                 switch (child.Name)
                 {
                     case Packet_FunctionHit:
-                        sync.FunctionHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.FunctionHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ExceptionHit:
-                        sync.ExceptionHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ExceptionHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_ConstructedHit:
-                        sync.ConstructedHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.ConstructedHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_DisposedHit:
-                        sync.DisposeHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.DisposeHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_NewCalls:
@@ -267,7 +268,7 @@ namespace XLibrary.Remote
                         break;
 
                     case Packet_CallHits:
-                        sync.CallHits = PacketSetExt.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        sync.CallHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
 
                     case Packet_Inits:
@@ -348,7 +349,116 @@ namespace XLibrary.Remote
         }
     }
 
-    public static class PacketSetExt
+    public class InstancePacket : G2Packet
+    {
+        const byte Packet_Details = 0x10;
+        const byte Packet_Column = 0x20;
+        const byte Packet_Field = 0x30;
+        const byte Packet_Cell = 0x40;
+        const byte Packet_SubNodesFlag = 0x50;
+        const byte Packet_ThreadID = 0x60;
+        const byte Packet_FieldID = 0x70;
+  
+        public int ThreadID;
+        public int FieldID;
+        public string Details;
+        public List<string> Columns;
+        public List<IFieldModel> Fields;
+
+
+        public override byte[] Encode(G2Protocol protocol)
+        {
+            lock (protocol.WriteSection)
+            {
+                var instance = protocol.WritePacket(null, PacketType.Instance, null);
+
+                protocol.WritePacket(instance, Packet_ThreadID, BitConverter.GetBytes(ThreadID));
+                protocol.WritePacket(instance, Packet_FieldID, BitConverter.GetBytes(FieldID));
+
+                if(Details != null)
+                    protocol.WritePacket(instance, Packet_Details, UTF8Encoding.UTF8.GetBytes(Details));
+
+                if (Columns != null)
+                    foreach(var column in Columns)
+                        protocol.WritePacket(instance, Packet_Column, UTF8Encoding.UTF8.GetBytes(column));
+
+                if (Fields != null)
+                    foreach (var field in Fields)
+                    {
+                        var fieldPacket = protocol.WritePacket(instance, Packet_Field, null);
+
+                        protocol.WritePacket(fieldPacket, Packet_SubNodesFlag, BitConverter.GetBytes(field.PossibleSubNodes));
+                        protocol.WritePacket(fieldPacket, Packet_FieldID, BitConverter.GetBytes(field.ID));
+
+                        foreach(var cell in field.Cells)
+                            protocol.WritePacket(fieldPacket, Packet_Cell, UTF8Encoding.UTF8.GetBytes(cell));
+                    }
+
+                return protocol.WriteFinish();
+            }
+        }
+
+        public static InstancePacket Decode(G2Header root)
+        {
+            var instance = new InstancePacket();
+
+            foreach (var child in G2Protocol.EnumerateChildren(root))
+                switch (child.Name)
+                {
+                    case Packet_ThreadID:
+                        instance.ThreadID = BitConverter.ToInt32(child.Data, child.PayloadPos);
+                        break;
+
+                    case Packet_FieldID:
+                        instance.FieldID = BitConverter.ToInt32(child.Data, child.PayloadPos);
+                        break;
+
+                    case Packet_Details:
+                        instance.Details = UTF8Encoding.UTF8.GetString(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
+
+                    case Packet_Column:
+                        if (instance.Columns == null)
+                            instance.Columns = new List<string>();
+
+                        instance.Columns.Add(UTF8Encoding.UTF8.GetString(child.Data, child.PayloadPos, child.PayloadSize));
+                        break;
+
+                    case Packet_Field:
+                        if(instance.Fields == null)
+                            instance.Fields = new List<IFieldModel>();
+
+                        var field = new RemoteFieldModel();
+
+                        foreach (var sub in G2Protocol.EnumerateChildren(child))
+                            switch (sub.Name)
+                            {
+                                case Packet_SubNodesFlag:
+                                    field.PossibleSubNodes = BitConverter.ToBoolean(sub.Data, sub.PayloadPos);
+                                    break;
+
+                                case Packet_FieldID:
+                                    field.ID = BitConverter.ToInt32(sub.Data, sub.PayloadPos);
+                                    break;
+
+                                case Packet_Cell:
+                                    if(field.Cells == null)
+                                        field.Cells = new List<string>();
+
+                                    field.Cells.Add(UTF8Encoding.UTF8.GetString(sub.Data, sub.PayloadPos, sub.PayloadSize));
+                                    break;
+                            }
+
+                        instance.Fields.Add(field);
+                    
+                        break;
+                }
+
+            return instance;
+        }
+    }
+
+    public static class PacketExts
     {
         public static byte[] ToBytes(this ICollection<int> set)
         {

@@ -2,27 +2,10 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote	
-	on set selected node 
-		send selected node to server
-		server returns with list of root field models
+    refresh to server could iterate over field map, if any cells change, flag and send back just changed rows
 
-		on expand field model
-			client queries server for sub field models
-
-	Track what happens when instance is clicked, think about how to send data
-		query server for udpate to node model
-		server sends back current node model view
-		grid updates with node model
-			sets columns
-			sets rows
-
-		side line grid building
-		replace
-
-		common function that returns a grid object
-		object passed over network, or directly to grid 
-		opening node creates sub-grid object that is added or passed over network
-		profile info could also be sent as a grid object
+	Send call hits and timing information
+	Method profile view, periodic update
 
 	Test function for generic packet
 	Send entry/holding point info - send with stack data, extra bitfield?

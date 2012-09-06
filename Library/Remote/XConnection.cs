@@ -5,6 +5,7 @@ using System.Collections;
 using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
 
 
 namespace XLibrary.Remote
@@ -232,6 +233,8 @@ namespace XLibrary.Remote
 
         public int SendPacket(G2Packet packet)
         {
+            Debug.Assert(Thread.CurrentThread.ManagedThreadId == XRay.CoreThread.ManagedThreadId, "Send packet called not on core thread");
+
             if (State != TcpState.Connected)
                 return 0;
 

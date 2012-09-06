@@ -19,9 +19,7 @@ namespace XLibrary
 {
     public static class XRay
     {
-        static MainForm MainForm;
-
-        public static Dictionary<int, Thread> UIs = new Dictionary<int, Thread>();
+        public static Dictionary<int, XUI> UIs = new Dictionary<int, XUI>();
 
         public static XNodeIn RootNode;
         public static XNodeIn[] Nodes = new XNodeIn[] {};
@@ -91,8 +89,8 @@ namespace XLibrary
         {
             if (LoadNodeMap(path))
             {
-                MainForm = new MainForm();
-                MainForm.Show();
+                var form = new MainForm();
+                form.Show();
             }
         }
 
@@ -334,32 +332,30 @@ namespace XLibrary
 
         public static void StartGui()
         {
-            //if (Gui != null)
-            //    return;
+            XUI ui = new XUI();
 
-            int id = RndGen.Next();
-
-            var uiThread = new Thread(() =>
+            ui.Thread = new Thread(() =>
             {
                 try
                 {
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
                     
-                    MainForm = new MainForm();
-                    Application.Run(MainForm);
+                    ui.Window = new MainForm();
+                    Application.Run(ui.Window);
                 }
                 catch (Exception ex)
                 {
                     LogError("Gui Error: " + ex.Message);
                 }
 
-                UIs.Remove(id);
+                UIs.Remove(Thread.CurrentThread.ManagedThreadId);
             });
-            uiThread.SetApartmentState(ApartmentState.STA);
-            uiThread.Start();
 
-            UIs[id] = uiThread;
+            ui.Thread.SetApartmentState(ApartmentState.STA);
+            ui.Thread.Start();
+
+            UIs[ui.Thread.ManagedThreadId] = ui;
         }
 
         static IpcServerChannel XRayChannel;
@@ -1517,5 +1513,12 @@ namespace XLibrary
                 XRay.XRayEnabled = value;
             }
         }
+    }
+
+    public class XUI
+    {
+        public Thread Thread;
+        public MainForm Window;
+        public InstanceModel CurrentField;
     }
 }

@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Collections;
 using XLibrary.UI.Panels;
 using System.Diagnostics;
+using System.Threading;
 
 
 namespace XLibrary
@@ -25,7 +26,7 @@ namespace XLibrary
 
         IColorProfile ColorProfile = new BrightColorProfile();
 
-        GridModel Model;
+        InstanceModel Model;
 
         Dictionary<IFieldModel, FieldRow> ModelRowMap = new Dictionary<IFieldModel, FieldRow>();
 
@@ -73,7 +74,9 @@ namespace XLibrary
                 return;
             }
 
-            Model = new GridModel(SelectedNode, FieldFilter, GridModel_UpdateTree, GridModel_ExpandedField);
+            Model = new InstanceModel(SelectedNode.XNode, FieldFilter, GridModel_UpdateTree, GridModel_ExpandedField);
+
+            XRay.UIs[Thread.CurrentThread.ManagedThreadId].CurrentField = Model;
 
             if (!Visible)
                 return;
@@ -176,8 +179,8 @@ namespace XLibrary
         {
             RefreshTimer.Enabled = false;
             
-            if (Visible && Model != null) 
-                Model.BeginUpdateTree();
+            //if (Visible && Model != null) 
+            //    Model.BeginUpdateTree();
 
             // start next refrseh a second after the time it took to do the actual refresh
             RefreshTimer.Enabled = AutoRefreshOn;

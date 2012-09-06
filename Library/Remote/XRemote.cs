@@ -39,6 +39,7 @@ namespace XLibrary.Remote
         public int SyncCount;
 
         // client specific
+        public XConnection ServerConnection;
         public string RemoteStatus = "";
         public string RemoteCachePath;
         public string RemoteDatHash;
@@ -61,6 +62,9 @@ namespace XLibrary.Remote
             RouteGeneric["DatFileRequest"] = Receive_DatFileRequest;
 
             RouteGeneric["StartSync"] = Receive_StartSync;
+
+            RouteGeneric["RequestInstance"] = Receive_RequestInstance;
+            RouteGeneric["RequestField"] = Receive_RequestField;
         }
 
         public void StartListening()
@@ -131,18 +135,14 @@ namespace XLibrary.Remote
 
                Log(message);
 
-                // socket.TcpSocket = null; causing endrecv to fail on disconnect
+               SyncClients.Remove(socket);
+
+               if (socket == ServerConnection)
+                   ServerConnection = null;
+
+               // socket.TcpSocket = null; causing endrecv to fail on disconnect
             }
 
-
-            // prune syncs
-            var deadClients = SyncClients.Where(s => s.Connection.State == TcpState.Closed).ToList();
-
-            foreach (var client in deadClients)
-            {
-                SyncClients.Remove(client);
-                Log("Removed sync to {0}", client.Connection);
-            }
         }
 
         public XConnection MakeOutbound(IPAddress address, ushort tcpPort)
@@ -271,6 +271,10 @@ namespace XLibrary.Remote
 
                 case PacketType.Sync:
                     Receive_Sync(connection, packet);
+                    break;
+
+                case PacketType.Instance:
+                    Receive_Instance(connection, packet);
                     break;
 
                 default:
@@ -462,15 +466,19 @@ namespace XLibrary.Remote
             XRay.Init(LocalDatPath, true, true, true, true);
 
             connection.SendPacket(new GenericPacket("StartSync"));
+
+            ServerConnection = connection;
         }
 
         void Receive_StartSync(XConnection connection, GenericPacket packet)
         {
+            // received by server from client
+         
             var client = new SyncClient();
             client.Connection = connection;
 
             Log("Sync client added");
-            SyncClients.Add(client);
+            SyncClients.Add(client.Connection.GetHashCode(), client);
 
             // do after state added so new calls get queued to be sent as well
             foreach(var call in XRay.CallMap)
@@ -497,6 +505,8 @@ namespace XLibrary.Remote
 
         private void Receive_Sync(XConnection connection, G2ReceivedPacket packet)
         {
+            // received by client from server
+
             var sync = SyncPacket.Decode(packet.Root);
 
             Log("Sync packet received");
@@ -504,6 +514,138 @@ namespace XLibrary.Remote
             SyncCount++;
 
             XRay.RemoteSync(sync);
+        }
+
+        void Receive_RequestInstance(XConnection connection, GenericPacket request)
+        {
+            // received by server from client
+
+            SyncClient client;
+            if (!SyncClients.TryGetValue(connection.GetHashCode(), out client))
+            {
+                Log("Request Instance: Sync client not found");
+                return;
+            }
+
+            var threadID = int.Parse(request.Data["ThreadID"]);
+
+            var node = XRay.Nodes[int.Parse(request.Data["NodeID"])];
+
+            string filter = null;
+            request.Data.TryGetValue("Filter", out filter);
+
+            var model = new InstanceModel(node, filter);
+            client.SelectedInstances[threadID] = model;
+            Log("Request Instance: Model added for thread " + threadID.ToString());
+
+            model.BeginUpdateTree();
+
+            // send back details, columns, and nodes
+            var response = new InstancePacket()
+            {
+                ThreadID = threadID,
+                Details = model.DetailsLabel,
+                Columns = model.Columns,
+                Fields = model.RootNodes
+            };
+
+            client.Connection.SendPacket(response);
+        }
+
+        void Receive_RequestField(XConnection connection, GenericPacket request)
+        {
+            // received by server from client
+
+            // get client
+            SyncClient client;
+            if (!SyncClients.TryGetValue(connection.GetHashCode(), out client))
+            {
+                Log("Request field: Instance request received, but sync client not found");
+                return;
+            }
+
+            // get thread - client can have multiple ui threads viewing instances
+            var threadID = int.Parse(request.Data["ThreadID"]);
+
+            InstanceModel instance;
+            if (!client.SelectedInstances.TryGetValue(threadID, out instance))
+            {
+                Log("Request field: instance not found " + threadID.ToString());
+                return;
+            }
+
+            // get field
+            var fieldID = int.Parse(request.Data["FieldID"]);
+
+            IFieldModel field;
+            if (!instance.FieldMap.TryGetValue(fieldID, out field))
+            {
+                Log("Request field: field not found " + fieldID.ToString());
+                return;
+            }
+
+            field.ExpandField();
+
+            // create packet with expanded results and send
+            var response = new InstancePacket()
+            {
+                ThreadID = threadID,
+                FieldID = fieldID,
+                Fields = field.Nodes
+            };
+
+            client.Connection.SendPacket(response);
+        }
+
+        private void Receive_Instance(XConnection connection, G2ReceivedPacket rawPacket)
+        {
+            // received by client from server
+
+            var packet = InstancePacket.Decode(rawPacket.Root);
+
+            XUI ui;
+            if (!XRay.UIs.TryGetValue(packet.ThreadID, out ui))
+            {
+                Log("Receive Instance: UI not found for instance result");
+                return;
+            }
+
+            if (ui.CurrentField == null)
+            {
+                Log("Receive Instance: Field not set");
+                return;
+            }
+
+            var model = ui.CurrentField;
+
+            if (packet.Details != null)
+                model.DetailsLabel = packet.Details;
+
+            if (packet.Columns != null)
+                model.Columns = packet.Columns;
+
+            if (packet.Fields != null)
+            {
+                foreach (var field in packet.Fields)
+                    model.FieldMap[field.ID] = field; 
+                
+                if (packet.FieldID == 0)
+                {
+                    model.RootNodes = packet.Fields;
+
+                    if (model.UpdatedTree != null)
+                        ui.Window.BeginInvoke(new Action(() => model.UpdatedTree()));
+                }
+                else
+                {
+                    IFieldModel field;
+                    if (model.FieldMap.TryGetValue(packet.FieldID, out field))
+                        field.Nodes = packet.Fields;
+
+                    if (model.ExpandedField != null)
+                        ui.Window.BeginInvoke(new Action(() => model.ExpandedField(field)));
+                }
+            }
         }
     }
 
@@ -538,6 +680,8 @@ namespace XLibrary.Remote
         public Dictionary<int, PairList> ThreadStacks = new Dictionary<int, PairList>(); // current stack of thread, top level unchanged and pushed off history so we have to sync it
         const int MaxStackItemsPerThreadSent = 100;
         public Dictionary<int, int> NewStackItems = new Dictionary<int, int>();
+
+        public Dictionary<int, InstanceModel> SelectedInstances = new Dictionary<int, InstanceModel>();
 
 
         public void DoSync()

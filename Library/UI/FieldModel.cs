@@ -20,7 +20,11 @@ namespace XLibrary
         public Random RndGen = new Random();
 
         public List<IFieldModel> RootNodes = new List<IFieldModel>();
+
+        public bool ColumnsUpdated;
         public List<string> Columns = new List<string>();
+
+        public HashSet<int> UpdatedFields = new HashSet<int>();
         public Dictionary<int, IFieldModel> FieldMap = new Dictionary<int, IFieldModel>();
 
         public Dictionary<string, Tuple<Type, List<ActiveRecord>>> GenericMap = new Dictionary<string, Tuple<Type, List<ActiveRecord>>>();
@@ -43,7 +47,7 @@ namespace XLibrary
             Columns.Add("Name");
         }
 
-        public void BeginUpdateTree() 
+        public void BeginUpdateTree(bool refresh) 
         {
             if (SelectedNode == null)
                 return;
@@ -56,16 +60,32 @@ namespace XLibrary
                     return;
                 }
 
-                // send request for grid info to remote client
-                var packet = new GenericPacket("RequestInstance");
-                packet.Data = new Dictionary<string, string>();
-                packet.Data["ThreadID"] = Thread.CurrentThread.ManagedThreadId.ToString();
-                packet.Data["NodeID"] = SelectedNode.ID.ToString();
+                // send request for initial table data
+                if (!refresh)
+                {
+                    var packet = new GenericPacket("RequestInstance");
+                    packet.Data = new Dictionary<string, string>
+                    {
+                        {"ThreadID", Thread.CurrentThread.ManagedThreadId.ToString()},
+                        {"NodeID", SelectedNode.ID.ToString()}
+                    };
 
-                if (FieldFilter != null)
-                    packet.Data["Filter"] = FieldFilter;
+                    if (FieldFilter != null)
+                        packet.Data["Filter"] = FieldFilter;
 
-                XRay.RunInCoreAsync(() => XRay.Remote.ServerConnection.SendPacket(packet));
+                    XRay.RunInCoreAsync(() => XRay.Remote.ServerConnection.SendPacket(packet));
+                }
+                // else send request to refresh table data
+                else
+                {
+                    var packet = new GenericPacket("RequestInstanceRefresh");
+                    packet.Data = new Dictionary<string, string>
+                    {
+                        {"ThreadID", Thread.CurrentThread.ManagedThreadId.ToString()}
+                    };
+
+                    XRay.RunInCoreAsync(() => XRay.Remote.ServerConnection.SendPacket(packet));
+                }
 
                 return;
             }
@@ -140,6 +160,7 @@ namespace XLibrary
             if (GenericMap.Count > 0)
                 instanceCount = GenericMap.Values.Max(v => v.Item2.Count);
 
+            ColumnsUpdated = false;
             var newColumns = new List<string>();
 
             for (int i = 0; i < instanceCount; i++)
@@ -148,10 +169,16 @@ namespace XLibrary
                     var col = "Instance " + i.ToString();
                     newColumns.Add(col);
                     Columns.Add(col);
+                    ColumnsUpdated = true;
                 }
 
             while (Columns.Count > 2 + instanceCount)
+            {
                 Columns.RemoveAt(Columns.Count - 1);
+                ColumnsUpdated = true;
+            }
+
+            UpdatedFields = new HashSet<int>();
 
             foreach (var recordInstance in GenericMap)
             {
@@ -184,7 +211,7 @@ namespace XLibrary
     public interface IFieldModel
     {
         int ID { get; }
-        List<string> Cells { get; }
+        List<string> Cells { set; get; }
         List<IFieldModel> Nodes { set; get; }
         bool PossibleSubNodes { get; }
         void ExpandField(string fieldFilter = null);
@@ -489,11 +516,17 @@ namespace XLibrary
         public void SetCellValue(int i, string newValue)
         {
             while (Cells.Count <= i)
+            {
                 Cells.Add("");
+                Instance.UpdatedFields.Add(ID);
+            }
 
             if (newValue.Length > MAX_CELL_CHARS)
                 newValue = newValue.Substring(0, MAX_CELL_CHARS) + "...";
 
+            if(Cells[i] != newValue)
+                Instance.UpdatedFields.Add(ID);
+                
             Cells[i] = newValue;
         }
 

@@ -349,6 +349,8 @@ namespace XLibrary.Remote
         }
     }
 
+    public enum InstancePacketType { Root = 1, Field = 2, Refresh = 3 }
+
     public class InstancePacket : G2Packet
     {
         const byte Packet_Details = 0x10;
@@ -358,7 +360,10 @@ namespace XLibrary.Remote
         const byte Packet_SubNodesFlag = 0x50;
         const byte Packet_ThreadID = 0x60;
         const byte Packet_FieldID = 0x70;
-  
+        const byte Packet_Type = 0x80;
+
+
+        public InstancePacketType Type;
         public int ThreadID;
         public int FieldID;
         public string Details;
@@ -372,6 +377,7 @@ namespace XLibrary.Remote
             {
                 var instance = protocol.WritePacket(null, PacketType.Instance, null);
 
+                protocol.WritePacket(instance, Packet_Type, BitConverter.GetBytes((int)Type));
                 protocol.WritePacket(instance, Packet_ThreadID, BitConverter.GetBytes(ThreadID));
                 protocol.WritePacket(instance, Packet_FieldID, BitConverter.GetBytes(FieldID));
 
@@ -401,10 +407,16 @@ namespace XLibrary.Remote
         public static InstancePacket Decode(G2Header root)
         {
             var instance = new InstancePacket();
+            
+            instance.Fields = new List<IFieldModel>(); // needs to be initd
 
             foreach (var child in G2Protocol.EnumerateChildren(root))
                 switch (child.Name)
                 {
+                    case Packet_Type:
+                        instance.Type = (InstancePacketType) BitConverter.ToInt32(child.Data, child.PayloadPos);
+                        break;
+
                     case Packet_ThreadID:
                         instance.ThreadID = BitConverter.ToInt32(child.Data, child.PayloadPos);
                         break;

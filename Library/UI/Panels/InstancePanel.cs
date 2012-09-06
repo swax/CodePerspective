@@ -28,7 +28,7 @@ namespace XLibrary
 
         InstanceModel Model;
 
-        Dictionary<IFieldModel, FieldRow> ModelRowMap = new Dictionary<IFieldModel, FieldRow>();
+        Dictionary<int, FieldRow> ModelRowMap = new Dictionary<int, FieldRow>();
 
 
         public InstancePanel()
@@ -76,7 +76,7 @@ namespace XLibrary
 
             Model = new InstanceModel(SelectedNode.XNode, FieldFilter, GridModel_UpdateTree, GridModel_ExpandedField);
 
-            XRay.UIs[Thread.CurrentThread.ManagedThreadId].CurrentField = Model;
+            XRay.UIs[Thread.CurrentThread.ManagedThreadId].CurrentInstance = Model;
 
             if (!Visible)
                 return;
@@ -86,9 +86,9 @@ namespace XLibrary
             FieldGrid.Nodes.Clear();
             FieldGrid.Columns.Clear();
 
-            ModelRowMap = new Dictionary<IFieldModel, FieldRow>();
+            ModelRowMap = new Dictionary<int, FieldRow>();
 
-            Model.BeginUpdateTree();
+            Model.BeginUpdateTree(false);
 
             RefreshSubnodesView();
         }
@@ -138,7 +138,7 @@ namespace XLibrary
                     viewNodes.Add(row);
 
                     XRay.LogMessage("Row added");
-                    ModelRowMap[model] = row;
+                    ModelRowMap[model.ID] = row;
                     
                     if (model.PossibleSubNodes)
                         row.Nodes.Add("Loading...");
@@ -161,7 +161,7 @@ namespace XLibrary
         private void GridModel_ExpandedField(IFieldModel fieldModel)
         {
             FieldRow row;
-            if (!ModelRowMap.TryGetValue(fieldModel, out row))
+            if (!ModelRowMap.TryGetValue(fieldModel.ID, out row))
             {
                 XRay.LogError("Row not found for model size {0}", ModelRowMap.Count);
                 return;
@@ -179,8 +179,8 @@ namespace XLibrary
         {
             RefreshTimer.Enabled = false;
             
-            //if (Visible && Model != null) 
-            //    Model.BeginUpdateTree();
+            if (Visible && Model != null) 
+                Model.BeginUpdateTree(true);
 
             // start next refrseh a second after the time it took to do the actual refresh
             RefreshTimer.Enabled = AutoRefreshOn;

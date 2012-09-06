@@ -2,8 +2,6 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote	
-    refresh to server could iterate over field map, if any cells change, flag and send back just changed rows
-
 	Send call hits and timing information
 	Method profile view, periodic update
 

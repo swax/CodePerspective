@@ -65,6 +65,7 @@ namespace XLibrary.Remote
 
             RouteGeneric["RequestInstance"] = Receive_RequestInstance;
             RouteGeneric["RequestField"] = Receive_RequestField;
+            RouteGeneric["RequestInstanceRefresh"] = Receive_RequestInstanceRefresh;
         }
 
         public void StartListening()
@@ -538,16 +539,54 @@ namespace XLibrary.Remote
             client.SelectedInstances[threadID] = model;
             Log("Request Instance: Model added for thread " + threadID.ToString());
 
-            model.BeginUpdateTree();
+            model.BeginUpdateTree(false);
 
             // send back details, columns, and nodes
             var response = new InstancePacket()
             {
+                Type = InstancePacketType.Root,
                 ThreadID = threadID,
                 Details = model.DetailsLabel,
                 Columns = model.Columns,
                 Fields = model.RootNodes
             };
+
+            client.Connection.SendPacket(response);
+        }
+
+        void Receive_RequestInstanceRefresh(XConnection connection, GenericPacket request)
+        {       
+            // received by server from client
+
+            SyncClient client;
+            if (!SyncClients.TryGetValue(connection.GetHashCode(), out client))
+            {
+                Log("Request Instance Refresh: Sync client not found");
+                return;
+            }
+
+            var threadID = int.Parse(request.Data["ThreadID"]);
+
+            InstanceModel instance;
+            if (!client.SelectedInstances.TryGetValue(threadID, out instance))
+            {
+                Log("Request field: instance not found " + threadID.ToString());
+                return;
+            }
+
+            instance.BeginUpdateTree(true);
+
+            // send columns if updated
+            var response = new InstancePacket();
+            response.Type = InstancePacketType.Refresh;
+            response.ThreadID = threadID;
+            // flag as a refresh?
+
+            if (instance.ColumnsUpdated)
+                response.Columns = instance.Columns;
+
+            // iterate fields, send any marked as changed
+            response.Fields = instance.FieldMap.Values.Where(f => instance.UpdatedFields.Contains(f.ID)).ToList();
 
             client.Connection.SendPacket(response);
         }
@@ -589,6 +628,7 @@ namespace XLibrary.Remote
             // create packet with expanded results and send
             var response = new InstancePacket()
             {
+                Type = InstancePacketType.Field,
                 ThreadID = threadID,
                 FieldID = fieldID,
                 Fields = field.Nodes
@@ -610,42 +650,62 @@ namespace XLibrary.Remote
                 return;
             }
 
-            if (ui.CurrentField == null)
+            if (ui.CurrentInstance == null)
             {
                 Log("Receive Instance: Field not set");
                 return;
             }
 
-            var model = ui.CurrentField;
+            bool updateTree = false;
+            bool updateFields = false;
+            IFieldModel expandField = null;
+
+            var instance = ui.CurrentInstance;
 
             if (packet.Details != null)
-                model.DetailsLabel = packet.Details;
+                instance.DetailsLabel = packet.Details;
 
             if (packet.Columns != null)
-                model.Columns = packet.Columns;
+            {
+                instance.Columns = packet.Columns;
+                updateTree = true;
+            }
+            
+            if (packet.Type == InstancePacketType.Root)
+            {
+                instance.RootNodes = packet.Fields;
+                updateTree = true;
+                updateFields = true;
+            }
+            else if(packet.Type == InstancePacketType.Field)
+            {
+                IFieldModel field;
+                if (instance.FieldMap.TryGetValue(packet.FieldID, out field))
+                    field.Nodes = packet.Fields;
 
-            if (packet.Fields != null)
+                updateFields = true;
+                expandField = field;
+            }
+            else if (packet.Type == InstancePacketType.Refresh)
             {
                 foreach (var field in packet.Fields)
-                    model.FieldMap[field.ID] = field; 
-                
-                if (packet.FieldID == 0)
-                {
-                    model.RootNodes = packet.Fields;
+                    if (instance.FieldMap.ContainsKey(field.ID))
+                        instance.FieldMap[field.ID].Cells = field.Cells;
 
-                    if (model.UpdatedTree != null)
-                        ui.Window.BeginInvoke(new Action(() => model.UpdatedTree()));
-                }
-                else
-                {
-                    IFieldModel field;
-                    if (model.FieldMap.TryGetValue(packet.FieldID, out field))
-                        field.Nodes = packet.Fields;
-
-                    if (model.ExpandedField != null)
-                        ui.Window.BeginInvoke(new Action(() => model.ExpandedField(field)));
-                }
+                updateTree = true; // cause recursive update of cells
+                // dont update fields because already added, and would orphen fields associated with nodes
             }
+
+            if (updateFields)
+                foreach (var field in packet.Fields)
+                    instance.FieldMap[field.ID] = field;
+
+            // if we're geting fresh info, or refresh info with new columns
+            if (updateTree && instance.UpdatedTree != null)
+                ui.Window.BeginInvoke(new Action(() => instance.UpdatedTree()));
+
+            if (expandField != null && instance.ExpandedField != null)
+                ui.Window.BeginInvoke(new Action(() => instance.ExpandedField(expandField)));
         }
     }
 

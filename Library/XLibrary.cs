@@ -1519,6 +1519,6 @@ namespace XLibrary
     {
         public Thread Thread;
         public MainForm Window;
-        public InstanceModel CurrentField;
+        public InstanceModel CurrentInstance;
     }
 }

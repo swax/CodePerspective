@@ -149,6 +149,7 @@ namespace XLibrary.Remote
         const byte Packet_ClassCallThreads = 0xC0;
         const byte Packet_Threadlines = 0xD0;
         const byte Packet_ThreadStacks = 0xE0;
+        const byte Packet_CallStats = 0xF0;
 
         const byte ChildPacket_ThreadID = 0x10;
         const byte ChildPacket_ThreadName = 0x20;
@@ -162,6 +163,7 @@ namespace XLibrary.Remote
 
         public PairList NewCalls;
         public HashSet<int> CallHits;
+        public List<CallStat> CallStats;
 
         public PairList Inits;
 
@@ -186,6 +188,9 @@ namespace XLibrary.Remote
 
                 AddPairs(protocol, sync, Packet_NewCalls, NewCalls);
                 AddSet(protocol, sync, Packet_CallHits, CallHits);
+
+                if (CallStats != null)
+                    protocol.WritePacket(sync, Packet_CallStats, CallStats.ToBytes());
 
                 AddPairs(protocol, sync, Packet_Inits, Inits);
 
@@ -270,6 +275,10 @@ namespace XLibrary.Remote
                     case Packet_CallHits:
                         sync.CallHits = PacketExts.HashSetFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
                         break;
+                        
+                    case Packet_CallStats:
+                        sync.CallStats = PacketExts.StatsFromBytes(child.Data, child.PayloadPos, child.PayloadSize);
+                        break;
 
                     case Packet_Inits:
                         sync.Inits = PairList.FromBytes(child.Data, child.PayloadPos, child.PayloadSize);
@@ -346,6 +355,25 @@ namespace XLibrary.Remote
                     list = PairList.FromBytes(sub.Data, sub.PayloadPos, sub.PayloadSize);
 
             map[id] = list;
+        }
+    }
+
+    public class CallStat
+    {
+        public int ID;
+        public int TotalHits;
+        public int TotalCallTime;
+        public int TotalTimeOutsideDest;
+
+        public CallStat()
+        { }
+
+        public CallStat(FunctionCall call)
+        {
+            ID = call.ID;
+            TotalHits = call.TotalHits;
+            TotalCallTime = call.TotalCallTime;
+            TotalTimeOutsideDest = call.TotalTimeOutsideDest;
         }
     }
 
@@ -501,12 +529,48 @@ namespace XLibrary.Remote
 
         public static List<int> ListFromBytes(byte[] data, int pos, int size)
         {
-            var result = new List<int>();
+            var results = new List<int>();
 
             for (int i = pos; i < pos + size; i += 4)
-                result.Add(BitConverter.ToInt32(data, i));
+                results.Add(BitConverter.ToInt32(data, i));
 
-            return result;
+            return results;
+        }
+
+        public static byte[] ToBytes(this List<CallStat> list)
+        {
+            byte[] data = new byte[list.Count * 16];
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                var stat = list[i];
+                var pos = i * 16;
+
+                BitConverter.GetBytes(stat.ID).CopyTo(data, pos);
+                BitConverter.GetBytes(stat.TotalHits).CopyTo(data, pos + 4);
+                BitConverter.GetBytes(stat.TotalCallTime).CopyTo(data, pos + 8);
+                BitConverter.GetBytes(stat.TotalTimeOutsideDest).CopyTo(data, pos + 12);
+            }
+
+            return data;
+        }
+
+        public static List<CallStat> StatsFromBytes(byte[] data, int pos, int size)
+        {
+            var results = new List<CallStat>();
+
+            for (int i = pos; i < pos + size; i += 16)
+            {
+                var stat = new CallStat();
+                stat.ID = BitConverter.ToInt32(data, i);
+                stat.TotalHits = BitConverter.ToInt32(data, i + 4);
+                stat.TotalCallTime = BitConverter.ToInt32(data, i + 8);
+                stat.TotalTimeOutsideDest = BitConverter.ToInt32(data, i + 12);
+
+                results.Add(stat);
+            }
+
+            return results;
         }
 
         public static void Test()

@@ -41,6 +41,14 @@ namespace XLibrary
             return false;
         }
 
+        public T this[int key]
+        {
+            get
+            {
+                return Values[Map[key]];
+            }
+        }
+
         public void Add(int hash, T call)
         {
             // locking isnt so bad because once app is running, add won't be called so much

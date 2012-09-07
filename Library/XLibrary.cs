@@ -195,7 +195,6 @@ namespace XLibrary
             File.AppendAllText("XError.log", excString);
         }
 
-
         static void RunEventLoop(object state)
         {
             int frameMS = 1000 / HitFrames;
@@ -210,28 +209,29 @@ namespace XLibrary
             {
                 RunCoreEvent.WaitOne(frameMS);
 
-                if(resetWatch.ElapsedMilliseconds >= frameMS)
+                if (secondWatch.ElapsedMilliseconds >= 1000)
+                {
+                    if (Remote != null)
+                        Remote.SecondTimer();
+
+                    // if we are a server, update thread alive states for the program we're analyzing
+                    if (!RemoteClient)
+                        UpdateThreadAlive();
+
+                    secondWatch.Reset();
+                    secondWatch.Start();
+                }
+
+                if (resetWatch.ElapsedMilliseconds >= frameMS)
                 {
                     ResetFunctionHits();
 
                     resetWatch.Reset();
                     resetWatch.Start();
 
-                    if(Remote != null)
+                    if (Remote != null)
                         foreach (var client in Remote.SyncClients)
                             client.DoSync();
-                }
-
-                if (secondWatch.ElapsedMilliseconds >= 1000)
-                {
-                    if(Remote != null)
-                        Remote.SecondTimer();
-
-                    if (!RemoteClient) 
-                        UpdateThreadAlive();
-
-                    secondWatch.Reset();
-                    secondWatch.Start();
                 }
 
                 if (Remote != null)
@@ -818,10 +818,10 @@ namespace XLibrary
                                 continue;
 
                             exited.Call.StillInside--;
-                            exited.Call.TotalCallTime += ticks - exited.StartTick;
+                            exited.Call.TotalCallTime += (int)(ticks - exited.StartTick);
 
                             if (x > 0 && flow.Stack[x - 1].Call != null)
-                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.StartTick;
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += (int)(ticks - exited.StartTick);
                         }
 
                         if (i == 0)
@@ -864,7 +864,7 @@ namespace XLibrary
                             exited.EndTick = ticks;
 
                             Nodes[exited.NodeID].StillInside--;
-                            exited.Call.TotalCallTime += ticks - exited.StartTick;
+                            exited.Call.TotalCallTime += (int)(ticks - exited.StartTick);
 
                             Nodes[exited.NodeID].ExceptionHit = ShowTicks;
                             if (Remote != null)
@@ -876,7 +876,7 @@ namespace XLibrary
                                 exited.Call.StillInside--;
 
                             if (x > 0 && flow.Stack[x - 1].Call != null)
-                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += ticks - exited.StartTick;
+                                flow.Stack[x - 1].Call.TotalTimeOutsideDest += (int)(ticks - exited.StartTick);
                         }
 
                         break;
@@ -1109,6 +1109,23 @@ namespace XLibrary
                     if (ClassTracking)
                         TrackClassCall(call, 0);
                 }
+
+            if (packet.CallStats != null)
+            {
+                foreach (var stat in packet.CallStats)
+                {
+                    FunctionCall call;
+                    if (!CallMap.TryGetValue(stat.ID, out call))
+                    {
+                        Debug.Assert(false, "Call not found in sync");
+                        continue;
+                    }
+
+                    call.TotalHits = stat.TotalHits;
+                    call.TotalCallTime = stat.TotalCallTime;
+                    call.TotalTimeOutsideDest = stat.TotalTimeOutsideDest;
+                }
+            }
 
             if (packet.Inits != null)
                 foreach (var init in packet.Inits)
@@ -1449,8 +1466,8 @@ namespace XLibrary
         public int StillInside;
 
         public int TotalHits;
-        public long TotalCallTime;
-        public long TotalTimeOutsideDest;
+        public int TotalCallTime;
+        public int TotalTimeOutsideDest;
 
         public int ClassCallHash;
 

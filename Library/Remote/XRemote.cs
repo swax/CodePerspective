@@ -117,9 +117,10 @@ namespace XLibrary.Remote
             SyncsPerSecond = SyncCount;
             SyncCount = 0;
 
-            // Run through socket connections
-        
+            foreach (var client in SyncClients)
+                client.SecondTimer();
 
+            // Run through socket connections
             lock (Connections)
                 foreach (var socket in Connections)
                     socket.SecondTimer();
@@ -250,7 +251,7 @@ namespace XLibrary.Remote
             switch (packet.Root.Name)
             {
                 case PacketType.Padding:
-                    Log("Crypt Padding Received");
+                    //Log("Crypt Padding Received");
                     break;
 
                 case PacketType.Generic:
@@ -510,7 +511,7 @@ namespace XLibrary.Remote
 
             var sync = SyncPacket.Decode(packet.Root);
 
-            Log("Sync packet received");
+            //Log("Sync packet received");
 
             SyncCount++;
 
@@ -727,8 +728,9 @@ namespace XLibrary.Remote
         public HashSet<int> ConstructedHits = new HashSet<int>();
         public HashSet<int> DisposeHits = new HashSet<int>();
 
-        public PairList NewCalls = new PairList();  
+        public PairList NewCalls = new PairList();
         public HashSet<int> CallHits = new HashSet<int>();
+        public HashSet<int> CallStats = new HashSet<int>();
 
         public PairList Inits = new PairList();
 
@@ -743,14 +745,22 @@ namespace XLibrary.Remote
 
         public Dictionary<int, InstanceModel> SelectedInstances = new Dictionary<int, InstanceModel>();
 
+        const int SendStatsInterval = 4;
+        int SendStatsCounter = 0;
 
-        public void DoSync()
+        public void SecondTimer()
+        {
+            SendStatsCounter++;
+        }
+
+        public bool DoSync()
         {
             if (Connection.State != TcpState.Connected)
-                return;
+                return false;
 
+            // this is how we throttle the connection to available bandwidth
             if (!Connection.SendReady)
-                return;
+                return false;
 
             DataToSend = false;
 
@@ -764,6 +774,22 @@ namespace XLibrary.Remote
 
             AddPairs(ref NewCalls, ref packet.NewCalls);
             AddSet(ref CallHits, ref packet.CallHits);
+
+            if(packet.CallHits != null)
+                foreach (var id in packet.CallHits)
+                    CallStats.Add(id); // copy over to stats for bulk send
+
+            if (SendStatsCounter > SendStatsInterval && CallStats.Count > 0)
+            {
+                packet.CallStats = new List<CallStat>();
+
+                foreach (var hash in CallStats)
+                    packet.CallStats.Add(new CallStat(XRay.CallMap[hash]));
+
+                CallStats = new HashSet<int>();
+                SendStatsCounter = 0;
+                DataToSend = true;
+            }
 
             AddPairs(ref Inits, ref packet.Inits);
 
@@ -789,6 +815,8 @@ namespace XLibrary.Remote
             // check that there's space in the send buffer to send state
             if(DataToSend)
                 Connection.SendPacket(packet);
+
+            return true;
         }
 
         void AddSet(ref HashSet<int> localSet, ref HashSet<int> packetSet)

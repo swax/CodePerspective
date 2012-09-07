@@ -2,18 +2,14 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote	
-	reconnect - new call already added on sync
-	Thread call not found on sync?
 	high cpu on client - try not getting next frame until current one processed 
 		settings on client side to set frame rate, profile update rate, etc..
 
-	Send call hits and timing information 3s intervals - 16b - callHash, hits, timeIn, timeOut
-		keep hash map of what ids to send, also use for entry/holding?
+	send entry/holding info
 
 	do min/max/avg sync packet size for stats - output in network log
 
 	Test function for generic packet
-	Send entry/holding point info - send with stack data, extra bitfield?
 
 	redo options panel - add network settings, ability to disable UI entirely
 		page based, first add files, then set options, then buid, test, launch

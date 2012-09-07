@@ -18,9 +18,6 @@ namespace XBuilder.Panels
 {
     public partial class RemotePanel : UserControl
     {
-        XConnection Connection;
-
-
         public RemotePanel()
         {
             InitializeComponent();
@@ -49,7 +46,7 @@ namespace XBuilder.Panels
                 var port = parts[1];
 
                 // connect
-                Connection = XRay.Remote.MakeOutbound(IPAddress.Parse(ip), ushort.Parse(port));
+                XRay.Remote.ConnectToServer(IPAddress.Parse(ip), ushort.Parse(port));
 
                 ConnectionTimer_Tick(this, null);
             }
@@ -61,29 +58,32 @@ namespace XBuilder.Panels
 
         private void ConnectionTimer_Tick(object sender, EventArgs e)
         {
-            if (Connection == null)
+            var server = XRay.Remote.ServerConnection;
+
+            if (server == null)
                 StatusLabel.Text = "";
             else
-                StatusLabel.Text = Connection.ToString() + " - " + Connection.State.ToString() + " - " + XRay.Remote.RemoteStatus;
+                StatusLabel.Text = server.ToString() + " - " + server.State.ToString() + " - " + XRay.Remote.RemoteStatus;
 
             ConnectButton.Enabled = (XRay.Remote.Connections.Count == 0);
             OpenButton.Enabled = XRay.InitComplete; // dat loaded
-            DisconnectButton.Enabled = (Connection != null);
+            DisconnectButton.Enabled = (server != null);
 
-            if (Connection != null)
+            if (server != null)
             {
-                BandwidthLabel.Text = string.Format("In: {0} b/s, Out: {1} b/s", Connection.Bandwidth.InAvg(), Connection.Bandwidth.OutAvg());
+                BandwidthLabel.Text = string.Format("In: {0} b/s, Out: {1} b/s", server.Bandwidth.InAvg(), server.Bandwidth.OutAvg());
                 SyncSpeedLabel.Text = "Syncs per Second: " + XRay.Remote.SyncsPerSecond.ToString();
             }
         }
 
         private void DisconnectButton_Click(object sender, EventArgs e)
         {
-            if (Connection == null)
+            var server = XRay.Remote.ServerConnection;
+
+            if (server == null)
                 return;
 
-            XRay.RunInCoreAsync(() => Connection.CleanClose("Forced Disconnect"));
-            Connection = null;
+            XRay.RunInCoreAsync(() => server.CleanClose("Forced Disconnect"));
 
             ConnectionTimer_Tick(this, null);
         }

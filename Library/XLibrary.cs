@@ -1091,7 +1091,10 @@ namespace XLibrary
                     if (!CallMap.Contains(hash))
                         CreateNewCall(hash, source, Nodes[dest]);
                     else
-                        Debug.Assert(false, "New call already added in sync");
+                    {
+                        // on re-connect this will happen
+                        //Debug.Assert(false, "New call already added in sync");
+                    }
                 }
 
             if (packet.CallHits != null)
@@ -1146,7 +1149,10 @@ namespace XLibrary
                     if (!FlowMap.Contains(id))
                         FlowMap.Add(id, new ThreadFlow() { ThreadID = id, Name = name, IsAlive = alive });
                     else
-                        Debug.Assert(false, "Flow already contains thread on sync");
+                    {
+                        // on re-connect this will happen
+                        //Debug.Assert(false, "Flow already contains thread on sync");
+                    }
                 }
 
             if(packet.ThreadChanges != null)

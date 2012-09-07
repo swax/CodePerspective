@@ -147,26 +147,23 @@ namespace XLibrary.Remote
 
         }
 
-        public XConnection MakeOutbound(IPAddress address, ushort tcpPort)
+        public void ConnectToServer(IPAddress address, ushort tcpPort)
         {
             // only allow 1 outbound connection at a time
-            if (Connections.Count != 0)
-                return null;
+            if (ServerConnection != null)
+                return;
 
             try
             {
-               var outbound = new XConnection(this, address, tcpPort);
+               ServerConnection = new XConnection(this, address, tcpPort);
                Log("Attempting Connection to " + address.ToString() + ":" + tcpPort.ToString());
 
                 lock (Connections)
-                    Connections.Add(outbound);
-
-                return outbound;
+                    Connections.Add(ServerConnection);
             }
             catch (Exception ex)
             {
                 Log("TcpHandler::MakeOutbound Exception: " + ex.Message);
-                return null;
             }
         }
 

@@ -75,7 +75,7 @@
             // ButtonRecompile
             // 
             this.ButtonRecompile.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonRecompile.Location = new System.Drawing.Point(7, 53);
+            this.ButtonRecompile.Location = new System.Drawing.Point(31, 56);
             this.ButtonRecompile.Name = "ButtonRecompile";
             this.ButtonRecompile.Size = new System.Drawing.Size(153, 34);
             this.ButtonRecompile.TabIndex = 39;
@@ -86,7 +86,7 @@
             // ButtonTestCompile
             // 
             this.ButtonTestCompile.AutoSize = true;
-            this.ButtonTestCompile.Location = new System.Drawing.Point(4, 113);
+            this.ButtonTestCompile.Location = new System.Drawing.Point(28, 103);
             this.ButtonTestCompile.Name = "ButtonTestCompile";
             this.ButtonTestCompile.Size = new System.Drawing.Size(267, 13);
             this.ButtonTestCompile.TabIndex = 40;
@@ -106,9 +106,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.StatusLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.StatusLabel.ForeColor = System.Drawing.Color.Green;
-            this.StatusLabel.Location = new System.Drawing.Point(4, 141);
+            this.StatusLabel.Location = new System.Drawing.Point(31, 141);
             this.StatusLabel.Name = "StatusLabel";
-            this.StatusLabel.Size = new System.Drawing.Size(387, 29);
+            this.StatusLabel.Size = new System.Drawing.Size(360, 29);
             this.StatusLabel.TabIndex = 41;
             // 
             // ErrorLabel
@@ -117,9 +117,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ErrorLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ErrorLabel.ForeColor = System.Drawing.Color.Maroon;
-            this.ErrorLabel.Location = new System.Drawing.Point(4, 170);
+            this.ErrorLabel.Location = new System.Drawing.Point(31, 170);
             this.ErrorLabel.Name = "ErrorLabel";
-            this.ErrorLabel.Size = new System.Drawing.Size(387, 29);
+            this.ErrorLabel.Size = new System.Drawing.Size(360, 29);
             this.ErrorLabel.TabIndex = 42;
             // 
             // BuildStepCompile

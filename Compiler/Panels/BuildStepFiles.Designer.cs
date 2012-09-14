@@ -28,33 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.FileList = new System.Windows.Forms.ListBox();
             this.RemoveLink = new System.Windows.Forms.LinkLabel();
             this.AddLink = new System.Windows.Forms.LinkLabel();
             this.ResetLink = new System.Windows.Forms.LinkLabel();
             this.label1 = new System.Windows.Forms.Label();
             this.NextButton = new System.Windows.Forms.Button();
             this.OutputLink = new System.Windows.Forms.LinkLabel();
+            this.FileList = new System.Windows.Forms.ListView();
             this.SuspendLayout();
-            // 
-            // FileList
-            // 
-            this.FileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.FileList.FormattingEnabled = true;
-            this.FileList.IntegralHeight = false;
-            this.FileList.Location = new System.Drawing.Point(1, 55);
-            this.FileList.Name = "FileList";
-            this.FileList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.FileList.Size = new System.Drawing.Size(357, 211);
-            this.FileList.TabIndex = 21;
             // 
             // RemoveLink
             // 
             this.RemoveLink.AutoSize = true;
             this.RemoveLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.RemoveLink.Location = new System.Drawing.Point(36, 39);
+            this.RemoveLink.Location = new System.Drawing.Point(36, 51);
             this.RemoveLink.Name = "RemoveLink";
             this.RemoveLink.Size = new System.Drawing.Size(47, 13);
             this.RemoveLink.TabIndex = 24;
@@ -66,7 +53,7 @@
             // 
             this.AddLink.AutoSize = true;
             this.AddLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.AddLink.Location = new System.Drawing.Point(4, 39);
+            this.AddLink.Location = new System.Drawing.Point(4, 51);
             this.AddLink.Name = "AddLink";
             this.AddLink.Size = new System.Drawing.Size(26, 13);
             this.AddLink.TabIndex = 23;
@@ -78,7 +65,7 @@
             // 
             this.ResetLink.AutoSize = true;
             this.ResetLink.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.ResetLink.Location = new System.Drawing.Point(89, 39);
+            this.ResetLink.Location = new System.Drawing.Point(89, 51);
             this.ResetLink.Name = "ResetLink";
             this.ResetLink.Size = new System.Drawing.Size(35, 13);
             this.ResetLink.TabIndex = 25;
@@ -123,13 +110,28 @@
             this.OutputLink.Visible = false;
             this.OutputLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OutputLink_LinkClicked);
             // 
+            // FileList
+            // 
+            this.FileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.FileList.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FileList.FullRowSelect = true;
+            this.FileList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
+            this.FileList.Location = new System.Drawing.Point(3, 67);
+            this.FileList.Name = "FileList";
+            this.FileList.Size = new System.Drawing.Size(355, 199);
+            this.FileList.TabIndex = 28;
+            this.FileList.UseCompatibleStateImageBehavior = false;
+            this.FileList.View = System.Windows.Forms.View.List;
+            // 
             // BuildStepFiles
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.FileList);
             this.Controls.Add(this.OutputLink);
             this.Controls.Add(this.NextButton);
-            this.Controls.Add(this.FileList);
             this.Controls.Add(this.RemoveLink);
             this.Controls.Add(this.AddLink);
             this.Controls.Add(this.ResetLink);
@@ -143,12 +145,12 @@
 
         #endregion
 
-        private System.Windows.Forms.ListBox FileList;
         private System.Windows.Forms.LinkLabel RemoveLink;
         private System.Windows.Forms.LinkLabel AddLink;
         private System.Windows.Forms.LinkLabel ResetLink;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button NextButton;
         private System.Windows.Forms.LinkLabel OutputLink;
+        private System.Windows.Forms.ListView FileList;
     }
 }

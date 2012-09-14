@@ -21,9 +21,9 @@ namespace XBuilder.Panels
         public RemotePanel()
         {
             InitializeComponent();
-            AddressTextBox.Text = "127.0.0.1:4566";
-            KeyTextBox.Text = "43a6e878b76fc485698f2d3b2cfbd93b9f90907e1c81e8821dceac82d45252f3";
+            AddressTextBox.Text = "127.0.0.1";
 
+            XRay.Remote = new XRemote();
             XRay.Remote.RemoteCachePath = Path.Combine(Application.StartupPath, "Remote");
             Directory.CreateDirectory(XRay.Remote.RemoteCachePath);
         }
@@ -38,12 +38,8 @@ namespace XBuilder.Panels
                 XRay.Remote.Encryption.Key = Utilities.HextoBytes(KeyTextBox.Text);
                 
                 // set address
-                var address = AddressTextBox.Text;
-
-                var parts = address.Split(':');
-
-                var ip = parts[0];
-                var port = parts[1];
+                var ip = AddressTextBox.Text;
+                var port = PortTextBox.Text;
 
                 // connect
                 XRay.Remote.ConnectToServer(IPAddress.Parse(ip), ushort.Parse(port));

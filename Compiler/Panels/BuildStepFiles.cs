@@ -50,7 +50,7 @@ namespace XBuilder.Panels
             FileList.Items.Clear();
 
             foreach (var file in Model.Files)
-                FileList.Items.Add(file);
+                FileList.Items.Add(new XFileItem(file));
 
             FileList.EndUpdate();
 
@@ -70,8 +70,8 @@ namespace XBuilder.Panels
 
         private void RemoveLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            foreach (var item in FileList.SelectedItems.Cast<XRayedFile>())
-                Model.Files.Remove(item);
+            foreach (var item in FileList.SelectedItems.Cast<XFileItem>())
+                Model.Files.Remove(item.File);
 
             Sync();
         }
@@ -85,7 +85,7 @@ namespace XBuilder.Panels
 
         private void NextButton_Click(object sender, EventArgs e)
         {
-            Frame.SetStep(BuildStep.Options);
+            Frame.SetStep(BuildStep.TrackingOptions);
         }
 
         private void OutputLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -98,6 +98,17 @@ namespace XBuilder.Panels
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+    }
+
+    public class XFileItem : ListViewItem
+    {
+        public XRayedFile File;
+
+        public XFileItem(XRayedFile file)
+        {
+            File = file;
+            Text = file.ToString();
         }
     }
 }

@@ -27,7 +27,19 @@ namespace XLibrary
         public static int FunctionCount;
 
         public static bool XRayEnabled = true;
+        public static bool InitComplete;
 
+        // settings
+        public static Dictionary<string, string> Settings = new Dictionary<string, string>();
+        public static bool EnableLocalViewer;
+        public static bool ShowViewerOnStart;
+        public static bool EnableIpcServer;
+
+        public static bool EnableTcpServer;
+        public static int TcpListenPort;
+        public static string EncryptionKey;
+
+        // cover
         public static bool CoverChange;
         public static bool CallChange;
         public static bool InstanceChange;
@@ -43,9 +55,7 @@ namespace XLibrary
 
         // tracking
         public static bool InstanceTracking = false; // must be compiled in, can be ignored later
-       
         public static bool ThreadTracking = false; // can be turned off library side
-        
         public static bool FlowTracking = false; // must be compiled in, can be ignored later
         public static bool ClassTracking = false;
         public const int MaxStack = 512;
@@ -62,26 +72,23 @@ namespace XLibrary
         public static string DatHash;
         public static long DatSize;
 
-        //public static bool CallLogging;
+        // errors
         public static HashSet<int> ErrorDupes = new HashSet<int>();
         public static List<string> ErrorLog = new List<string>();
 
-        public static bool InitComplete;
-
         public static Stopwatch Watch = new Stopwatch();
-
         static uint CurrentSequence;
 
         public static DateTime StartTime;
-        //public static double BytesSent;
         public static string BuilderVersion = "unknown";
         public static Random RndGen = new Random();
 
         public static int DashOffset;
 
         // Remote Connections
-        public static bool RemoteClient; // if false then this instance is a server (linked directly to xrayed code)
-        public static XRemote Remote = new XRemote();
+        public static bool RemoteViewer; // if false then this instance is a server (linked directly to xrayed code)
+        public static XRemote Remote;
+
 
 
         // opens xray from the builder exe to analyze the dat
@@ -89,13 +96,14 @@ namespace XLibrary
         {
             if (LoadNodeMap(path))
             {
+                ApplySettings();
                 var form = new MainForm();
                 form.Show();
             }
         }
 
         // called from re-compiled app's entrypoint
-        public static void Init(string datPath, bool showUiOnStart, bool trackFlow, bool trackInstances, bool remoteClient)
+        public static void Init(string datPath, bool trackFlow, bool trackInstances, bool remoteViewer)
         {
             LogError("Entry point Init");
 
@@ -106,7 +114,7 @@ namespace XLibrary
             }
             InitComplete = true;
 
-            RemoteClient = remoteClient;
+            RemoteViewer = remoteViewer;
             StartTime = DateTime.Now;
 
             Watch.Start();
@@ -134,21 +142,27 @@ namespace XLibrary
                 DatHash = Utilities.MD5HashFile(datPath);
                 DatSize = new FileInfo(datPath).Length;
                 LoadNodeMap(datPath);
+                ApplySettings();
 
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);
 
                 InitCoreThread();
 
-                if (!remoteClient)
+                if (!remoteViewer)
                 {
-                    StartIpcServer();
+                    if(EnableIpcServer)
+                        StartIpcServer();
 
-                    Remote.StartListening();
+                    if (EnableTcpServer)
+                    {
+                        Remote = new XRemote();
+                        Remote.StartListening(TcpListenPort, EncryptionKey);
+                    }
+
+                    if (EnableLocalViewer && ShowViewerOnStart)
+                        StartGui();
                 }
-
-                if (showUiOnStart)
-                    StartGui();
             }
             catch (Exception ex)
             {
@@ -215,7 +229,7 @@ namespace XLibrary
                         Remote.SecondTimer();
 
                     // if we are a server, update thread alive states for the program we're analyzing
-                    if (!RemoteClient)
+                    if (!RemoteViewer)
                         UpdateThreadAlive();
 
                     secondWatch.Reset();
@@ -413,10 +427,7 @@ namespace XLibrary
                             string name, value;
                             XNodeIn.ReadSetting(stream, out name, out value);
 
-                            if (name == "Version")
-                                BuilderVersion = value;
-                            if (name == "Pro")
-                                Pro.LoadFromString(value);
+                            Settings[name] = value;
                         }
                         else if (type == XPacketType.Node)
                         {
@@ -471,6 +482,49 @@ namespace XLibrary
             }
 
             return false;
+        }
+
+        public static void ApplySettings()
+        {
+            foreach (var name in Settings.Keys)
+            {
+                var value = Settings[name];
+
+                switch (name)
+                {
+                    case "Version":
+                        BuilderVersion = value;
+                        break;
+
+                    case "Pro":
+                        Pro.LoadFromString(value);
+                        break;
+
+                    case "EnableLocalViewer":
+                        EnableLocalViewer = bool.Parse(value);
+                        break;
+
+                    case "EnableIpcServer":
+                        EnableIpcServer = bool.Parse(value);
+                        break;
+
+                    case "ShowViewerOnStart":
+                        ShowViewerOnStart = bool.Parse(value);
+                        break;
+
+                    case "EnableTcpServer":
+                        EnableTcpServer = bool.Parse(value);
+                        break;
+
+                    case "TcpListenPort":
+                        TcpListenPort = int.Parse(value);
+                        break;
+
+                    case "EncryptionKey":
+                        EncryptionKey = value;
+                        break;
+                }
+            }
         }
 
         /*public static double GetSimBps()
@@ -765,12 +819,12 @@ namespace XLibrary
 
             call.Hit = ShowTicks;
 
-            if (RemoteClient)
+            if (RemoteViewer)
                 return;
 
             call.TotalHits++;
             
-            if (!RemoteClient && !call.ThreadIDs.Contains(thread))
+            if (!RemoteViewer && !call.ThreadIDs.Contains(thread))
                 call.ThreadIDs.Add(thread);
     
             // remote infers class hit and thread by the function to function call
@@ -1410,7 +1464,7 @@ namespace XLibrary
 
             Threadline[ThreadlinePos] = newItem;
 
-            if (XRay.Remote != null && !XRay.RemoteClient)
+            if (XRay.Remote != null && !XRay.RemoteViewer)
                 foreach (var client in XRay.Remote.SyncClients)
                     if (client.NewStackItems.ContainsKey(ThreadID))
                         client.NewStackItems[ThreadID]++;
@@ -1522,7 +1576,8 @@ namespace XLibrary
 
         public void OpenViewer()
         {
-            XRay.StartGui();
+            if(XRay.EnableLocalViewer)
+                XRay.StartGui();
         }
 
         public bool Tracking

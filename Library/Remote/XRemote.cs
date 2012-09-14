@@ -68,17 +68,17 @@ namespace XLibrary.Remote
             RouteGeneric["RequestInstanceRefresh"] = Receive_RequestInstanceRefresh;
         }
 
-        public void StartListening()
+        public void StartListening(int port, string key)
         {
             // todo use key embedded with dat file
-            Encryption.Key = Utilities.HextoBytes("43a6e878b76fc485698f2d3b2cfbd93b9f90907e1c81e8821dceac82d45252f3");
+            Encryption.Key = Utilities.HextoBytes(key);
 
             try
             {
                 if(ListenSocket == null)
                     ListenSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                ListenSocket.Bind(new IPEndPoint(System.Net.IPAddress.Any, ListenPort));
+                ListenSocket.Bind(new IPEndPoint(System.Net.IPAddress.Any, port));
 
                 ListenSocket.Listen(10);
                 ListenSocket.BeginAccept(new AsyncCallback(ListenSocket_Accept), ListenSocket);
@@ -461,8 +461,9 @@ namespace XLibrary.Remote
             RemoteStatus = "Starting Sync";
 
             // send packet telling server to start syncing us
+            XRay.Init(LocalDatPath, true, true, true);
 
-            XRay.Init(LocalDatPath, true, true, true, true);
+            XRay.StartGui();
 
             connection.SendPacket(new GenericPacket("StartSync"));
 

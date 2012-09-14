@@ -35,7 +35,7 @@ namespace XBuilder.Panels
             Frame.SetStep(BuildStep.Files);
         }
 
-        private void ShowMapButton_Click(object sender, EventArgs e)
+        private void AnalzeLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             try
             {
@@ -77,5 +77,6 @@ namespace XBuilder.Panels
 
             Process.Start(info);
         }
+
     }
 }

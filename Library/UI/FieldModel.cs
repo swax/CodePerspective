@@ -52,7 +52,7 @@ namespace XLibrary
             if (SelectedNode == null)
                 return;
 
-            if (XRay.RemoteClient)
+            if (XRay.RemoteViewer)
             {
                 if (XRay.Remote.ServerConnection == null)
                 {
@@ -229,10 +229,10 @@ namespace XLibrary
 
         public void ExpandField(string fieldFilter = null)
         {
-            if (!XRay.RemoteClient)
+            if (!XRay.RemoteViewer)
                 return;
 
-            if (XRay.Remote.ServerConnection == null)
+            if (XRay.Remote == null || XRay.Remote.ServerConnection == null)
                 return;
 
             // send request for grid info to remote client

@@ -7,11 +7,10 @@ using System.Windows.Forms;
 using XLibrary;
 using System.Threading;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace XBuilder
 {
-
-
     public class BuildModel
     {
         public string SourceDir;
@@ -21,24 +20,36 @@ namespace XBuilder
         public List<XRayedFile> Files = new List<XRayedFile>();
 
         // options
-        public bool TrackFlow;
-        public bool TrackExternal;
-        public bool TrackAnon;
-        public bool TrackFields;
-        public bool TrackInstances;
+        public bool TrackFlow = true;
+        public bool TrackExternal = true;
+        public bool TrackAnon = true;
+        public bool TrackFields = true;
+        public bool TrackInstances = true;
         public bool ReplaceOriginal;
         public bool DoVerify;
         public bool CompileWithMS;
         public bool DecompileAgain;
-        public bool ShowUiOnStart;
-        public bool SaveMsil;
+        public bool SaveMsil = true;
         public bool DecompileCSharp;
+
+        public bool EnableLocalViewer = true;
+        public bool ShowViewerOnStart = true;
+        public bool EnableIpcServer = true;
+        
+        public bool EnableTcpServer;
+        public int TcpListenPort;
+        public string EncryptionKey;
 
         public string BuildStatus = "";
         public string BuildError = "";
         public bool BuildSuccess;
         public Thread BuildThread;
 
+        public BuildModel()
+        {
+            TcpListenPort = XRay.RndGen.Next(3000, 10000);
+            EncryptionKey = Utilities.BytestoHex(new RijndaelManaged().Key);
+        }
 
         public void AddFiles(string[] paths)
         {
@@ -191,8 +202,21 @@ namespace XBuilder
                     if (Pro.Verified)
                         settings["Pro"] = Pro.SignedFile;
 
-                    trackedObjects = root.SaveTree(DatPath, settings);
+                    if (EnableLocalViewer)
+                    {
+                        settings["EnableLocalViewer"] = EnableLocalViewer.ToString();
+                        settings["EnableIpcServer"] = EnableIpcServer.ToString();
+                        settings["ShowViewerOnStart"] = ShowViewerOnStart.ToString();
+                    }
 
+                    if (EnableTcpServer)
+                    {
+                        settings["EnableTcpServer"] = EnableTcpServer.ToString();
+                        settings["TcpListenPort"] = TcpListenPort.ToString();
+                        settings["EncryptionKey"] = EncryptionKey;
+                    }
+
+                    trackedObjects = root.SaveTree(DatPath, settings);
 
                     // verify last and aggregate errors'
                     if (DoVerify)

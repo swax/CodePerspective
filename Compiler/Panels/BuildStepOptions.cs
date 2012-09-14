@@ -51,7 +51,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             RunVerifyCheckbox.Checked = Model.DoVerify;
             MsToolsCheckbox.Checked = Model.CompileWithMS;
             DecompileAgainCheckbox.Checked = Model.DecompileAgain;
-            ShowOnStartCheckBox.Checked = Model.ShowUiOnStart;
             SaveMsilCheckBox.Checked = Model.SaveMsil;
             DecompileCSharpCheckBox.Checked = Model.DecompileCSharp;
         }
@@ -67,7 +66,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             Model.DoVerify = RunVerifyCheckbox.Checked;
             Model.CompileWithMS = MsToolsCheckbox.Checked;
             Model.DecompileAgain = DecompileAgainCheckbox.Checked;
-            Model.ShowUiOnStart = ShowOnStartCheckBox.Checked;
             Model.SaveMsil = SaveMsilCheckBox.Checked;
             Model.DecompileCSharp = DecompileCSharpCheckBox.Checked;
         }
@@ -83,8 +81,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
         {
             SaveToModel();
 
-            Frame.SetStep(BuildStep.Compile);
+            Frame.SetStep(BuildStep.ViewerOptions);
         }
-
     }
 }

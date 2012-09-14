@@ -129,6 +129,12 @@
     <Compile Include="Panels\BuildStepCompile.Designer.cs">
       <DependentUpon>BuildStepCompile.cs</DependentUpon>
     </Compile>
+    <Compile Include="Panels\BuildStepOptions2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepOptions2.Designer.cs">
+      <DependentUpon>BuildStepOptions2.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\BuildStepRun.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -177,6 +183,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\BuildStepCompile.resx">
       <DependentUpon>BuildStepCompile.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepOptions2.resx">
+      <DependentUpon>BuildStepOptions2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\BuildStepRun.resx">
       <DependentUpon>BuildStepRun.cs</DependentUpon>

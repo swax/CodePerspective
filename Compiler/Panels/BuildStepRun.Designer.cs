@@ -32,7 +32,7 @@
             this.NextButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.LaunchButton = new System.Windows.Forms.Button();
-            this.ShowMapButton = new System.Windows.Forms.Button();
+            this.AnalzeLink = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // BackButton
@@ -70,7 +70,7 @@
             // LaunchButton
             // 
             this.LaunchButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LaunchButton.Location = new System.Drawing.Point(7, 91);
+            this.LaunchButton.Location = new System.Drawing.Point(37, 64);
             this.LaunchButton.Name = "LaunchButton";
             this.LaunchButton.Size = new System.Drawing.Size(108, 32);
             this.LaunchButton.TabIndex = 41;
@@ -78,23 +78,23 @@
             this.LaunchButton.UseVisualStyleBackColor = true;
             this.LaunchButton.Click += new System.EventHandler(this.LaunchButton_Click);
             // 
-            // ShowMapButton
+            // AnalzeLink
             // 
-            this.ShowMapButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ShowMapButton.Location = new System.Drawing.Point(7, 44);
-            this.ShowMapButton.Name = "ShowMapButton";
-            this.ShowMapButton.Size = new System.Drawing.Size(108, 32);
-            this.ShowMapButton.TabIndex = 42;
-            this.ShowMapButton.Text = "Analyze";
-            this.ShowMapButton.UseVisualStyleBackColor = true;
-            this.ShowMapButton.Click += new System.EventHandler(this.ShowMapButton_Click);
+            this.AnalzeLink.AutoSize = true;
+            this.AnalzeLink.Location = new System.Drawing.Point(34, 109);
+            this.AnalzeLink.Name = "AnalzeLink";
+            this.AnalzeLink.Size = new System.Drawing.Size(129, 13);
+            this.AnalzeLink.TabIndex = 43;
+            this.AnalzeLink.TabStop = true;
+            this.AnalzeLink.Text = "Analyze generated dat file";
+            this.AnalzeLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.AnalzeLink_LinkClicked);
             // 
             // BuildStepRun
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.AnalzeLink);
             this.Controls.Add(this.LaunchButton);
-            this.Controls.Add(this.ShowMapButton);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.BackButton);
             this.Controls.Add(this.NextButton);
@@ -111,6 +111,6 @@
         private System.Windows.Forms.Button NextButton;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button LaunchButton;
-        private System.Windows.Forms.Button ShowMapButton;
+        private System.Windows.Forms.LinkLabel AnalzeLink;
     }
 }

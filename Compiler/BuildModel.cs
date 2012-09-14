@@ -111,7 +111,16 @@ namespace XBuilder
                     }
 
                     BuildStatus = "Preparing";
-                    XDecompile.PrepareOutputDir(SourceDir, OutputDir);
+                   
+                    // copy XLibrary to final destination
+                    CopyLocalToOutputDir("XLibrary.dll", OutputDir);
+
+                    if (EnableLocalViewer)
+                    {
+                        CopyLocalToOutputDir("OpenTK.dll", OutputDir);
+                        CopyLocalToOutputDir("OpenTK.GLControl.dll", OutputDir);
+                        CopyLocalToOutputDir("QuickFont.dll", OutputDir);
+                    }
 
                     string errorLog = "";
 
@@ -268,6 +277,10 @@ namespace XBuilder
             BuildThread.Start();
         }
 
+        private static void CopyLocalToOutputDir(string filename, string destPath)
+        {
+            File.Copy(Path.Combine(Application.StartupPath, filename), Path.Combine(destPath, filename), true);
+        }
 
         private bool TryRestoreBackups()
         {

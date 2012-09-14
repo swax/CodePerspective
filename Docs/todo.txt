@@ -3,12 +3,12 @@ http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-N
 
 Remote
 
-	redo options panel - add network settings, ability to disable UI entirely
-		ui viewer - if not enabled, dont copy all the needless dlls
-		net viewer
+	options panel
 		go through options 1 at a time, certain ones like track function stack might be able to be set at runtime
 			Have a run-time options panel in viewer, should work in remote viewer as well to set fps, etc..
 	
+	scanner - add assemblies turned off
+
 	send entry/holding info
 		on connect iterate stacks for nodes entered/waiting, send to client
 		when adding node hit to send, check if waiting/entered and add to list

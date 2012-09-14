@@ -248,20 +248,6 @@ namespace XBuilder
             if(classDef.BaseType != null)
                 SetClassDependency(classNode, classDef.BaseType);
 
-            RecompileMethods(classDef, classNode);
-
-            foreach (var nestedDef in classDef.NestedTypes)
-                if (nestedDef.MetadataType == MetadataType.Class || nestedDef.MetadataType == MetadataType.ValueType)
-                    RecompileClass(nestedDef, fileNode);
-                else
-                    Debug.WriteLine("Ignored nested type - " + nestedDef.ToString());
-
-            return classNode;
-        }
-
-        private void RecompileMethods(TypeDefinition classDef, XNodeOut classNode)
-        {
-            ILProcessor processor = null;
 
             // add fields
             if (Build.TrackFields && classDef.HasFields)
@@ -276,356 +262,376 @@ namespace XBuilder
                     else
                         fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
                 }
-
+            // save source code for methods
             foreach (var method in classDef.Methods)
-            {
-                XNodeOut methodNode = classNode.AddMethod(method);
+                SaveCode(classNode, method);
 
-                if (Build.DecompileCSharp)
-                    methodNode.CSharp = DecompileMethod(method);
-
-                if (method.Body == null)
-                    continue;
-
-                // record MSIL
-                if (Build.SaveMsil)
-                {
-                    methodNode.Msil = new List<XInstruction>();
-                    foreach (var inst in method.Body.Instructions)
-                    {
-                        var xInst = new XInstruction();
-                        xInst.Offset = inst.Offset;
-                        xInst.OpCode = inst.OpCode.Name;
-                        xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
-
-                        if (inst.OpCode == OpCodes.Call ||
-                            inst.OpCode == OpCodes.Calli ||
-                            inst.OpCode == OpCodes.Callvirt ||
-                            inst.OpCode == OpCodes.Newobj ||
-                            inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
-                        {
-                            var call = inst.Operand as MethodReference;
-                            if (call != null)
-                            {
-                                var classRef = GetClassRef(call.DeclaringType);
-                                var methodRef = classRef.AddMethod(call);
-
-                                xInst.RefId = methodRef.ID;
-                            }
-                            else
-                                Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
-                        }
-                        else if (inst.OpCode == OpCodes.Stfld ||
-                                  inst.OpCode == OpCodes.Stsfld ||
-                                  inst.OpCode == OpCodes.Ldfld ||
-                                  inst.OpCode == OpCodes.Ldflda ||
-                                  inst.OpCode == OpCodes.Ldsfld ||
-                                  inst.OpCode == OpCodes.Ldsflda)
-                        {
-                            var fieldDef = inst.Operand as FieldReference;
-                            var classRef = GetClassRef(fieldDef.DeclaringType);
-                            var fieldRef = classRef.AddField(fieldDef);
-                            xInst.RefId = fieldRef.ID;
-                        }
-                        else if (inst.OpCode.FlowControl == FlowControl.Branch ||
-                                 inst.OpCode.FlowControl == FlowControl.Cond_Branch)
-                        {
-                            var op = inst.Operand as Instruction;
-                            if (op != null)
-                            {
-                                int offset = op.Offset;
-                                xInst.Line = "goto " + offset.ToString("X");
-                                xInst.RefId = offset;
-                            }
-                        }
-
-                        methodNode.Msil.Add(xInst);
-                    }
-                }
-            }
-
+            // track method creation/destruction
             if (Build.TrackInstances && !classDef.IsValueType)
+                AddInstanceTracking(classDef, classNode);
+
+            // add enter/exit info to method and call tracking
+            foreach (var method in classDef.Methods)
+                RecompileMethod(classNode, method);
+
+            // recompile sub classes
+            foreach (var nestedDef in classDef.NestedTypes)
+                if (nestedDef.MetadataType == MetadataType.Class || nestedDef.MetadataType == MetadataType.ValueType)
+                    RecompileClass(nestedDef, fileNode);
+                else
+                    Debug.WriteLine("Ignored nested type - " + nestedDef.ToString());
+
+            return classNode;
+        }
+
+        private void RecompileMethod(XNodeOut classNode, MethodDefinition method)
+        {
+            XNodeOut methodNode = classNode.AddMethod(method);
+
+            // return
+            if (method.ReturnType != null)
             {
-                bool hasCtor = false;
-
-                // add tracking to constructor
-                foreach(var ctorMethod in classDef.Methods.Where(m =>  (m.Name == ".ctor" || m.Name == ".cctor") && m.Body != null))
-                {
-                    ctorMethod.Body.SimplifyMacros();
-
-                    processor = ctorMethod.Body.GetILProcessor();
-
-                    // to prevent warnings in verify, our code should be put after the base constructor call
-
-                    AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
-
-                    if (ctorMethod.Name == ".ctor")
-                    {
-                        hasCtor = true;
-                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldarg, 0));
-                        AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
-                    }
-                    // else static constructor
-                    else
-                    {
-                        // ldtoken    XTestLib.SmallStatic
-                        // ldtoken    XTestLib.StaticTemplateClass`1<!T> (for generic static classes)
-                        // call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
-
-                        if (classDef.HasGenericParameters)
-                        {
-                            // for some reason the GenericInstanceType does not carry over the parameters
-                            var genericDef = new GenericInstanceType(classDef);
-                            foreach (var p in classDef.GenericParameters)
-                                genericDef.GenericArguments.Add(p);
-                            
-                            AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, genericDef));
-                        }
-                        else
-                            AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, classDef));
-
-                        AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, GetTypeFromHandleRef));
-                        AddInstruction(ctorMethod, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
-                    }
-                    ctorMethod.Body.OptimizeMacros();
-                }
-
-                // add tracking to desconstructor (only add if ctor tracking added)
-                if (hasCtor)
-                {
-                     var finMethod = classDef.Methods.FirstOrDefault(m => m.Name == "Finalize");
-                     bool callObjectFinalize = false;
-
-                     if (finMethod == null)
-                     {
-                         finMethod = new MethodDefinition("Finalize", Mono.Cecil.MethodAttributes.Family | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.Virtual, VoidRef);
-                         callObjectFinalize = true;
-                         classDef.Methods.Add(finMethod);
-                     }
-
-                     finMethod.Body.SimplifyMacros();
-
-                     processor = finMethod.Body.GetILProcessor();
-
-                     AddInstruction(finMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
-                     AddInstruction(finMethod, 1, processor.Create(OpCodes.Ldarg, 0));
-                     AddInstruction(finMethod, 2, processor.Create(OpCodes.Call, ClassDeconstructedRef));
-
-                     if (callObjectFinalize)
-                     {
-                         AddInstruction(finMethod, 3, processor.Create(OpCodes.Ldarg, 0));
-                         AddInstruction(finMethod, 4, processor.Create(OpCodes.Call, ObjectFinalizeRef));
-
-                         AddInstruction(finMethod, 5, processor.Create(OpCodes.Ret));
-                     }
-
-                     finMethod.Body.OptimizeMacros();
-                }
+                var returnNode = SetClassDependency(classNode, method.ReturnType);
+                if (returnNode != null)
+                    methodNode.ReturnID = returnNode.ID;
             }
 
-            // iterate method nodes
-            foreach (var method in classDef.Methods)
+            // params
+            for (int i = 0; i < method.Parameters.Count; i++)
             {
-                XNodeOut methodNode = classNode.AddMethod(method);
+                var p = method.Parameters[i];
 
-                // return
-                if(method.ReturnType != null)
+                if (methodNode.ParamIDs == null)
                 {
-                    var returnNode = SetClassDependency(classNode, method.ReturnType);
-                    if(returnNode != null)
-                        methodNode.ReturnID = returnNode.ID;
-                }
-                // params
-                for(int i = 0; i < method.Parameters.Count; i++)
-                {
-                    var p = method.Parameters[i];
-
-                    if (methodNode.ParamIDs == null)
-                    {
-                        methodNode.ParamIDs = new int[method.Parameters.Count];
-                        methodNode.ParamNames = new string[method.Parameters.Count];
-                    }
-
-                    var paramNode = SetClassDependency(classNode, p.ParameterType);
-                    methodNode.ParamIDs[i] = paramNode.ID;
-                    methodNode.ParamNames[i] = p.Name;
+                    methodNode.ParamIDs = new int[method.Parameters.Count];
+                    methodNode.ParamNames = new string[method.Parameters.Count];
                 }
 
-                if (method.Body == null)
-                    continue;
+                var paramNode = SetClassDependency(classNode, p.ParameterType);
+                methodNode.ParamIDs[i] = paramNode.ID;
+                methodNode.ParamNames[i] = p.Name;
+            }
 
-                // local vars
-                foreach (var local in method.Body.Variables)
-                    SetClassDependency(classNode, local.VariableType);
+            if (method.Body == null)
+                return;
 
-                // expands branches/jumps to support adddresses > 255
-                // possibly needed if injecting code into large functions
-                // OptimizeMacros at end of the function re-optimizes
-                method.Body.SimplifyMacros(); 
+            // local vars
+            foreach (var local in method.Body.Variables)
+                SetClassDependency(classNode, local.VariableType);
 
-                methodNode.Lines = method.Body.Instructions.Count;
+            // expands branches/jumps to support adddresses > 255
+            // possibly needed if injecting code into large functions
+            // OptimizeMacros at end of the function re-optimizes
+            method.Body.SimplifyMacros();
 
-                processor = method.Body.GetILProcessor();
+            methodNode.Lines = method.Body.Instructions.Count;
 
-                for (int i = 0; i < method.Body.Instructions.Count; i++)
+            var processor = method.Body.GetILProcessor();
+
+            for (int i = 0; i < method.Body.Instructions.Count; i++)
+            {
+                var instruction = method.Body.Instructions[i];
+
+                // record method exited
+                if (Build.TrackFlow && instruction.OpCode == OpCodes.Ret)
                 {
-                    var instruction = method.Body.Instructions[i];
+                    instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
+                    AddInstruction(method, i + 1, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                    AddInstruction(method, i + 2, processor.Create(OpCodes.Call, ExitMethodRef));
+                    AddInstruction(method, i + 3, processor.Create(OpCodes.Ret));
 
-                    // record method exited
-                    if (Build.TrackFlow && instruction.OpCode == OpCodes.Ret)
+                    i += 3;
+                }
+
+                // if we're tracking calls to non-xrayed assemblies
+                else if (instruction.OpCode == OpCodes.Call ||
+                          instruction.OpCode == OpCodes.Calli ||
+                          instruction.OpCode == OpCodes.Callvirt)
+                {
+                    var call = instruction.Operand as MethodReference;
+
+                    if (call == null)
                     {
-                        instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
-                        AddInstruction(method, i + 1, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                        AddInstruction(method, i + 2, processor.Create(OpCodes.Call, ExitMethodRef));
-                        AddInstruction(method, i + 3, processor.Create(OpCodes.Ret));
-
-                        i += 3;
+                        Debug.WriteLine("Unable to track not xrayed: " + instruction.Operand.ToString());
+                        continue;
                     }
 
-                    // if we're tracking calls to non-xrayed assemblies
-                    else if ( instruction.OpCode == OpCodes.Call ||
-                              instruction.OpCode == OpCodes.Calli ||
-                              instruction.OpCode == OpCodes.Callvirt)
+                    SetClassDependency(classNode, call.ReturnType);
+                    SetClassDependency(classNode, call.DeclaringType);
+                    foreach (var p in call.Parameters)
+                        SetClassDependency(classNode, p.ParameterType);
+
+                    var calledRef = GetClassRef(call.DeclaringType);
+
+                    var calledNode = calledRef.AddMethod(call);
+
+
+                    /*if( TrackExternal && 
+                        !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
+                        (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
+                    if (Build.TrackExternal &&
+                        calledNode.External &&
+                        calledRef.Name != "XRay")
+                    // !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System"))
                     {
-                        var call = instruction.Operand as MethodReference;
+                        if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
+                            continue; // call added to cctor by xray
 
-                        if (call == null)
-                        {
-                            Debug.WriteLine("Unable to track not xrayed: " + instruction.Operand.ToString());
-                            continue;
-                        }
+                        calledNode.Lines = 1;
 
-                        SetClassDependency(classNode, call.ReturnType);
-                        SetClassDependency(classNode, call.DeclaringType);
-                        foreach(var p in call.Parameters)
-                            SetClassDependency(classNode, p.ParameterType);
-
-                        var calledRef = GetClassRef(call.DeclaringType);
-
-                        var calledNode = calledRef.AddMethod(call);
-
-
-                        /*if( TrackExternal && 
-                            !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
-                            (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
-                        if (Build.TrackExternal && 
-                            calledNode.External &&
-                            calledRef.Name != "XRay")
-                           // !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System"))
-                        {
-                            if (method.Name == ".cctor" && call.Name == "GetTypeFromHandle")
-                                continue; // call added to cctor by xray
-
-                            calledNode.Lines = 1;
-
-                            // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
-                            int offset = 0;
-                            if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Constrained)
-                            {
-                                i -= 1;
-                                offset = 1;
-                            }
-
-                            var oldPos = method.Body.Instructions[i];
-
-                            // wrap the call with enter and exit, because enter to an external method may cause
-                            // an xrayed method to be called, we want to track the flow of that process
-                            int pos = i;
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
-                        
-                            // method
-                            pos += 1 + offset;
-
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                            AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
-
-                            var newPos = method.Body.Instructions[i];
-                            UpdateExceptionHandlerPositions(method, oldPos, newPos);
-
-                            i = pos; // loop end will add 1 putting us right after last added function
-                        }
-                    }
-
-                    else if (Build.TrackFields && 
-                             (instruction.OpCode == OpCodes.Stfld || 
-                              instruction.OpCode == OpCodes.Stsfld ||
-                              instruction.OpCode == OpCodes.Ldfld ||
-                              instruction.OpCode == OpCodes.Ldflda ||
-                              instruction.OpCode == OpCodes.Ldsfld ||
-                              instruction.OpCode == OpCodes.Ldsflda))
-                    {
-                        var fieldDef = instruction.Operand as FieldReference;
-
-                        var classRef = GetClassRef(fieldDef.DeclaringType);
-                        var fieldRef = classRef.AddField(fieldDef);
-
-                        // some times volitile prefixes set/get field
+                        // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
                         int offset = 0;
-                        if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Volatile)
+                        if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Constrained)
                         {
-                            i--;
+                            i -= 1;
                             offset = 1;
                         }
 
-                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, fieldRef.ID));
+                        var oldPos = method.Body.Instructions[i];
 
-                        if (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld)
-                            AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
-                        else
-                            AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
-                        
-                        i = i + 2 + offset; // skip instuction added, and field itself, end of loop will iterate this again
+                        // wrap the call with enter and exit, because enter to an external method may cause
+                        // an xrayed method to be called, we want to track the flow of that process
+                        int pos = i;
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
 
-                        // Debug.WriteLine("{0} in Module: {1}, Namespace: {2}, Class: {3}, Name: {4}, Type: {5}", instruction.OpCode, fieldDef.DeclaringType.Scope.Name, namespaces, className, fieldName, fieldType);
-                    }
+                        // method
+                        pos += 1 + offset;
 
-                    else if (instruction.OpCode == OpCodes.Newobj)
-                    {
-                        var newObj = instruction.Operand as MethodReference;
-                        SetClassDependency(classNode, newObj.DeclaringType);
-                    }
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
+                        AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
 
-                    /* Still not really working - goal - to get side by side wpf apps to work
-                     * else if (instruction.OpCode == OpCodes.Ldstr && !Build.ReplaceOriginal)
-                    {
-                        // rename Pack URIs in WPF so resources can be found with an XRay.. namespace
-                        // ex:  "/MyApp;component/views/aboutview.xaml" ->  "/XRay.MyApp;component/views/aboutview.xaml"
-                        var packUri = instruction.Operand as String;
-
-                        foreach (var file in XRayedFiles)
-                            packUri = packUri.Replace("/" + file.AssemblyName + ";", "/XRay." + file.AssemblyName + ";");
-                            //packUri = packUri.Replace(file.AssemblyName, "XRay." + file.AssemblyName);
-
-                        instruction.Operand = packUri;
-                    }*/
-
-                } // end iterating through instructions
-
-
-                // record function was entered
-                AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
-
-                // record catches
-                if (Build.TrackFlow)
-                    foreach (var handler in method.Body.ExceptionHandlers)
-                    {
-                        if (handler.HandlerType != ExceptionHandlerType.Catch)
-                            continue;
-
-                        int i = method.Body.Instructions.IndexOf(handler.HandlerStart);
-
-                        AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                        AddInstruction(method, i + 1, processor.Create(OpCodes.Call, CatchMethodRef));
-
-                        var oldPos = handler.HandlerStart;
                         var newPos = method.Body.Instructions[i];
-
                         UpdateExceptionHandlerPositions(method, oldPos, newPos);
+
+                        i = pos; // loop end will add 1 putting us right after last added function
+                    }
+                }
+
+                else if (Build.TrackFields &&
+                         (instruction.OpCode == OpCodes.Stfld ||
+                          instruction.OpCode == OpCodes.Stsfld ||
+                          instruction.OpCode == OpCodes.Ldfld ||
+                          instruction.OpCode == OpCodes.Ldflda ||
+                          instruction.OpCode == OpCodes.Ldsfld ||
+                          instruction.OpCode == OpCodes.Ldsflda))
+                {
+                    var fieldDef = instruction.Operand as FieldReference;
+
+                    var classRef = GetClassRef(fieldDef.DeclaringType);
+                    var fieldRef = classRef.AddField(fieldDef);
+
+                    // some times volitile prefixes set/get field
+                    int offset = 0;
+                    if (i > 0 && method.Body.Instructions[i - 1].OpCode == OpCodes.Volatile)
+                    {
+                        i--;
+                        offset = 1;
                     }
 
-                method.Body.OptimizeMacros();
+                    AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, fieldRef.ID));
+
+                    if (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld)
+                        AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
+                    else
+                        AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
+
+                    i = i + 2 + offset; // skip instuction added, and field itself, end of loop will iterate this again
+
+                    // Debug.WriteLine("{0} in Module: {1}, Namespace: {2}, Class: {3}, Name: {4}, Type: {5}", instruction.OpCode, fieldDef.DeclaringType.Scope.Name, namespaces, className, fieldName, fieldType);
+                }
+
+                else if (instruction.OpCode == OpCodes.Newobj)
+                {
+                    var newObj = instruction.Operand as MethodReference;
+                    SetClassDependency(classNode, newObj.DeclaringType);
+                }
+
+                /* Still not really working - goal - to get side by side wpf apps to work
+                 * else if (instruction.OpCode == OpCodes.Ldstr && !Build.ReplaceOriginal)
+                {
+                    // rename Pack URIs in WPF so resources can be found with an XRay.. namespace
+                    // ex:  "/MyApp;component/views/aboutview.xaml" ->  "/XRay.MyApp;component/views/aboutview.xaml"
+                    var packUri = instruction.Operand as String;
+
+                    foreach (var file in XRayedFiles)
+                        packUri = packUri.Replace("/" + file.AssemblyName + ";", "/XRay." + file.AssemblyName + ";");
+                        //packUri = packUri.Replace(file.AssemblyName, "XRay." + file.AssemblyName);
+
+                    instruction.Operand = packUri;
+                }*/
+
+            } // end iterating through instructions
+
+
+            // record function was entered
+            AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+            AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
+
+            // record catches
+            if (Build.TrackFlow)
+                foreach (var handler in method.Body.ExceptionHandlers)
+                {
+                    if (handler.HandlerType != ExceptionHandlerType.Catch)
+                        continue;
+
+                    int i = method.Body.Instructions.IndexOf(handler.HandlerStart);
+
+                    AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                    AddInstruction(method, i + 1, processor.Create(OpCodes.Call, CatchMethodRef));
+
+                    var oldPos = handler.HandlerStart;
+                    var newPos = method.Body.Instructions[i];
+
+                    UpdateExceptionHandlerPositions(method, oldPos, newPos);
+                }
+
+            method.Body.OptimizeMacros();
+        }
+
+        private void SaveCode(XNodeOut classNode, MethodDefinition method)
+        {
+            XNodeOut methodNode = classNode.AddMethod(method);
+
+            if (Build.DecompileCSharp)
+                methodNode.CSharp = DecompileMethod(method);
+
+            if (method.Body == null)
+                return;
+
+            // record MSIL
+            if (Build.SaveMsil)
+            {
+                methodNode.Msil = new List<XInstruction>();
+                foreach (var inst in method.Body.Instructions)
+                {
+                    var xInst = new XInstruction();
+                    xInst.Offset = inst.Offset;
+                    xInst.OpCode = inst.OpCode.Name;
+                    xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
+
+                    if (inst.OpCode == OpCodes.Call ||
+                        inst.OpCode == OpCodes.Calli ||
+                        inst.OpCode == OpCodes.Callvirt ||
+                        inst.OpCode == OpCodes.Newobj ||
+                        inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
+                    {
+                        var call = inst.Operand as MethodReference;
+                        if (call != null)
+                        {
+                            var classRef = GetClassRef(call.DeclaringType);
+                            var methodRef = classRef.AddMethod(call);
+
+                            xInst.RefId = methodRef.ID;
+                        }
+                        else
+                            Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
+                    }
+                    else if (inst.OpCode == OpCodes.Stfld ||
+                              inst.OpCode == OpCodes.Stsfld ||
+                              inst.OpCode == OpCodes.Ldfld ||
+                              inst.OpCode == OpCodes.Ldflda ||
+                              inst.OpCode == OpCodes.Ldsfld ||
+                              inst.OpCode == OpCodes.Ldsflda)
+                    {
+                        var fieldDef = inst.Operand as FieldReference;
+                        var classRef = GetClassRef(fieldDef.DeclaringType);
+                        var fieldRef = classRef.AddField(fieldDef);
+                        xInst.RefId = fieldRef.ID;
+                    }
+                    else if (inst.OpCode.FlowControl == FlowControl.Branch ||
+                             inst.OpCode.FlowControl == FlowControl.Cond_Branch)
+                    {
+                        var op = inst.Operand as Instruction;
+                        if (op != null)
+                        {
+                            int offset = op.Offset;
+                            xInst.Line = "goto " + offset.ToString("X");
+                            xInst.RefId = offset;
+                        }
+                    }
+
+                    methodNode.Msil.Add(xInst);
+                }
+            }
+        }
+
+        private void AddInstanceTracking(TypeDefinition classDef, XNodeOut classNode)
+        {
+            bool hasCtor = false;
+
+            // add tracking to constructor
+            foreach (var ctorMethod in classDef.Methods.Where(m => (m.Name == ".ctor" || m.Name == ".cctor") && m.Body != null))
+            {
+                ctorMethod.Body.SimplifyMacros();
+
+                var processor = ctorMethod.Body.GetILProcessor();
+
+                // to prevent warnings in verify, our code should be put after the base constructor call
+
+                AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
+
+                if (ctorMethod.Name == ".ctor")
+                {
+                    hasCtor = true;
+                    AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldarg, 0));
+                    AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
+                }
+                // else static constructor
+                else
+                {
+                    // ldtoken    XTestLib.SmallStatic
+                    // ldtoken    XTestLib.StaticTemplateClass`1<!T> (for generic static classes)
+                    // call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+
+                    if (classDef.HasGenericParameters)
+                    {
+                        // for some reason the GenericInstanceType does not carry over the parameters
+                        var genericDef = new GenericInstanceType(classDef);
+                        foreach (var p in classDef.GenericParameters)
+                            genericDef.GenericArguments.Add(p);
+
+                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, genericDef));
+                    }
+                    else
+                        AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldtoken, classDef));
+
+                    AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, GetTypeFromHandleRef));
+                    AddInstruction(ctorMethod, 3, processor.Create(OpCodes.Call, ClassConstructedRef));
+                }
+                ctorMethod.Body.OptimizeMacros();
+            }
+
+            // add tracking to desconstructor (only add if ctor tracking added)
+            if (hasCtor)
+            {
+                var finMethod = classDef.Methods.FirstOrDefault(m => m.Name == "Finalize");
+                bool callObjectFinalize = false;
+
+                if (finMethod == null)
+                {
+                    finMethod = new MethodDefinition("Finalize", Mono.Cecil.MethodAttributes.Family | Mono.Cecil.MethodAttributes.HideBySig | Mono.Cecil.MethodAttributes.Virtual, VoidRef);
+                    callObjectFinalize = true;
+                    classDef.Methods.Add(finMethod);
+                }
+
+                finMethod.Body.SimplifyMacros();
+
+                var processor = finMethod.Body.GetILProcessor();
+
+                AddInstruction(finMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
+                AddInstruction(finMethod, 1, processor.Create(OpCodes.Ldarg, 0));
+                AddInstruction(finMethod, 2, processor.Create(OpCodes.Call, ClassDeconstructedRef));
+
+                if (callObjectFinalize)
+                {
+                    AddInstruction(finMethod, 3, processor.Create(OpCodes.Ldarg, 0));
+                    AddInstruction(finMethod, 4, processor.Create(OpCodes.Call, ObjectFinalizeRef));
+
+                    AddInstruction(finMethod, 5, processor.Create(OpCodes.Ret));
+                }
+
+                finMethod.Body.OptimizeMacros();
             }
         }
 
@@ -852,20 +858,6 @@ namespace XBuilder
 
             foreach (XNodeOut subnode in node.Nodes)
                 MarkNodeAsAnon(subnode);
-        }
-
-        internal static void PrepareOutputDir(string sourcePath, string destPath)
-        {
-            // copy XLibrary to final destination
-            CopyLocalToOutputDir("XLibrary.dll", destPath);
-            CopyLocalToOutputDir("OpenTK.dll", destPath);
-            CopyLocalToOutputDir("OpenTK.GLControl.dll", destPath);
-            CopyLocalToOutputDir("QuickFont.dll", destPath);
-        }
-
-        private static void CopyLocalToOutputDir(string filename, string destPath)
-        {
-            File.Copy(Path.Combine(Application.StartupPath, filename), Path.Combine(destPath, filename), true);
         }
 
         internal static bool CheckIfAlreadyXRayed(IEnumerable<XRayedFile> files)

@@ -2,10 +2,14 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote	
+	send entry/holding info
+		on connect iterate stacks for nodes entered/waiting, send to client
+		when adding node hit to send, check if waiting/entered and add to list
+		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
+
 	high cpu on client - try not getting next frame until current one processed 
 		settings on client side to set frame rate, profile update rate, etc..
-
-	send entry/holding info
+		option to turn on/off in ui to see if cpu goes up when activated
 
 	do min/max/avg sync packet size for stats - output in network log
 

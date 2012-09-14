@@ -31,21 +31,21 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.BuildPanel = new XBuilder.BuildPanel();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.monitorPanel1 = new XBuilder.MonitorPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.ScannerPanel = new XBuilder.ScannerPanel();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.monitorPanel1 = new XBuilder.MonitorPanel();
+            this.ScannerPanel = new XBuilder.ScannerPanel();
             this.remotePanel1 = new XBuilder.Panels.RemotePanel();
+            this.buildFrame1 = new XBuilder.Panels.BuildFrame();
             this.MainTabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
-            this.tabPage4.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainTabs
@@ -64,7 +64,7 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.BuildPanel);
+            this.tabPage1.Controls.Add(this.buildFrame1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -72,14 +72,6 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Build";
             this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // BuildPanel
-            // 
-            this.BuildPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BuildPanel.Location = new System.Drawing.Point(3, 3);
-            this.BuildPanel.Name = "BuildPanel";
-            this.BuildPanel.Size = new System.Drawing.Size(371, 361);
-            this.BuildPanel.TabIndex = 0;
             // 
             // tabPage2
             // 
@@ -92,14 +84,6 @@
             this.tabPage2.Text = "Monitor";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // monitorPanel1
-            // 
-            this.monitorPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.monitorPanel1.Location = new System.Drawing.Point(3, 3);
-            this.monitorPanel1.Name = "monitorPanel1";
-            this.monitorPanel1.Size = new System.Drawing.Size(371, 361);
-            this.monitorPanel1.TabIndex = 0;
-            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.ScannerPanel);
@@ -111,13 +95,15 @@
             this.tabPage3.Text = "Scanner";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // ScannerPanel
+            // tabPage5
             // 
-            this.ScannerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ScannerPanel.Location = new System.Drawing.Point(3, 3);
-            this.ScannerPanel.Name = "ScannerPanel";
-            this.ScannerPanel.Size = new System.Drawing.Size(371, 361);
-            this.ScannerPanel.TabIndex = 0;
+            this.tabPage5.Controls.Add(this.remotePanel1);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Size = new System.Drawing.Size(377, 367);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "Remote";
+            this.tabPage5.UseVisualStyleBackColor = true;
             // 
             // tabPage4
             // 
@@ -139,15 +125,21 @@
             this.aboutPanel1.Size = new System.Drawing.Size(371, 361);
             this.aboutPanel1.TabIndex = 0;
             // 
-            // tabPage5
+            // monitorPanel1
             // 
-            this.tabPage5.Controls.Add(this.remotePanel1);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Size = new System.Drawing.Size(377, 367);
-            this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "Remote";
-            this.tabPage5.UseVisualStyleBackColor = true;
+            this.monitorPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.monitorPanel1.Location = new System.Drawing.Point(3, 3);
+            this.monitorPanel1.Name = "monitorPanel1";
+            this.monitorPanel1.Size = new System.Drawing.Size(371, 361);
+            this.monitorPanel1.TabIndex = 0;
+            // 
+            // ScannerPanel
+            // 
+            this.ScannerPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ScannerPanel.Location = new System.Drawing.Point(3, 3);
+            this.ScannerPanel.Name = "ScannerPanel";
+            this.ScannerPanel.Size = new System.Drawing.Size(371, 361);
+            this.ScannerPanel.TabIndex = 0;
             // 
             // remotePanel1
             // 
@@ -156,6 +148,14 @@
             this.remotePanel1.Name = "remotePanel1";
             this.remotePanel1.Size = new System.Drawing.Size(377, 367);
             this.remotePanel1.TabIndex = 0;
+            // 
+            // buildFrame1
+            // 
+            this.buildFrame1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.buildFrame1.Location = new System.Drawing.Point(3, 3);
+            this.buildFrame1.Name = "buildFrame1";
+            this.buildFrame1.Size = new System.Drawing.Size(371, 361);
+            this.buildFrame1.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -171,8 +171,8 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
-            this.tabPage4.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -182,7 +182,6 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
-        public BuildPanel BuildPanel;
         public MonitorPanel monitorPanel1;
         public ScannerPanel ScannerPanel;
         public System.Windows.Forms.TabControl MainTabs;
@@ -190,6 +189,7 @@
         private XLibrary.UI.Panels.AboutPanel aboutPanel1;
         private System.Windows.Forms.TabPage tabPage5;
         private Panels.RemotePanel remotePanel1;
+        private Panels.BuildFrame buildFrame1;
 
 
     }

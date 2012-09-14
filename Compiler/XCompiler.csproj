@@ -95,11 +95,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Panels\BuildPanel.cs">
+    <Compile Include="BuildModel.cs" />
+    <Compile Include="Panels\BuildFrame.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildPanel.Designer.cs">
-      <DependentUpon>BuildPanel.cs</DependentUpon>
+    <Compile Include="Panels\BuildFrame.Designer.cs">
+      <DependentUpon>BuildFrame.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.cs" />
     <Compile Include="Decompile.ICSharp.cs" />
@@ -110,6 +111,30 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.MS.cs" />
+    <Compile Include="Panels\BuildStepFiles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepFiles.Designer.cs">
+      <DependentUpon>BuildStepFiles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panels\BuildStepOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepOptions.Designer.cs">
+      <DependentUpon>BuildStepOptions.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panels\BuildStepCompile.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepCompile.Designer.cs">
+      <DependentUpon>BuildStepCompile.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Panels\BuildStepRun.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepRun.Designer.cs">
+      <DependentUpon>BuildStepRun.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\MonitorPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -141,8 +166,20 @@
       <DependentUpon>MainForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildPanel.resx">
-      <DependentUpon>BuildPanel.cs</DependentUpon>
+    <EmbeddedResource Include="Panels\BuildFrame.resx">
+      <DependentUpon>BuildFrame.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepFiles.resx">
+      <DependentUpon>BuildStepFiles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepOptions.resx">
+      <DependentUpon>BuildStepOptions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepCompile.resx">
+      <DependentUpon>BuildStepCompile.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepRun.resx">
+      <DependentUpon>BuildStepRun.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\MonitorPanel.resx">
       <DependentUpon>MonitorPanel.cs</DependentUpon>

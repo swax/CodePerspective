@@ -24,11 +24,9 @@ namespace XBuilder
         string ILPath;
         string ILPathOriginal;
         string AsmDir;
-        string OutputDir;
-        string DatPath;
         XRayedFile XFile;
 
-        bool SideBySide; // if true change the file name and refs to xray.etc..
+        BuildModel Build;
 
         XNodeOut ExtRoot;
         XNodeOut CurrentNode;
@@ -36,16 +34,6 @@ namespace XBuilder
         public static Random RndGen = new Random();
 
         StringBuilder XIL = new StringBuilder(4096);
-
-        public bool TrackFlow = true;
-        public bool TrackInstances = true;
-        public bool TrackExternal = true;
-        public bool TrackAnon = true;
-        public bool TrackFields = true;
-        public bool TrackCode = true;
-        public bool ShowUIonStart = true;
-        public bool SaveMsil = true;
-        public bool DecompileCSharp = false;
 
         MethodReference XRayInitRef;
         MethodReference EnterMethodRef;
@@ -61,20 +49,15 @@ namespace XBuilder
 
         public long LinesAdded = 0;
 
-        public XRayedFile[] XRayedFiles;
 
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, string outDir, string datPath, XRayedFile[] files, bool sxs)
+        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, BuildModel build)
         {
             ExtRoot = extRoot;
             OriginalPath = item.FilePath;
-            OutputDir = outDir;
-            DatPath = datPath;
-            SideBySide = sxs;
             item.RecompiledPath = null; // reset
             XFile = item;
-
-            XRayedFiles = files;
+            Build = build;
         }
 
         internal void MonoRecompile()
@@ -144,21 +127,21 @@ namespace XBuilder
             ProcessClassNames(XFile.FileNode);
 
             // change module names after class/method processing so we dont interfere with dependency lookup
-            if (XRayedFiles.Any(f => f.AssemblyName == asmDef.Name))
+            if (Build.Files.Any(f => f.AssemblyName == asmDef.Name))
             {
                 asmDef.HasPublicKey = false; //necessary? maybe if referencing strong signed.. are hashes put into references?
 
-                if (SideBySide)
+                if (!Build.ReplaceOriginal)
                     asmDef.Name = "XRay." + asmDef.Name;
             }
 
             // string public key and re-name assemblies if needed
             foreach (var asmRef in asm.MainModule.AssemblyReferences)
-                if (XRayedFiles.Any(f => f.AssemblyName == asmRef.Name))
+                if (Build.Files.Any(f => f.AssemblyName == asmRef.Name))
                 {
                     asmRef.HasPublicKey = false; //necessary? maybe if referencing strong signed.. are hashes put into references?
 
-                    if (SideBySide)
+                    if (!Build.ReplaceOriginal)
                         asmRef.Name = "XRay." + asmRef.Name;
                 }
 
@@ -186,20 +169,20 @@ namespace XBuilder
 
             // compile
             string newName = Path.GetFileName(OriginalPath);
-            if (SideBySide)
+            if (!Build.ReplaceOriginal)
                 newName = "XRay." + newName;
             else
             {
                 // copy original file into backup folder
                 // dont clear back up dir, just overwrite, in case multiple xrays of diff files
-                var backupDir = Path.Combine(OutputDir, "xBackup");
+                var backupDir = Path.Combine(Build.OutputDir, "xBackup");
                 Directory.CreateDirectory(backupDir);
 
                 BackupPath = Path.Combine(backupDir, newName);
                 File.Copy(OriginalPath, BackupPath, true);      
             }
-            
-            XFile.RecompiledPath = Path.Combine(OutputDir, newName);
+
+            XFile.RecompiledPath = Path.Combine(Build.OutputDir, newName);
 
             File.Delete(XFile.RecompiledPath); // delete prev compiled file
 
@@ -212,10 +195,10 @@ namespace XBuilder
 
             int i = 0;
 
-            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldstr, DatPath));
-            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, ShowUIonStart ? 1 : 0));
-            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackFlow ? 1 : 0));
-            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, TrackInstances ? 1 : 0));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldstr, Build.DatPath));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, Build.ShowUiOnStart ? 1 : 0));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, Build.TrackFlow ? 1 : 0));
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, Build.TrackInstances ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, 0)); // remote client (false)
             AddInstruction(cctor, i++, processor.Create(OpCodes.Call, XRayInitRef));
 
@@ -258,7 +241,7 @@ namespace XBuilder
 
         private XNodeOut RecompileClass(TypeDefinition classDef, XNodeOut fileNode)
         {
-            if ( !TrackAnon && classDef.Name.StartsWith("<>") )
+            if (!Build.TrackAnon && classDef.Name.StartsWith("<>"))
                 return null;
 
             var classNode = SignatureToClass(classDef.ToString(), fileNode);
@@ -282,7 +265,7 @@ namespace XBuilder
             ILProcessor processor = null;
 
             // add fields
-            if (TrackFields && classDef.HasFields)
+            if (Build.TrackFields && classDef.HasFields)
                 foreach (var fieldDef in classDef.Fields)
                 {
                     var fieldNode = classNode.AddField(fieldDef);
@@ -295,75 +278,74 @@ namespace XBuilder
                         fieldNode.ReturnID = GetClassRef(fieldDef.FieldType).ID;
                 }
 
-            if(TrackCode)
-                foreach (var method in classDef.Methods)
+            foreach (var method in classDef.Methods)
+            {
+                XNodeOut methodNode = classNode.AddMethod(method);
+
+                if (Build.DecompileCSharp)
+                    methodNode.CSharp = DecompileMethod(method);
+
+                if (method.Body == null)
+                    continue;
+
+                // record MSIL
+                if (Build.SaveMsil)
                 {
-                    XNodeOut methodNode = classNode.AddMethod(method);
-                    
-                    if(DecompileCSharp)
-                        methodNode.CSharp = DecompileMethod(method);
-
-                    if (method.Body == null)
-                        continue;
-
-                    // record MSIL
-                    if (SaveMsil)
+                    methodNode.Msil = new List<XInstruction>();
+                    foreach (var inst in method.Body.Instructions)
                     {
-                        methodNode.Msil = new List<XInstruction>();
-                        foreach (var inst in method.Body.Instructions)
+                        var xInst = new XInstruction();
+                        xInst.Offset = inst.Offset;
+                        xInst.OpCode = inst.OpCode.Name;
+                        xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
+
+                        if (inst.OpCode == OpCodes.Call ||
+                            inst.OpCode == OpCodes.Calli ||
+                            inst.OpCode == OpCodes.Callvirt ||
+                            inst.OpCode == OpCodes.Newobj ||
+                            inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
                         {
-                            var xInst = new XInstruction();
-                            xInst.Offset = inst.Offset;
-                            xInst.OpCode = inst.OpCode.Name;
-                            xInst.Line = (inst.Operand != null) ? inst.Operand.ToString() : "";
-
-                            if (inst.OpCode == OpCodes.Call ||
-                                inst.OpCode == OpCodes.Calli ||
-                                inst.OpCode == OpCodes.Callvirt ||
-                                inst.OpCode == OpCodes.Newobj ||
-                                inst.OpCode == OpCodes.Ldftn) // pushes a function pointer to the stack
+                            var call = inst.Operand as MethodReference;
+                            if (call != null)
                             {
-                                var call = inst.Operand as MethodReference;
-                                if (call != null)
-                                {
-                                    var classRef = GetClassRef(call.DeclaringType);
-                                    var methodRef = classRef.AddMethod(call);
+                                var classRef = GetClassRef(call.DeclaringType);
+                                var methodRef = classRef.AddMethod(call);
 
-                                    xInst.RefId = methodRef.ID;
-                                }
-                                else
-                                    Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
+                                xInst.RefId = methodRef.ID;
                             }
-                            else if (inst.OpCode == OpCodes.Stfld ||
-                                      inst.OpCode == OpCodes.Stsfld ||
-                                      inst.OpCode == OpCodes.Ldfld ||
-                                      inst.OpCode == OpCodes.Ldflda ||
-                                      inst.OpCode == OpCodes.Ldsfld ||
-                                      inst.OpCode == OpCodes.Ldsflda)
-                            {
-                                var fieldDef = inst.Operand as FieldReference;
-                                var classRef = GetClassRef(fieldDef.DeclaringType);
-                                var fieldRef = classRef.AddField(fieldDef);
-                                xInst.RefId = fieldRef.ID;
-                            }
-                            else if (inst.OpCode.FlowControl == FlowControl.Branch ||
-                                     inst.OpCode.FlowControl == FlowControl.Cond_Branch)
-                            {
-                                var op = inst.Operand as Instruction;
-                                if (op != null)
-                                {
-                                    int offset = op.Offset;
-                                    xInst.Line = "goto " + offset.ToString("X");
-                                    xInst.RefId = offset;
-                                }
-                            }
-
-                            methodNode.Msil.Add(xInst);
+                            else
+                                Debug.WriteLine("Unable to track: " + inst.Operand.ToString());
                         }
+                        else if (inst.OpCode == OpCodes.Stfld ||
+                                  inst.OpCode == OpCodes.Stsfld ||
+                                  inst.OpCode == OpCodes.Ldfld ||
+                                  inst.OpCode == OpCodes.Ldflda ||
+                                  inst.OpCode == OpCodes.Ldsfld ||
+                                  inst.OpCode == OpCodes.Ldsflda)
+                        {
+                            var fieldDef = inst.Operand as FieldReference;
+                            var classRef = GetClassRef(fieldDef.DeclaringType);
+                            var fieldRef = classRef.AddField(fieldDef);
+                            xInst.RefId = fieldRef.ID;
+                        }
+                        else if (inst.OpCode.FlowControl == FlowControl.Branch ||
+                                 inst.OpCode.FlowControl == FlowControl.Cond_Branch)
+                        {
+                            var op = inst.Operand as Instruction;
+                            if (op != null)
+                            {
+                                int offset = op.Offset;
+                                xInst.Line = "goto " + offset.ToString("X");
+                                xInst.RefId = offset;
+                            }
+                        }
+
+                        methodNode.Msil.Add(xInst);
                     }
                 }
+            }
 
-            if (TrackInstances && !classDef.IsValueType)
+            if (Build.TrackInstances && !classDef.IsValueType)
             {
                 bool hasCtor = false;
 
@@ -491,7 +473,7 @@ namespace XBuilder
                     var instruction = method.Body.Instructions[i];
 
                     // record method exited
-                    if (TrackFlow && instruction.OpCode == OpCodes.Ret)
+                    if (Build.TrackFlow && instruction.OpCode == OpCodes.Ret)
                     {
                         instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
                         AddInstruction(method, i + 1, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
@@ -527,7 +509,7 @@ namespace XBuilder
                         /*if( TrackExternal && 
                             !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
                             (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
-                        if (TrackExternal && 
+                        if (Build.TrackExternal && 
                             calledNode.External &&
                             calledRef.Name != "XRay")
                            // !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System"))
@@ -566,7 +548,7 @@ namespace XBuilder
                         }
                     }
 
-                    else if (TrackFields && 
+                    else if (Build.TrackFields && 
                              (instruction.OpCode == OpCodes.Stfld || 
                               instruction.OpCode == OpCodes.Stsfld ||
                               instruction.OpCode == OpCodes.Ldfld ||
@@ -606,7 +588,7 @@ namespace XBuilder
                     }
 
                     /* Still not really working - goal - to get side by side wpf apps to work
-                     * else if (instruction.OpCode == OpCodes.Ldstr && SideBySide)
+                     * else if (instruction.OpCode == OpCodes.Ldstr && !Build.ReplaceOriginal)
                     {
                         // rename Pack URIs in WPF so resources can be found with an XRay.. namespace
                         // ex:  "/MyApp;component/views/aboutview.xaml" ->  "/XRay.MyApp;component/views/aboutview.xaml"
@@ -627,7 +609,7 @@ namespace XBuilder
                 AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
 
                 // record catches
-                if (TrackFlow)
+                if (Build.TrackFlow)
                     foreach (var handler in method.Body.ExceptionHandlers)
                     {
                         if (handler.HandlerType != ExceptionHandlerType.Catch)
@@ -699,8 +681,8 @@ namespace XBuilder
                 fileNode = XFile.FileNode;
 
             // xrayed, but in diff module
-            else if (XRayedFiles.Any(f => f.AssemblyName == scope.Name))
-                fileNode = XRayedFiles.First(f => f.AssemblyName == scope.Name).FileNode;
+            else if (Build.Files.Any(f => f.AssemblyName == scope.Name))
+                fileNode = Build.Files.First(f => f.AssemblyName == scope.Name).FileNode;
 
             // if not xrayed - map to external root
             else
@@ -887,7 +869,7 @@ namespace XBuilder
             File.Copy(Path.Combine(Application.StartupPath, filename), Path.Combine(destPath, filename), true);
         }
 
-        internal static bool CheckIfAlreadyXRayed(XRayedFile[] files)
+        internal static bool CheckIfAlreadyXRayed(IEnumerable<XRayedFile> files)
         {
             foreach (var file in files)
             {

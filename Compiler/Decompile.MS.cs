@@ -98,9 +98,9 @@ namespace XBuilder
 
 
                         // assemblies are referenced externally by xray. prefix, internally namespace names are the same
-                        if (XRayedFiles.Any(f => f.AssemblyName == assembly))
+                        if (Build.Files.Any(f => f.AssemblyName == assembly))
                         {
-                            if (SideBySide)
+                            if (!Build.ReplaceOriginal)
                             {
                                 line[line.Length - 1] = "XRay." + line.Last();
                                 XIL.RemoveLine();
@@ -176,7 +176,7 @@ namespace XBuilder
                         CurrentNode = CurrentNode.AddNode(className, XObjType.Class);
 
                         // exclude if we dont track anon classes
-                        if (!TrackAnon && className.StartsWith("'"))
+                        if (!Build.TrackAnon && className.StartsWith("'"))
                             CurrentNode.Exclude = true;
                     }
 
@@ -204,7 +204,7 @@ namespace XBuilder
                         }
 
                         // exclude if we dont track anony methods, but dont continue cause entry point could still be inside
-                        if (!TrackAnon && name.StartsWith("'"))
+                        if (!Build.TrackAnon && name.StartsWith("'"))
                             CurrentNode.Exclude = true;
 
                         // scan for entry, break on .maxstack or }
@@ -238,7 +238,7 @@ namespace XBuilder
 
                             // needs to push 1 more item on stack above whats needed for return 
                             // elements so that MethodExit can run
-                            if (TrackFlow)
+                            if (Build.TrackFlow)
                                 maxstack++;
 
                             XIL.AppendLine(".maxstack " + maxstack); // increase stack enough for hit function - need room for thread, hit, constructor
@@ -279,7 +279,7 @@ namespace XBuilder
                             inCatch = true; // inject after indent set
                         }
 
-                        else if (TrackFlow && !CurrentNode.Exclude && line.Length > 1 && line[1] == "ret")
+                        else if (Build.TrackFlow && !CurrentNode.Exclude && line.Length > 1 && line[1] == "ret")
                         {
                             Debug.Assert(line.Length == 2);
 
@@ -293,7 +293,7 @@ namespace XBuilder
                             AddLine("ret"); // put ret call back in
                         }
 
-                        else if (line.Length > 1 && (TrackFlow || TrackExternal) && line[1].EndsWith(".s"))
+                        else if (line.Length > 1 && (Build.TrackFlow || Build.TrackExternal) && line[1].EndsWith(".s"))
                         {
                             // when we insert code we add more instructions, br is the branch instruction
                             // and br.s is the short version allowing a max jump of 255 places which may
@@ -307,7 +307,7 @@ namespace XBuilder
                         }
 
                         // external method call tracking
-                        if (TrackExternal && TrackFlow && !CurrentNode.Exclude && line.Length > 1 &&
+                        if (Build.TrackExternal && Build.TrackFlow && !CurrentNode.Exclude && line.Length > 1 &&
                             (line[1].StartsWith("constrained.") || line[1].StartsWith("call") ||
                              line[1].StartsWith("callvirt") || line[1].StartsWith("calli")))
                         {
@@ -369,7 +369,7 @@ namespace XBuilder
                                 namespaces = namespaces.Substring(0, pos);
 
                             // if already tracked, skip
-                            if (XRayedFiles.Any(f => f.AssemblyName == external))
+                            if (Build.Files.Any(f => f.AssemblyName == external))
                                 continue;
 
                             // add external file to root
@@ -433,7 +433,7 @@ namespace XBuilder
                             CurrentNode.Indent++;
                             CurrentNode.IndentString += "  ";
 
-                            if (inCatch && TrackFlow && !CurrentNode.Exclude)
+                            if (inCatch && Build.TrackFlow && !CurrentNode.Exclude)
                                 InjectMethodCatch(CurrentNode);
                         }
 
@@ -461,8 +461,8 @@ namespace XBuilder
             }
 
             // change method call refs from old assembly to new
-            if (SideBySide)
-                foreach (string assembly in XRayedFiles.Select(f => f.AssemblyName))
+            if (!Build.ReplaceOriginal)
+                foreach (string assembly in Build.Files.Select(f => f.AssemblyName))
                     XIL.Replace("[" + assembly + "]", "[XRay." + assembly + "]");
         }
 
@@ -486,8 +486,8 @@ namespace XBuilder
 
             XIL.AppendLine();
             AddLine("// XRay");
-            AddLine("ldc.i4  " + (TrackFlow ? "1" : "0"));
-            AddLine("ldc.i4  " + (TrackInstances ? "1" : "0"));
+            AddLine("ldc.i4  " + (Build.TrackFlow ? "1" : "0"));
+            AddLine("ldc.i4  " + (Build.TrackInstances ? "1" : "0"));
             AddLine("call    void [XLibrary]XLibrary.XRay::Init(bool,bool)");
             XIL.AppendLine();
 
@@ -508,7 +508,7 @@ namespace XBuilder
             AddLine("call    void [XLibrary]XLibrary.XRay::MethodEnter(int32)");
             LinesAdded += 2;
 
-            if (TrackInstances)
+            if (Build.TrackInstances)
                 if (node.Name == ".ctor")
                 {
                     AddLine("ldc.i4  " + node.Parent.ID.ToString());
@@ -531,7 +531,7 @@ namespace XBuilder
         private void InjectMethodExit(XNodeOut node)
         {
             Debug.Assert(!node.Exclude);
-            Debug.Assert(TrackFlow);
+            Debug.Assert(Build.TrackFlow);
 
             if (AddsDone >= AllowedAdds)
                 return;
@@ -548,7 +548,7 @@ namespace XBuilder
         private void InjectMethodCatch(XNodeOut node)
         {
             Debug.Assert(!node.Exclude);
-            Debug.Assert(TrackFlow);
+            Debug.Assert(Build.TrackFlow);
 
             XIL.AppendLine();
             AddLine("ldc.i4  " + node.ID.ToString() + " // XRay - Method Catch");
@@ -596,10 +596,10 @@ namespace XBuilder
 
             // copy compiled file
             string newName = Path.GetFileName(OriginalPath);
-            if (SideBySide)
+            if (!Build.ReplaceOriginal)
                 newName = "XRay." + newName;
 
-            string recompiledPath = Path.Combine(OutputDir, newName);
+            string recompiledPath = Path.Combine(Build.OutputDir, newName);
 
             File.Delete(recompiledPath); // delete prev compiled file
 

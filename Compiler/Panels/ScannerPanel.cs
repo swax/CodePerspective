@@ -166,7 +166,7 @@ namespace XBuilder
         {
             var paths = FilesList.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[3].Text).ToArray();
 
-            Main.BuildPanel.AddFilesToList(paths);
+            //TODO add to model or something Main.BuildPanel.AddFilesToList(paths);
 
             Main.MainTabs.SelectedTab = Main.MainTabs.TabPages[0];
         }

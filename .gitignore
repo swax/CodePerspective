@@ -7,3 +7,4 @@ XTestApp/bin/
 XTestApp/obj/
 XTestLib/bin/
 XTestLib/obj/
+/Compiler/*.user

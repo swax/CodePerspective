@@ -465,8 +465,11 @@ namespace XBuilder
 
 
             // record function was entered
-            AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-            AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
+            if (Build.TrackFunctions)
+            {
+                AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
+            }
 
             // record catches
             if (Build.TrackFlow)

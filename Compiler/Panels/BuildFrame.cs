@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace XBuilder.Panels
 {
-    public enum BuildStep { Files, TrackingOptions, ViewerOptions, Compile, Run }
+    public enum BuildStep { Files, TrackingOptions, BuildOptions, ViewerOptions, Compile, Run }
 
     public partial class BuildFrame : UserControl
     {
@@ -36,11 +36,15 @@ namespace XBuilder.Panels
                     break;
 
                 case BuildStep.TrackingOptions:
-                    panel = new BuildStepOptions(this, Model);
+                    panel = new BuildStepTrackingOptions(this, Model);
+                    break;
+
+                case BuildStep.BuildOptions:
+                    panel = new BuildStepBuildOptions(this, Model);
                     break;
 
                 case BuildStep.ViewerOptions:
-                    panel = new BuildStepOptions2(this, Model);
+                    panel = new BuildStepViewerOptions(this, Model);
                     break;
 
                 case BuildStep.Compile:

@@ -51,7 +51,7 @@ namespace XBuilder.Panels
 
         private void BackButton_Click(object sender, EventArgs e)
         {
-            Frame.SetStep(BuildStep.TrackingOptions);
+            Frame.SetStep(BuildStep.ViewerOptions);
         }
 
         private void NextButton_Click(object sender, EventArgs e)

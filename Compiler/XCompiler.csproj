@@ -111,17 +111,23 @@
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Decompile.MS.cs" />
+    <Compile Include="Panels\BuildStepBuildOptions.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Panels\BuildStepBuildOptions.Designer.cs">
+      <DependentUpon>BuildStepBuildOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="Panels\BuildStepFiles.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panels\BuildStepFiles.Designer.cs">
       <DependentUpon>BuildStepFiles.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\BuildStepOptions.cs">
+    <Compile Include="Panels\BuildStepTrackingOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepOptions.Designer.cs">
-      <DependentUpon>BuildStepOptions.cs</DependentUpon>
+    <Compile Include="Panels\BuildStepTrackingOptions.Designer.cs">
+      <DependentUpon>BuildStepTrackingOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="Panels\BuildStepCompile.cs">
       <SubType>UserControl</SubType>
@@ -129,11 +135,11 @@
     <Compile Include="Panels\BuildStepCompile.Designer.cs">
       <DependentUpon>BuildStepCompile.cs</DependentUpon>
     </Compile>
-    <Compile Include="Panels\BuildStepOptions2.cs">
+    <Compile Include="Panels\BuildStepViewerOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepOptions2.Designer.cs">
-      <DependentUpon>BuildStepOptions2.cs</DependentUpon>
+    <Compile Include="Panels\BuildStepViewerOptions.Designer.cs">
+      <DependentUpon>BuildStepViewerOptions.cs</DependentUpon>
     </Compile>
     <Compile Include="Panels\BuildStepRun.cs">
       <SubType>UserControl</SubType>
@@ -175,17 +181,20 @@
     <EmbeddedResource Include="Panels\BuildFrame.resx">
       <DependentUpon>BuildFrame.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Panels\BuildStepBuildOptions.resx">
+      <DependentUpon>BuildStepBuildOptions.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Panels\BuildStepFiles.resx">
       <DependentUpon>BuildStepFiles.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepOptions.resx">
-      <DependentUpon>BuildStepOptions.cs</DependentUpon>
+    <EmbeddedResource Include="Panels\BuildStepTrackingOptions.resx">
+      <DependentUpon>BuildStepTrackingOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\BuildStepCompile.resx">
       <DependentUpon>BuildStepCompile.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepOptions2.resx">
-      <DependentUpon>BuildStepOptions2.cs</DependentUpon>
+    <EmbeddedResource Include="Panels\BuildStepViewerOptions.resx">
+      <DependentUpon>BuildStepViewerOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Panels\BuildStepRun.resx">
       <DependentUpon>BuildStepRun.cs</DependentUpon>

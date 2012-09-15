@@ -2,28 +2,25 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote
-
-	options panel
-		go through options 1 at a time, certain ones like track function stack might be able to be set at runtime
-			Have a run-time options panel in viewer, should work in remote viewer as well to set fps, etc..
-	
 	scanner - add assemblies turned off
+
+	status panel - show bandwidth, allow user to turn off node/thread/tracking to have min bandwidth to just see instances
+		shwo original files xrayed, and settings
+		on server side show if listening and connected users
+		high cpu on client - try not getting next frame until current one processed 
+			settings on client side to set frame rate, profile update rate, etc..
+			option to turn on/off in ui to see if cpu goes up when activated
+		Have a run-time options panel in viewer, should work in remote viewer as well to set fps, etc..
 
 	send entry/holding info
 		on connect iterate stacks for nodes entered/waiting, send to client
 		when adding node hit to send, check if waiting/entered and add to list
 		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
 
-	high cpu on client - try not getting next frame until current one processed 
-		settings on client side to set frame rate, profile update rate, etc..
-		option to turn on/off in ui to see if cpu goes up when activated
-
 	do min/max/avg sync packet size for stats - output in network log
 
 	Test function for generic packet
 
-	remote panel - show bandwidth, allow user to turn off node/thread/tracking to have min bandwidth to just see instances,
-		on server side show if listening and connected users
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value

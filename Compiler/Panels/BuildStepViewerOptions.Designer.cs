@@ -1,6 +1,6 @@
 ﻿namespace XBuilder.Panels
 {
-    partial class BuildStepOptions2
+    partial class BuildStepViewerOptions
     {
         /// <summary> 
         /// Required designer variable.

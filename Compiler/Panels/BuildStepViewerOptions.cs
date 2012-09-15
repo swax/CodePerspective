@@ -11,12 +11,12 @@ using System.Security.Cryptography;
 
 namespace XBuilder.Panels
 {
-    public partial class BuildStepOptions2 : UserControl
+    public partial class BuildStepViewerOptions : UserControl
     {
         BuildFrame Frame;
         BuildModel Model;
 
-        public BuildStepOptions2(BuildFrame frame, BuildModel model)
+        public BuildStepViewerOptions(BuildFrame frame, BuildModel model)
         {
             InitializeComponent();
 
@@ -63,7 +63,7 @@ namespace XBuilder.Panels
         {
             SaveToModel();
 
-            Frame.SetStep(BuildStep.TrackingOptions);
+            Frame.SetStep(BuildStep.BuildOptions);
         }
 
         private void NextButton_Click(object sender, EventArgs e)

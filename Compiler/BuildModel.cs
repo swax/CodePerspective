@@ -20,6 +20,7 @@ namespace XBuilder
         public List<XRayedFile> Files = new List<XRayedFile>();
 
         // options
+        public bool TrackFunctions = true;
         public bool TrackFlow = true;
         public bool TrackExternal = true;
         public bool TrackAnon = true;

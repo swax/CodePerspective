@@ -11,24 +11,17 @@ using XLibrary;
 
 namespace XBuilder.Panels
 {
-    public partial class BuildStepOptions : UserControl
-    {
+    public partial class BuildStepBuildOptions : UserControl
+    {        
         BuildFrame Frame;
         BuildModel Model;
 
-        public BuildStepOptions(BuildFrame frame, BuildModel model)
+        public BuildStepBuildOptions(BuildFrame frame, BuildModel model)
         {
             InitializeComponent();
 
             Frame = frame;
             Model = model;
-
-
-            TrackFlowCheckBox.AttachToolTip("Calls between functions are tracked so call graphs can work");
-
-            TrackFieldsCheckBox.AttachToolTip("Set and get operations to class members are tracked");
-
-            TrackInstancesCheckBox.AttachToolTip("Creation and deletion of classes are tracked, and class introspection is enabled");
 
             ReplaceOriginalCheckBox.AttachToolTip(
 @"Unchecked: XRay copies and re-compiles the selected files then runs them side by side the originals.
@@ -40,13 +33,8 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             DecompileCSharpCheckBox.AttachToolTip("Recompile time takes signifigantly longer with this option");
         }
 
-        private void BuildStep2_Load(object sender, EventArgs e)
+        private void BuildStepBuildOptions_Load(object sender, EventArgs e)
         {
-            TrackFlowCheckBox.Checked = Model.TrackFlow;
-            TrackExternalCheckBox.Checked = Model.TrackExternal;
-            TrackAnonCheckBox.Checked = Model.TrackAnon;
-            TrackFieldsCheckBox.Checked = Model.TrackFields;
-            TrackInstancesCheckBox.Checked = Model.TrackInstances;
             ReplaceOriginalCheckBox.Checked = Model.ReplaceOriginal;
             RunVerifyCheckbox.Checked = Model.DoVerify;
             MsToolsCheckbox.Checked = Model.CompileWithMS;
@@ -55,13 +43,8 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             DecompileCSharpCheckBox.Checked = Model.DecompileCSharp;
         }
 
-        void SaveToModel()
+        private void SaveToModel()
         {
-            Model.TrackFlow = TrackFlowCheckBox.Checked;
-            Model.TrackExternal = TrackExternalCheckBox.Checked;
-            Model.TrackAnon = TrackAnonCheckBox.Checked;
-            Model.TrackFields = TrackFieldsCheckBox.Checked;
-            Model.TrackInstances = TrackInstancesCheckBox.Checked;
             Model.ReplaceOriginal = ReplaceOriginalCheckBox.Checked;
             Model.DoVerify = RunVerifyCheckbox.Checked;
             Model.CompileWithMS = MsToolsCheckbox.Checked;
@@ -74,7 +57,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
         {
             SaveToModel();
 
-            Frame.SetStep(BuildStep.Files);
+            Frame.SetStep(BuildStep.TrackingOptions);
         }
 
         private void NextButton_Click(object sender, EventArgs e)

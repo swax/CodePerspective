@@ -68,7 +68,7 @@ namespace XBuilder.Panels
             if (server != null)
             {
                 BandwidthLabel.Text = string.Format("In: {0} b/s, Out: {1} b/s", server.Bandwidth.InAvg(), server.Bandwidth.OutAvg());
-                SyncSpeedLabel.Text = "Syncs per Second: " + XRay.Remote.SyncsPerSecond.ToString();
+                SyncSpeedLabel.Text = "Syncs per Second: " + server.SyncsPerSecond.ToString();
             }
         }
 

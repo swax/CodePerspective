@@ -32,6 +32,9 @@ namespace XLibrary.Remote
         // bandwidth
         public int BytesReceivedinSec;
         public int BytesSentinSec;
+        public int SyncsPerSecond;
+        public int SyncCount;
+
 
         int SecondsDead;
 
@@ -94,6 +97,9 @@ namespace XLibrary.Remote
         {
             if (State == TcpState.Closed)
                 return;
+
+            SyncsPerSecond = SyncCount;
+            SyncCount = 0;
 
             // update bandwidth
             SecondsDead = (BytesReceivedinSec > 0) ? 0 : SecondsDead + 1;

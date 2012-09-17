@@ -35,8 +35,6 @@ namespace XLibrary.Remote
        
         // sync
         public SharedDictionary<SyncClient> SyncClients = new SharedDictionary<SyncClient>(10); // special cause it can be iterated without being locked
-        public int SyncsPerSecond;
-        public int SyncCount;
 
         // client specific
         public XConnection ServerConnection;
@@ -113,10 +111,6 @@ namespace XLibrary.Remote
 
         public void SecondTimer()
         {
-            // sync stat
-            SyncsPerSecond = SyncCount;
-            SyncCount = 0;
-
             foreach (var client in SyncClients)
                 client.SecondTimer();
 
@@ -511,7 +505,7 @@ namespace XLibrary.Remote
 
             //Log("Sync packet received");
 
-            SyncCount++;
+            connection.SyncCount++;
 
             XRay.RemoteSync(sync);
         }
@@ -811,8 +805,11 @@ namespace XLibrary.Remote
             AddThreadlines(packet);
 
             // check that there's space in the send buffer to send state
-            if(DataToSend)
+            if (DataToSend)
+            {
                 Connection.SendPacket(packet);
+                Connection.SyncCount++;
+            }
 
             return true;
         }

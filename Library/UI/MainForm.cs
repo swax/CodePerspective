@@ -39,7 +39,7 @@ namespace XLibrary
             Model.SetRoot(Model.CurrentRoot); // init first node in history
 
 
-            RedrawTimer.Interval = 1000 / XRay.HitFrames;
+            RedrawTimer.Interval = 1000 / XRay.TargetFps;
             RedrawTimer.Enabled = true;
 
             RevalueTimer.Interval = 1000;
@@ -50,6 +50,7 @@ namespace XLibrary
             ConsoleTab.Init(this);
             CodeTab.Init(this);
             NamespaceTab.Init(this);
+            SettingsTab.Init(this);
 
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
@@ -189,7 +190,7 @@ namespace XLibrary
 
         private void RevalueTimer_Tick(object sender, EventArgs e)
         {
-            DisplayTab.FpsLabel.Text = string.Format("revalue: {0}/s\r\nresize {1}\r\nredraw {2}\r\nframes {3}",
+            SettingsTab.FpsLabel.Text = string.Format("Revalue: {0}\r\nResize: {1}\r\nRedraw: {2}\r\nFrames: {3}",
                 Model.RevalueCount, Model.ResizeCount, Model.RedrawCount, Model.FpsCount);
 
             Model.RevalueCount = 0;

@@ -2,22 +2,30 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote
-	scanner - add assemblies turned off
+	pressing recompile after recompile not clearing stuff
+	lower fps should now make the timeout of colors slower, need to skip more frames
 
-	status panel - show bandwidth, allow user to turn off node/thread/tracking to have min bandwidth to just see instances
-		shwo original files xrayed, and settings
-		on server side show if listening and connected users
-		high cpu on client - try not getting next frame until current one processed 
-			settings on client side to set frame rate, profile update rate, etc..
-			option to turn on/off in ui to see if cpu goes up when activated
-		Have a run-time options panel in viewer, should work in remote viewer as well to set fps, etc..
+	settings panel
+		frame rate
+			server side, adjusts server update rate
+			client side, adjusts update rate just for that client, maybe default to 5, check out cpu
+			show next to it current frame rate
+			see if adjusting server or client rate decreases cpu on client side
+			figure out if client should adjust server rate, or maybe set server rate to min rate given connections and gui
+				if no connections or gui don't even bother updating ;)
+
+		bandwidth
+			options to turn off various tracking types - function hits, thread lines, performance updates
+				update to bandwidth should be immediate
+			do min/max/avg sync packet size for stats - output in network log
+
+	scanner
+		add assemblies turned off
 
 	send entry/holding info
 		on connect iterate stacks for nodes entered/waiting, send to client
 		when adding node hit to send, check if waiting/entered and add to list
 		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
-
-	do min/max/avg sync packet size for stats - output in network log
 
 	Test function for generic packet
 

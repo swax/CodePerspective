@@ -53,6 +53,8 @@
             this.InstanceTab = new XLibrary.InstancePanel();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.ConsoleTab = new XLibrary.Panels.ConsolePanel();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.SettingsTab = new XLibrary.UI.Panels.SettingsPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -63,6 +65,7 @@
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -203,6 +206,7 @@
             this.TabPanel.Controls.Add(this.tabPage1);
             this.TabPanel.Controls.Add(this.tabPage2);
             this.TabPanel.Controls.Add(this.tabPage5);
+            this.TabPanel.Controls.Add(this.tabPage4);
             this.TabPanel.Controls.Add(this.tabPage3);
             this.TabPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TabPanel.Location = new System.Drawing.Point(0, 0);
@@ -288,6 +292,25 @@
             this.ConsoleTab.Size = new System.Drawing.Size(542, 194);
             this.ConsoleTab.TabIndex = 0;
             // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.SettingsTab);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(542, 194);
+            this.tabPage4.TabIndex = 6;
+            this.tabPage4.Text = "Settings";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // SettingsTab
+            // 
+            this.SettingsTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.SettingsTab.Location = new System.Drawing.Point(3, 3);
+            this.SettingsTab.Name = "SettingsTab";
+            this.SettingsTab.Size = new System.Drawing.Size(536, 188);
+            this.SettingsTab.TabIndex = 0;
+            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.aboutPanel1);
@@ -327,6 +350,7 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.ResumeLayout(false);
 
@@ -334,7 +358,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer RedrawTimer;
+        public System.Windows.Forms.Timer RedrawTimer;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -359,5 +383,7 @@
         private System.Windows.Forms.ToolStripDropDownButton ThreadButton;
         private System.Windows.Forms.TabPage tabPage3;
         private UI.Panels.AboutPanel aboutPanel1;
+        private System.Windows.Forms.TabPage tabPage4;
+        private UI.Panels.SettingsPanel SettingsTab;
     }
 }

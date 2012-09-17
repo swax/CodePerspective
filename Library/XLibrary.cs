@@ -49,6 +49,8 @@ namespace XLibrary
         // core thread
         public const int HitFrames = 30;
         public const int ShowTicks = HitFrames - 1; // first index
+        public static int TargetFps = HitFrames;
+
         public static Thread CoreThread;
         public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
         public static Queue<Action> CoreMessages = new Queue<Action>();
@@ -97,8 +99,14 @@ namespace XLibrary
             if (LoadNodeMap(path))
             {
                 ApplySettings();
-                var form = new MainForm();
-                form.Show();
+
+                var ui = new XUI();
+                ui.Thread = Thread.CurrentThread;
+                ui.Window = new MainForm();
+
+                UIs[ui.Thread.ManagedThreadId] = ui;
+
+                ui.Window.Show();
             }
         }
 
@@ -211,8 +219,6 @@ namespace XLibrary
 
         static void RunEventLoop(object state)
         {
-            int frameMS = 1000 / HitFrames;
-
             var resetWatch = new Stopwatch();
             var secondWatch = new Stopwatch();
 
@@ -221,6 +227,8 @@ namespace XLibrary
 
             while (true)
             {
+                int frameMS = 1000 / TargetFps;
+
                 RunCoreEvent.WaitOne(frameMS);
 
                 if (secondWatch.ElapsedMilliseconds >= 1000)

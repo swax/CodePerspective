@@ -63,11 +63,6 @@
             this.IncludeMethods = new System.Windows.Forms.CheckBox();
             this.IncludeFields = new System.Windows.Forms.CheckBox();
             this.ResetProfilingLink = new System.Windows.Forms.LinkLabel();
-            this.TrackingInstances = new System.Windows.Forms.CheckBox();
-            this.TrackingMethodCalls = new System.Windows.Forms.CheckBox();
-            this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.FpsLabel = new System.Windows.Forms.Label();
             this.PauseLink = new System.Windows.Forms.LinkLabel();
             this.RenderGdiButton = new System.Windows.Forms.RadioButton();
             this.RenderOpenGLButton = new System.Windows.Forms.RadioButton();
@@ -79,14 +74,12 @@
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
             this.flowLayoutPanel5.SuspendLayout();
             this.flowLayoutPanel6.SuspendLayout();
             this.flowLayoutPanel7.SuspendLayout();
-            this.flowLayoutPanel8.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -489,61 +482,6 @@
             this.ResetProfilingLink.Text = "Reset Profiling";
             this.ResetProfilingLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ResetProfilingLink_LinkClicked);
             // 
-            // TrackingInstances
-            // 
-            this.TrackingInstances.AutoSize = true;
-            this.TrackingInstances.Location = new System.Drawing.Point(3, 49);
-            this.TrackingInstances.Name = "TrackingInstances";
-            this.TrackingInstances.Size = new System.Drawing.Size(72, 17);
-            this.TrackingInstances.TabIndex = 14;
-            this.TrackingInstances.Text = "Instances";
-            this.TrackingInstances.UseVisualStyleBackColor = true;
-            this.TrackingInstances.CheckedChanged += new System.EventHandler(this.TrackingInstances_CheckedChanged);
-            // 
-            // TrackingMethodCalls
-            // 
-            this.TrackingMethodCalls.AutoSize = true;
-            this.TrackingMethodCalls.Location = new System.Drawing.Point(3, 3);
-            this.TrackingMethodCalls.Name = "TrackingMethodCalls";
-            this.TrackingMethodCalls.Size = new System.Drawing.Size(87, 17);
-            this.TrackingMethodCalls.TabIndex = 12;
-            this.TrackingMethodCalls.Text = "Method Calls";
-            this.TrackingMethodCalls.UseVisualStyleBackColor = true;
-            this.TrackingMethodCalls.CheckedChanged += new System.EventHandler(this.TrackingMethodCalls_CheckedChanged);
-            // 
-            // TrackingClassCalls
-            // 
-            this.TrackingClassCalls.AutoSize = true;
-            this.TrackingClassCalls.Location = new System.Drawing.Point(3, 26);
-            this.TrackingClassCalls.Name = "TrackingClassCalls";
-            this.TrackingClassCalls.Size = new System.Drawing.Size(76, 17);
-            this.TrackingClassCalls.TabIndex = 13;
-            this.TrackingClassCalls.Text = "Class Calls";
-            this.TrackingClassCalls.UseVisualStyleBackColor = true;
-            this.TrackingClassCalls.CheckedChanged += new System.EventHandler(this.TrackingClassCalls_CheckedChanged);
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(674, 0);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(57, 13);
-            this.label6.TabIndex = 26;
-            this.label6.Text = "Tracking";
-            this.label6.Visible = false;
-            // 
-            // FpsLabel
-            // 
-            this.FpsLabel.AutoSize = true;
-            this.FpsLabel.ForeColor = System.Drawing.Color.Gray;
-            this.FpsLabel.Location = new System.Drawing.Point(3, 86);
-            this.FpsLabel.Name = "FpsLabel";
-            this.FpsLabel.Padding = new System.Windows.Forms.Padding(0, 8, 0, 0);
-            this.FpsLabel.Size = new System.Drawing.Size(47, 21);
-            this.FpsLabel.TabIndex = 29;
-            this.FpsLabel.Text = "FPS: XX";
-            // 
             // PauseLink
             // 
             this.PauseLink.AutoSize = true;
@@ -627,7 +565,6 @@
             this.flowLayoutPanel3.Controls.Add(this.RenderOpenGLButton);
             this.flowLayoutPanel3.Controls.Add(this.RenderGibsonButton);
             this.flowLayoutPanel3.Controls.Add(this.PauseLink);
-            this.flowLayoutPanel3.Controls.Add(this.FpsLabel);
             this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel3.Location = new System.Drawing.Point(216, 20);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
@@ -686,24 +623,11 @@
             this.flowLayoutPanel7.Size = new System.Drawing.Size(111, 146);
             this.flowLayoutPanel7.TabIndex = 38;
             // 
-            // flowLayoutPanel8
-            // 
-            this.flowLayoutPanel8.Controls.Add(this.TrackingMethodCalls);
-            this.flowLayoutPanel8.Controls.Add(this.TrackingClassCalls);
-            this.flowLayoutPanel8.Controls.Add(this.TrackingInstances);
-            this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel8.Location = new System.Drawing.Point(677, 20);
-            this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-            this.flowLayoutPanel8.Size = new System.Drawing.Size(94, 146);
-            this.flowLayoutPanel8.TabIndex = 39;
-            this.flowLayoutPanel8.Visible = false;
-            // 
             // ViewPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.Controls.Add(this.flowLayoutPanel8);
             this.Controls.Add(this.flowLayoutPanel7);
             this.Controls.Add(this.flowLayoutPanel6);
             this.Controls.Add(this.flowLayoutPanel5);
@@ -711,7 +635,6 @@
             this.Controls.Add(this.flowLayoutPanel3);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.label7);
-            this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -732,8 +655,6 @@
             this.flowLayoutPanel6.PerformLayout();
             this.flowLayoutPanel7.ResumeLayout(false);
             this.flowLayoutPanel7.PerformLayout();
-            this.flowLayoutPanel8.ResumeLayout(false);
-            this.flowLayoutPanel8.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -762,10 +683,6 @@
         public System.Windows.Forms.CheckBox CallsRealTimeButton;
         public System.Windows.Forms.CheckBox CallsAllButton;
         public System.Windows.Forms.RadioButton LayoutClassCallsButton;
-        public System.Windows.Forms.CheckBox TrackingInstances;
-        public System.Windows.Forms.CheckBox TrackingMethodCalls;
-        public System.Windows.Forms.CheckBox TrackingClassCalls;
-        private System.Windows.Forms.Label label6;
         public System.Windows.Forms.CheckBox LayoutInOrder;
         public System.Windows.Forms.CheckBox IncludeFields;
         public System.Windows.Forms.RadioButton GraphDependencies;
@@ -774,7 +691,6 @@
         private System.Windows.Forms.LinkLabel ResetProfilingLink;
         public System.Windows.Forms.RadioButton GraphIntermediateDependencies;
         public System.Windows.Forms.CheckBox IncludeMethods;
-        public System.Windows.Forms.Label FpsLabel;
         public System.Windows.Forms.CheckBox IncludeAnon;
         private System.Windows.Forms.CheckBox ShowAllDependenciesCheckBox;
         public System.Windows.Forms.RadioButton LayoutInitGraphButton;
@@ -792,6 +708,5 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
     }
 }

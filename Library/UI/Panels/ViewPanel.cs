@@ -31,8 +31,7 @@ namespace XLibrary.Panels
             IncludeNotXRayedButton.AttachToolTip("Shows methods outside what was xrayed\r\nIn call graph view these methods are circles");
             LayoutInOrder.AttachToolTip("In the call graph methods are shown in the order that they were first called top to bottom");
 
-            ShowAllButton.AttachToolTip("Show all calls ever made.\r\nIn graph mode, red lines are calls LtR, blue lines are RtL and purple is both.");
-            
+            ShowAllButton.AttachToolTip("Show all calls ever made.\r\nIn graph mode, red lines are calls LtR, blue lines are RtL and purple is both.");  
         }
 
         public void Init(MainForm main)
@@ -73,15 +72,6 @@ namespace XLibrary.Panels
             SizeTimeInMethodButton.Checked = Model.SizeLayout == SizeLayouts.TimeInMethod;
             SizeCallsButton.Checked = Model.SizeLayout == SizeLayouts.Hits;
             SizeTimePerCallButton.Checked = Model.SizeLayout == SizeLayouts.TimePerHit;
-
-            // tracking
-            TrackingMethodCalls.Enabled = XRay.FlowTracking;
-            TrackingClassCalls.Enabled = XRay.FlowTracking;
-            TrackingInstances.Enabled = XRay.InstanceTracking;
-
-            TrackingMethodCalls.Checked = XRay.FlowTracking;
-            TrackingClassCalls.Checked = XRay.ClassTracking;
-            TrackingInstances.Checked = XRay.InstanceTracking;
 
             ShowAllDependenciesCheckBox.Checked = Model.ShowAllDependencies;
         }
@@ -325,21 +315,6 @@ namespace XLibrary.Panels
         {
             Model.SizeLayout = SizeLayouts.TimePerHit;
             Main.RefreshView();
-        }
-
-        private void TrackingMethodCalls_CheckedChanged(object sender, EventArgs e)
-        {
-            XRay.FlowTracking = TrackingMethodCalls.Checked;
-        }
-
-        private void TrackingClassCalls_CheckedChanged(object sender, EventArgs e)
-        {
-            XRay.ClassTracking = TrackingClassCalls.Checked;
-        }
-
-        private void TrackingInstances_CheckedChanged(object sender, EventArgs e)
-        {
-            XRay.InstanceTracking = TrackingInstances.Checked;
         }
 
         private void IncludeMethods_CheckedChanged(object sender, EventArgs e)

@@ -128,11 +128,23 @@
     <Compile Include="Meta\Utility.cs" />
     <Compile Include="UI\ColorProfile.cs" />
     <Compile Include="UI\FieldModel.cs" />
+    <Compile Include="UI\InputDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\InputDialog.Designer.cs">
+      <DependentUpon>InputDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\Panels\AboutPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UI\Panels\AboutPanel.Designer.cs">
       <DependentUpon>AboutPanel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Panels\SettingsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\Panels\SettingsPanel.Designer.cs">
+      <DependentUpon>SettingsPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="UI\Rendering\FpsCamera.cs" />
     <Compile Include="UI\Rendering\GibsonRenderer.cs">
@@ -232,6 +244,9 @@
     <EmbeddedResource Include="UI\DetailsNav.resx">
       <DependentUpon>DetailsNav.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\InputDialog.resx">
+      <DependentUpon>InputDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\AboutPanel.resx">
       <DependentUpon>AboutPanel.cs</DependentUpon>
     </EmbeddedResource>
@@ -253,6 +268,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\ProfilePanel.resx">
       <DependentUpon>ProfilePanel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Panels\SettingsPanel.resx">
+      <DependentUpon>SettingsPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="UI\Panels\ViewPanel.resx">
       <DependentUpon>ViewPanel.cs</DependentUpon>

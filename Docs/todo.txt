@@ -4,20 +4,12 @@ http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-N
 Remote
 	pressing recompile after recompile not clearing stuff
 	lower fps should now make the timeout of colors slower, need to skip more frames
+	enter default button in settings
+	field values in tooltip
 
-	settings panel
-		frame rate
-			server side, adjusts server update rate
-			client side, adjusts update rate just for that client, maybe default to 5, check out cpu
-			show next to it current frame rate
-			see if adjusting server or client rate decreases cpu on client side
-			figure out if client should adjust server rate, or maybe set server rate to min rate given connections and gui
-				if no connections or gui don't even bother updating ;)
-
-		bandwidth
-			options to turn off various tracking types - function hits, thread lines, performance updates
-				update to bandwidth should be immediate
-			do min/max/avg sync packet size for stats - output in network log
+	options to turn off various tracking types - function hits, thread lines, performance updates
+		update to bandwidth should be immediate
+	do min/max/avg sync packet size for stats - output in network log, see if diff in few/often updates
 
 	scanner
 		add assemblies turned off
@@ -28,7 +20,8 @@ Remote
 		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
 
 	Test function for generic packet
-
+	
+	public key encryption
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value

@@ -225,12 +225,13 @@ namespace XLibrary
             resetWatch.Start();
             secondWatch.Start();
 
+            int frameMS = 1000 / TargetFps;
+
             while (true)
             {
-                int frameMS = 1000 / TargetFps;
-
                 RunCoreEvent.WaitOne(frameMS);
 
+                // second timer
                 if (secondWatch.ElapsedMilliseconds >= 1000)
                 {
                     if (Remote != null)
@@ -240,22 +241,28 @@ namespace XLibrary
                     if (!RemoteViewer)
                         UpdateThreadAlive();
 
+                    // set target fps, might of changed
+                    frameMS = 1000 / TargetFps;
+
                     secondWatch.Reset();
                     secondWatch.Start();
                 }
 
-                if (resetWatch.ElapsedMilliseconds >= frameMS)
-                {
+                // at reset interface iterate functions and call and decrease hit counters, save cpu when no UIs active
+                if (UIs.Count > 0 && resetWatch.ElapsedMilliseconds >= frameMS)
+                {         
                     ResetFunctionHits();
 
                     resetWatch.Reset();
                     resetWatch.Start();
-
-                    if (Remote != null)
-                        foreach (var client in Remote.SyncClients)
-                            client.DoSync();
                 }
 
+                // sync remotes
+                if (Remote != null)
+                    foreach (var client in Remote.SyncClients)
+                        client.TrySync();
+
+                // try to send more data, on send may have triggered this loop
                 if (Remote != null)
                 {
                     foreach (var connection in Remote.Connections)
@@ -264,6 +271,7 @@ namespace XLibrary
                     Remote.ProcessDownloads();
                 }
 
+                // run any outstanding functions on core thread
                 lock (CoreMessages)
                     if (CoreMessages.Count > 0)
                     {
@@ -321,10 +329,6 @@ namespace XLibrary
 
         static void  ResetFunctionHits()
         {
-            // save cpu when no UIs active
-            if (UIs.Count == 0)
-                return;
-
             foreach (var node in Nodes)
                 node.DecrementHits();
 

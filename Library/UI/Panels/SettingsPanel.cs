@@ -75,8 +75,8 @@ namespace XLibrary.UI.Panels
             ConnectionList.Items.Clear();
 
             foreach (var client in XRay.Remote.SyncClients)
-                ConnectionList.Items.Add(string.Format("client: {0}, syncs: {1}, in: {2} out: {3} bps", 
-                    client.Connection.RemoteIP, client.Connection.SyncsPerSecond, client.Connection.Bandwidth.InAvg(), client.Connection.Bandwidth.OutAvg()));
+                ConnectionList.Items.Add(string.Format("client: {0}, syncs: {1}({2}), in: {3} out: {4} bps", 
+                    client.Connection.RemoteIP, client.Connection.SyncsPerSecond, client.TargetFps, client.Connection.Bandwidth.InAvg(), client.Connection.Bandwidth.OutAvg()));
 
             if (XRay.Remote.ServerConnection != null)
             {
@@ -121,6 +121,9 @@ namespace XLibrary.UI.Panels
 
             XRay.TargetFps = rate;
             Main.RedrawTimer.Interval = 1000 / rate;
+
+            if (XRay.Remote != null && XRay.Remote.ServerConnection != null)
+                XRay.Remote.SendClientSettings();
 
             RefreshContent();
         }

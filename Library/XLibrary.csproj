@@ -113,6 +113,7 @@
     <Compile Include="Remote\G2Header.cs" />
     <Compile Include="Remote\G2Protocol.cs" />
     <Compile Include="Remote\Packets.cs" />
+    <Compile Include="Remote\SyncClient.cs" />
     <Compile Include="Remote\XConnection.cs" />
     <Compile Include="SharedDictionary.cs" />
     <Compile Include="Meta\AssemblyReference.cs" />

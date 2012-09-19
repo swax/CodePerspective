@@ -2,7 +2,6 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote
-	
 	frame rate should not make colors take longer to reduce slower - maybe some way to decrease or re-calc opacity
 	field values in tooltip
 

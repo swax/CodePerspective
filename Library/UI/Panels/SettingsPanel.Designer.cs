@@ -37,9 +37,11 @@
             this.ConnectionList = new System.Windows.Forms.ListBox();
             this.ModeLabel = new System.Windows.Forms.Label();
             this.flowLayoutPanel8 = new System.Windows.Forms.FlowLayoutPanel();
-            this.TrackingMethodCalls = new System.Windows.Forms.CheckBox();
-            this.TrackingClassCalls = new System.Windows.Forms.CheckBox();
-            this.TrackingInstances = new System.Windows.Forms.CheckBox();
+            this.TrackFunctionsCheckBox = new System.Windows.Forms.CheckBox();
+            this.TrackCalls = new System.Windows.Forms.CheckBox();
+            this.TrackInstances = new System.Windows.Forms.CheckBox();
+            this.TrackProfiling = new System.Windows.Forms.CheckBox();
+            this.TrackThreadlines = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
             this.SecondTimer = new System.Windows.Forms.Timer(this.components);
             this.flowLayoutPanel8.SuspendLayout();
@@ -86,20 +88,25 @@
             // 
             // CompileSettingsList
             // 
+            this.CompileSettingsList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.CompileSettingsList.FormattingEnabled = true;
             this.CompileSettingsList.IntegralHeight = false;
             this.CompileSettingsList.Location = new System.Drawing.Point(227, 16);
             this.CompileSettingsList.Name = "CompileSettingsList";
-            this.CompileSettingsList.Size = new System.Drawing.Size(184, 106);
+            this.CompileSettingsList.Size = new System.Drawing.Size(184, 141);
             this.CompileSettingsList.TabIndex = 7;
             // 
             // ConnectionList
             // 
+            this.ConnectionList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.ConnectionList.FormattingEnabled = true;
             this.ConnectionList.IntegralHeight = false;
             this.ConnectionList.Location = new System.Drawing.Point(420, 16);
             this.ConnectionList.Name = "ConnectionList";
-            this.ConnectionList.Size = new System.Drawing.Size(242, 106);
+            this.ConnectionList.Size = new System.Drawing.Size(250, 141);
             this.ConnectionList.TabIndex = 9;
             // 
             // ModeLabel
@@ -114,47 +121,71 @@
             // 
             // flowLayoutPanel8
             // 
-            this.flowLayoutPanel8.Controls.Add(this.TrackingMethodCalls);
-            this.flowLayoutPanel8.Controls.Add(this.TrackingClassCalls);
-            this.flowLayoutPanel8.Controls.Add(this.TrackingInstances);
+            this.flowLayoutPanel8.Controls.Add(this.TrackFunctionsCheckBox);
+            this.flowLayoutPanel8.Controls.Add(this.TrackCalls);
+            this.flowLayoutPanel8.Controls.Add(this.TrackInstances);
+            this.flowLayoutPanel8.Controls.Add(this.TrackProfiling);
+            this.flowLayoutPanel8.Controls.Add(this.TrackThreadlines);
             this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel8.Location = new System.Drawing.Point(112, 20);
             this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-            this.flowLayoutPanel8.Size = new System.Drawing.Size(107, 72);
+            this.flowLayoutPanel8.Size = new System.Drawing.Size(107, 123);
             this.flowLayoutPanel8.TabIndex = 41;
             // 
-            // TrackingMethodCalls
+            // TrackFunctionsCheckBox
             // 
-            this.TrackingMethodCalls.AutoSize = true;
-            this.TrackingMethodCalls.Location = new System.Drawing.Point(3, 3);
-            this.TrackingMethodCalls.Name = "TrackingMethodCalls";
-            this.TrackingMethodCalls.Size = new System.Drawing.Size(87, 17);
-            this.TrackingMethodCalls.TabIndex = 12;
-            this.TrackingMethodCalls.Text = "Method Calls";
-            this.TrackingMethodCalls.UseVisualStyleBackColor = true;
-            this.TrackingMethodCalls.CheckedChanged += new System.EventHandler(this.TrackingMethodCalls_CheckedChanged);
+            this.TrackFunctionsCheckBox.AutoSize = true;
+            this.TrackFunctionsCheckBox.Location = new System.Drawing.Point(3, 3);
+            this.TrackFunctionsCheckBox.Name = "TrackFunctionsCheckBox";
+            this.TrackFunctionsCheckBox.Size = new System.Drawing.Size(88, 17);
+            this.TrackFunctionsCheckBox.TabIndex = 12;
+            this.TrackFunctionsCheckBox.Text = "Function Hits";
+            this.TrackFunctionsCheckBox.UseVisualStyleBackColor = true;
+            this.TrackFunctionsCheckBox.CheckedChanged += new System.EventHandler(this.TrackFunctionHits_CheckedChanged);
             // 
-            // TrackingClassCalls
+            // TrackCalls
             // 
-            this.TrackingClassCalls.AutoSize = true;
-            this.TrackingClassCalls.Location = new System.Drawing.Point(3, 26);
-            this.TrackingClassCalls.Name = "TrackingClassCalls";
-            this.TrackingClassCalls.Size = new System.Drawing.Size(76, 17);
-            this.TrackingClassCalls.TabIndex = 13;
-            this.TrackingClassCalls.Text = "Class Calls";
-            this.TrackingClassCalls.UseVisualStyleBackColor = true;
-            this.TrackingClassCalls.CheckedChanged += new System.EventHandler(this.TrackingClassCalls_CheckedChanged);
+            this.TrackCalls.AutoSize = true;
+            this.TrackCalls.Location = new System.Drawing.Point(3, 26);
+            this.TrackCalls.Name = "TrackCalls";
+            this.TrackCalls.Size = new System.Drawing.Size(74, 17);
+            this.TrackCalls.TabIndex = 13;
+            this.TrackCalls.Text = "Call Stack";
+            this.TrackCalls.UseVisualStyleBackColor = true;
+            this.TrackCalls.CheckedChanged += new System.EventHandler(this.TrackCalls_CheckedChanged);
             // 
-            // TrackingInstances
+            // TrackInstances
             // 
-            this.TrackingInstances.AutoSize = true;
-            this.TrackingInstances.Location = new System.Drawing.Point(3, 49);
-            this.TrackingInstances.Name = "TrackingInstances";
-            this.TrackingInstances.Size = new System.Drawing.Size(72, 17);
-            this.TrackingInstances.TabIndex = 14;
-            this.TrackingInstances.Text = "Instances";
-            this.TrackingInstances.UseVisualStyleBackColor = true;
-            this.TrackingInstances.CheckedChanged += new System.EventHandler(this.TrackingInstances_CheckedChanged);
+            this.TrackInstances.AutoSize = true;
+            this.TrackInstances.Location = new System.Drawing.Point(3, 49);
+            this.TrackInstances.Name = "TrackInstances";
+            this.TrackInstances.Size = new System.Drawing.Size(72, 17);
+            this.TrackInstances.TabIndex = 16;
+            this.TrackInstances.Text = "Instances";
+            this.TrackInstances.UseVisualStyleBackColor = true;
+            this.TrackInstances.CheckedChanged += new System.EventHandler(this.TrackInstances_CheckedChanged);
+            // 
+            // TrackProfiling
+            // 
+            this.TrackProfiling.AutoSize = true;
+            this.TrackProfiling.Location = new System.Drawing.Point(3, 72);
+            this.TrackProfiling.Name = "TrackProfiling";
+            this.TrackProfiling.Size = new System.Drawing.Size(63, 17);
+            this.TrackProfiling.TabIndex = 14;
+            this.TrackProfiling.Text = "Profiling";
+            this.TrackProfiling.UseVisualStyleBackColor = true;
+            this.TrackProfiling.CheckedChanged += new System.EventHandler(this.TrackProfiling_CheckedChanged);
+            // 
+            // TrackThreadlines
+            // 
+            this.TrackThreadlines.AutoSize = true;
+            this.TrackThreadlines.Location = new System.Drawing.Point(3, 95);
+            this.TrackThreadlines.Name = "TrackThreadlines";
+            this.TrackThreadlines.Size = new System.Drawing.Size(81, 17);
+            this.TrackThreadlines.TabIndex = 15;
+            this.TrackThreadlines.Text = "Threadlines";
+            this.TrackThreadlines.UseVisualStyleBackColor = true;
+            this.TrackThreadlines.CheckedChanged += new System.EventHandler(this.TrackThreadlines_CheckedChanged);
             // 
             // label4
             // 
@@ -186,7 +217,7 @@
             this.Controls.Add(this.FpsLabel);
             this.Controls.Add(this.label1);
             this.Name = "SettingsPanel";
-            this.Size = new System.Drawing.Size(702, 160);
+            this.Size = new System.Drawing.Size(673, 160);
             this.Load += new System.EventHandler(this.SettingsPanel_Load);
             this.flowLayoutPanel8.ResumeLayout(false);
             this.flowLayoutPanel8.PerformLayout();
@@ -204,11 +235,13 @@
         private System.Windows.Forms.ListBox ConnectionList;
         private System.Windows.Forms.Label ModeLabel;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel8;
-        public System.Windows.Forms.CheckBox TrackingMethodCalls;
-        public System.Windows.Forms.CheckBox TrackingClassCalls;
-        public System.Windows.Forms.CheckBox TrackingInstances;
+        public System.Windows.Forms.CheckBox TrackFunctionsCheckBox;
+        public System.Windows.Forms.CheckBox TrackCalls;
         private System.Windows.Forms.Label label4;
         public System.Windows.Forms.Label FpsLabel;
         private System.Windows.Forms.Timer SecondTimer;
+        public System.Windows.Forms.CheckBox TrackProfiling;
+        public System.Windows.Forms.CheckBox TrackThreadlines;
+        public System.Windows.Forms.CheckBox TrackInstances;
     }
 }

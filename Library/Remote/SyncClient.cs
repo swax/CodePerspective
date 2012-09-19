@@ -40,6 +40,8 @@ namespace XLibrary.Remote
         // settings
         Stopwatch SyncWatch = new Stopwatch();
         public int TargetFps;
+        public bool TrackProfiling = true;
+        public bool TrackThreadlines = true;
 
 
         public SyncClient()
@@ -85,20 +87,23 @@ namespace XLibrary.Remote
             AddPairs(ref NewCalls, ref packet.NewCalls);
             AddSet(ref CallHits, ref packet.CallHits);
 
-            if (packet.CallHits != null)
-                foreach (var id in packet.CallHits)
-                    CallStats.Add(id); // copy over to stats for bulk send
-
-            if (SendStatsCounter > SendStatsInterval && CallStats.Count > 0)
+            if (TrackProfiling)
             {
-                packet.CallStats = new List<CallStat>();
+                if (packet.CallHits != null)
+                    foreach (var id in packet.CallHits)
+                        CallStats.Add(id); // copy over to stats for bulk send
 
-                foreach (var hash in CallStats)
-                    packet.CallStats.Add(new CallStat(XRay.CallMap[hash]));
+                if (SendStatsCounter > SendStatsInterval && CallStats.Count > 0)
+                {
+                    packet.CallStats = new List<CallStat>();
 
-                CallStats = new HashSet<int>();
-                SendStatsCounter = 0;
-                DataToSend = true;
+                    foreach (var hash in CallStats)
+                        packet.CallStats.Add(new CallStat(XRay.CallMap[hash]));
+
+                    CallStats = new HashSet<int>();
+                    SendStatsCounter = 0;
+                    DataToSend = true;
+                }
             }
 
             AddPairs(ref Inits, ref packet.Inits);
@@ -120,13 +125,13 @@ namespace XLibrary.Remote
             AddPairs(ref NodeThreads, ref packet.NodeThreads);
             AddPairs(ref CallThreads, ref packet.CallThreads);
 
-            AddThreadlines(packet);
+            if(TrackThreadlines)
+                AddThreadlines(packet);
 
             // check that there's space in the send buffer to send state
             if (DataToSend)
             {
-                Connection.SendPacket(packet);
-                Connection.SyncCount++;
+                Connection.SendSyncPacket(packet);
                 return true;
             }
 

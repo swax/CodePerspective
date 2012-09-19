@@ -2,26 +2,17 @@
 http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
 
 Remote
-	pressing recompile after recompile not clearing stuff
-	lower fps should now make the timeout of colors slower, need to skip more frames
-	enter default button in settings
+	
+	frame rate should not make colors take longer to reduce slower - maybe some way to decrease or re-calc opacity
 	field values in tooltip
 
-	options to turn off various tracking types - function hits, thread lines, performance updates
-		update to bandwidth should be immediate
-	do min/max/avg sync packet size for stats - output in network log, see if diff in few/often updates
-
-	scanner
-		add assemblies turned off
+	public key encryption
 
 	send entry/holding info
 		on connect iterate stacks for nodes entered/waiting, send to client
 		when adding node hit to send, check if waiting/entered and add to list
 		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
 
-	Test function for generic packet
-	
-	public key encryption
 
 Put string value of arguments along the line of the call
 	For each function node have a last string arguments value
@@ -38,7 +29,6 @@ see if when i can remove signatures i can xray system dlls
 commit and try to open/build/recompile with mono runtime
 
 **Error trying to find common link between BuildContent and BuildContent, common had 0 index
-option not to record MSIL, check that stuff like deOps is way faster at compiling
 background tooltip color in opengl
 add more tool tips
 Add thread details to class details so thread that touched class can be filtered on 

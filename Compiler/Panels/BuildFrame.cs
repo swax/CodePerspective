@@ -15,6 +15,9 @@ namespace XBuilder.Panels
     {
         public BuildModel Model = new BuildModel();
 
+        public Control CurrentPanel;
+
+
         public BuildFrame()
         {
             InitializeComponent();
@@ -27,39 +30,37 @@ namespace XBuilder.Panels
 
         public void SetStep(BuildStep step)
         {
-            Control panel = null;
-
             switch (step)
             {
                 case BuildStep.Files:
-                    panel = new BuildStepFiles(this, Model);
+                    CurrentPanel = new BuildStepFiles(this, Model);
                     break;
 
                 case BuildStep.TrackingOptions:
-                    panel = new BuildStepTrackingOptions(this, Model);
+                    CurrentPanel = new BuildStepTrackingOptions(this, Model);
                     break;
 
                 case BuildStep.BuildOptions:
-                    panel = new BuildStepBuildOptions(this, Model);
+                    CurrentPanel = new BuildStepBuildOptions(this, Model);
                     break;
 
                 case BuildStep.ViewerOptions:
-                    panel = new BuildStepViewerOptions(this, Model);
+                    CurrentPanel = new BuildStepViewerOptions(this, Model);
                     break;
 
                 case BuildStep.Compile:
-                    panel = new BuildStepCompile(this, Model);
+                    CurrentPanel = new BuildStepCompile(this, Model);
                     break;
 
                 case BuildStep.Run:
-                    panel = new BuildStepRun(this, Model);
+                    CurrentPanel = new BuildStepRun(this, Model);
                     break;
             }
 
-            panel.Dock = DockStyle.Fill;
+            CurrentPanel.Dock = DockStyle.Fill;
 
             Controls.Clear();
-            Controls.Add(panel);
+            Controls.Add(CurrentPanel);
         }
     }
 }

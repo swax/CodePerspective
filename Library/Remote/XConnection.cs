@@ -57,6 +57,7 @@ namespace XLibrary.Remote
 
         // bandwidth
         public BandwidthLog Bandwidth;
+        public int LastSyncSize;
 
         G2Protocol Protocol = new G2Protocol();
 
@@ -235,6 +236,17 @@ namespace XLibrary.Remote
             }
 
             State = TcpState.Closed;
+        }
+
+        public void SendSyncPacket(SyncPacket packet)
+        {
+            int bytesSent = SendPacket(packet);
+
+            if (bytesSent > 0)
+            {
+                SyncCount++;
+                LastSyncSize = bytesSent;
+            }
         }
 
         public int SendPacket(G2Packet packet)

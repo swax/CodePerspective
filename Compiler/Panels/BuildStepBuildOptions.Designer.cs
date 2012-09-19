@@ -38,6 +38,8 @@
             this.DecompileCSharpCheckBox = new System.Windows.Forms.CheckBox();
             this.DecompileAgainCheckbox = new System.Windows.Forms.CheckBox();
             this.ReplaceOriginalCheckBox = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.PathTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -94,7 +96,7 @@
             // MsToolsCheckbox
             // 
             this.MsToolsCheckbox.AutoSize = true;
-            this.MsToolsCheckbox.Location = new System.Drawing.Point(7, 182);
+            this.MsToolsCheckbox.Location = new System.Drawing.Point(7, 249);
             this.MsToolsCheckbox.Name = "MsToolsCheckbox";
             this.MsToolsCheckbox.Size = new System.Drawing.Size(189, 17);
             this.MsToolsCheckbox.TabIndex = 45;
@@ -105,7 +107,7 @@
             // RunVerifyCheckbox
             // 
             this.RunVerifyCheckbox.AutoSize = true;
-            this.RunVerifyCheckbox.Location = new System.Drawing.Point(7, 159);
+            this.RunVerifyCheckbox.Location = new System.Drawing.Point(7, 226);
             this.RunVerifyCheckbox.Name = "RunVerifyCheckbox";
             this.RunVerifyCheckbox.Size = new System.Drawing.Size(197, 17);
             this.RunVerifyCheckbox.TabIndex = 44;
@@ -143,10 +145,30 @@
             this.ReplaceOriginalCheckBox.Text = "Overwrite assemblies (backups kept in /xBackup)";
             this.ReplaceOriginalCheckBox.UseVisualStyleBackColor = true;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(4, 166);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(318, 13);
+            this.label3.TabIndex = 48;
+            this.label3.Text = "Run path (may be different if build is moved to a different directory)";
+            // 
+            // PathTextBox
+            // 
+            this.PathTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.PathTextBox.Location = new System.Drawing.Point(7, 182);
+            this.PathTextBox.Name = "PathTextBox";
+            this.PathTextBox.Size = new System.Drawing.Size(383, 20);
+            this.PathTextBox.TabIndex = 49;
+            // 
             // BuildStepBuildOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.PathTextBox);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.SaveMsilCheckBox);
             this.Controls.Add(this.MsToolsCheckbox);
@@ -177,5 +199,7 @@
         private System.Windows.Forms.CheckBox DecompileCSharpCheckBox;
         private System.Windows.Forms.CheckBox DecompileAgainCheckbox;
         private System.Windows.Forms.CheckBox ReplaceOriginalCheckBox;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox PathTextBox;
     }
 }

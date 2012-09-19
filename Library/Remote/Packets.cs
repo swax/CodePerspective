@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Diagnostics;
 
 namespace XLibrary.Remote
 {
@@ -77,6 +78,33 @@ namespace XLibrary.Remote
             }
 
             return generic;
+        }
+
+        public static void Test()
+        {
+            // create
+            var packet = new GenericPacket("name");
+            packet.Data = new Dictionary<string, string>()
+            {
+                {"test1", "val1"},
+                {"test2", "val2"}
+            };
+
+            // send
+            var protocol = new G2Protocol();
+            var encoded = packet.Encode(protocol);
+            
+            // recv
+            var recvPacket = new G2Header(encoded);
+            int start = 0;
+            int size = encoded.Length;
+            var streamStatus = G2Protocol.ReadNextPacket(recvPacket, ref start, ref size);
+
+            // decode
+            var check = GenericPacket.Decode(recvPacket);
+
+            Debug.Assert(check.Data["test1"] == "val1");
+            Debug.Assert(check.Data["test2"] == "val2");
         }
     }
 

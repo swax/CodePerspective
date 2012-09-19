@@ -195,7 +195,9 @@ namespace XBuilder
 
             int i = 0;
 
-            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldstr, Build.DatPath));
+            var datPath = Path.Combine(Build.DatDir, "XRay.dat");
+
+            AddInstruction(cctor, i++, processor.Create(OpCodes.Ldstr, datPath));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, Build.TrackFlow ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, Build.TrackInstances ? 1 : 0));
             AddInstruction(cctor, i++, processor.Create(OpCodes.Ldc_I4, 0)); // remote client (false)

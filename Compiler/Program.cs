@@ -21,6 +21,7 @@ namespace XBuilder
         {
             XDef.Test();
             PacketExts.Test();
+            GenericPacket.Test();
 
             Pro.LoadFromDirectory(Application.StartupPath);
 

@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainTabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.buildFrame1 = new XBuilder.Panels.BuildFrame();
+            this.BuildPanel = new XBuilder.Panels.BuildFrame();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.monitorPanel1 = new XBuilder.MonitorPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
@@ -64,7 +64,7 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.buildFrame1);
+            this.tabPage1.Controls.Add(this.BuildPanel);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
@@ -73,13 +73,13 @@
             this.tabPage1.Text = "Build";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // buildFrame1
+            // BuildPanel
             // 
-            this.buildFrame1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.buildFrame1.Location = new System.Drawing.Point(3, 3);
-            this.buildFrame1.Name = "buildFrame1";
-            this.buildFrame1.Size = new System.Drawing.Size(371, 361);
-            this.buildFrame1.TabIndex = 0;
+            this.BuildPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.BuildPanel.Location = new System.Drawing.Point(3, 3);
+            this.BuildPanel.Name = "BuildPanel";
+            this.BuildPanel.Size = new System.Drawing.Size(371, 361);
+            this.BuildPanel.TabIndex = 0;
             // 
             // tabPage2
             // 
@@ -189,7 +189,7 @@
         private XLibrary.UI.Panels.AboutPanel aboutPanel1;
         private System.Windows.Forms.TabPage tabPage5;
         private Panels.RemotePanel remotePanel1;
-        private Panels.BuildFrame buildFrame1;
+        public Panels.BuildFrame BuildPanel;
 
 
     }

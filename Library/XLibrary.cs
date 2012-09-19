@@ -26,7 +26,6 @@ namespace XLibrary
 
         public static int FunctionCount;
 
-        public static bool XRayEnabled = true;
         public static bool InitComplete;
 
         // settings
@@ -56,10 +55,13 @@ namespace XLibrary
         public static Queue<Action> CoreMessages = new Queue<Action>();
 
         // tracking
+        public static bool TrackFunctionHits = true;
+        public static bool TrackMethodExit = false;
         public static bool InstanceTracking = false; // must be compiled in, can be ignored later
         public static bool ThreadTracking = false; // can be turned off library side
         public static bool FlowTracking = false; // must be compiled in, can be ignored later
         public static bool ClassTracking = false;
+
         public const int MaxStack = 512;
         public const int MaxThreadlineSize = 500;
 
@@ -70,6 +72,7 @@ namespace XLibrary
 
         public static bool ThreadlineEnabled = true;
 
+        public static string AppDir;
         public static string DatPath;
         public static string DatHash;
         public static long DatSize;
@@ -96,7 +99,10 @@ namespace XLibrary
         // opens xray from the builder exe to analyze the dat
         public static void Analyze(string path)
         {
-            if (LoadNodeMap(path))
+            AppDir = Path.GetDirectoryName(path);
+            DatPath = path;
+
+            if (LoadNodeMap())
             {
                 ApplySettings();
 
@@ -113,6 +119,9 @@ namespace XLibrary
         // called from re-compiled app's entrypoint
         public static void Init(string datPath, bool trackFlow, bool trackInstances, bool remoteViewer)
         {
+            AppDir = Path.GetDirectoryName(datPath);
+            DatPath = datPath;
+
             LogError("Entry point Init");
 
             if (InitComplete)
@@ -123,6 +132,9 @@ namespace XLibrary
             InitComplete = true;
 
             RemoteViewer = remoteViewer;
+            if (remoteViewer)
+                TargetFps = 10;
+
             StartTime = DateTime.Now;
 
             Watch.Start();
@@ -134,7 +146,7 @@ namespace XLibrary
                 ThreadTracking = true;
                 ClassTracking = true;
             }
-            InstanceTracking = trackInstances;
+            InstanceTracking = trackInstances;   
 
             //System.Windows.Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(Current_DispatcherUnhandledException);
             //Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
@@ -143,17 +155,19 @@ namespace XLibrary
             try
             {
                 // reset path to root path if not found (user moved exe folder, or distributing demo
-                if (!File.Exists(datPath))
-                    datPath = "XRay.dat";
+                if (!File.Exists(DatPath))
+                    DatPath = "XRay.dat";
 
                 // data file with node info should be along side ext
-                DatHash = Utilities.MD5HashFile(datPath);
-                DatSize = new FileInfo(datPath).Length;
-                LoadNodeMap(datPath);
+                DatHash = Utilities.MD5HashFile(DatPath);
+                DatSize = new FileInfo(DatPath).Length;
+                LoadNodeMap();
                 ApplySettings();
 
                 // init tracking structures
                 CoveredNodes = new BitArray(FunctionCount);
+
+                TrackMethodExit = (ThreadTracking && FlowTracking && TrackFunctionHits && Nodes != null); // nodes initd
 
                 InitCoreThread();
 
@@ -174,7 +188,7 @@ namespace XLibrary
             }
             catch (Exception ex)
             {
-                MessageBox.Show("XRay::Init Exception: " + ex.Message);
+                File.WriteAllText(Path.Combine(AppDir, "XRayError.txt"), "XRay::Init - " + ex.Message + ":\r\n" + ex.StackTrace);
             }
         }
 
@@ -244,6 +258,8 @@ namespace XLibrary
                     // set target fps, might of changed
                     frameMS = 1000 / TargetFps;
 
+                    TrackMethodExit = (ThreadTracking && FlowTracking && TrackFunctionHits && Nodes != null);
+
                     secondWatch.Reset();
                     secondWatch.Start();
                 }
@@ -273,7 +289,7 @@ namespace XLibrary
 
                 // run any outstanding functions on core thread
                 lock (CoreMessages)
-                    if (CoreMessages.Count > 0)
+                    while (CoreMessages.Count > 0)
                     {
                         try
                         {
@@ -412,10 +428,9 @@ namespace XLibrary
             }
         }
 
-        static bool LoadNodeMap(string path)
+        static bool LoadNodeMap()
         {
             RootNode = null;
-            DatPath = path;
             FunctionCount = 0;
             Dictionary<int, XNodeIn> map = new Dictionary<int, XNodeIn>();
             
@@ -490,7 +505,7 @@ namespace XLibrary
             }
             catch(Exception ex)
             {
-                MessageBox.Show("XRay data file not found: " + ex.Message); // would this even work? test
+                File.WriteAllText(Path.Combine(AppDir, "XRayError.txt"), "XRay::LoadNode - " + ex.Message + ":\r\n" + ex.StackTrace);
             }
 
             return false;
@@ -548,7 +563,7 @@ namespace XLibrary
 
         public static void MethodEnter(int nodeID)
         {
-            if (!XRayEnabled)
+            if (!TrackFunctionHits)
                 return;
             
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
@@ -846,7 +861,7 @@ namespace XLibrary
         {
             // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state
 
-            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
+            if(!TrackMethodExit)
                 return;
 
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
@@ -902,7 +917,7 @@ namespace XLibrary
 
         public static void MethodCatch(int nodeID)
         {
-            if (!ThreadTracking || !FlowTracking || Nodes == null || Nodes[nodeID] == null)
+            if (!TrackMethodExit)
                 return;
 
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
@@ -951,7 +966,7 @@ namespace XLibrary
 
         public static void Constructed(int index, Object obj)
         {
-            if (!XRayEnabled)
+            if (!InstanceTracking)
                 return;
 
             XNodeIn node = Nodes[index];
@@ -1076,19 +1091,21 @@ namespace XLibrary
                 return;
             }
 
-            node.DisposeHit = ShowTicks;
-            if (Remote != null)
-                foreach (var sync in Remote.SyncClients)
-                    lock(sync.DisposeHits)
-                        sync.DisposeHits.Add(index);
-
             if (node.Record.Remove(obj))
+            {
                 InstanceChange = true;
+
+                node.DisposeHit = ShowTicks;
+                if (Remote != null)
+                    foreach (var sync in Remote.SyncClients)
+                        lock (sync.DisposeHits)
+                            sync.DisposeHits.Add(index);
+            }
         }
 
         public static void LoadField(int nodeID)
         {
-            if (!XRayEnabled)
+            if (!TrackFunctionHits)
                 return;
 
             var node = NodeHit(nodeID);
@@ -1098,7 +1115,7 @@ namespace XLibrary
 
         public static void SetField(int nodeID)
         {
-            if (!XRayEnabled)
+            if (!TrackFunctionHits)
                 return;
 
             var node = NodeHit(nodeID);
@@ -1596,11 +1613,11 @@ namespace XLibrary
         {
             get
             {
-                return XRay.XRayEnabled;
+                return XRay.TrackFunctionHits;
             }
             set
             {
-                XRay.XRayEnabled = value;
+                XRay.TrackFunctionHits = value;
             }
         }
     }

@@ -13,6 +13,7 @@ using System.Reflection;
 using Mono.Cecil;
 using XLibrary.Meta;
 using System.Collections;
+using XBuilder.Panels;
 
 
 namespace XBuilder
@@ -166,7 +167,10 @@ namespace XBuilder
         {
             var paths = FilesList.SelectedItems.Cast<ListViewItem>().Select(i => i.SubItems[3].Text).ToArray();
 
-            //TODO add to model or something Main.BuildPanel.AddFilesToList(paths);
+            Main.BuildPanel.Model.AddFiles(paths);
+
+            if (Main.BuildPanel.CurrentPanel is BuildStepFiles)
+                (Main.BuildPanel.CurrentPanel as BuildStepFiles).Sync();
 
             Main.MainTabs.SelectedTab = Main.MainTabs.TabPages[0];
         }

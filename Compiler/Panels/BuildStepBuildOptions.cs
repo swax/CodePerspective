@@ -41,6 +41,8 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             DecompileAgainCheckbox.Checked = Model.DecompileAgain;
             SaveMsilCheckBox.Checked = Model.SaveMsil;
             DecompileCSharpCheckBox.Checked = Model.DecompileCSharp;
+
+            PathTextBox.Text = Model.DatDir;
         }
 
         private void SaveToModel()
@@ -51,6 +53,7 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
             Model.DecompileAgain = DecompileAgainCheckbox.Checked;
             Model.SaveMsil = SaveMsilCheckBox.Checked;
             Model.DecompileCSharp = DecompileCSharpCheckBox.Checked;
+            Model.DatDir = PathTextBox.Text;
         }
 
         private void BackButton_Click(object sender, EventArgs e)

@@ -26,13 +26,18 @@ namespace XLibrary.UI.Panels
             Model = main.Model;
 
             // tracking
-            TrackingMethodCalls.Enabled = XRay.FlowTracking;
-            TrackingClassCalls.Enabled = XRay.FlowTracking;
-            TrackingInstances.Enabled = XRay.InstanceTracking;
+            TrackFunctionsCheckBox.Checked = XRay.TrackFunctionHits;
+            TrackCalls.Checked = XRay.FlowTracking;
+            TrackInstances.Checked = XRay.InstanceTracking;
 
-            TrackingMethodCalls.Checked = XRay.FlowTracking;
-            TrackingClassCalls.Checked = XRay.ClassTracking;
-            TrackingInstances.Checked = XRay.InstanceTracking;
+            TrackProfiling.Visible = XRay.RemoteViewer;
+            TrackThreadlines.Visible = XRay.RemoteViewer;
+
+            if (XRay.Remote != null)
+            {
+                TrackProfiling.Checked = XRay.Remote.TrackRemoteProfiling;
+                TrackThreadlines.Checked = XRay.Remote.TrackRemoteThreadlines;
+            }
         }
 
         private void SettingsPanel_Load(object sender, EventArgs e)
@@ -75,32 +80,55 @@ namespace XLibrary.UI.Panels
             ConnectionList.Items.Clear();
 
             foreach (var client in XRay.Remote.SyncClients)
-                ConnectionList.Items.Add(string.Format("client: {0}, syncs: {1}({2}), in: {3} out: {4} bps", 
-                    client.Connection.RemoteIP, client.Connection.SyncsPerSecond, client.TargetFps, client.Connection.Bandwidth.InAvg(), client.Connection.Bandwidth.OutAvg()));
+            {
+                var conn = client.Connection;
+
+                ConnectionList.Items.Add(string.Format("client: {0}, syncs: {1}({2}), in: {3}, out: {4} bps, sync size: {5}",
+                    conn.RemoteIP, conn.SyncsPerSecond, client.TargetFps, conn.Bandwidth.InAvg(), conn.Bandwidth.OutAvg(), conn.LastSyncSize));
+            }
 
             if (XRay.Remote.ServerConnection != null)
             {
                 var server = XRay.Remote.ServerConnection;
-                ConnectionList.Items.Add(string.Format("server: {0}, syncs: {1}, in: {2} bps, out: {3} bps",
-                   server.RemoteIP, server.SyncsPerSecond, server.Bandwidth.InAvg(), server.Bandwidth.OutAvg()));
+                ConnectionList.Items.Add(string.Format("server: {0}, syncs: {1}, in: {2} bps, out: {3} bps, sync size: {4}",
+                   server.RemoteIP, server.SyncsPerSecond, server.Bandwidth.InAvg(), server.Bandwidth.OutAvg(), server.LastSyncSize));
             }
 
             ConnectionList.EndUpdate();
         }
 
-        private void TrackingMethodCalls_CheckedChanged(object sender, EventArgs e)
+        private void TrackFunctionHits_CheckedChanged(object sender, EventArgs e)
         {
-            XRay.FlowTracking = TrackingMethodCalls.Checked;
+            // different variable to filter method enter
+            XRay.TrackFunctionHits = TrackFunctionsCheckBox.Checked;
         }
 
-        private void TrackingClassCalls_CheckedChanged(object sender, EventArgs e)
+        private void TrackCalls_CheckedChanged(object sender, EventArgs e)
         {
-            XRay.ClassTracking = TrackingClassCalls.Checked;
+            XRay.FlowTracking = TrackCalls.Checked;
         }
 
-        private void TrackingInstances_CheckedChanged(object sender, EventArgs e)
+        private void TrackInstances_CheckedChanged(object sender, EventArgs e)
         {
-            XRay.InstanceTracking = TrackingInstances.Checked;
+            XRay.InstanceTracking = TrackInstances.Checked;
+        }
+
+        private void TrackProfiling_CheckedChanged(object sender, EventArgs e)
+        {
+            if (XRay.Remote == null)
+                return;
+
+            XRay.Remote.TrackRemoteProfiling = TrackProfiling.Checked;
+            XRay.Remote.SendClientSettings();
+        }
+
+        private void TrackThreadlines_CheckedChanged(object sender, EventArgs e)
+        {
+            if (XRay.Remote == null)
+                return;
+
+            XRay.Remote.TrackRemoteThreadlines = TrackThreadlines.Checked;
+            XRay.Remote.SendClientSettings();
         }
 
         private void TargetFpsLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -122,10 +150,11 @@ namespace XLibrary.UI.Panels
             XRay.TargetFps = rate;
             Main.RedrawTimer.Interval = 1000 / rate;
 
-            if (XRay.Remote != null && XRay.Remote.ServerConnection != null)
+            if (XRay.Remote != null)
                 XRay.Remote.SendClientSettings();
 
             RefreshContent();
         }
+
     }
 }

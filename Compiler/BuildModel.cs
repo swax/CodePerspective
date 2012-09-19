@@ -15,7 +15,7 @@ namespace XBuilder
     {
         public string SourceDir;
         public string OutputDir;
-        public string DatPath;
+        public string DatDir;
 
         public List<XRayedFile> Files = new List<XRayedFile>();
 
@@ -81,7 +81,7 @@ namespace XBuilder
             }
 
             OutputDir = SourceDir;
-            DatPath = Path.Combine(OutputDir, "XRay.dat");
+            DatDir = OutputDir;
         }
 
         public void Recompile(bool test)
@@ -90,13 +90,12 @@ namespace XBuilder
                 return;
 
             BuildStatus = "";
+            BuildError = "";
+            BuildSuccess = false;
+
 
             BuildThread = new Thread(() =>
             {
-                BuildStatus = "";
-                BuildError = "";
-                BuildSuccess = false;
-
                 string stepname = "";
 
                 long linesAdded = 0;
@@ -226,7 +225,8 @@ namespace XBuilder
                         settings["EncryptionKey"] = EncryptionKey;
                     }
 
-                    trackedObjects = root.SaveTree(DatPath, settings);
+                    var writePath = Path.Combine(OutputDir, "XRay.dat");
+                    trackedObjects = root.SaveTree(writePath, settings);
 
                     // verify last and aggregate errors'
                     if (DoVerify)

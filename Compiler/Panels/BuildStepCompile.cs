@@ -25,11 +25,15 @@ namespace XBuilder.Panels
         private void ButtonRecompile_Click(object sender, EventArgs e)
         {
             Model.Recompile(false);
+
+            SecondTimer_Tick(this, null);
         }
 
         private void ButtonTestCompile_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             Model.Recompile(true);
+
+            SecondTimer_Tick(this, null);
         }
 
         private void SecondTimer_Tick(object sender, EventArgs e)

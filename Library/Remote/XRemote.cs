@@ -46,6 +46,8 @@ namespace XLibrary.Remote
         public string LocalDatPath;
         public string LocalDatTempPath;
         public Stream LocalTempFile;
+        public bool TrackRemoteProfiling = true;
+        public bool TrackRemoteThreadlines = true;
 
 
         public XRemote()
@@ -511,6 +513,7 @@ namespace XLibrary.Remote
             //Log("Sync packet received");
 
             connection.SyncCount++;
+            connection.LastSyncSize = packet.Root.PacketSize;
 
             XRay.RemoteSync(sync);
         }
@@ -721,7 +724,12 @@ namespace XLibrary.Remote
 
             packet.Data = new Dictionary<string, string>()
             {
-                {"TargetFps", XRay.TargetFps.ToString()}
+                {"TargetFps", XRay.TargetFps.ToString()},
+                {"TrackFunctionHits", XRay.TrackFunctionHits.ToString()},
+                {"FlowTracking", XRay.FlowTracking.ToString()},
+                {"InstanceTracking", XRay.InstanceTracking.ToString()},
+                {"TrackRemoteProfiling", XRay.Remote.TrackRemoteProfiling.ToString()},
+                {"TrackRemoteThreadlines", XRay.Remote.TrackRemoteThreadlines.ToString()}
             };
 
             ServerConnection.SendPacket(packet);
@@ -730,7 +738,7 @@ namespace XLibrary.Remote
         void Receive_Settings(XConnection connection, GenericPacket request)
         {
             // received by server from client
-       
+
             SyncClient client;
             if (!SyncClients.TryGetValue(connection.GetHashCode(), out client))
             {
@@ -740,6 +748,21 @@ namespace XLibrary.Remote
 
             if (request.Data.ContainsKey("TargetFps"))
                 client.TargetFps = int.Parse(request.Data["TargetFps"]);
+
+            if (request.Data.ContainsKey("TrackFunctionHits"))
+                XRay.TrackFunctionHits = bool.Parse(request.Data["TrackFunctionHits"]);
+
+            if (request.Data.ContainsKey("FlowTracking"))
+                XRay.FlowTracking = bool.Parse(request.Data["FlowTracking"]);
+
+            if (request.Data.ContainsKey("InstanceTracking"))
+                XRay.InstanceTracking = bool.Parse(request.Data["InstanceTracking"]);
+
+            if (request.Data.ContainsKey("TrackRemoteProfiling"))
+                client.TrackProfiling = bool.Parse(request.Data["TrackRemoteProfiling"]);
+
+            if (request.Data.ContainsKey("TrackRemoteThreadlines"))
+                client.TrackThreadlines = bool.Parse(request.Data["TrackRemoteThreadlines"]);
         }
 
     }

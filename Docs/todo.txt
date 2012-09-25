@@ -14,6 +14,29 @@ Remote
 
 
 Put string value of arguments along the line of the call
+	set/get field - no change just show current value on lin
+	method exit
+		exit method for each primitive type, and 1 for object, and void
+		returns same object so it goes right back onto the stack to be returned
+	method enter
+		internal 
+			just create new array with args and pass to xray
+		external 
+			create a wrapper funtion of the target with the same signature
+			tag args in wrapper and pass to xray
+			can also analyze exit easier with wrapper
+			do test msil app with regular and wrapped, internal call, static call, and external calls
+
+
+		building an array has a lot of overhead
+		checkout re-pushing all objects on stack as objects
+		multiple enter calls for # of objects, up to 10 or something
+			.. if going to be stored as an array, might as well create the array up front and pass it
+		alg
+			create new array, store it?
+			forach parameter
+				
+
 	For each function node have a last string arguments value
 	That gets drawn when the line gets updated
 	CallingFunction(x=4, y=3, msg='hello')

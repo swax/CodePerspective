@@ -119,9 +119,6 @@ namespace XLibrary
         // called from re-compiled app's entrypoint
         public static void Init(string datPath, bool trackFlow, bool trackInstances, bool remoteViewer)
         {
-            AppDir = Path.GetDirectoryName(datPath);
-            DatPath = datPath;
-
             LogError("Entry point Init");
 
             if (InitComplete)
@@ -130,6 +127,9 @@ namespace XLibrary
                 return;
             }
             InitComplete = true;
+
+            AppDir = Path.GetDirectoryName(datPath);
+            DatPath = datPath;
 
             RemoteViewer = remoteViewer;
             if (remoteViewer)

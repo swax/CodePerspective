@@ -45,7 +45,43 @@ namespace XTestLib
 
             var x = TestMap1.Values;
             var y = TestMap2.Values;
+
+
         }
+
+        private void ParamTest()
+        {
+            var x = 5;
+            var y = "hello";
+
+            TestRealFunc(x, y);
+        }
+
+
+        private void ParamTestTrack()
+        {
+            var x = 5;
+            var y = "hello";
+            object a = x;
+            object b = y;
+
+            TestEnterFunc(a, b);
+
+            TestRealFunc(x, y);
+        }
+
+        private int TestRealFunc(int x, string y)
+        {
+            return x + y.Length;
+        }
+
+
+
+        private void TestEnterFunc(params object[] stuff)
+        {
+           
+        }
+
 
         public void DoMoreStuff()
         {

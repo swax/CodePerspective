@@ -1,4 +1,10 @@
-﻿1.0.6
+﻿2.0.1
+	Fixed bug where dat path was being reset
+
+2.0 
+	Remote Viewer
+
+1.0.6
 	Fixed bug with model not being set first in GdiRenderer
 
 1.0.5 

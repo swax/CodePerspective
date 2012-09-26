@@ -25,19 +25,9 @@ Put string value of arguments along the line of the call
 		add return to method profile view temp
 		add return info to mouse over method
 			<calling func name> <- <return value>
+		use instance type view to digging into values?
 
 	set/get field - no change just show current value on lin
-	method exit
-		add object return to exit
-		if return object type
-			call function
-			cast
-			test
-		if return value type
-			box
-			call function
-			unbox
-			test
 
 	method enter
 		internal 

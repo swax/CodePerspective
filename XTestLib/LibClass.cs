@@ -42,12 +42,23 @@ namespace XTestLib
         {
             RunDelegate += DelegateTarget;
 
-
             var x = TestMap1.Values;
             var y = TestMap2.Values;
+           
+            // also try this
+            var z = TestMap1.Keys;
 
-
+            TestFunc();
+            TestFunc2();
+            TestFunc3();
+            TestFunc4();
+            TestFunc5(5);
+            TestFunc6<int, string>();
+            TestFunc7();
+            TestFunc8();
         }
+
+
 
         public string TestFunc()
         {
@@ -79,6 +90,27 @@ namespace XTestLib
         {
 
             return (T)TestMethodExit(x);
+        }
+
+        public Dictionary<T, V> TestFunc6<T, V>()
+        {
+            return (Dictionary<T, V>)TestMethodExit(TestMap1);
+        }
+
+        public void TestFunc7()
+        {
+            Dictionary<int, string> x = new Dictionary<int,string>();
+
+            var y = x.GetEnumerator();
+
+            TestMethodExit(y);
+        }
+
+        public void TestFunc8()
+        {
+            var x = new SortedList<int, string>();
+
+            var y = x.GetEnumerator();
         }
 
         public struct StructX

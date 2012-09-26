@@ -862,12 +862,12 @@ namespace XLibrary
             MethodExitWithValue(null, nodeID);
         }
 
-        public static object MethodExitWithValue(object value, int nodeID)
+        public static void MethodExitWithValue(object value, int nodeID)
         {
             // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state
 
             if(!TrackMethodExit)
-                return value;
+                return;
 
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
 
@@ -920,8 +920,6 @@ namespace XLibrary
     
             // need a way to freeze app and debug these structures, perfect case for xray live reflection interfaces
             // solves the problem of constant output debug, can surf structure live and manip variables
-
-            return value;
         }
 
         public static void MethodCatch(int nodeID)

@@ -341,41 +341,9 @@ namespace XBuilder
                 {
                     instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
 
-                    var returnType = method.ReturnType;
+                    i = TrackMethodExit(method, method, methodNode, processor, i);
 
-                    if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)
-                    {
-                        bool unbox = false;
-                        bool cast = false;
-
-                        // if it's a value type or generic param
-                        if(returnType.IsValueType || returnType.IsGenericParameter)
-                        {
-                            AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType)); // box
-                            unbox = true; // mark unbox later
-                        }
-                        // else ref type, return object already at top of stack, mark to uncast after return
-                        else
-                            cast = true;
-
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, methodNode.ID)); // push id
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with value
-
-                        if(unbox)
-                            AddInstruction(method, ++i, processor.Create(OpCodes.Unbox_Any, returnType));
-
-                        if(cast)
-                            AddInstruction(method, ++i, processor.Create(OpCodes.Castclass, returnType));
-
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Ret));
-                    }
-                    // else not tracking return value
-                    else
-                    {
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitRef));
-                        AddInstruction(method, ++i, processor.Create(OpCodes.Ret));
-                    }
+                    AddInstruction(method, ++i, processor.Create(OpCodes.Ret));
                 }
 
                 // if we're tracking calls to non-xrayed assemblies
@@ -431,10 +399,9 @@ namespace XBuilder
                         AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterRef));
 
                         // method
-                        pos += 1 + offset;
+                        pos += offset;
 
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                        AddInstruction(method, pos, processor.Create(OpCodes.Call, MethodExitRef));
+                        pos = TrackMethodExit(method, call, calledNode, processor, pos);
 
                         var newPos = method.Body.Instructions[i];
                         UpdateExceptionHandlerPositions(method, oldPos, newPos);
@@ -525,6 +492,95 @@ namespace XBuilder
                 }
 
             method.Body.OptimizeMacros();
+        }
+
+        private int TrackMethodExit(MethodDefinition method, MethodReference target, XNodeOut node, ILProcessor processor, int i)
+        {
+            var returnType = target.ReturnType;
+
+            // really annoying, we need to box value type that are returned by the target method to pass to xray exit method
+            // if the return type is generic msil returns something like !0, but we can't box !0, we have to resolve it from the function declaration
+            // hence all the code below
+
+            // if generic return instance eg List<!0>
+            if (target.ReturnType is GenericInstanceType)
+            {
+                var genericReturn = target.ReturnType as GenericInstanceType;
+
+                if (genericReturn.IsValueType && target.DeclaringType is GenericInstanceType)
+                {
+                    var genericType = target.DeclaringType as GenericInstanceType;
+
+                    // need to create a new return type based on the original, but with the generic params explicitly stated
+                    returnType = CopyGenericInstanceAndSetParameters(genericReturn, genericType.GenericArguments);
+                }
+            }
+
+            // if simple generic return type eg !0
+            if (returnType.IsGenericParameter)
+            {
+                var genericType = target.DeclaringType as GenericInstanceType;
+                var genericParam = returnType as GenericParameter;
+
+                if (genericType != null)
+                    // setting the return type will then set isValueType determining if this needs to be boxed or not
+                    returnType = genericType.GenericArguments[genericParam.Position];
+            }
+
+            if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)
+            {
+                // this is key, duplicate the head of the stack, and we'll pass this to the xray method exit function to be recorded
+                AddInstruction(method, ++i, processor.Create(OpCodes.Dup));
+
+                // if it's a value type or generic param
+                if (returnType.IsValueType)
+                    AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType)); // box
+
+                AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, node.ID)); // push id
+                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with value
+            }
+            // else not tracking return value
+            else
+            {
+                AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, node.ID));
+                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitRef));
+            }
+
+            return i;
+        }
+
+        private GenericInstanceType CopyGenericInstanceAndSetParameters(GenericInstanceType genericReturn, Mono.Collections.Generic.Collection<TypeReference> realArgs)
+        {
+            var returnCopy = new GenericInstanceType(genericReturn.ElementType);
+
+            for (int i = 0; i < genericReturn.GenericArguments.Count; i++)
+            {
+                var arg = genericReturn.GenericArguments[i];
+
+                if (arg is GenericParameter)
+                {
+                    var returnArg = arg as GenericParameter;
+
+                    returnCopy.GenericArguments.Add(realArgs[returnArg.Position]);
+                }
+
+                // recursively rename generic return type eg Collection<List<!0>>
+                else if (arg is GenericInstanceType)
+                {
+                    var returnType = arg as GenericInstanceType;
+
+                    var argCopy = CopyGenericInstanceAndSetParameters(returnType, realArgs);
+
+                    returnCopy.GenericArguments.Add(argCopy);
+                }
+                else
+                {
+                    // investigate this case
+                    returnCopy.GenericArguments.Add(arg);
+                }
+            }
+
+            return returnCopy;
         }
 
         private void SaveCode(XNodeOut classNode, MethodDefinition method)

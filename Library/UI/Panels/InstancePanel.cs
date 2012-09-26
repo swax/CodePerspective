@@ -78,13 +78,13 @@ namespace XLibrary
 
             XRay.UIs[Thread.CurrentThread.ManagedThreadId].CurrentInstance = Model;
 
+            FieldGrid.Nodes.Clear();
+            FieldGrid.Columns.Clear();
+
             if (!Visible)
                 return;
 
             CurrentDisplay = SelectedNode;
-
-            FieldGrid.Nodes.Clear();
-            FieldGrid.Columns.Clear();
 
             ModelRowMap = new Dictionary<int, FieldRow>();
 
@@ -137,7 +137,7 @@ namespace XLibrary
                     row = new FieldRow(model);
                     viewNodes.Add(row);
 
-                    XRay.LogMessage("Row added");
+                    //XRay.LogMessage("Row added");
                     ModelRowMap[model.ID] = row;
                     
                     if (model.PossibleSubNodes)
@@ -178,9 +178,14 @@ namespace XLibrary
         private void RefreshTimer_Tick(object sender, EventArgs e)
         {
             RefreshTimer.Enabled = false;
-            
-            if (Visible && Model != null) 
-                Model.BeginUpdateTree(true);
+
+            if (Visible && Model != null)
+            {
+                if (SelectedNode != CurrentDisplay) // sometimes vis change wont fire, like clicking link in msil view
+                    NavigateTo(SelectedNode);
+                else
+                    Model.BeginUpdateTree(true);
+            }
 
             // start next refrseh a second after the time it took to do the actual refresh
             RefreshTimer.Enabled = AutoRefreshOn;

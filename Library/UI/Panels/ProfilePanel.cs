@@ -244,6 +244,10 @@ namespace XLibrary
             SubItems.Add(Utilities.TicksToString(Inside));
             SubItems.Add(Utilities.TicksToString(Outside));
 
+            var lastReturnValue = call.LastReturnValue; // avoid thread from changing value out from under us
+            if(lastReturnValue != null)
+                SubItems.Add(call.LastReturnValue.ToString());
+
             Total = Inside + Outside;
         }
     }

@@ -12,16 +12,41 @@ Remote
 		when adding node hit to send, check if waiting/entered and add to list
 		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
 
+xraying xray itself
+	xray app
+	xray xlib.dll
+		open existing xdat file and start at last id
+		append xdat file with ids from xlib
+	have a static xroot class, turn xray into an object
+	ultimate recursion - app that can see it seeing into itself
 
 Put string value of arguments along the line of the call
+	UI
+		add return to method profile view temp
+		add return info to mouse over method
+			<calling func name> <- <return value>
+
 	set/get field - no change just show current value on lin
 	method exit
-		exit method for each primitive type, and 1 for object, and void
-		returns same object so it goes right back onto the stack to be returned
+		add object return to exit
+		if return object type
+			call function
+			cast
+			test
+		if return value type
+			box
+			call function
+			unbox
+			test
+
 	method enter
 		internal 
 			just create new array with args and pass to xray
 		external 
+			steps	
+				
+			test if structs are boxed
+
 			create a wrapper funtion of the target with the same signature
 			tag args in wrapper and pass to xray
 			can also analyze exit easier with wrapper
@@ -35,7 +60,9 @@ Put string value of arguments along the line of the call
 		alg
 			create new array, store it?
 			forach parameter
-				
+	
+	add to visualization
+	add to code view
 
 	For each function node have a last string arguments value
 	That gets drawn when the line gets updated

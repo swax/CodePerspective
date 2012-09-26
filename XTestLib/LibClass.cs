@@ -49,39 +49,47 @@ namespace XTestLib
 
         }
 
-        private void ParamTest()
+        public string TestFunc()
         {
-            var x = 5;
-            var y = "hello";
+            string x = "adfa";
 
-            TestRealFunc(x, y);
+            return (string)TestMethodExit(x);
         }
 
-
-        private void ParamTestTrack()
+        public int TestFunc2()
         {
-            var x = 5;
-            var y = "hello";
-            object a = x;
-            object b = y;
+            int x = 5;
 
-            TestEnterFunc(a, b);
-
-            TestRealFunc(x, y);
+            return (int)TestMethodExit(x);
         }
 
-        private int TestRealFunc(int x, string y)
+        public void TestFunc3()
         {
-            return x + y.Length;
+            TestMethodExit(null);
         }
 
-
-
-        private void TestEnterFunc(params object[] stuff)
+        public StructX TestFunc4()
         {
-           
+            var x = new StructX();
+
+            return (StructX)TestMethodExit(x);
         }
 
+        public T TestFunc5<T>(T x)
+        {
+
+            return (T)TestMethodExit(x);
+        }
+
+        public struct StructX
+        {
+            public int x;
+        }
+
+        public object TestMethodExit(object x)
+        {
+            return x;
+        }
 
         public void DoMoreStuff()
         {

@@ -859,10 +859,15 @@ namespace XLibrary
 
         public static void MethodExit(int nodeID)
         {
+            MethodExitWithValue(null, nodeID);
+        }
+
+        public static object MethodExitWithValue(object value, int nodeID)
+        {
             // still run if disabled so turning xray on/off doesnt desync xray's understanding of the current state
 
             if(!TrackMethodExit)
-                return;
+                return value;
 
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
 
@@ -895,11 +900,13 @@ namespace XLibrary
 
                             Nodes[exited.NodeID].StillInside--;
 
-                            if (exited.Call == null)
+                            var exitedCall = exited.Call;
+                            if (exitedCall == null)
                                 continue;
 
-                            exited.Call.StillInside--;
-                            exited.Call.TotalCallTime += (int)(ticks - exited.StartTick);
+                            exitedCall.StillInside--;
+                            exitedCall.TotalCallTime += (int)(ticks - exited.StartTick);
+                            exitedCall.LastReturnValue = value;
 
                             if (x > 0 && flow.Stack[x - 1].Call != null)
                                 flow.Stack[x - 1].Call.TotalTimeOutsideDest += (int)(ticks - exited.StartTick);
@@ -913,6 +920,8 @@ namespace XLibrary
     
             // need a way to freeze app and debug these structures, perfect case for xray live reflection interfaces
             // solves the problem of constant output debug, can surf structure live and manip variables
+
+            return value;
         }
 
         public static void MethodCatch(int nodeID)
@@ -1561,6 +1570,8 @@ namespace XLibrary
         public int ClassCallHash;
 
         public HashSet<int> ThreadIDs = new HashSet<int>();
+
+        public object LastReturnValue;
 
 
         public long TotalTimeInsideDest

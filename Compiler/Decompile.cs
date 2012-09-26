@@ -36,9 +36,10 @@ namespace XBuilder
         StringBuilder XIL = new StringBuilder(4096);
 
         MethodReference XRayInitRef;
-        MethodReference EnterMethodRef;
-        MethodReference ExitMethodRef;
-        MethodReference CatchMethodRef;
+        MethodReference MethodEnterRef;
+        MethodReference MethodExitRef;
+        MethodReference MethodExitWithValueRef;
+        MethodReference MethodCatchRef;
         MethodReference ClassConstructedRef;
         MethodReference ClassDeconstructedRef;
         MethodReference LoadFieldRef;
@@ -101,9 +102,10 @@ namespace XBuilder
             syslib.Version = new Version("4.0.0.0");*/
 
             XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
-			EnterMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
-            ExitMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
-            CatchMethodRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
+			MethodEnterRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
+            MethodExitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
+            MethodExitWithValueRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExitWithValue", new Type[] { typeof(Object), typeof(int) }));
+            MethodCatchRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
             ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int), typeof(Object) }));
             ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int), typeof(Object) }));
             LoadFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
@@ -338,11 +340,42 @@ namespace XBuilder
                 if (Build.TrackFlow && instruction.OpCode == OpCodes.Ret)
                 {
                     instruction.OpCode = OpCodes.Nop; // any 'goto return' will go to here so method exit gets logged first
-                    AddInstruction(method, i + 1, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                    AddInstruction(method, i + 2, processor.Create(OpCodes.Call, ExitMethodRef));
-                    AddInstruction(method, i + 3, processor.Create(OpCodes.Ret));
 
-                    i += 3;
+                    var returnType = method.ReturnType;
+
+                    if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)
+                    {
+                        bool unbox = false;
+                        bool cast = false;
+
+                        // if it's a value type or generic param
+                        if(returnType.IsValueType || returnType.IsGenericParameter)
+                        {
+                            AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType)); // box
+                            unbox = true; // mark unbox later
+                        }
+                        // else ref type, return object already at top of stack, mark to uncast after return
+                        else
+                            cast = true;
+
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, methodNode.ID)); // push id
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with value
+
+                        if(unbox)
+                            AddInstruction(method, ++i, processor.Create(OpCodes.Unbox_Any, returnType));
+
+                        if(cast)
+                            AddInstruction(method, ++i, processor.Create(OpCodes.Castclass, returnType));
+
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Ret));
+                    }
+                    // else not tracking return value
+                    else
+                    {
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitRef));
+                        AddInstruction(method, ++i, processor.Create(OpCodes.Ret));
+                    }
                 }
 
                 // if we're tracking calls to non-xrayed assemblies
@@ -395,13 +428,13 @@ namespace XBuilder
                         // an xrayed method to be called, we want to track the flow of that process
                         int pos = i;
                         AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, EnterMethodRef));
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterRef));
 
                         // method
                         pos += 1 + offset;
 
                         AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                        AddInstruction(method, pos, processor.Create(OpCodes.Call, ExitMethodRef));
+                        AddInstruction(method, pos, processor.Create(OpCodes.Call, MethodExitRef));
 
                         var newPos = method.Body.Instructions[i];
                         UpdateExceptionHandlerPositions(method, oldPos, newPos);
@@ -470,7 +503,7 @@ namespace XBuilder
             if (Build.TrackFunctions)
             {
                 AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                AddInstruction(method, 1, processor.Create(OpCodes.Call, EnterMethodRef));
+                AddInstruction(method, 1, processor.Create(OpCodes.Call, MethodEnterRef));
             }
 
             // record catches
@@ -483,7 +516,7 @@ namespace XBuilder
                     int i = method.Body.Instructions.IndexOf(handler.HandlerStart);
 
                     AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                    AddInstruction(method, i + 1, processor.Create(OpCodes.Call, CatchMethodRef));
+                    AddInstruction(method, i + 1, processor.Create(OpCodes.Call, MethodCatchRef));
 
                     var oldPos = handler.HandlerStart;
                     var newPos = method.Body.Instructions[i];

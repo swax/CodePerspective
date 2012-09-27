@@ -28,6 +28,11 @@ instance value tracking
 	if focused then last param/return values
 
 Put string value of arguments along the line of the call
+	mscorlib_8 still a problem
+	re-enable method enter tracking
+	test combined class/method both with generic params
+		build test based on compare exchange
+
 	UI
 		add return to method profile view temp
 		add return info to mouse over method

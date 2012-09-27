@@ -58,9 +58,91 @@ namespace XTestLib
             TestFunc8();
             TestFunc9(1, "adsf");
             TestFunc10(2, "dsf");
+            TestFunc11(new StructY<StructZ<int>>());
+
+            int testRef = 5;
+            TestFunc12(ref testRef);
+
+            TestFunc13(IntPtr.Zero);
+
+            double testRef2 = 5.4;
+            string stringRef = "dafd";
+            TestFunc14(3.3, 4, ref testRef2, 6.6, ref stringRef);
+
+            TestFunc15(ref testRef);
+
+            IntPtr ptr = TestFunc16();
+            int w = TestFunc17(ref testRef);
+
+            TestFunc18();
+            TestFunc19();
+        
         }
 
+        int TestFunc19()
+        {
+            // test GenericInstanceMethod gets wraped on method exit
 
+            return new T2Class().T2ClassTest<int>();
+        }
+
+        int TestFunc18()
+        {
+            // testing returning a generic param defined by a generic instance type and not a generic method
+
+            return TClass<int>.TClassTestFunc();
+        }
+
+        public static class TClass<T>
+        {
+            public static T TClassTestFunc()
+            {
+                return default(T);
+            }
+        }
+
+        public class T2Class
+        {
+            public T T2ClassTest<T>()
+            {
+                return default(T);
+            }
+        }
+
+        int TestFunc17(ref int x)
+        {
+            return x;
+        }
+
+        IntPtr TestFunc16()
+        {
+            return IntPtr.Zero;
+        }
+
+        private void TestFunc15<T>(ref T x)
+        {
+            x = default(T);
+        }
+
+        private void TestFunc12(ref int testRef)
+        {
+            testRef = 13;
+        }
+
+ 
+        private IntPtr TestFunc13(IntPtr x)
+        {
+            return x;
+        }
+
+        private int TestFunc14(double dT, int groundDistance, ref double vel, double accel, ref string teststringref)
+        {
+            var x = new object[] { dT, groundDistance, vel, accel, teststringref };
+
+            TestMethodEnter(x, 3);
+
+            return 5;
+        }
 
         public string TestFunc()
         {
@@ -127,6 +209,13 @@ namespace XTestLib
             TestMethodEnter(args, 3);
         }
 
+        public void TestFunc11<T>(StructY<StructZ<T>> b)
+        {
+            var args = new object[] { b };
+
+            TestMethodEnter(args, 3);
+        }
+
         public void TestMethodEnter(object[] args, int id)
         {
 
@@ -135,6 +224,16 @@ namespace XTestLib
         public struct StructX
         {
             public int x;
+        }
+
+        public struct StructY<T>
+        {
+            public T yx;
+        }
+
+        public struct StructZ<T>
+        {
+            public T zx;
         }
 
         public static object TestMethodExit(object x)

@@ -475,6 +475,7 @@ namespace XBuilder
             // record function was entered
             if (Build.TrackFunctions)
             {
+
                 if (Build.TrackParameters && method.HasParameters)
                 {
                     // add local variable for parameter array that gets passed to method enter
@@ -492,7 +493,7 @@ namespace XBuilder
 
                     for (int i = 0; i < method.Parameters.Count; i++)
                     {
-                        var methodParam = method.Parameters[i];
+                        var paramType = method.Parameters[i].ParameterType;
 
                         var argOffset = method.IsStatic ? 0 : 1;
 
@@ -501,9 +502,25 @@ namespace XBuilder
                         AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, i));
                         AddInstruction(method, pos++, processor.Create(OpCodes.Ldarg, i + argOffset)); // index 0 is this, though for static may not be
 
+                        bool box = (paramType.IsValueType || paramType.IsGenericParameter);
+                        TypeReference boxType = paramType;
+
+                        // if reference type
+                        if (paramType is ByReferenceType)
+                        {
+                            var refType = paramType as ByReferenceType;
+
+                            // load value of what ref address on stack is pointing to
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldobj, refType.ElementType));
+
+                            // if element type is value type, or generic (possible??? test this case) then box
+                            box = (refType.ElementType.IsValueType || refType.ElementType.IsGenericParameter);
+                            boxType = refType.ElementType;
+                        }
+
                         // box value or generic types
-                        if(methodParam.ParameterType.IsValueType || methodParam.ParameterType.IsGenericParameter) // test with generic param
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Box, methodParam.ParameterType));
+                        if (box)
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Box, boxType));
 
                         // set element
                         AddInstruction(method, pos++, processor.Create(OpCodes.Stelem_Ref));
@@ -567,12 +584,15 @@ namespace XBuilder
             // if simple generic return type eg !0
             if (returnType.IsGenericParameter)
             {
-                var genericType = target.DeclaringType as GenericInstanceType;
                 var genericParam = returnType as GenericParameter;
 
+                var genericType = target.DeclaringType as GenericInstanceType;
                 if (genericType != null)
-                    // setting the return type will then set isValueType determining if this needs to be boxed or not
                     returnType = genericType.GenericArguments[genericParam.Position];
+
+                var genericMethod = target as GenericInstanceMethod;
+                if (genericMethod != null)
+                    returnType = genericMethod.GenericArguments[genericParam.Position];
             }
 
             if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)

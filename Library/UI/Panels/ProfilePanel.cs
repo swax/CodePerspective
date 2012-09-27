@@ -244,11 +244,56 @@ namespace XLibrary
             SubItems.Add(Utilities.TicksToString(Inside));
             SubItems.Add(Utilities.TicksToString(Outside));
 
-            var lastReturnValue = call.LastReturnValue; // avoid thread from changing value out from under us
-            if(lastReturnValue != null)
-                SubItems.Add(call.LastReturnValue.ToString());
-
             Total = Inside + Outside;
+
+            // show last cal info
+            string callInfo = "";
+
+            try
+            {
+                var lastParams = call.LastParameters;
+                if (lastParams != null)
+                    callInfo += "Params: " + string.Join(", ", lastParams.Select(p => (p == null) ? "<null>" : p.ToString()).ToArray());
+            }
+            catch (Exception x)
+            {
+                throw new Exception("AAA");
+            }
+
+            object lastReturnValue = null;
+            try
+            {
+                lastReturnValue = call.LastReturnValue; // avoid thread from changing value out from under us
+
+            }
+            catch (Exception x)
+            {
+                throw new Exception("b1" + x.Message);
+            }
+
+            try
+            {
+
+                if (lastReturnValue != null)
+                    callInfo += " Return: ";
+            }
+            catch (Exception x)
+            {
+                throw new Exception("b2" + x.Message);
+            }
+
+            try
+            {
+
+                if (lastReturnValue != null)
+                    callInfo += lastReturnValue.ToString();
+            }
+            catch (Exception x)
+            {
+                throw new Exception("b3" + x.Message);
+            }
+            SubItems.Add(callInfo);
+
         }
     }
 }

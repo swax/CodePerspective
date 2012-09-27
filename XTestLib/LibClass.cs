@@ -56,6 +56,8 @@ namespace XTestLib
             TestFunc6<int, string>();
             TestFunc7();
             TestFunc8();
+            TestFunc9(1, "adsf");
+            TestFunc10(2, "dsf");
         }
 
 
@@ -86,7 +88,7 @@ namespace XTestLib
             return (StructX)TestMethodExit(x);
         }
 
-        public T TestFunc5<T>(T x)
+        public static T TestFunc5<T>(T x)
         {
 
             return (T)TestMethodExit(x);
@@ -113,12 +115,29 @@ namespace XTestLib
             var y = x.GetEnumerator();
         }
 
+        public void TestFunc9(int x, object b)
+        {
+
+        }
+        
+        public void TestFunc10(int x, object b)
+        {
+            var args = new object[] { x, b };
+
+            TestMethodEnter(args, 3);
+        }
+
+        public void TestMethodEnter(object[] args, int id)
+        {
+
+        }
+
         public struct StructX
         {
             public int x;
         }
 
-        public object TestMethodExit(object x)
+        public static object TestMethodExit(object x)
         {
             return x;
         }

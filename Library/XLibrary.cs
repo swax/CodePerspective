@@ -568,10 +568,18 @@ namespace XLibrary
             
             //BytesSent += 4 + 4 + 4 + 1; // type, functionID, threadID, null
     
-            NodeHit(nodeID);
+            NodeHit(null, nodeID);
         }
 
-        private static XNodeIn NodeHit(int nodeID)
+        public static void MethodEnterWithParams(object[] parameters, int nodeID)
+        {
+              if (!TrackFunctionHits)
+                return;
+            
+            NodeHit(parameters, nodeID);
+        }
+
+        private static XNodeIn NodeHit(object[] parameters, int nodeID)
         {
             /*if (!InitComplete)
             {
@@ -632,7 +640,7 @@ namespace XLibrary
                         sync.FunctionHits.Add(nodeID);
 
             if (FlowTracking)
-                TrackFunctionCall(nodeID, node, thread);
+                TrackFunctionCall(nodeID, node, thread, parameters);
 
             return node;
         }
@@ -651,7 +659,7 @@ namespace XLibrary
             // clear cover change on paint
         }
 
-        private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread)
+        private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread, object[] parameters)
         {
             // check that thread is in map
             ThreadFlow flow;
@@ -710,6 +718,7 @@ namespace XLibrary
       
             call.Hit = ShowTicks;
             call.TotalHits++;
+            call.LastParameters = parameters;
 
             if (!call.ThreadIDs.Contains(thread))
             {
@@ -1115,7 +1124,7 @@ namespace XLibrary
             if (!TrackFunctionHits)
                 return;
 
-            var node = NodeHit(nodeID);
+            var node = NodeHit(null, nodeID);
             if (node != null)
                 node.LastFieldOp = FieldOp.Get;
         }
@@ -1125,7 +1134,7 @@ namespace XLibrary
             if (!TrackFunctionHits)
                 return;
 
-            var node = NodeHit(nodeID);
+            var node = NodeHit(null, nodeID);
             if (node != null)
                 node.LastFieldOp = FieldOp.Set;
         }
@@ -1569,6 +1578,7 @@ namespace XLibrary
 
         public HashSet<int> ThreadIDs = new HashSet<int>();
 
+        public object[] LastParameters;
         public object LastReturnValue;
 
 

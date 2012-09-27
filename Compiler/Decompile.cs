@@ -37,6 +37,7 @@ namespace XBuilder
 
         MethodReference XRayInitRef;
         MethodReference MethodEnterRef;
+        MethodReference MethodEnterWithParamsRef;
         MethodReference MethodExitRef;
         MethodReference MethodExitWithValueRef;
         MethodReference MethodCatchRef;
@@ -47,6 +48,8 @@ namespace XBuilder
         MethodReference ObjectFinalizeRef;
         MethodReference GetTypeFromHandleRef;
         TypeReference VoidRef;
+        TypeReference ObjectRef;
+        TypeReference ObjectArrayRef;
 
         public long LinesAdded = 0;
 
@@ -103,6 +106,7 @@ namespace XBuilder
 
             XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
 			MethodEnterRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
+			MethodEnterWithParamsRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnterWithParams", new Type[]{typeof(object[]), typeof(int)}));
             MethodExitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
             MethodExitWithValueRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExitWithValue", new Type[] { typeof(Object), typeof(int) }));
             MethodCatchRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
@@ -111,6 +115,8 @@ namespace XBuilder
             LoadFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
             SetFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("SetField", new Type[] { typeof(int) }));
             VoidRef = asm.MainModule.Import(typeof(void));
+            ObjectRef = asm.MainModule.Import(typeof(object));
+            ObjectArrayRef = asm.MainModule.Import(typeof(object[]));
             ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.Import(typeof(Object)));
             ObjectFinalizeRef.HasThis = true;  // call on the current instance
             //(ObjectFinalizeRef.DeclaringType.Scope as AssemblyNameReference).Version = new Version("2.0.0.0");
@@ -469,8 +475,50 @@ namespace XBuilder
             // record function was entered
             if (Build.TrackFunctions)
             {
-                AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                AddInstruction(method, 1, processor.Create(OpCodes.Call, MethodEnterRef));
+                if (Build.TrackParameters && method.HasParameters)
+                {
+                    // add local variable for parameter array that gets passed to method enter
+                    method.Body.Variables.Add(new VariableDefinition(ObjectArrayRef));
+                    int varPos = method.Body.Variables.Count - 1;
+
+                    int pos = 0;
+
+                    // create new object array with the same number of elements as there are arguments in function
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, method.Parameters.Count));
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Newarr, ObjectRef));
+
+                    // store array in local variable
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Stloc, varPos)); // why doesnt cecil optimize this call?
+
+                    for (int i = 0; i < method.Parameters.Count; i++)
+                    {
+                        var methodParam = method.Parameters[i];
+
+                        var argOffset = method.IsStatic ? 0 : 1;
+
+                        // put array, index, and arg on stack and push
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos));
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, i));
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldarg, i + argOffset)); // index 0 is this, though for static may not be
+
+                        // box value or generic types
+                        if(methodParam.ParameterType.IsValueType || methodParam.ParameterType.IsGenericParameter) // test with generic param
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Box, methodParam.ParameterType));
+
+                        // set element
+                        AddInstruction(method, pos++, processor.Create(OpCodes.Stelem_Ref));
+                    }
+
+                    // put object[], and node id on stack, and call MethodEnterWithParams
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos)); 
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterWithParamsRef));
+                }
+                else
+                {
+                    AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
+                    AddInstruction(method, 1, processor.Create(OpCodes.Call, MethodEnterRef));
+                }
             }
 
             // record catches
@@ -532,12 +580,12 @@ namespace XBuilder
                 // this is key, duplicate the head of the stack, and we'll pass this to the xray method exit function to be recorded
                 AddInstruction(method, ++i, processor.Create(OpCodes.Dup));
 
-                // if it's a value type or generic param
-                if (returnType.IsValueType)
-                    AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType)); // box
+                // if it's a value type or generic param then box because method exit takes an object as a param
+                if (returnType.IsValueType || returnType.IsGenericParameter)
+                    AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType));
 
                 AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, node.ID)); // push id
-                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with value
+                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with object and id
             }
             // else not tracking return value
             else

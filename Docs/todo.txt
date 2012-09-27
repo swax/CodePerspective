@@ -1,5 +1,6 @@
-﻿Implement attributes in cp website
-http://www.codeproject.com/Articles/1811/Creating-and-Using-Attributes-in-your-NET-applicat 
+﻿
+
+draw offset class blocks in flow view to underscore multiple instances
 
 Remote
 	frame rate should not make colors take longer to reduce slower - maybe some way to decrease or re-calc opacity
@@ -20,37 +21,27 @@ xraying xray itself
 	have a static xroot class, turn xray into an object
 	ultimate recursion - app that can see it seeing into itself
 
+instance value tracking
+	in code view show a drop down of instances
+	selected instance is set to 'focused instance'
+	take 'this' parameter with method enter/exit
+	if focused then last param/return values
+
 Put string value of arguments along the line of the call
 	UI
 		add return to method profile view temp
 		add return info to mouse over method
 			<calling func name> <- <return value>
 		use instance type view to digging into values?
-
-	set/get field - no change just show current value on lin
+		*show parameter names in function calls with proper word wrapping :)
 
 	method enter
-		internal 
-			just create new array with args and pass to xray
-		external 
-			steps	
-				
-			test if structs are boxed
+		create a wrapper funtion of the target with the same signature
 
-			create a wrapper funtion of the target with the same signature
-			tag args in wrapper and pass to xray
-			can also analyze exit easier with wrapper
-			do test msil app with regular and wrapped, internal call, static call, and external calls
+		if going to be stored as an array, might as well create the array up front and pass it in to function
 
+	field set/get - send values to be attached to call, dup stack?
 
-		building an array has a lot of overhead
-		checkout re-pushing all objects on stack as objects
-		multiple enter calls for # of objects, up to 10 or something
-			.. if going to be stored as an array, might as well create the array up front and pass it
-		alg
-			create new array, store it?
-			forach parameter
-	
 	add to visualization
 	add to code view
 

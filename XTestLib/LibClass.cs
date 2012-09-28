@@ -76,14 +76,16 @@ namespace XTestLib
 
             TestFunc18();
             TestFunc19();
-        
+
+            var test20 = new T3Class<int>();
+            test20.TClassTestFunc3();
         }
 
         int TestFunc19()
         {
             // test GenericInstanceMethod gets wraped on method exit
 
-            return new T2Class().T2ClassTest<int>();
+            return T2Class<int>.T2ClassTest<string>(3, "hello");
         }
 
         int TestFunc18()
@@ -101,11 +103,30 @@ namespace XTestLib
             }
         }
 
-        public class T2Class
+        public static class T2Class<T>
         {
-            public T T2ClassTest<T>()
+            public static T T2ClassTest<U>(T t, U u)
             {
+                U testU = default(U);
+
                 return default(T);
+            }
+        }
+
+        public class T3Class<T>
+        {
+            public void TClassTestFunc3()
+            {
+                int[] testAddingWrapperToGenericStaticClass = new int[] { 3, 3, 4, 5 };
+
+                testAddingWrapperToGenericStaticClass.Reverse();
+
+                SpecialTestMethod();
+            }
+
+            public static void SpecialTestMethod()
+            {
+
             }
         }
 

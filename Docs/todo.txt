@@ -29,7 +29,6 @@ instance value tracking
 
 Put string value of arguments along the line of the call
 	mscorlib_8 still a problem
-	re-enable method enter tracking
 	test combined class/method both with generic params
 		build test based on compare exchange
 
@@ -41,6 +40,31 @@ Put string value of arguments along the line of the call
 		*show parameter names in function calls with proper word wrapping :)
 
 	method enter
+		test func - int test(int a, int b)
+		
+		create copy of target function with same return value
+			1 wrapper per call so we can perserve call position in future for line tracking
+			put original call inside function
+			ensure created methods aren't xrayed themselves, inspect msil to verify
+			test, test with static, test that deops runs
+
+		put new function in same class, map method ref with overriddent refernce
+
+		call copy of target function
+
+		copy parameters and return type target function
+
+		replace call with call to created function
+
+		use same method enter code from before
+		load arguments back on stack
+
+		call wrapper
+
+		keep exit separate so they can be disabled seperately
+
+
+
 		create a wrapper funtion of the target with the same signature
 
 		if going to be stored as an array, might as well create the array up front and pass it in to function

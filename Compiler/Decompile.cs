@@ -54,7 +54,6 @@ namespace XBuilder
         public long LinesAdded = 0;
 
 
-
         public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, BuildModel build)
         {
             ExtRoot = extRoot;
@@ -281,8 +280,14 @@ namespace XBuilder
                 AddInstanceTracking(classDef, classNode);
 
             // add enter/exit info to method and call tracking
+            List<MethodDefinition> addMethods = new List<MethodDefinition>();
+            
             foreach (var method in classDef.Methods)
-                RecompileMethod(classNode, method);
+                RecompileMethod(classNode, classDef, method, addMethods);
+
+            //var x = new TypeDefinition("XHelpers", classDef.Name + "_Wrapers", Mono.Cecil.TypeAttributes.NestedFamily,
+            foreach (var method in addMethods)
+                classDef.Methods.Add(method);
 
             // recompile sub classes
             foreach (var nestedDef in classDef.NestedTypes)
@@ -294,7 +299,7 @@ namespace XBuilder
             return classNode;
         }
 
-        private void RecompileMethod(XNodeOut classNode, MethodDefinition method)
+        private void RecompileMethod(XNodeOut classNode, TypeDefinition classDef, MethodDefinition method, List<MethodDefinition> addMethods)
         {
             XNodeOut methodNode = classNode.AddMethod(method);
 
@@ -335,7 +340,7 @@ namespace XBuilder
             method.Body.SimplifyMacros();
 
             methodNode.Lines = method.Body.Instructions.Count;
-
+            
             var processor = method.Body.GetILProcessor();
 
             for (int i = 0; i < method.Body.Instructions.Count; i++)
@@ -375,6 +380,14 @@ namespace XBuilder
                     var calledNode = calledRef.AddMethod(call);
 
 
+                    if (call.Name.Contains("Reverse"))
+                    {
+                        // current problem, declaring type is being written without generic arguments
+                        int nn = 0;
+                        nn++;
+                        // check to see if call.delcaring type has generic arguments
+                    }
+
                     /*if( TrackExternal && 
                         !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
                         (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
@@ -396,16 +409,82 @@ namespace XBuilder
                             offset = 1;
                         }
 
+                        // put stuff below in here so instructions dont get messed up
                         var oldPos = method.Body.Instructions[i];
-
-                        // wrap the call with enter and exit, because enter to an external method may cause
-                        // an xrayed method to be called, we want to track the flow of that process
                         int pos = i;
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterRef));
 
-                        // method
-                        pos += offset;
+                        // if this is an external call and we want to track the parameters, then we have to wrap the function
+                        if (Build.TrackParameters && call.HasParameters && false)
+                        {
+                            // wrap call in a new function with the same parameters and return type as the original call, we do this
+                            // because it's maybe impossible to build the object[] of parameters from the current stack because it's unknown
+                            // in a wrapped function we can access the arguments easily to build the object[] and pass to method enter
+                            var wrappedName = string.Format("{0}_{1}_XRay", call.DeclaringType.Name, call.Name);
+
+                            var resolvedCall = ResolveGenericMethod(call);
+
+                            var callWrapper = new MethodDefinition(wrappedName, Mono.Cecil.MethodAttributes.CompilerControlled, resolvedCall.ReturnType);
+                           
+                            // the wrapper can be static because we pass the called function's declaring type into the wrapper
+                            callWrapper.IsStatic = true;
+                            callWrapper.HasThis = false;
+                            callWrapper.DeclaringType = classDef;
+
+                            if(call.HasThis)
+                                callWrapper.Parameters.Add(new ParameterDefinition(call.DeclaringType));
+
+                            foreach (var p in resolvedCall.Parameters)
+                                callWrapper.Parameters.Add(p);
+
+                            addMethods.Add(callWrapper);
+
+                            // write body of method
+                            var wrapProcessor = callWrapper.Body.GetILProcessor();
+
+                            // first argument is at position 0 because the method is static
+
+                            // create a new array with the # of parameters in the original call
+
+                            // for each parameter
+                                // load array
+                                // set element
+                                // load argument
+                                // set element
+
+                            // load object[]
+                            // load node id
+                            // call method enter
+
+                            // load 'this' and arguemnts
+                            for(int x = 0; x < callWrapper.Parameters.Count; x++)
+                                 callWrapper.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ldarg, x));
+
+                            // call original function
+                            callWrapper.Body.Instructions.Add(wrapProcessor.Create(instruction.OpCode, call));
+
+                            // return
+                            callWrapper.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ret));
+
+                            // replace current call instruction with call to copy method    
+                            /*var wrapperRef = new MethodReference(callWrapper.Name, callWrapper.ReturnType);
+                            foreach (var parameter in callWrapper.Parameters)
+                                wrapperRef.Parameters.Add(parameter);
+                            wrapperRef.DeclaringType = method.DeclaringType;*/
+                            // any generic arguments here?
+                            // what is exactly SpecialTestMethod's delcaring Type?
+
+                            method.Body.Instructions[i] = processor.Create(OpCodes.Call, callWrapper);//wrapperRef);
+                        }
+                        else
+                        {
+                            // wrap the call with enter and exit, because enter to an external method may cause
+                            // an xrayed method to be called, we want to track the flow of that process
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, calledNode.ID));
+                            AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterRef));
+
+                            // method
+                            pos += offset;
+                        }
 
                         pos = TrackMethodExit(method, call, calledNode, processor, pos);
 
@@ -475,7 +554,6 @@ namespace XBuilder
             // record function was entered
             if (Build.TrackFunctions)
             {
-
                 if (Build.TrackParameters && method.HasParameters)
                 {
                     // add local variable for parameter array that gets passed to method enter
@@ -561,39 +639,12 @@ namespace XBuilder
 
         private int TrackMethodExit(MethodDefinition method, MethodReference target, XNodeOut node, ILProcessor processor, int i)
         {
-            var returnType = target.ReturnType;
-
             // really annoying, we need to box value type that are returned by the target method to pass to xray exit method
             // if the return type is generic msil returns something like !0, but we can't box !0, we have to resolve it from the function declaration
             // hence all the code below
 
-            // if generic return instance eg List<!0>
-            if (target.ReturnType is GenericInstanceType)
-            {
-                var genericReturn = target.ReturnType as GenericInstanceType;
-
-                if (genericReturn.IsValueType && target.DeclaringType is GenericInstanceType)
-                {
-                    var genericType = target.DeclaringType as GenericInstanceType;
-
-                    // need to create a new return type based on the original, but with the generic params explicitly stated
-                    returnType = CopyGenericInstanceAndSetParameters(genericReturn, genericType.GenericArguments);
-                }
-            }
-
-            // if simple generic return type eg !0
-            if (returnType.IsGenericParameter)
-            {
-                var genericParam = returnType as GenericParameter;
-
-                var genericType = target.DeclaringType as GenericInstanceType;
-                if (genericType != null)
-                    returnType = genericType.GenericArguments[genericParam.Position];
-
-                var genericMethod = target as GenericInstanceMethod;
-                if (genericMethod != null)
-                    returnType = genericMethod.GenericArguments[genericParam.Position];
-            }
+            var resolved = ResolveGenericMethod(target);
+            var returnType = resolved.ReturnType;
 
             if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)
             {
@@ -617,38 +668,87 @@ namespace XBuilder
             return i;
         }
 
-        private GenericInstanceType CopyGenericInstanceAndSetParameters(GenericInstanceType genericReturn, Mono.Collections.Generic.Collection<TypeReference> realArgs)
+        private MethodReference ResolveGenericMethod(MethodReference target)
         {
-            var returnCopy = new GenericInstanceType(genericReturn.ElementType);
+            // get generic instance arguments
+            IList<TypeReference> instanceArgs = null;
+            var genericInstance = target.DeclaringType as GenericInstanceType;
+        
+            if (genericInstance != null && genericInstance.HasGenericArguments)
+                instanceArgs = genericInstance.GenericArguments;
 
-            for (int i = 0; i < genericReturn.GenericArguments.Count; i++)
+            // get generic method arguments
+            IList<TypeReference> methodArgs = null;
+            var genericMethod = target as GenericInstanceMethod;
+
+            if (genericMethod != null && genericMethod.HasGenericArguments)
+                methodArgs = genericMethod.GenericArguments;
+
+            // return same reference if not generic
+            if (instanceArgs == null && methodArgs == null)
+                return target;
+
+            // resolve return type
+            var returnType = ResolveGenericType(target.ReturnType, instanceArgs, methodArgs);
+
+            // create method
+            var resolved = new MethodDefinition(target.Name, new Mono.Cecil.MethodAttributes(), returnType);
+  
+            // resolve parameters
+            foreach (var parameter in target.Parameters)
+                resolved.Parameters.Add(
+                    new ParameterDefinition(
+                        ResolveGenericType(parameter.ParameterType, instanceArgs, methodArgs)));
+
+            Debug.Assert(!resolved.FullName.Contains("!"));
+
+            return resolved;
+        }
+
+        private TypeReference ResolveGenericType(TypeReference originalType, IList<TypeReference> instanceArgs, IList<TypeReference> methodArgs)
+        {
+            TypeReference resolvedType = originalType;
+
+            // if generic instance, copy generic arguments by recursing into them and building a 'resolved' argument list
+            if (originalType is GenericInstanceType)
             {
-                var arg = genericReturn.GenericArguments[i];
+                var originalGeneric = originalType as GenericInstanceType;
 
-                if (arg is GenericParameter)
-                {
-                    var returnArg = arg as GenericParameter;
+                var resolvedGeneric = new GenericInstanceType(originalGeneric.ElementType);
+                resolvedType = resolvedGeneric;
 
-                    returnCopy.GenericArguments.Add(realArgs[returnArg.Position]);
-                }
-
-                // recursively rename generic return type eg Collection<List<!0>>
-                else if (arg is GenericInstanceType)
-                {
-                    var returnType = arg as GenericInstanceType;
-
-                    var argCopy = CopyGenericInstanceAndSetParameters(returnType, realArgs);
-
-                    returnCopy.GenericArguments.Add(argCopy);
-                }
-                else
-                {
-                    // investigate this case
-                    returnCopy.GenericArguments.Add(arg);
-                }
+                foreach (var originalArg in originalGeneric.GenericArguments)
+                    resolvedGeneric.GenericArguments.Add(
+                        ResolveGenericType(originalArg, instanceArgs, methodArgs));
             }
 
-            return returnCopy;
+            // if parameter, resolve it using the instance/method generice mapping lists
+            else if (originalType is GenericParameter)
+            {
+                var originalParam = originalType as GenericParameter;
+
+                if (originalParam.Type == GenericParameterType.Type)
+                    resolvedType = instanceArgs[originalParam.Position];
+
+                else if (originalParam.Type == GenericParameterType.Method)
+                    resolvedType = methodArgs[originalParam.Position];
+            }
+
+            else if (originalType is ArrayType)
+            {
+                var originalArray = originalType as ArrayType;
+
+                resolvedType = new ArrayType(ResolveGenericType(originalArray.ElementType, instanceArgs, methodArgs));
+            }
+
+            else if (originalType is ByReferenceType)
+            {
+                var originalByRef = originalType as ByReferenceType;
+
+                resolvedType = new ByReferenceType(ResolveGenericType(originalByRef.ElementType, instanceArgs, methodArgs));
+            }
+
+            return resolvedType;
         }
 
         private void SaveCode(XNodeOut classNode, MethodDefinition method)

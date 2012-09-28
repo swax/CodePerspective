@@ -46,6 +46,7 @@ namespace XTestApp
 
         public void TryStuff()
         {
+
             RandNum = new Random().Next(100);
             RandString = RandNum.ToString() + "abc";
 
@@ -59,18 +60,6 @@ namespace XTestApp
 
             var fieldVal = TestField;
 
-            /*var z = typeof(StaticTemplateClass<int>);
-
-            foreach (var x in z.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
-            {
-                var name = x.Name;
-
-                var value = x.GetValue(null);
-
-                int i = 0;
-                i++;
-            }*/
-            
             try
             {
                 StaticMan.HolyCow();
@@ -85,7 +74,7 @@ namespace XTestApp
 
                 var x = new int[] { 1, 2, 3, 4 };
 
-                var y = x.Where(i => i > 2).ToArray();
+                var y = x.Where(i => i > 2).ToArray();  
             }
             catch (Exception ex)
             {
@@ -95,7 +84,7 @@ namespace XTestApp
 
             var t = new LibClass();
             t.TestMe = 5;
-            t.DoMoreStuff();
+            t.DoMoreStuff(); 
         }
 
         public class NestedClass

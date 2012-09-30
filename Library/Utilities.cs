@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.IO;
 using System.Security.Cryptography;
+using System.Drawing;
 
 namespace XLibrary
 {
@@ -203,6 +204,40 @@ namespace XLibrary
             }
 
             return temp;
+        }
+
+        public static Color ColorFromString(string parse)
+        {
+            int colorPos = parse.IndexOf("Color [");
+            if (colorPos == -1)
+                return Color.White;
+
+            int endpos = parse.IndexOf("]");
+            string colorName = parse.Substring(7, endpos - 7);
+
+            // Color [A=0, R=0, G=0, B=0]
+            if (colorName.Contains("="))
+            {
+                int a = 0, r = 0, g = 0, b = 0;
+                var parts = colorName.Split(' ');
+
+                foreach (var part in parts)
+                {
+                    int val = int.Parse(part.Replace(",", "").Substring(2));
+                    if (part[0] == 'A')
+                        a = val;
+                    else if (part[0] == 'R')
+                        r = val;
+                    else if (part[0] == 'G')
+                        g = val;
+                    else if (part[0] == 'B')
+                        b = val;
+                }
+
+                return Color.FromArgb(r * a / 255, g * a / 255, b * a / 255);
+            }
+            else
+                return Color.FromName(colorName);
         }
 
         public static byte[] ExtractBytes(byte[] buffer, int offset, int length)

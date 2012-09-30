@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace XLibrary
 {
-    public enum RowTypes { Root, Number, Age, Base, Declared, Selected, Enumerate, Element, Field }
+    public enum RowTypes { Root, Number, Age, Base, Declared, Selected, Enumerate, Element, Field, Properties, Property }
 
     public class InstanceModel
     {
@@ -124,7 +124,7 @@ namespace XLibrary
                         Type recordType = instance.InstanceType;
                         string recordTypeName = "";
 
-                        while (recordType != null)
+                        while (recordType != null && SelectedNode.ObjType != XObjType.Internal)
                         {
                             recordTypeName = recordType.ToString();
 
@@ -256,7 +256,8 @@ namespace XLibrary
         RowTypes RowType;
 
         public Type FieldType;
-        public FieldInfo TypeInfo;
+        public FieldInfo FieldInfo;
+        public PropertyInfo PropertyInfo;
         public FieldModel[] TypeChain = new FieldModel[] { };
         public int ElementIndex;
 
@@ -305,7 +306,13 @@ namespace XLibrary
         public FieldModel(InstanceModel grid, FieldModel parent, RowTypes rowType, FieldInfo info)
             : this(grid, parent, rowType, info.FieldType)
         {
-            TypeInfo = info;
+            FieldInfo = info;
+        }
+        
+        public FieldModel(InstanceModel grid, FieldModel parent, RowTypes rowType, PropertyInfo info)
+            : this(grid, parent, rowType, info.PropertyType)
+        {
+            PropertyInfo = info;
         }
 
         public void Init()
@@ -330,10 +337,10 @@ namespace XLibrary
 
             else if (RowType == RowTypes.Field)
             {
-                string isStatic = TypeInfo.IsStatic ? "static " : "";
+                string isStatic = FieldInfo.IsStatic ? "static " : "";
                 InitCells(
                     isStatic + Utilities.FormatTemplateName(FieldType.Name),
-                    TypeInfo.Name
+                    FieldInfo.Name
                 );
             }
 
@@ -345,6 +352,12 @@ namespace XLibrary
                     Utilities.FormatTemplateName(FieldType.Name),
                     "[" + ElementIndex + "]"
                 );
+
+            else if (RowType == RowTypes.Properties)
+                InitCells("<properties>", "");
+
+            else if (RowType == RowTypes.Property)
+                InitCells(FieldType.Name, PropertyInfo.Name);
 
             // set the type chain
             var chain = new List<FieldModel>();
@@ -429,6 +442,9 @@ namespace XLibrary
             if (FieldType.GetInterface("ICollection") != null)
                 AddRow(new FieldModel(Instance, this, RowTypes.Enumerate));
 
+            if(FieldType.GetProperties().Length > 0)
+                AddRow(new FieldModel(Instance, this, RowTypes.Properties));
+
             foreach (var field in FieldType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).OrderBy(f => f.Name))
                 AddRow(new FieldModel(Instance, this, RowTypes.Field, field));
         }
@@ -445,7 +461,16 @@ namespace XLibrary
             if (RowType == RowTypes.Enumerate && Expanded)
                 RefreshFieldEnumerations();
 
-            if (RowType == RowTypes.Root || RowType == RowTypes.Field || RowType == RowTypes.Base || RowType == RowTypes.Enumerate || RowType == RowTypes.Element)
+            if (RowType == RowTypes.Properties && Expanded)
+                RefreshProperties();
+
+            if (RowType == RowTypes.Root || 
+                RowType == RowTypes.Field || 
+                RowType == RowTypes.Base || 
+                RowType == RowTypes.Enumerate || 
+                RowType == RowTypes.Element || 
+                RowType == RowTypes.Properties || 
+                RowType == RowTypes.Property)
                 if (!Expanded && Nodes.Count == 0)
                     PossibleSubNodes = true;
 
@@ -495,7 +520,7 @@ namespace XLibrary
                     return;
                 }
 
-                if (RowType == RowTypes.Field)
+                if (RowType == RowTypes.Field || RowType == RowTypes.Property)
                     SetCellValue(i, GetObjectLabel(value));
 
                 else if (RowType == RowTypes.Enumerate)
@@ -537,7 +562,7 @@ namespace XLibrary
 
             // dont need to traverse type chain for static types
             FieldModel[] chain = TypeChain;
-            if (TypeInfo != null && TypeInfo.IsStatic)
+            if (FieldInfo != null && FieldInfo.IsStatic)
                 chain = new FieldModel[] { this };
 
             foreach (var link in chain)
@@ -561,10 +586,10 @@ namespace XLibrary
                 }
                 else if (link.RowType == RowTypes.Field)
                 {
-                    if (!link.TypeInfo.IsStatic && current == null)
+                    if (!link.FieldInfo.IsStatic && current == null)
                         return ""; // "<not static>";
 
-                    current = link.TypeInfo.GetValue(current);
+                    current = link.FieldInfo.GetValue(current);
 
                     // current can be null for first lookup (static, but after that needs a value)
                     if (current == null)
@@ -573,10 +598,15 @@ namespace XLibrary
                         break;
                     }
                 }
+                else if (link.RowType == RowTypes.Property)
+                {
+                    current = link.PropertyInfo.GetValue(current, null);
+                }
 
                 // check if at end of chain
                 if (link == this ||
-                    (RowType == RowTypes.Enumerate && ParentField == link))
+                    (RowType == RowTypes.Enumerate && ParentField == link) ||
+                    (RowType == RowTypes.Properties && ParentField == link))
                 {
                     found = current;
                     break;
@@ -599,27 +629,35 @@ namespace XLibrary
 
                 var collection = GetFieldValue(target) as ICollection;
 
-                if (collection != null)
-                    IterateCollection(collection, 2 + i);
+                if (collection == null)
+                    continue;
+
+                int x = 0;
+                var e = collection.GetEnumerator();
+
+                while (e.MoveNext())
+                {
+                    var indexValue = e.Current;
+
+                    if (Nodes.Count <= x)
+                        AddRow(new FieldModel(Instance, this, RowTypes.Element, indexValue.GetType(), x));
+
+                    if (x > 50)
+                        break;
+
+                    x++;
+                }
             }
         }
 
-        public void IterateCollection(ICollection collection, int column)
+        void RefreshProperties()
         {
-            int i = 0;
-            var e = collection.GetEnumerator();
-
-            while (e.MoveNext())
+            foreach (var property in ParentField.FieldType.GetProperties())
             {
-                var indexValue = e.Current;
+                var parameters = property.GetIndexParameters();
 
-                if (Nodes.Count <= i)
-                    AddRow(new FieldModel(Instance, this, RowTypes.Element, indexValue.GetType(), i));
-
-                if (i > 100)
-                    break;
-
-                i++;
+                if (parameters.Length == 0)
+                    AddRow(new FieldModel(Instance, this, RowTypes.Property, property));
             }
         }
 
@@ -630,6 +668,8 @@ namespace XLibrary
 
             string fullname = obj.ToString();
 
+            return fullname; 
+
             // System.Func`2[DeOps.Tuple`2[System.DateTime,System.String],DeOps.Interface.Tools.GeneralLogItem]
             // *xlib cant find deops namespace
 
@@ -638,6 +678,7 @@ namespace XLibrary
             if (end == -1)
                 end = fullname.Length;
 
+            // this is currently hanging the app by throwing so much
             try
             {
                 var firstTypeName = fullname.Substring(0, end);

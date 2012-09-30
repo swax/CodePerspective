@@ -485,6 +485,12 @@ namespace XLibrary
 
                                     dependenciesFrom[to].Add(node.ID);
                                 }
+
+                            if (node.ObjType == XObjType.Internal)
+                            {
+                                node.Record = new InstanceRecord();
+                                node.Record.Add(typeof(XRay));
+                            }
                         }
 
                         stream.Position = startPos + totalSize;

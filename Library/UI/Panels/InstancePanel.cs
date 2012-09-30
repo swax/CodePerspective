@@ -49,7 +49,7 @@ namespace XLibrary
 
         public void NavigateTo(NodeModel node)
         {
-            if (node.ObjType == XObjType.Class)
+            if (node.ObjType == XObjType.Class || node.ObjType == XObjType.Internal)
             {
                 SelectedNode = node;
                 FieldFilter = null;
@@ -283,7 +283,10 @@ namespace XLibrary
 
                     if (currentValue != null)
                     {
-                        if (currentValue.CompareTo(newValue) != 0)
+                        if (currentValue.StartsWith("Color ["))
+                            cell.Style.BackColor = Utilities.ColorFromString(currentValue);
+
+                        else if (currentValue.CompareTo(newValue) != 0)
                         {
                             double currentD, newD;
 

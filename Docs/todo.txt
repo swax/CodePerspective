@@ -1,4 +1,11 @@
 ﻿
+reflect
+	Change colors from instace UI
+	support setting values of variables from instance UI
+	make a blog post demonstrating this, and asking people for their best color schemes
+		make one for obsian as a demo
+	support copy current field grid as a csv to clipboard
+	good way to play with colors and find a good scheme in real time, 2 birds, 1 stupid stone
 
 draw offset class blocks in flow view to underscore multiple instances
 

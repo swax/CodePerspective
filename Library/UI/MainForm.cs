@@ -268,8 +268,9 @@ namespace XLibrary
                 ShowDetailsPanel(CodeTab);
             }
 
-            else if (node.ObjType == XObjType.Class ||
-                node.ObjType == XObjType.Field)
+            else if (node.ObjType == XObjType.Internal ||
+                     node.ObjType == XObjType.Class ||
+                     node.ObjType == XObjType.Field)
             {
                 InstanceTab.NavigateTo(node);
                 ShowDetailsPanel(InstanceTab);

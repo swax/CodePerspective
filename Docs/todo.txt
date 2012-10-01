@@ -7,8 +7,6 @@ Parameter tracking
 	mark these lines in verify as not to ignore 'found address of value' and 'expected value'
 
 	mscorlib_8 still a problem
-	test wrapping void functions to verify constraint is moved into wrapped fun
-		foreach of list of intPtrs creates a try/finally with a constraint dispose
 
 	field set/get - send values to be attached to call, dup stack?
 

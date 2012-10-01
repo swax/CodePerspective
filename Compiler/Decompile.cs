@@ -405,12 +405,6 @@ namespace XBuilder
                         // if this is an external call and we want to track the parameters, then we have to wrap the function
                         if (Build.TrackParameters && call.HasParameters)
                         {
-                            if (isConstrained)
-                            {
-                                int nn = 0;
-                                nn++;
-                            }
-
                             // wrap call in a new function with the same parameters and return type as the original call, we do this
                             // because it's maybe impossible to build the object[] of parameters from the current stack because it's unknown
                             // in a wrapped function we can access the arguments easily to build the object[] and pass to method enter
@@ -459,6 +453,13 @@ namespace XBuilder
                             for(int x = 0; x < wrapFunc.Parameters.Count; x++)
                                  wrapFunc.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ldarg, x));
 
+                            if (isConstrained)
+                            {
+                                // test with oldfashionedfun with 'no parameter' filter above turned off
+                                var inst = method.Body.Instructions[pos];
+                                wrapFunc.Body.Instructions.Add(wrapProcessor.Create(inst.OpCode, inst.Operand as TypeReference));
+                            }
+
                             // call original function
                             wrapFunc.Body.Instructions.Add(wrapProcessor.Create(instruction.OpCode, call));
 
@@ -484,6 +485,10 @@ namespace XBuilder
                                 wrapRef.DeclaringType = classDef;
 
                             method.Body.Instructions[pos++].OpCode = OpCodes.Nop;
+
+                            if(isConstrained)
+                                method.Body.Instructions[pos++].OpCode = OpCodes.Nop; // sets the actual call to nop
+
                             AddInstruction(method, pos, processor.Create(OpCodes.Call, wrapRef));
                             // not incrementing pos because enter function takes un-inc'd pos as a param
                             // really need to go back through and standardize pos setting
@@ -501,7 +506,7 @@ namespace XBuilder
 
                         pos = TrackMethodExit(method, call, calledNode, processor, pos);
 
-                        var newPos = method.Body.Instructions[i]; // get new instruction at original position
+                        var newPos = method.Body.Instructions[i]; // get new instruction at original position, inserting stuff changed it
 
                         UpdateExceptionHandlerPositions(method, oldPos, newPos);
 

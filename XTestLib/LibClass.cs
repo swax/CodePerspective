@@ -79,6 +79,21 @@ namespace XTestLib
 
             var test20 = new T3Class<int>();
             test20.TClassTestFunc3();
+
+            TestFunc21();
+            TestFunc22(DateTime.Now, 1.0);
+        }
+
+        static DateTime TestFunc22(DateTime x, double y)
+        {
+            return x.AddMinutes(y);
+        }
+
+        void TestFunc21()
+        {
+            var x = DateTime.Now;
+
+            x = x.AddMinutes(1.0);
         }
 
         int TestFunc19()
@@ -124,7 +139,7 @@ namespace XTestLib
                 SpecialTestMethod();
             }
 
-            public static void SpecialTestMethod()
+            private static void SpecialTestMethod()
             {
 
             }

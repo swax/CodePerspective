@@ -33,6 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.LaunchButton = new System.Windows.Forms.Button();
             this.AnalzeLink = new System.Windows.Forms.LinkLabel();
+            this.VerifyLink = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // BackButton
@@ -89,10 +90,22 @@
             this.AnalzeLink.Text = "Analyze generated dat file";
             this.AnalzeLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.AnalzeLink_LinkClicked);
             // 
+            // VerifyLink
+            // 
+            this.VerifyLink.AutoSize = true;
+            this.VerifyLink.Location = new System.Drawing.Point(34, 132);
+            this.VerifyLink.Name = "VerifyLink";
+            this.VerifyLink.Size = new System.Drawing.Size(119, 13);
+            this.VerifyLink.TabIndex = 44;
+            this.VerifyLink.TabStop = true;
+            this.VerifyLink.Text = "PEVerify generated files";
+            this.VerifyLink.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.VerifyLink_LinkClicked);
+            // 
             // BuildStepRun
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.VerifyLink);
             this.Controls.Add(this.AnalzeLink);
             this.Controls.Add(this.LaunchButton);
             this.Controls.Add(this.label1);
@@ -112,5 +125,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button LaunchButton;
         private System.Windows.Forms.LinkLabel AnalzeLink;
+        private System.Windows.Forms.LinkLabel VerifyLink;
     }
 }

@@ -1,86 +1,24 @@
 ﻿
-reflect
-	Change colors from instace UI
-	support setting values of variables from instance UI
-	make a blog post demonstrating this, and asking people for their best color schemes
-		make one for obsian as a demo
-	support copy current field grid as a csv to clipboard
-	good way to play with colors and find a good scheme in real time, 2 birds, 1 stupid stone
+test with silverlight
 
-draw offset class blocks in flow view to underscore multiple instances
+reduce peverify errors
 
-Remote
-	frame rate should not make colors take longer to reduce slower - maybe some way to decrease or re-calc opacity
-	field values in tooltip
+Parameter tracking
+	mark these lines in verify as not to ignore 'found address of value' and 'expected value'
 
-	public key encryption
-
-	send entry/holding info
-		on connect iterate stacks for nodes entered/waiting, send to client
-		when adding node hit to send, check if waiting/entered and add to list
-		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
-
-xraying xray itself
-	xray app
-	xray xlib.dll
-		open existing xdat file and start at last id
-		append xdat file with ids from xlib
-	have a static xroot class, turn xray into an object
-	ultimate recursion - app that can see it seeing into itself
-
-instance value tracking
-	in code view show a drop down of instances
-	selected instance is set to 'focused instance'
-	take 'this' parameter with method enter/exit
-	if focused then last param/return values
-
-Put string value of arguments along the line of the call
 	mscorlib_8 still a problem
-	test combined class/method both with generic params
-		build test based on compare exchange
-
-	UI
-		add return to method profile view temp
-		add return info to mouse over method
-			<calling func name> <- <return value>
-		use instance type view to digging into values?
-		*show parameter names in function calls with proper word wrapping :)
-
-	method enter
-		test func - int test(int a, int b)
-		
-		create copy of target function with same return value
-			1 wrapper per call so we can perserve call position in future for line tracking
-			put original call inside function
-			ensure created methods aren't xrayed themselves, inspect msil to verify
-			test, test with static, test that deops runs
-
-		put new function in same class, map method ref with overriddent refernce
-
-		call copy of target function
-
-		copy parameters and return type target function
-
-		replace call with call to created function
-
-		use same method enter code from before
-		load arguments back on stack
-
-		call wrapper
-
-		keep exit separate so they can be disabled seperately
-
-
-
-		create a wrapper funtion of the target with the same signature
-
-		if going to be stored as an array, might as well create the array up front and pass it in to function
+	test wrapping void functions to verify constraint is moved into wrapped fun
+		foreach of list of intPtrs creates a try/finally with a constraint dispose
 
 	field set/get - send values to be attached to call, dup stack?
 
+	UI ---
+	add return info to mouse over method
+		<calling func name> <- <return value>
+	use instance type view to digging into values?
+	*show parameter names in function calls with proper word wrapping :)
 	add to visualization
 	add to code view
-
 	For each function node have a last string arguments value
 	That gets drawn when the line gets updated
 	CallingFunction(x=4, y=3, msg='hello')
@@ -90,16 +28,44 @@ Put string value of arguments along the line of the call
 	need ID's per method call, hook up right to code
 		see how overhead changes
 
+reflect
+	Change colors from instace UI
+	support setting values of variables from instance UI
+	make a blog post demonstrating this, and asking people for their best color schemes
+		make one for obsian as a demo
+	support copy current field grid as a csv to clipboard
+	good way to play with colors and find a good scheme in real time, 2 birds, 1 stupid stone
 
-see if when i can remove signatures i can xray system dlls
-commit and try to open/build/recompile with mono runtime
+properties view
+	indexed properties not supported, should show, but not allow iteration
+	when connected to remote server no way to view client's own state in instance view
 
-**Error trying to find common link between BuildContent and BuildContent, common had 0 index
-background tooltip color in opengl
-add more tool tips
-Add thread details to class details so thread that touched class can be filtered on 
-Dead threads not cleared from flow map? should be, some sort of max or something?
+draw offset class blocks in flow view to underscore multiple instances
 
+Remote
+	frame rate should not make colors take longer to reduce slower - maybe some way to decrease or re-calc opacity
+	field values in tooltip
+	public key encryption
+	send entry/holding info
+		on connect iterate stacks for nodes entered/waiting, send to client
+		when adding node hit to send, check if waiting/entered and add to list
+		remember nodes that have entry/waiting set, and each frame, see if still waiting, if removed from list, send client update
+
+instance value tracking
+	in code view show a drop down of instances
+	selected instance is set to 'focused instance'
+	take 'this' parameter with method enter/exit
+	if focused then last param/return values
+
+random
+	see if when i can remove signatures i can xray system dlls
+	commit and try to open/build/recompile with mono runtime
+
+	**Error trying to find common link between BuildContent and BuildContent, common had 0 index
+	background tooltip color in opengl
+	add more tool tips
+	Add thread details to class details so thread that touched class can be filtered on 
+	Dead threads not cleared from flow map? should be, some sort of max or something?
 
 instance view
 	match field name with static analysis

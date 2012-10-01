@@ -29,7 +29,6 @@ namespace XBuilder
         public bool TrackReturnValue = true;
         public bool TrackParameters = true;
         public bool ReplaceOriginal;
-        public bool DoVerify;
         public bool CompileWithMS;
         public bool DecompileAgain;
         public bool SaveMsil = true;
@@ -230,43 +229,12 @@ namespace XBuilder
                     var writePath = Path.Combine(OutputDir, "XRay.dat");
                     trackedObjects = root.SaveTree(writePath, settings);
 
-                    // verify last and aggregate errors'
-                    if (DoVerify)
-                        foreach (var item in Files)
-                        {
-                            try
-                            {
-                                BuildStatus = "Verifying " + item.FileName;
-                                XDecompile.Verify(item.RecompiledPath);
-                            }
-                            catch (CompileError ex)
-                            {
-                                errorLog += item.FileName + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
-                            }
-                        }
-
                     if (errorLog.Length > 0)
-                        throw new CompileError(errorLog);
-                }
-                catch (CompileError ex)
-                {
-                    string summary = ex.Summary;
-
-                    summary = summary.Replace("Unexpected type on the stack.",
-                        "Unexpected type on the stack. (Ignore)");
-
-                    summary = summary.Replace("Unmanaged pointers are not a verifiable type.",
-                        "Unmanaged pointers are not a verifiable type. (Ignore)");
-
-                    if (!ReplaceOriginal)
-                        summary = summary.Replace("Unable to resolve token.",
-                            "Unable to resolve token. (Try turning off side by side)");
-
-                    //todo token error - turn off side by side
-
-                    string logPath = Path.Combine(Application.StartupPath, "errorlog.txt");
-                    File.WriteAllText(logPath, summary);
-                    Process.Start(logPath);
+                    {
+                        string logPath = Path.Combine(Application.StartupPath, "errorlog.txt");
+                        File.WriteAllText(logPath, errorLog);
+                        Process.Start(logPath);
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -36,7 +36,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
         private void BuildStepBuildOptions_Load(object sender, EventArgs e)
         {
             ReplaceOriginalCheckBox.Checked = Model.ReplaceOriginal;
-            RunVerifyCheckbox.Checked = Model.DoVerify;
             MsToolsCheckbox.Checked = Model.CompileWithMS;
             DecompileAgainCheckbox.Checked = Model.DecompileAgain;
             SaveMsilCheckBox.Checked = Model.SaveMsil;
@@ -48,7 +47,6 @@ Checked: XRay overwrites the original files with XRayed versions, originals are 
         private void SaveToModel()
         {
             Model.ReplaceOriginal = ReplaceOriginalCheckBox.Checked;
-            Model.DoVerify = RunVerifyCheckbox.Checked;
             Model.CompileWithMS = MsToolsCheckbox.Checked;
             Model.DecompileAgain = DecompileAgainCheckbox.Checked;
             Model.SaveMsil = SaveMsilCheckBox.Checked;

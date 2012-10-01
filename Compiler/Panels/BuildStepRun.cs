@@ -78,5 +78,45 @@ namespace XBuilder.Panels
             Process.Start(info);
         }
 
+        private void VerifyLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            string errorLog = "";
+
+            foreach (var item in Model.Files)
+            {
+                try
+                {
+                    XDecompile.Verify(item.RecompiledPath);
+                }
+                catch (CompileError ex)
+                {
+                    errorLog += item.FileName + "\r\n" + ex.Summary + "\r\n--------------------------------------------------------\r\n";
+                }
+            }
+
+            if (errorLog.Length == 0)
+            {
+                MessageBox.Show("Verified");
+            }
+            else
+            {
+                errorLog = errorLog.Replace("Unexpected type on the stack.",
+                    "Unexpected type on the stack. (Ignore)");
+
+                errorLog = errorLog.Replace("Unmanaged pointers are not a verifiable type.",
+                    "Unmanaged pointers are not a verifiable type. (Ignore)");
+
+                if (!Model.ReplaceOriginal)
+                    errorLog = errorLog.Replace("Unable to resolve token.",
+                        "Unable to resolve token. (Try turning off side by side)");
+
+                //todo token error - turn off side by side
+
+                string logPath = Path.Combine(Application.StartupPath, "errorlog.txt");
+                File.WriteAllText(logPath, errorLog);
+                Process.Start(logPath);
+            }
+        }
+
     }
 }

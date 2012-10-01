@@ -52,7 +52,7 @@ namespace XBuilder
         TypeReference ObjectArrayRef;
 
         public long LinesAdded = 0;
-
+        int UniqueEnterSig = 0;
 
         public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, BuildModel build)
         {
@@ -282,12 +282,8 @@ namespace XBuilder
             // add enter/exit info to method and call tracking
             List<MethodDefinition> addMethods = new List<MethodDefinition>();
             
-            foreach (var method in classDef.Methods)
-                RecompileMethod(classNode, classDef, method, addMethods);
-
-            //var x = new TypeDefinition("XHelpers", classDef.Name + "_Wrapers", Mono.Cecil.TypeAttributes.NestedFamily,
-            foreach (var method in addMethods)
-                classDef.Methods.Add(method);
+            foreach (var method in classDef.Methods.ToArray()) // toarray because recompile method may add new methods
+                RecompileMethod(classNode, classDef, method);
 
             // recompile sub classes
             foreach (var nestedDef in classDef.NestedTypes)
@@ -299,7 +295,7 @@ namespace XBuilder
             return classNode;
         }
 
-        private void RecompileMethod(XNodeOut classNode, TypeDefinition classDef, MethodDefinition method, List<MethodDefinition> addMethods)
+        private void RecompileMethod(XNodeOut classNode, TypeDefinition classDef, MethodDefinition method)
         {
             XNodeOut methodNode = classNode.AddMethod(method);
 
@@ -379,15 +375,6 @@ namespace XBuilder
 
                     var calledNode = calledRef.AddMethod(call);
 
-
-                    if (call.Name.Contains("Reverse"))
-                    {
-                        // current problem, declaring type is being written without generic arguments
-                        int nn = 0;
-                        nn++;
-                        // check to see if call.delcaring type has generic arguments
-                    }
-
                     /*if( TrackExternal && 
                         !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
                         (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
@@ -400,6 +387,7 @@ namespace XBuilder
                             continue; // call added to cctor by xray
 
                         calledNode.Lines = 1;
+                        bool isConstrained = false;
 
                         // in function is prefixed by .constrained, wrap enter/exit around those 2 lines
                         int offset = 0;
@@ -407,6 +395,7 @@ namespace XBuilder
                         {
                             i -= 1;
                             offset = 1;
+                            isConstrained = true;
                         }
 
                         // put stuff below in here so instructions dont get messed up
@@ -414,32 +403,43 @@ namespace XBuilder
                         int pos = i;
 
                         // if this is an external call and we want to track the parameters, then we have to wrap the function
-                        if (Build.TrackParameters && call.HasParameters && false)
+                        if (Build.TrackParameters && call.HasParameters)
                         {
+                            if (isConstrained)
+                            {
+                                int nn = 0;
+                                nn++;
+                            }
+
                             // wrap call in a new function with the same parameters and return type as the original call, we do this
                             // because it's maybe impossible to build the object[] of parameters from the current stack because it's unknown
                             // in a wrapped function we can access the arguments easily to build the object[] and pass to method enter
-                            var wrappedName = string.Format("{0}_{1}_XRay", call.DeclaringType.Name, call.Name);
+                            var wrappedName = string.Format("{0}_{1}_XRay{2}", call.DeclaringType.Name, call.Name, UniqueEnterSig++);
 
                             var resolvedCall = ResolveGenericMethod(call);
 
-                            var callWrapper = new MethodDefinition(wrappedName, Mono.Cecil.MethodAttributes.CompilerControlled, resolvedCall.ReturnType);
+                            var wrapFunc = new MethodDefinition(wrappedName, new Mono.Cecil.MethodAttributes(), resolvedCall.ReturnType);
                            
                             // the wrapper can be static because we pass the called function's declaring type into the wrapper
-                            callWrapper.IsStatic = true;
-                            callWrapper.HasThis = false;
-                            callWrapper.DeclaringType = classDef;
+                            wrapFunc.IsPrivate = true;
+                            wrapFunc.IsStatic = true;
+                            wrapFunc.HasThis = false;
+                            wrapFunc.IsHideBySig = true;
 
-                            if(call.HasThis)
-                                callWrapper.Parameters.Add(new ParameterDefinition(call.DeclaringType));
+                            if (call.HasThis)
+                            {
+                                // calling functions against a value type is done by calling against its address eg DateTime.AddMinutes()
+                                if (call.DeclaringType.IsValueType)
+                                    wrapFunc.Parameters.Add(new ParameterDefinition(new ByReferenceType(call.DeclaringType)));
+                                else
+                                    wrapFunc.Parameters.Add(new ParameterDefinition(call.DeclaringType));
+                            }
 
                             foreach (var p in resolvedCall.Parameters)
-                                callWrapper.Parameters.Add(p);
-
-                            addMethods.Add(callWrapper);
+                                wrapFunc.Parameters.Add(p);
 
                             // write body of method
-                            var wrapProcessor = callWrapper.Body.GetILProcessor();
+                            var wrapProcessor = wrapFunc.Body.GetILProcessor();
 
                             // first argument is at position 0 because the method is static
 
@@ -456,24 +456,37 @@ namespace XBuilder
                             // call method enter
 
                             // load 'this' and arguemnts
-                            for(int x = 0; x < callWrapper.Parameters.Count; x++)
-                                 callWrapper.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ldarg, x));
+                            for(int x = 0; x < wrapFunc.Parameters.Count; x++)
+                                 wrapFunc.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ldarg, x));
 
                             // call original function
-                            callWrapper.Body.Instructions.Add(wrapProcessor.Create(instruction.OpCode, call));
+                            wrapFunc.Body.Instructions.Add(wrapProcessor.Create(instruction.OpCode, call));
 
                             // return
-                            callWrapper.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ret));
+                            wrapFunc.Body.Instructions.Add(wrapProcessor.Create(OpCodes.Ret));
+
+                            classDef.Methods.Add(wrapFunc);
 
                             // replace current call instruction with call to copy method    
-                            /*var wrapperRef = new MethodReference(callWrapper.Name, callWrapper.ReturnType);
-                            foreach (var parameter in callWrapper.Parameters)
-                                wrapperRef.Parameters.Add(parameter);
-                            wrapperRef.DeclaringType = method.DeclaringType;*/
-                            // any generic arguments here?
-                            // what is exactly SpecialTestMethod's delcaring Type?
+                            var wrapRef = new MethodReference(wrapFunc.Name, wrapFunc.ReturnType);
+                            foreach (var parameter in wrapFunc.Parameters)
+                                wrapRef.Parameters.Add(parameter);
 
-                            method.Body.Instructions[i] = processor.Create(OpCodes.Call, callWrapper);//wrapperRef);
+                            if (classDef.HasGenericParameters)
+                            {
+                                // have to add arguments to declaring type manually for some reason
+                                var genericClassDef = new GenericInstanceType(classDef);
+                                foreach (var parameter in classDef.GenericParameters)
+                                    genericClassDef.GenericArguments.Add(parameter);
+                                wrapRef.DeclaringType = genericClassDef;
+                            }
+                            else
+                                wrapRef.DeclaringType = classDef;
+
+                            method.Body.Instructions[pos++].OpCode = OpCodes.Nop;
+                            AddInstruction(method, pos, processor.Create(OpCodes.Call, wrapRef));
+                            // not incrementing pos because enter function takes un-inc'd pos as a param
+                            // really need to go back through and standardize pos setting
                         }
                         else
                         {
@@ -488,7 +501,8 @@ namespace XBuilder
 
                         pos = TrackMethodExit(method, call, calledNode, processor, pos);
 
-                        var newPos = method.Body.Instructions[i];
+                        var newPos = method.Body.Instructions[i]; // get new instruction at original position
+
                         UpdateExceptionHandlerPositions(method, oldPos, newPos);
 
                         i = pos; // loop end will add 1 putting us right after last added function
@@ -637,7 +651,7 @@ namespace XBuilder
             method.Body.OptimizeMacros();
         }
 
-        private int TrackMethodExit(MethodDefinition method, MethodReference target, XNodeOut node, ILProcessor processor, int i)
+        private int TrackMethodExit(MethodDefinition method, MethodReference target, XNodeOut node, ILProcessor processor, int pos)
         {
             // really annoying, we need to box value type that are returned by the target method to pass to xray exit method
             // if the return type is generic msil returns something like !0, but we can't box !0, we have to resolve it from the function declaration
@@ -649,23 +663,23 @@ namespace XBuilder
             if (Build.TrackReturnValue && returnType.FullName != VoidRef.FullName)
             {
                 // this is key, duplicate the head of the stack, and we'll pass this to the xray method exit function to be recorded
-                AddInstruction(method, ++i, processor.Create(OpCodes.Dup));
+                AddInstruction(method, ++pos, processor.Create(OpCodes.Dup));
 
                 // if it's a value type or generic param then box because method exit takes an object as a param
                 if (returnType.IsValueType || returnType.IsGenericParameter)
-                    AddInstruction(method, ++i, processor.Create(OpCodes.Box, returnType));
+                    AddInstruction(method, ++pos, processor.Create(OpCodes.Box, returnType));
 
-                AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, node.ID)); // push id
-                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with object and id
+                AddInstruction(method, ++pos, processor.Create(OpCodes.Ldc_I4, node.ID)); // push id
+                AddInstruction(method, ++pos, processor.Create(OpCodes.Call, MethodExitWithValueRef)); // call exit with object and id
             }
             // else not tracking return value
             else
             {
-                AddInstruction(method, ++i, processor.Create(OpCodes.Ldc_I4, node.ID));
-                AddInstruction(method, ++i, processor.Create(OpCodes.Call, MethodExitRef));
+                AddInstruction(method, ++pos, processor.Create(OpCodes.Ldc_I4, node.ID));
+                AddInstruction(method, ++pos, processor.Create(OpCodes.Call, MethodExitRef));
             }
 
-            return i;
+            return pos;
         }
 
         private MethodReference ResolveGenericMethod(MethodReference target)

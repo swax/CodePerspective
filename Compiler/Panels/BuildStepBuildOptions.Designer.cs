@@ -34,7 +34,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.SaveMsilCheckBox = new System.Windows.Forms.CheckBox();
             this.MsToolsCheckbox = new System.Windows.Forms.CheckBox();
-            this.RunVerifyCheckbox = new System.Windows.Forms.CheckBox();
             this.DecompileCSharpCheckBox = new System.Windows.Forms.CheckBox();
             this.DecompileAgainCheckbox = new System.Windows.Forms.CheckBox();
             this.ReplaceOriginalCheckBox = new System.Windows.Forms.CheckBox();
@@ -104,17 +103,6 @@
             this.MsToolsCheckbox.UseVisualStyleBackColor = true;
             this.MsToolsCheckbox.Visible = false;
             // 
-            // RunVerifyCheckbox
-            // 
-            this.RunVerifyCheckbox.AutoSize = true;
-            this.RunVerifyCheckbox.Location = new System.Drawing.Point(7, 226);
-            this.RunVerifyCheckbox.Name = "RunVerifyCheckbox";
-            this.RunVerifyCheckbox.Size = new System.Drawing.Size(197, 17);
-            this.RunVerifyCheckbox.TabIndex = 44;
-            this.RunVerifyCheckbox.Text = "Run verify on recompiled assemblies";
-            this.RunVerifyCheckbox.UseVisualStyleBackColor = true;
-            this.RunVerifyCheckbox.Visible = false;
-            // 
             // DecompileCSharpCheckBox
             // 
             this.DecompileCSharpCheckBox.AutoSize = true;
@@ -172,7 +160,6 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.SaveMsilCheckBox);
             this.Controls.Add(this.MsToolsCheckbox);
-            this.Controls.Add(this.RunVerifyCheckbox);
             this.Controls.Add(this.DecompileCSharpCheckBox);
             this.Controls.Add(this.DecompileAgainCheckbox);
             this.Controls.Add(this.ReplaceOriginalCheckBox);
@@ -195,7 +182,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox SaveMsilCheckBox;
         private System.Windows.Forms.CheckBox MsToolsCheckbox;
-        private System.Windows.Forms.CheckBox RunVerifyCheckbox;
         private System.Windows.Forms.CheckBox DecompileCSharpCheckBox;
         private System.Windows.Forms.CheckBox DecompileAgainCheckbox;
         private System.Windows.Forms.CheckBox ReplaceOriginalCheckBox;

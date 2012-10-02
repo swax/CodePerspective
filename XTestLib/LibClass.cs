@@ -82,6 +82,12 @@ namespace XTestLib
 
             TestFunc21();
             TestFunc22(DateTime.Now, 1.0);
+            TestFunc23();
+        }
+
+        void TestFunc23()
+        {
+            TestMethodExit(this);
         }
 
         static DateTime TestFunc22(DateTime x, double y)

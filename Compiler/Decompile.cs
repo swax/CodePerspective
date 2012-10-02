@@ -849,15 +849,31 @@ namespace XBuilder
 
                 var processor = ctorMethod.Body.GetILProcessor();
 
-                // to prevent warnings in verify, our code should be put after the base constructor call
-
-                AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
-
                 if (ctorMethod.Name == ".ctor")
                 {
-                    hasCtor = true;
-                    AddInstruction(ctorMethod, 1, processor.Create(OpCodes.Ldarg, 0));
-                    AddInstruction(ctorMethod, 2, processor.Create(OpCodes.Call, ClassConstructedRef));
+                    // enter Constructed logging after System.Object::.ctor() is called, because passing the 'this' parameter before
+                    // that causes PEVerify to complain about using an uninitialized variable
+
+                    for (int i = 0; i < processor.Body.Instructions.Count; i++)
+                    {
+                        var instruction = processor.Body.Instructions[i];
+
+                        if (instruction.OpCode == OpCodes.Call && instruction.Operand is MethodReference)
+                        {
+                            var callRef = instruction.Operand as MethodReference;
+
+                            if (callRef.DeclaringType != null && 
+                                classDef.BaseType.FullName == callRef.DeclaringType.FullName && 
+                                callRef.Name == ".ctor")
+                            {
+                                hasCtor = true;
+                                AddInstruction(ctorMethod, ++i, processor.Create(OpCodes.Ldc_I4, classNode.ID));
+                                AddInstruction(ctorMethod, ++i, processor.Create(OpCodes.Ldarg, 0));
+                                AddInstruction(ctorMethod, ++i, processor.Create(OpCodes.Call, ClassConstructedRef));
+                                break;
+                            }
+                        }
+                    }
                 }
                 // else static constructor
                 else
@@ -865,6 +881,7 @@ namespace XBuilder
                     // ldtoken    XTestLib.SmallStatic
                     // ldtoken    XTestLib.StaticTemplateClass`1<!T> (for generic static classes)
                     // call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+                    AddInstruction(ctorMethod, 0, processor.Create(OpCodes.Ldc_I4, classNode.ID));
 
                     if (classDef.HasGenericParameters)
                     {

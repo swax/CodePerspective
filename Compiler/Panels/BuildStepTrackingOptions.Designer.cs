@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(BuildStepTrackingOptions));
             this.label1 = new System.Windows.Forms.Label();
             this.TrackInstancesCheckBox = new System.Windows.Forms.CheckBox();
             this.TrackFieldsCheckBox = new System.Windows.Forms.CheckBox();
@@ -37,6 +38,9 @@
             this.BackButton = new System.Windows.Forms.Button();
             this.TrackAnonCheckBox = new System.Windows.Forms.CheckBox();
             this.TrackFunctionsCheckBox = new System.Windows.Forms.CheckBox();
+            this.TrackParametersCheckBox = new System.Windows.Forms.CheckBox();
+            this.TrackReturnValuesCheckBox = new System.Windows.Forms.CheckBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -52,7 +56,7 @@
             // TrackInstancesCheckBox
             // 
             this.TrackInstancesCheckBox.AutoSize = true;
-            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(7, 170);
+            this.TrackInstancesCheckBox.Location = new System.Drawing.Point(7, 186);
             this.TrackInstancesCheckBox.Name = "TrackInstancesCheckBox";
             this.TrackInstancesCheckBox.Size = new System.Drawing.Size(320, 17);
             this.TrackInstancesCheckBox.TabIndex = 31;
@@ -92,7 +96,7 @@
             // NextButton
             // 
             this.NextButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.NextButton.Location = new System.Drawing.Point(299, 314);
+            this.NextButton.Location = new System.Drawing.Point(322, 335);
             this.NextButton.Name = "NextButton";
             this.NextButton.Size = new System.Drawing.Size(75, 23);
             this.NextButton.TabIndex = 34;
@@ -103,7 +107,7 @@
             // BackButton
             // 
             this.BackButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BackButton.Location = new System.Drawing.Point(218, 314);
+            this.BackButton.Location = new System.Drawing.Point(241, 335);
             this.BackButton.Name = "BackButton";
             this.BackButton.Size = new System.Drawing.Size(75, 23);
             this.BackButton.TabIndex = 35;
@@ -132,10 +136,45 @@
             this.TrackFunctionsCheckBox.UseVisualStyleBackColor = true;
             this.TrackFunctionsCheckBox.CheckedChanged += new System.EventHandler(this.TrackFunctionsCheckBox_CheckedChanged);
             // 
+            // TrackParametersCheckBox
+            // 
+            this.TrackParametersCheckBox.AutoSize = true;
+            this.TrackParametersCheckBox.Location = new System.Drawing.Point(32, 159);
+            this.TrackParametersCheckBox.Name = "TrackParametersCheckBox";
+            this.TrackParametersCheckBox.Size = new System.Drawing.Size(147, 17);
+            this.TrackParametersCheckBox.TabIndex = 38;
+            this.TrackParametersCheckBox.Text = "Track method parameters";
+            this.TrackParametersCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // TrackReturnValuesCheckBox
+            // 
+            this.TrackReturnValuesCheckBox.AutoSize = true;
+            this.TrackReturnValuesCheckBox.Location = new System.Drawing.Point(185, 159);
+            this.TrackReturnValuesCheckBox.Name = "TrackReturnValuesCheckBox";
+            this.TrackReturnValuesCheckBox.Size = new System.Drawing.Size(108, 17);
+            this.TrackReturnValuesCheckBox.TabIndex = 39;
+            this.TrackReturnValuesCheckBox.Text = "and return values";
+            this.TrackReturnValuesCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.label2.Location = new System.Drawing.Point(3, 222);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(393, 110);
+            this.label2.TabIndex = 40;
+            this.label2.Text = resources.GetString("label2.Text");
+            // 
             // BuildStepTrackingOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.TrackReturnValuesCheckBox);
+            this.Controls.Add(this.TrackParametersCheckBox);
             this.Controls.Add(this.TrackFunctionsCheckBox);
             this.Controls.Add(this.TrackAnonCheckBox);
             this.Controls.Add(this.BackButton);
@@ -146,7 +185,7 @@
             this.Controls.Add(this.TrackFlowCheckBox);
             this.Controls.Add(this.label1);
             this.Name = "BuildStepTrackingOptions";
-            this.Size = new System.Drawing.Size(377, 340);
+            this.Size = new System.Drawing.Size(400, 361);
             this.Load += new System.EventHandler(this.BuildStep2_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -164,5 +203,8 @@
         private System.Windows.Forms.Button BackButton;
         private System.Windows.Forms.CheckBox TrackAnonCheckBox;
         private System.Windows.Forms.CheckBox TrackFunctionsCheckBox;
+        private System.Windows.Forms.CheckBox TrackParametersCheckBox;
+        private System.Windows.Forms.CheckBox TrackReturnValuesCheckBox;
+        private System.Windows.Forms.Label label2;
     }
 }

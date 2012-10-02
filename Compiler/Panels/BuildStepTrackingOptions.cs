@@ -40,6 +40,8 @@ namespace XBuilder.Panels
             TrackAnonCheckBox.Checked = Model.TrackAnon;
             TrackFieldsCheckBox.Checked = Model.TrackFields;
             TrackInstancesCheckBox.Checked = Model.TrackInstances;
+            TrackParametersCheckBox.Checked = Model.TrackParameters;
+            TrackReturnValuesCheckBox.Checked = Model.TrackReturnValue;
 
             TrackFunctionsCheckBox_CheckedChanged(this, null);
         }
@@ -50,6 +52,8 @@ namespace XBuilder.Panels
             TrackExternalCheckBox.Enabled = TrackFunctionsCheckBox.Checked;
             TrackAnonCheckBox.Enabled = TrackFunctionsCheckBox.Checked;
             TrackFieldsCheckBox.Enabled = TrackFunctionsCheckBox.Checked;
+            TrackParametersCheckBox.Enabled = TrackFunctionsCheckBox.Checked;
+            TrackReturnValuesCheckBox.Enabled = TrackFunctionsCheckBox.Checked;
         }
 
         void SaveToModel()
@@ -59,6 +63,8 @@ namespace XBuilder.Panels
             Model.TrackExternal = TrackFunctionsCheckBox.Checked && TrackExternalCheckBox.Checked;
             Model.TrackAnon = TrackFunctionsCheckBox.Checked && TrackAnonCheckBox.Checked;
             Model.TrackFields = TrackFunctionsCheckBox.Checked && TrackFieldsCheckBox.Checked;
+            Model.TrackParameters = TrackFunctionsCheckBox.Checked && TrackFieldsCheckBox.Checked;
+            Model.TrackReturnValue = TrackReturnValuesCheckBox.Checked && TrackFieldsCheckBox.Checked;
 
             Model.TrackInstances = TrackInstancesCheckBox.Checked;
         }

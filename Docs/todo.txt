@@ -6,6 +6,10 @@ reduce peverify errors
 Parameter tracking
 	mark these lines in verify as not to ignore 'found address of value' and 'expected value'
 
+	tracking external instances
+		since call to external method includes 'this' parameter. it can be associate with parent class by weak reference
+		have to hash it or something to filter dupes
+
 	mscorlib_8 still a problem
 
 	field set/get - send values to be attached to call, dup stack?

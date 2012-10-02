@@ -435,19 +435,7 @@ namespace XBuilder
                             // write body of method
                             var wrapProcessor = wrapFunc.Body.GetILProcessor();
 
-                            // first argument is at position 0 because the method is static
-
-                            // create a new array with the # of parameters in the original call
-
-                            // for each parameter
-                                // load array
-                                // set element
-                                // load argument
-                                // set element
-
-                            // load object[]
-                            // load node id
-                            // call method enter
+                            TrackMethodEnterParams(wrapFunc, calledNode.ID, wrapProcessor, call.HasThis);
 
                             // load 'this' and arguemnts
                             for(int x = 0; x < wrapFunc.Parameters.Count; x++)
@@ -574,60 +562,8 @@ namespace XBuilder
             if (Build.TrackFunctions)
             {
                 if (Build.TrackParameters && method.HasParameters)
-                {
-                    // add local variable for parameter array that gets passed to method enter
-                    method.Body.Variables.Add(new VariableDefinition(ObjectArrayRef));
-                    int varPos = method.Body.Variables.Count - 1;
+                    TrackMethodEnterParams(method, methodNode.ID, processor, false);
 
-                    int pos = 0;
-
-                    // create new object array with the same number of elements as there are arguments in function
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, method.Parameters.Count));
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Newarr, ObjectRef));
-
-                    // store array in local variable
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Stloc, varPos)); // why doesnt cecil optimize this call?
-
-                    for (int i = 0; i < method.Parameters.Count; i++)
-                    {
-                        var paramType = method.Parameters[i].ParameterType;
-
-                        var argOffset = method.IsStatic ? 0 : 1;
-
-                        // put array, index, and arg on stack and push
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos));
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, i));
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Ldarg, i + argOffset)); // index 0 is this, though for static may not be
-
-                        bool box = (paramType.IsValueType || paramType.IsGenericParameter);
-                        TypeReference boxType = paramType;
-
-                        // if reference type
-                        if (paramType is ByReferenceType)
-                        {
-                            var refType = paramType as ByReferenceType;
-
-                            // load value of what ref address on stack is pointing to
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Ldobj, refType.ElementType));
-
-                            // if element type is value type, or generic (possible??? test this case) then box
-                            box = (refType.ElementType.IsValueType || refType.ElementType.IsGenericParameter);
-                            boxType = refType.ElementType;
-                        }
-
-                        // box value or generic types
-                        if (box)
-                            AddInstruction(method, pos++, processor.Create(OpCodes.Box, boxType));
-
-                        // set element
-                        AddInstruction(method, pos++, processor.Create(OpCodes.Stelem_Ref));
-                    }
-
-                    // put object[], and node id on stack, and call MethodEnterWithParams
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos)); 
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
-                    AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterWithParamsRef));
-                }
                 else
                 {
                     AddInstruction(method, 0, processor.Create(OpCodes.Ldc_I4, methodNode.ID));
@@ -654,6 +590,71 @@ namespace XBuilder
                 }
 
             method.Body.OptimizeMacros();
+        }
+
+        private void TrackMethodEnterParams(MethodDefinition method, int nodeId, ILProcessor processor, bool hasThis)
+        {
+            // add local variable for parameter array that gets passed to method enter
+            method.Body.Variables.Add(new VariableDefinition(ObjectArrayRef));
+            int varPos = method.Body.Variables.Count - 1;
+
+            int pos = 0;
+            int firstArg = 0;
+            int paramCount = method.Parameters.Count;
+            int paramPos = 0;
+
+            if (hasThis)
+            {
+                firstArg = 1;
+                paramCount--;
+            }
+
+            // create new object array with the same number of elements as there are arguments in function
+            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, paramCount));
+            AddInstruction(method, pos++, processor.Create(OpCodes.Newarr, ObjectRef));
+
+            // store array in local variable
+            AddInstruction(method, pos++, processor.Create(OpCodes.Stloc, varPos)); // why doesnt cecil optimize this call?
+
+            for (int i = firstArg; i < method.Parameters.Count; i++, paramPos++)
+            {
+                var paramType = method.Parameters[i].ParameterType;
+
+                var argOffset = method.IsStatic ? 0 : 1;
+
+                // put array, index, and arg on stack and push
+                AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos));
+                AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, paramPos));
+                AddInstruction(method, pos++, processor.Create(OpCodes.Ldarg, i + argOffset)); // index 0 is this, though for static may not be
+
+                bool box = (paramType.IsValueType || paramType.IsGenericParameter);
+                TypeReference boxType = paramType;
+
+                // if reference type
+                if (paramType is ByReferenceType)
+                {
+                    var refType = paramType as ByReferenceType;
+
+                    // load value of what ref address on stack is pointing to
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Ldobj, refType.ElementType));
+
+                    // if element type is value type, or generic (possible??? test this case) then box
+                    box = (refType.ElementType.IsValueType || refType.ElementType.IsGenericParameter);
+                    boxType = refType.ElementType;
+                }
+
+                // box value or generic types
+                if (box)
+                    AddInstruction(method, pos++, processor.Create(OpCodes.Box, boxType));
+
+                // set element
+                AddInstruction(method, pos++, processor.Create(OpCodes.Stelem_Ref));
+            }
+
+            // put object[], and node id on stack, and call MethodEnterWithParams
+            AddInstruction(method, pos++, processor.Create(OpCodes.Ldloc, varPos));
+            AddInstruction(method, pos++, processor.Create(OpCodes.Ldc_I4, nodeId));
+            AddInstruction(method, pos++, processor.Create(OpCodes.Call, MethodEnterWithParamsRef));
         }
 
         private int TrackMethodExit(MethodDefinition method, MethodReference target, XNodeOut node, ILProcessor processor, int pos)

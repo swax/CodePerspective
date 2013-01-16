@@ -1,7 +1,7 @@
 ﻿
 test with silverlight
 
-reduce peverify errors
+reduce peverify errors in DeOps
 
 Parameter tracking
 	mark these lines in verify as not to ignore 'found address of value' and 'expected value'

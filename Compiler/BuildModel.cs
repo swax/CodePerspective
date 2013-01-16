@@ -26,8 +26,8 @@ namespace XBuilder
         public bool TrackAnon = true;
         public bool TrackFields = true;
         public bool TrackInstances = true;
-        public bool TrackReturnValue = true;
-        public bool TrackParameters = true;
+        public bool TrackReturnValue = false;
+        public bool TrackParameters = false;
         public bool ReplaceOriginal;
         public bool CompileWithMS;
         public bool DecompileAgain;

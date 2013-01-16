@@ -403,7 +403,8 @@ namespace XBuilder
                         int pos = i;
 
                         // if this is an external call and we want to track the parameters, then we have to wrap the function
-                        if (Build.TrackParameters && call.HasParameters)
+                        // cannot wrap .ctor because .ctor can only be called from within a .ctor
+                        if (Build.TrackParameters && call.HasParameters && call.Name != ".ctor")
                         {
                             // wrap call in a new function with the same parameters and return type as the original call, we do this
                             // because it's maybe impossible to build the object[] of parameters from the current stack because it's unknown
@@ -589,12 +590,14 @@ namespace XBuilder
                     UpdateExceptionHandlerPositions(method, oldPos, newPos);
                 }
 
+         
             method.Body.OptimizeMacros();
         }
 
         private void TrackMethodEnterParams(MethodDefinition method, int nodeId, ILProcessor processor, bool hasThis)
         {
             // add local variable for parameter array that gets passed to method enter
+            method.Body.InitLocals = true; 
             method.Body.Variables.Add(new VariableDefinition(ObjectArrayRef));
             int varPos = method.Body.Variables.Count - 1;
 

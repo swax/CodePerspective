@@ -63,7 +63,7 @@ namespace XBuilder.Panels
             Model.TrackExternal = TrackFunctionsCheckBox.Checked && TrackExternalCheckBox.Checked;
             Model.TrackAnon = TrackFunctionsCheckBox.Checked && TrackAnonCheckBox.Checked;
             Model.TrackFields = TrackFunctionsCheckBox.Checked && TrackFieldsCheckBox.Checked;
-            Model.TrackParameters = TrackFunctionsCheckBox.Checked && TrackFieldsCheckBox.Checked;
+            Model.TrackParameters = TrackParametersCheckBox.Checked && TrackFieldsCheckBox.Checked;
             Model.TrackReturnValue = TrackReturnValuesCheckBox.Checked && TrackFieldsCheckBox.Checked;
 
             Model.TrackInstances = TrackInstancesCheckBox.Checked;

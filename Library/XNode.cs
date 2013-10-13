@@ -25,7 +25,7 @@ namespace XLibrary
 
     public enum XPacketType
     {
-        Node = 1, Setting = 2
+        Node = 1, Setting = 2, CallMap = 3, InitMap = 4
     }
 
 

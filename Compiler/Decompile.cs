@@ -54,13 +54,21 @@ namespace XBuilder
         public long LinesAdded = 0;
         int UniqueEnterSig = 0;
 
-        public XDecompile(XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, BuildModel build)
+        Dictionary<int, FunctionCall> CallMap;
+        Dictionary<int, FunctionCall> InitMap;
+
+
+        public XDecompile(BuildModel build, XNodeOut intRoot, XNodeOut extRoot, XRayedFile item, 
+                          Dictionary<int, FunctionCall> callMap, Dictionary<int, FunctionCall> initMap)
         {
+            Build = build;
             ExtRoot = extRoot;
             OriginalPath = item.FilePath;
             item.RecompiledPath = null; // reset
             XFile = item;
-            Build = build;
+           
+            CallMap = callMap;
+            InitMap = initMap;
         }
 
         internal void MonoRecompile()
@@ -375,6 +383,10 @@ namespace XBuilder
 
                     var calledNode = calledRef.AddMethod(call);
 
+                    // add call pair from this method to that method
+                    int hash = XRay.PairHash(methodNode.ID, calledNode.ID);
+                    CallMap[hash] = new FunctionCall() { ID = hash, Source = methodNode.ID, Destination = calledNode.ID };
+
                     /*if( TrackExternal && 
                         !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
                         (instruction.Operand as MethodReference).DeclaringType.Namespace != EnterMethodRef.DeclaringType.Namespace )*/
@@ -539,7 +551,12 @@ namespace XBuilder
                 else if (instruction.OpCode == OpCodes.Newobj)
                 {
                     var newObj = instruction.Operand as MethodReference;
-                    SetClassDependency(classNode, newObj.DeclaringType);
+
+                    var sourceClass = XRay.GetContainingClass(methodNode);
+                    var destClass = SetClassDependency(classNode, newObj.DeclaringType);
+
+                    int hash = XRay.PairHash(sourceClass.ID, destClass.ID);
+                    InitMap[hash] = new FunctionCall() { ID = hash, Source = sourceClass.ID, Destination = destClass.ID };
                 }
 
                 /* Still not really working - goal - to get side by side wpf apps to work

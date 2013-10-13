@@ -1,4 +1,39 @@
 ﻿
+static analyis
+	option to turn on/off static call map saving
+	option to turn on/off init map saving
+
+	track fields - with new ordering - check out difference
+
+	option to 'generate static call map' map is generated only dynamically as the app runs otherwise - still gen'd for dynamic calls
+
+	where one function calls another - record the method call in the output
+	on load of data use the same methods that add the link on the core side of things
+
+	record what classes instantiate what at AddInstanceTracking
+
+	map out method field dependencies and calls for 
+	get replacement credit card
+	zoom in on a class like the ViewModel class
+		see if it's easy to spot where class can be diveded
+	if class contains independent graphs, suggest to user that class can be reduced
+	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
+	show outside/zoom out in layer graph
+	can work on speeding up/debugging graphing with static analysis
+
+
+visual studio plugin
+	map source code to a static analysis graph
+	let programmer see graph vertically or horizonally as a panel
+	programmer can make custom layers, drag stuff around
+	in viewer programmer can filter on custom layers
+
+
+set/get call directions
+	set goes from function -> variable
+	get goes from variable -> function LtR
+
+
 test with silverlight
 
 reduce peverify errors in DeOps
@@ -108,21 +143,6 @@ details ui
 	click name title in details, select/pan to that node and bring it into zoom if not
 	field profile
 		show methods that call to/from field
-
-static analyis
-	map out method field dependencies and calls for 
-	zoom in on a class like the ViewModel class
-		see if it's easy to spot where class can be diveded
-	if class contains independent graphs, suggest to user that class can be reduced
-	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
-	show outside/zoom out in layer graph
-	can work on speeding up/debugging graphing with static analysis
-
-visual studio plugin
-	map source code to a static analysis graph
-	let programmer see graph vertically or horizonally as a panel
-	programmer can make custom layers, drag stuff around
-	in viewer programmer can filter on custom layers
 
 layer graph
 	**outside zoom/not xrayed view

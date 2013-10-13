@@ -432,8 +432,7 @@ namespace XLibrary
         {
             RootNode = null;
             FunctionCount = 0;
-            Dictionary<int, XNodeIn> map = new Dictionary<int, XNodeIn>();
-            
+
             try
             {
                 var dependenciesFrom = new Dictionary<int, List<int>>();
@@ -455,19 +454,26 @@ namespace XLibrary
                             XNodeIn.ReadSetting(stream, out name, out value);
 
                             Settings[name] = value;
+
+                            if (name == "FunctionCount")
+                            {
+                                FunctionCount = int.Parse(value);
+
+                                Nodes = new XNodeIn[FunctionCount];
+                            }
                         }
                         else if (type == XPacketType.Node)
                         {
                             XNodeIn node = XNodeIn.ReadNode(stream);
-                            map[node.ID] = node;
+                            Nodes[node.ID] = node;
 
                             // first node read is the root
                             if (RootNode == null)
                                 RootNode = node;
 
-                            else if (map.ContainsKey(node.ParentID))
+                            else if (Nodes[node.ParentID] != null)
                             {
-                                node.Parent = map[node.ParentID];
+                                node.Parent = Nodes[node.ParentID];
                                 node.Parent.Nodes.Add(node);
                             }
                             else
@@ -493,15 +499,32 @@ namespace XLibrary
                             }
                         }
 
+                        else if (type == XPacketType.CallMap || type == XPacketType.InitMap)
+                        {
+                            stream.Read(4); // re-read total size
+                            stream.Read(1); // re-read packet type
+
+
+                            int count = BitConverter.ToInt32(stream.Read(4), 0);
+
+                            for (int i = 0; i < count; i++)
+                            {
+                                int source = BitConverter.ToInt32(stream.Read(4), 0);
+                                int dest = BitConverter.ToInt32(stream.Read(4), 0);
+
+                                int hash = PairHash(source, dest);
+
+                                if (type == XPacketType.CallMap)
+                                    CreateNewCall(hash, source, Nodes[dest]);
+                                else
+                                    CheckCreateInit(Nodes[source], Nodes[dest]);
+                            }
+                        }
+
                         stream.Position = startPos + totalSize;
                     }
                 }
 
-                FunctionCount++; // so id can be accessed in 0 based index
-
-                Nodes = new XNodeIn[FunctionCount];
-                foreach (var node in map.Values)
-                    Nodes[node.ID] = node;
 
                 foreach (var from in dependenciesFrom.Keys)
                     Nodes[from].Independencies = dependenciesFrom[from].ToArray();
@@ -712,7 +735,7 @@ namespace XLibrary
             // just hashing together is not unique enough, and many conflicts because the numbers 
             // are small and close together. so expand the number to a larger domain.
             // also ensure s->d != d->s
-            int hash = source * FunctionCount + nodeID;
+            int hash = PairHash(source, nodeID);
 
             FunctionCall call;
             if (!CallMap.TryGetValue(hash, out call))
@@ -792,9 +815,7 @@ namespace XLibrary
                 return call;
             }
 
-            hash = sourceClass.ID * FunctionCount + destClass.ID;
-
-            call.ClassCallHash = hash;
+            call.ClassCallHash = PairHash(sourceClass.ID, destClass.ID);
 
             //LogError("Adding to class map {0} -> {1} with hash {2}", sourceClass.ID, destClass.ID, hash);
 
@@ -1074,7 +1095,7 @@ namespace XLibrary
 
         private static void CheckCreateInit(XNodeIn sourceClass, XNodeIn classNode)
         {
-            int hash = sourceClass.ID * FunctionCount + classNode.ID;
+            int hash = PairHash(sourceClass.ID, classNode.ID);
 
             FunctionCall call;
             if (!InitMap.TryGetValue(hash, out call))
@@ -1191,7 +1212,7 @@ namespace XLibrary
                 {
                     int source = newCall.Item1;
                     int dest = newCall.Item2;
-                    int hash = source * FunctionCount + dest;
+                    int hash = PairHash(source, dest);
 
                     if (!CallMap.Contains(hash))
                         CreateNewCall(hash, source, Nodes[dest]);
@@ -1368,6 +1389,18 @@ namespace XLibrary
                 Depth = pos
             };
             return newItem;
+        }
+
+        public static int PairHash(int a, int b)
+        {
+            // this really only works until ~50,000 functions, then wraps around - still pretty unique
+            // was using FunctionCount before instead of 50,000 but might as well use the max range for what we can
+            // gaurentee will be unique
+
+            // cantor pairing is the real solution - or using longs
+            // cantor is this - p(k1, k2) = 1/2(k1 + k2)(k1 + k2 + 1) + k2
+
+            return a * 50000 + b;
         }
     }
 

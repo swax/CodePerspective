@@ -134,10 +134,13 @@ namespace XBuilder
                     foreach (var item in Files)
                         item.FileNode = intRoot.AddNode(Path.GetFileName(item.FilePath), XObjType.File);
 
+                    var callMap = new Dictionary<int, FunctionCall>();
+                    var initMap = new Dictionary<int, FunctionCall>();
+
 
                     foreach (var item in Files)
                     {
-                        var decompile = new XDecompile(intRoot, extRoot, item, this);
+                        var decompile = new XDecompile(this, intRoot, extRoot, item, callMap, initMap);
 
                         try
                         {
@@ -226,8 +229,10 @@ namespace XBuilder
                         settings["EncryptionKey"] = EncryptionKey;
                     }
 
+                    settings["FunctionCount"] = XNodeOut.NextID.ToString();
+
                     var writePath = Path.Combine(OutputDir, "XRay.dat");
-                    trackedObjects = root.SaveTree(writePath, settings);
+                    trackedObjects = SaveDat(writePath, settings, root, callMap, initMap);
 
                     if (errorLog.Length > 0)
                     {
@@ -246,6 +251,91 @@ namespace XBuilder
             });
             
             BuildThread.Start();
+        }
+
+        public long SaveDat(string path, Dictionary<string, string> settings, XNodeOut root, 
+                            Dictionary<int, FunctionCall> callMap, Dictionary<int, FunctionCall> initMap)
+        {
+            long trackedObjects = 0;
+
+            root.ComputeSums();
+
+            byte[] temp = new byte[4096];
+
+            using (FileStream stream = new FileStream(path, FileMode.Create))
+            {
+                // save settings
+                foreach (var setting in settings)
+                    WriteSetting(stream, setting.Key, setting.Value);
+
+                // save nodes
+                trackedObjects += root.WriteNode(stream);
+
+                // save call map
+                SaveCallMap(stream, XPacketType.CallMap, callMap);
+                SaveCallMap(stream, XPacketType.InitMap, initMap);
+            }
+
+            return trackedObjects;
+        }
+
+        public void WriteSetting(FileStream stream, string name, string value)
+        {
+            long startPos = stream.Length;
+
+            // write empty size of packet to be set at the end of the function
+            stream.Write(BitConverter.GetBytes(0));
+
+            stream.WriteByte((byte)XPacketType.Setting);
+
+            // name
+            WriteString(stream, name);
+
+            // value
+            WriteString(stream, value);
+
+            // write size of packet
+            stream.Position = startPos;
+            stream.Write(BitConverter.GetBytes((int)(stream.Length - startPos)));
+            stream.Position = stream.Length;
+        }
+
+        static public void WriteString(FileStream stream, string str)
+        {
+            if (str.Length == 0)
+            {
+                stream.Write(BitConverter.GetBytes(0));
+                return;
+            }
+
+            byte[] buff = UTF8Encoding.UTF8.GetBytes(str);
+            stream.Write(BitConverter.GetBytes(buff.Length));
+            stream.Write(buff);
+        }
+
+        private void SaveCallMap(FileStream stream, XPacketType type, Dictionary<int, FunctionCall> callMap)
+        {
+            long startPos = stream.Length;
+
+            // write empty size of packet to be set at the end of the function
+            stream.Write(BitConverter.GetBytes(0));
+
+            stream.WriteByte((byte)type);
+
+            // write the length of map
+            stream.Write(BitConverter.GetBytes(callMap.Count));
+
+            // write the call pairs
+            foreach (var call in callMap.Values)
+            {
+                stream.Write(BitConverter.GetBytes(call.Source));
+                stream.Write(BitConverter.GetBytes(call.Destination));
+            }
+
+            // write size of packet
+            stream.Position = startPos;
+            stream.Write(BitConverter.GetBytes((int)(stream.Length - startPos)));
+            stream.Position = stream.Length;
         }
 
         private static void CopyLocalToOutputDir(string filename, string destPath)

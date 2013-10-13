@@ -83,47 +83,7 @@ namespace XBuilder
             return sum;
         }
 
-        public long SaveTree(string path, Dictionary<string, string> settings)
-        {
-            long trackedObjects = 0;
-
-            ComputeSums();
-
-            byte[] temp = new byte[4096];
-
-            using (FileStream stream = new FileStream(path, FileMode.Create))
-            {
-                foreach (var setting in settings)
-                    WriteSetting(stream, setting.Key, setting.Value);
-
-                trackedObjects += WriteDat(stream);
-            }
-
-            return trackedObjects;
-        }
-
-        public void WriteSetting(FileStream stream, string name, string value)
-        {
-            long startPos = stream.Length;
-
-            // write empty size of packet to be set at the end of the function
-            stream.Write(BitConverter.GetBytes(0));
-
-            stream.WriteByte((byte)XPacketType.Setting);
-
-            // name
-            WriteString(stream, name);
-
-            // value
-            WriteString(stream, value);
-
-            // write size of packet
-            stream.Position = startPos;
-            stream.Write(BitConverter.GetBytes((int)(stream.Length - startPos)));
-            stream.Position = stream.Length;
-        }
-
-        public long WriteDat(FileStream stream)
+        public long WriteNode(FileStream stream)
         {
             if (Exclude)
                 return 0;
@@ -149,7 +109,7 @@ namespace XBuilder
 
             stream.WriteByte((byte)XPacketType.Node);
 
-            WriteString(stream, Name);
+            BuildModel.WriteString(stream, Name);
 
             stream.Write(BitConverter.GetBytes((int)ObjType));
 
@@ -180,7 +140,7 @@ namespace XBuilder
                 for (int i = 0; i < paramCount; i++)
                 {
                     stream.Write(BitConverter.GetBytes(ParamIDs[i]));
-                    WriteString(stream, ParamNames[i]);
+                    BuildModel.WriteString(stream, ParamNames[i]);
                 }
 
             // dependencies
@@ -208,8 +168,8 @@ namespace XBuilder
                 foreach (var inst in Msil)
                 {
                     stream.Write(BitConverter.GetBytes(inst.Offset));
-                    WriteString(stream, inst.OpCode);
-                    WriteString(stream, inst.Line);
+                    BuildModel.WriteString(stream, inst.OpCode);
+                    BuildModel.WriteString(stream, inst.Line);
                     stream.Write(BitConverter.GetBytes(inst.RefId));
                 }
 
@@ -221,22 +181,9 @@ namespace XBuilder
             long trackedObjects = 1;
 
             foreach (XNodeOut child in Nodes.Cast<XNodeOut>())
-                trackedObjects += child.WriteDat(stream);
+                trackedObjects += child.WriteNode(stream);
 
             return trackedObjects;
-        }
-
-        private void WriteString(FileStream stream, string str)
-        {
-            if (str.Length == 0)
-            {
-                stream.Write(BitConverter.GetBytes(0));
-                return;
-            }
-
-            byte[] buff = UTF8Encoding.UTF8.GetBytes(str);
-            stream.Write(BitConverter.GetBytes(buff.Length));
-            stream.Write(buff);
         }
 
         internal XNodeOut AddField(FieldReference fieldDef)

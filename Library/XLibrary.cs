@@ -61,6 +61,7 @@ namespace XLibrary
         public static bool ThreadTracking = false; // can be turned off library side
         public static bool FlowTracking = false; // must be compiled in, can be ignored later
         public static bool ClassTracking = false;
+        public static bool FieldGetLeftToRight = true;
 
         public const int MaxStack = 512;
         public const int MaxThreadlineSize = 500;
@@ -613,7 +614,7 @@ namespace XLibrary
             NodeHit(parameters, nodeID);
         }
 
-        private static XNodeIn NodeHit(object[] parameters, int nodeID)
+        private static XNodeIn NodeHit(object[] parameters, int nodeID, bool loadField=false)
         {
             /*if (!InitComplete)
             {
@@ -674,7 +675,7 @@ namespace XLibrary
                         sync.FunctionHits.Add(nodeID);
 
             if (FlowTracking)
-                TrackFunctionCall(nodeID, node, thread, parameters);
+                TrackFunctionCall(nodeID, node, thread, parameters, loadField);
 
             return node;
         }
@@ -693,7 +694,7 @@ namespace XLibrary
             // clear cover change on paint
         }
 
-        private static void TrackFunctionCall(int nodeID, XNodeIn node, int thread, object[] parameters)
+        private static void TrackFunctionCall(int dest, XNodeIn node, int thread, object[] parameters, bool loadField=false)
         {
             // check that thread is in map
             ThreadFlow flow;
@@ -724,7 +725,7 @@ namespace XLibrary
             // if the first entry, return here
             if (flow.Pos == -1)
             {
-                flow.CreateStackItem(nodeID, null, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
+                flow.CreateStackItem(dest, null, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
                 node.EntryPoint++;
                 return;
             }
@@ -736,18 +737,22 @@ namespace XLibrary
             // set the source, and put the dest in stack
             int source = flow.Stack[flow.Pos].NodeID;
 
-            // the ids are small and auto-inc based on the # of funcs
-            // just hashing together is not unique enough, and many conflicts because the numbers 
-            // are small and close together. so expand the number to a larger domain.
-            // also ensure s->d != d->s
-            int hash = PairHash(source, nodeID);
+            // if loading a fields the call goes from field -> node
+            if (loadField && FieldGetLeftToRight)
+            {
+                int temp = source;
+                source = dest;
+                dest = temp;
+            }
+
+            int hash = PairHash(source, dest);
 
             FunctionCall call;
             if (!CallMap.TryGetValue(hash, out call))
                 call = CreateNewCall(hash, source, node);
 
-            if (source != call.Source || nodeID != call.Destination)
-                LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, nodeID, call.Source, call.Destination);
+            if (source != call.Source || dest != call.Destination)
+                LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, dest, call.Source, call.Destination);
 
       
             call.Hit = ShowTicks;
@@ -773,7 +778,7 @@ namespace XLibrary
             if (isMethod) 
                 call.StillInside++;
 
-            flow.CreateStackItem(nodeID, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
+            flow.CreateStackItem(dest, call, Watch.ElapsedTicks, isMethod, ThreadlineEnabled);
 
             if(ClassTracking)
                 TrackClassCall(call, thread);
@@ -1156,7 +1161,7 @@ namespace XLibrary
             if (!TrackFunctionHits)
                 return;
 
-            var node = NodeHit(null, nodeID);
+            var node = NodeHit(null, nodeID, true);
             if (node != null)
                 node.LastFieldOp = FieldOp.Get;
         }

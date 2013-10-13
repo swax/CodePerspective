@@ -384,11 +384,7 @@ namespace XBuilder
                     var calledNode = calledRef.AddMethod(call);
 
                     // add call pair from this method to that method
-                    if (Build.StaticAnalysis)
-                    {
-                        int hash = XRay.PairHash(methodNode.ID, calledNode.ID);
-                        CallMap[hash] = new FunctionCall() { ID = hash, Source = methodNode.ID, Destination = calledNode.ID };
-                    }
+                    AddStaticCall(methodNode, calledNode);
 
                     /*if( TrackExternal && 
                         !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
@@ -542,9 +538,19 @@ namespace XBuilder
                     AddInstruction(method, i, processor.Create(OpCodes.Ldc_I4, fieldRef.ID));
 
                     if (instruction.OpCode == OpCodes.Stfld || instruction.OpCode == OpCodes.Stsfld)
+                    {
                         AddInstruction(method, i + 1, processor.Create(OpCodes.Call, SetFieldRef));
+                        AddStaticCall(methodNode, fieldRef);
+                    }
                     else
+                    {
                         AddInstruction(method, i + 1, processor.Create(OpCodes.Call, LoadFieldRef));
+
+                        if(XRay.FieldGetLeftToRight)
+                            AddStaticCall(fieldRef, methodNode);
+                        else
+                            AddStaticCall(methodNode, fieldRef);
+                    }
 
                     i = i + 2 + offset; // skip instuction added, and field itself, end of loop will iterate this again
 
@@ -615,6 +621,15 @@ namespace XBuilder
 
          
             method.Body.OptimizeMacros();
+        }
+
+        private void AddStaticCall(XNodeOut source, XNodeOut dest)
+        {
+            if (!Build.StaticAnalysis)
+                return;
+           
+            int hash = XRay.PairHash(source.ID, dest.ID);
+            CallMap[hash] = new FunctionCall() { ID = hash, Source = source.ID, Destination = dest.ID };
         }
 
         private void TrackMethodEnterParams(MethodDefinition method, int nodeId, ILProcessor processor, bool hasThis)

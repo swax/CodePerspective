@@ -1,6 +1,6 @@
 ﻿
 static analyis
-	track fields - with new ordering - check out difference
+	double click zoom on single methods in layer graph
 
 	show outside/zoom out in layer graph
 

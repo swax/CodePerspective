@@ -1,25 +1,16 @@
 ﻿
 static analyis
-	option to turn on/off static call map saving
-	option to turn on/off init map saving
-
 	track fields - with new ordering - check out difference
 
-	option to 'generate static call map' map is generated only dynamically as the app runs otherwise - still gen'd for dynamic calls
-
-	where one function calls another - record the method call in the output
-	on load of data use the same methods that add the link on the core side of things
-
-	record what classes instantiate what at AddInstanceTracking
+	show outside/zoom out in layer graph
 
 	map out method field dependencies and calls for 
-	get replacement credit card
+	
 	zoom in on a class like the ViewModel class
 		see if it's easy to spot where class can be diveded
 	if class contains independent graphs, suggest to user that class can be reduced
 	graph nodes that fill most available sapce - compact draw mode - on by default for layer graph
-	show outside/zoom out in layer graph
-	can work on speeding up/debugging graphing with static analysis
+
 
 
 visual studio plugin

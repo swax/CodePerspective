@@ -102,6 +102,11 @@ namespace XLibrary
             AppDir = Path.GetDirectoryName(path);
             DatPath = path;
 
+            // enable so call lines show
+            FlowTracking = true;
+            ThreadTracking = true;
+            ClassTracking = true;
+
             if (LoadNodeMap())
             {
                 ApplySettings();

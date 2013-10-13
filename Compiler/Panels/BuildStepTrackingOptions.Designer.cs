@@ -41,6 +41,7 @@
             this.TrackParametersCheckBox = new System.Windows.Forms.CheckBox();
             this.TrackReturnValuesCheckBox = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.StaticCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label1
@@ -162,16 +163,27 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.label2.Location = new System.Drawing.Point(3, 222);
+            this.label2.Location = new System.Drawing.Point(3, 239);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(393, 110);
+            this.label2.Size = new System.Drawing.Size(393, 80);
             this.label2.TabIndex = 40;
             this.label2.Text = resources.GetString("label2.Text");
+            // 
+            // StaticCheckBox
+            // 
+            this.StaticCheckBox.AutoSize = true;
+            this.StaticCheckBox.Location = new System.Drawing.Point(7, 209);
+            this.StaticCheckBox.Name = "StaticCheckBox";
+            this.StaticCheckBox.Size = new System.Drawing.Size(301, 17);
+            this.StaticCheckBox.TabIndex = 41;
+            this.StaticCheckBox.Text = "Pre-generate call and initialization maps with static analysis";
+            this.StaticCheckBox.UseVisualStyleBackColor = true;
             // 
             // BuildStepTrackingOptions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.StaticCheckBox);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.TrackReturnValuesCheckBox);
             this.Controls.Add(this.TrackParametersCheckBox);
@@ -206,5 +218,6 @@
         private System.Windows.Forms.CheckBox TrackParametersCheckBox;
         private System.Windows.Forms.CheckBox TrackReturnValuesCheckBox;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox StaticCheckBox;
     }
 }

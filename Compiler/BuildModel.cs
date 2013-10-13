@@ -28,6 +28,8 @@ namespace XBuilder
         public bool TrackInstances = true;
         public bool TrackReturnValue = false;
         public bool TrackParameters = false;
+        public bool StaticAnalysis = true;
+
         public bool ReplaceOriginal;
         public bool CompileWithMS;
         public bool DecompileAgain;

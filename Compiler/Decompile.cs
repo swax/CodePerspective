@@ -384,8 +384,11 @@ namespace XBuilder
                     var calledNode = calledRef.AddMethod(call);
 
                     // add call pair from this method to that method
-                    int hash = XRay.PairHash(methodNode.ID, calledNode.ID);
-                    CallMap[hash] = new FunctionCall() { ID = hash, Source = methodNode.ID, Destination = calledNode.ID };
+                    if (Build.StaticAnalysis)
+                    {
+                        int hash = XRay.PairHash(methodNode.ID, calledNode.ID);
+                        CallMap[hash] = new FunctionCall() { ID = hash, Source = methodNode.ID, Destination = calledNode.ID };
+                    }
 
                     /*if( TrackExternal && 
                         !(method.Name == "Finalize" && method.DeclaringType.Namespace == "System") &&
@@ -555,8 +558,11 @@ namespace XBuilder
                     var sourceClass = XRay.GetContainingClass(methodNode);
                     var destClass = SetClassDependency(classNode, newObj.DeclaringType);
 
-                    int hash = XRay.PairHash(sourceClass.ID, destClass.ID);
-                    InitMap[hash] = new FunctionCall() { ID = hash, Source = sourceClass.ID, Destination = destClass.ID };
+                    if (Build.StaticAnalysis)
+                    {
+                        int hash = XRay.PairHash(sourceClass.ID, destClass.ID);
+                        InitMap[hash] = new FunctionCall() { ID = hash, Source = sourceClass.ID, Destination = destClass.ID };
+                    }
                 }
 
                 /* Still not really working - goal - to get side by side wpf apps to work

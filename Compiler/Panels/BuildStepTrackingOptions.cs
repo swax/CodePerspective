@@ -30,6 +30,8 @@ namespace XBuilder.Panels
 
             TrackInstancesCheckBox.AttachToolTip("Creation and deletion of classes are tracked, and class introspection is enabled");
 
+            StaticCheckBox.AttachToolTip("During run time dynamic analysis will still be active");
+
         }
 
         private void BuildStep2_Load(object sender, EventArgs e)
@@ -42,6 +44,7 @@ namespace XBuilder.Panels
             TrackInstancesCheckBox.Checked = Model.TrackInstances;
             TrackParametersCheckBox.Checked = Model.TrackParameters;
             TrackReturnValuesCheckBox.Checked = Model.TrackReturnValue;
+            StaticCheckBox.Checked = Model.StaticAnalysis;
 
             TrackFunctionsCheckBox_CheckedChanged(this, null);
         }
@@ -65,6 +68,7 @@ namespace XBuilder.Panels
             Model.TrackFields = TrackFunctionsCheckBox.Checked && TrackFieldsCheckBox.Checked;
             Model.TrackParameters = TrackParametersCheckBox.Checked && TrackFieldsCheckBox.Checked;
             Model.TrackReturnValue = TrackReturnValuesCheckBox.Checked && TrackFieldsCheckBox.Checked;
+            Model.StaticAnalysis = StaticCheckBox.Checked;
 
             Model.TrackInstances = TrackInstancesCheckBox.Checked;
         }

@@ -120,9 +120,9 @@ namespace XBuilder
 
                     if (EnableLocalViewer)
                     {
-                        CopyLocalToOutputDir("OpenTK.dll", OutputDir);
+                        /*CopyLocalToOutputDir("OpenTK.dll", OutputDir);
                         CopyLocalToOutputDir("OpenTK.GLControl.dll", OutputDir);
-                        CopyLocalToOutputDir("QuickFont.dll", OutputDir);
+                        CopyLocalToOutputDir("QuickFont.dll", OutputDir);*/
                     }
 
                     string errorLog = "";

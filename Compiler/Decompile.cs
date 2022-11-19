@@ -12,6 +12,7 @@ using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
 using XLibrary;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace XBuilder
@@ -75,7 +76,7 @@ namespace XBuilder
         {
             // copy target file to build dir so we can re-compile a running app
             string filename = Path.GetFileName(OriginalPath);
-            string buildDir = Path.Combine(Application.StartupPath, "recompile", filename);
+            string buildDir = Path.Combine(System.Windows.Forms.Application.StartupPath, "recompile", filename);
             Directory.CreateDirectory(buildDir);
             
             string assemblyPath = Path.Combine(buildDir, filename);
@@ -103,7 +104,7 @@ namespace XBuilder
 
             var originalAsmName = asmDef.Name;
 
-            asmDef.HashAlgorithm = AssemblyHashAlgorithm.None;
+            asmDef.HashAlgorithm = Mono.Cecil.AssemblyHashAlgorithm.None;
 
             /*var corlib = asm.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == "mscorlib");
             corlib.Version = new Version("4.0.0.0");
@@ -111,23 +112,23 @@ namespace XBuilder
             var syslib = asm.MainModule.AssemblyReferences.FirstOrDefault(r => r.Name == "System");
             syslib.Version = new Version("4.0.0.0");*/
 
-            XRayInitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
-			MethodEnterRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
-			MethodEnterWithParamsRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodEnterWithParams", new Type[]{typeof(object[]), typeof(int)}));
-            MethodExitRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
-            MethodExitWithValueRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodExitWithValue", new Type[] { typeof(Object), typeof(int) }));
-            MethodCatchRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
-            ClassConstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int), typeof(Object) }));
-            ClassDeconstructedRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int), typeof(Object) }));
-            LoadFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
-            SetFieldRef = asm.MainModule.Import(typeof(XLibrary.XRay).GetMethod("SetField", new Type[] { typeof(int) }));
-            VoidRef = asm.MainModule.Import(typeof(void));
-            ObjectRef = asm.MainModule.Import(typeof(object));
-            ObjectArrayRef = asm.MainModule.Import(typeof(object[]));
-            ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.Import(typeof(Object)));
+            XRayInitRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("Init", new Type[] { typeof(string), typeof(bool), typeof(bool), typeof(bool) }));
+			MethodEnterRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("MethodEnter", new Type[]{typeof(int)}));
+			MethodEnterWithParamsRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("MethodEnterWithParams", new Type[]{typeof(object[]), typeof(int)}));
+            MethodExitRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("MethodExit", new Type[] { typeof(int) }));
+            MethodExitWithValueRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("MethodExitWithValue", new Type[] { typeof(Object), typeof(int) }));
+            MethodCatchRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("MethodCatch", new Type[] { typeof(int) }));
+            ClassConstructedRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("Constructed", new Type[] { typeof(int), typeof(Object) }));
+            ClassDeconstructedRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("Deconstructed", new Type[]{typeof(int), typeof(Object) }));
+            LoadFieldRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("LoadField", new Type[] { typeof(int) }));
+            SetFieldRef = asm.MainModule.ImportReference(typeof(XLibrary.XRay).GetMethod("SetField", new Type[] { typeof(int) }));
+            VoidRef = asm.MainModule.ImportReference(typeof(void));
+            ObjectRef = asm.MainModule.ImportReference(typeof(object));
+            ObjectArrayRef = asm.MainModule.ImportReference(typeof(object[]));
+            ObjectFinalizeRef = new MethodReference("Finalize", VoidRef, asm.MainModule.ImportReference(typeof(Object)));
             ObjectFinalizeRef.HasThis = true;  // call on the current instance
             //(ObjectFinalizeRef.DeclaringType.Scope as AssemblyNameReference).Version = new Version("2.0.0.0");
-            GetTypeFromHandleRef = asm.MainModule.Import(typeof(Type).GetMethod("GetTypeFromHandle"));
+            GetTypeFromHandleRef = asm.MainModule.ImportReference(typeof(Type).GetMethod("GetTypeFromHandle"));
 
             // iterate class nodes
             foreach(var classDef in asm.MainModule.Types.Where(t => t.MetadataType == MetadataType.Class))
@@ -817,7 +818,7 @@ namespace XBuilder
             XNodeOut methodNode = classNode.AddMethod(method);
 
             if (Build.DecompileCSharp)
-                methodNode.CSharp = DecompileMethod(method);
+                methodNode.CSharp = UTF8Encoding.UTF8.GetBytes("Not supported :("); //DecompileMethod(method);
 
             if (method.Body == null)
                 return;

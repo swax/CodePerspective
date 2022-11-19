@@ -6,8 +6,8 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Runtime.Remoting.Channels.Ipc;
-using System.Runtime.Remoting.Channels;
+//using System.Runtime.Remoting.Channels.Ipc;
+//using System.Runtime.Remoting.Channels;
 using System.IO;
 using XLibrary;
 
@@ -15,7 +15,7 @@ namespace XBuilder
 {
     public partial class MonitorPanel : UserControl
     {
-        IpcClientChannel XChannel;
+        //IpcClientChannel XChannel;
 
         public MonitorPanel()
         {
@@ -27,8 +27,9 @@ namespace XBuilder
 
             try
             {
-                XChannel = new IpcClientChannel();
-                ChannelServices.RegisterChannel(XChannel, false);
+                //XChannel = new IpcClientChannel();
+                //ChannelServices.RegisterChannel(XChannel, false);
+                throw new Exception();
             }
             catch 
             {
@@ -90,7 +91,8 @@ namespace XBuilder
             if (item == null)
                 return;
 
-            item.GetProcess().OpenViewer();
+            //item.GetProcess().OpenViewer();
+            MessageBox.Show("IPC not supported :(");
         }
 
         private void ChangeTrackingLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -99,9 +101,11 @@ namespace XBuilder
             if (item == null)
                 return;
 
-            var process = item.GetProcess();
+            //var process = item.GetProcess();
 
-            process.Tracking = !process.Tracking;
+            //process.Tracking = !process.Tracking;
+
+            MessageBox.Show("IPC not supported :(");
         }
 
         private void ProcessListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -115,9 +119,11 @@ namespace XBuilder
 
             SelectedGroupBox.Text = item.Text;
 
-            var process = item.GetProcess();
+            //var process = item.GetProcess();
 
-            LogTextBox.Text = process.GetLog(50);
+            //LogTextBox.Text = process.GetLog(50);
+
+            MessageBox.Show("IPC not supported :(");
         }
 
         private void ProcessListView_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -139,22 +145,24 @@ namespace XBuilder
             SubItems.Add("");
         }
 
-        public IpcQuery GetProcess()
+        /*public IpcQuery GetProcess()
         {
             return Activator.GetObject(typeof(IpcQuery), Url) as IpcQuery;
-        }
+        }*/
 
         internal void Update()
         {
             try
             {
-                var process = GetProcess();
+                /*var process = GetProcess();
 
                 SetItem(0, process.GetName());
 
                 SetItem(1, process.GuiVisible ? "on" : "off");
 
-                SetItem(2, process.Tracking ? "on" : "off");
+                SetItem(2, process.Tracking ? "on" : "off");*/
+
+                throw new Exception("IPC not supported");
             }
             catch (Exception ex)
             {

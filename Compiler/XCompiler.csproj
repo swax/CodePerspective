@@ -1,22 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{BF8E36ED-DB37-401C-94F9-DDECDBB67405}</ProjectGuid>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>XBuilder</RootNamespace>
     <AssemblyName>XBuilder</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -32,223 +19,51 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>logo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.Decompiler">
-      <HintPath>..\References\ICSharpCode.Decompiler.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>..\References\ICSharpCode.NRefactory.dll</HintPath>
-    </Reference>
-    <Reference Include="ICSharpCode.NRefactory.CSharp">
-      <HintPath>..\References\ICSharpCode.NRefactory.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\References\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
-    <Reference Include="System">
-    </Reference>
-    <Reference Include="System.Core">
-    </Reference>
-    <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="System.Xml.Linq">
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-    </Reference>
-    <Reference Include="System.Data">
-    </Reference>
-    <Reference Include="System.Deployment">
-    </Reference>
-    <Reference Include="System.Drawing">
-    </Reference>
-    <Reference Include="System.Windows.Forms">
-    </Reference>
-    <Reference Include="System.Xml">
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BuildModel.cs" />
-    <Compile Include="Panels\BuildFrame.cs">
+    <Compile Update="Panels\BuildFrame.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildFrame.Designer.cs">
-      <DependentUpon>BuildFrame.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Decompile.cs" />
-    <Compile Include="Decompile.ICSharp.cs" />
-    <Compile Include="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Decompile.MS.cs" />
-    <Compile Include="Panels\BuildStepBuildOptions.cs">
+    <Compile Update="Panels\BuildStepBuildOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepBuildOptions.Designer.cs">
-      <DependentUpon>BuildStepBuildOptions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\BuildStepFiles.cs">
+    <Compile Update="Panels\BuildStepFiles.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepFiles.Designer.cs">
-      <DependentUpon>BuildStepFiles.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\BuildStepTrackingOptions.cs">
+    <Compile Update="Panels\BuildStepTrackingOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepTrackingOptions.Designer.cs">
-      <DependentUpon>BuildStepTrackingOptions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\BuildStepCompile.cs">
+    <Compile Update="Panels\BuildStepCompile.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepCompile.Designer.cs">
-      <DependentUpon>BuildStepCompile.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\BuildStepViewerOptions.cs">
+    <Compile Update="Panels\BuildStepViewerOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepViewerOptions.Designer.cs">
-      <DependentUpon>BuildStepViewerOptions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\BuildStepRun.cs">
+    <Compile Update="Panels\BuildStepRun.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\BuildStepRun.Designer.cs">
-      <DependentUpon>BuildStepRun.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\MonitorPanel.cs">
+    <Compile Update="Panels\MonitorPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\MonitorPanel.Designer.cs">
-      <DependentUpon>MonitorPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\RemotePanel.cs">
+    <Compile Update="Panels\RemotePanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\RemotePanel.Designer.cs">
-      <DependentUpon>RemotePanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panels\ScannerPanel.cs">
+    <Compile Update="Panels\ScannerPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Panels\ScannerPanel.Designer.cs">
-      <DependentUpon>ScannerPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="TestForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TestForm.Designer.cs">
-      <DependentUpon>TestForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XNodeOut.cs" />
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildFrame.resx">
-      <DependentUpon>BuildFrame.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepBuildOptions.resx">
-      <DependentUpon>BuildStepBuildOptions.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepFiles.resx">
-      <DependentUpon>BuildStepFiles.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepTrackingOptions.resx">
-      <DependentUpon>BuildStepTrackingOptions.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepCompile.resx">
-      <DependentUpon>BuildStepCompile.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepViewerOptions.resx">
-      <DependentUpon>BuildStepViewerOptions.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\BuildStepRun.resx">
-      <DependentUpon>BuildStepRun.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\MonitorPanel.resx">
-      <DependentUpon>MonitorPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\RemotePanel.resx">
-      <DependentUpon>RemotePanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\ScannerPanel.resx">
-      <DependentUpon>ScannerPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TestForm.resx">
-      <DependentUpon>TestForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Panels\TestPanel.resx">
-      <DependentUpon>TestPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <None Include="app.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <Compile Include="Panels\TestPanel.cs">
+    <Compile Update="Panels\TestPanel.cs">
       <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Panels\TestPanel.Designer.cs">
-      <DependentUpon>TestPanel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Library\XLibrary.csproj">
-      <Project>{086A1BC6-0958-47E6-BAED-6AA9D44883E0}</Project>
-      <Name>XLibrary</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Library\XLibrary.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="logo.ico" />
@@ -270,12 +85,13 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <PackageReference Include="ICSharpCode.Decompiler" Version="7.2.1.6856" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.346201">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 </Project>

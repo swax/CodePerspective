@@ -1,9 +1,9 @@
 
-#Code Perspective
+# Code Perspective
 
 Code Perspective is a tool for looking inside any .Net applications and watching it run in real-time. Getting started with the source code is easy. Clone the repo, open the solution, and start debug. The XBuilder should come right up.
 
-###Directories
+### Directories
 
 * Compiler - Code for XBuilder.exe, this is responsible for doing static analysis on .Net assemblies and recompiling them with hooks that output analysis information to XLibrary.dll.
 

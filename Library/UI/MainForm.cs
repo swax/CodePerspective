@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using OpenTK;
+//using OpenTK;
 using System.Reflection;
 using System.Diagnostics;
 
@@ -95,8 +95,8 @@ namespace XLibrary
         public void InitRenderers()
         {
             Renderers[typeof(GdiRenderer)] = new GdiRenderer(Model);
-            Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
-            Renderers[typeof(GibsonRenderer)] = new GibsonRenderer(Model);
+            //Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
+            //Renderers[typeof(GibsonRenderer)] = new GibsonRenderer(Model);
 
             foreach (var renderer in Renderers.Values)
             {

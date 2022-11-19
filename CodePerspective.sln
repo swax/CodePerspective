@@ -1,13 +1,15 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XCompiler", "Compiler\XCompiler.csproj", "{BF8E36ED-DB37-401C-94F9-DDECDBB67405}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XCompiler", "Compiler\XCompiler.csproj", "{BF8E36ED-DB37-401C-94F9-DDECDBB67405}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XLibrary", "Library\XLibrary.csproj", "{086A1BC6-0958-47E6-BAED-6AA9D44883E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XLibrary", "Library\XLibrary.csproj", "{086A1BC6-0958-47E6-BAED-6AA9D44883E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestApp", "XTestApp\XTestApp.csproj", "{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XTestApp", "XTestApp\XTestApp.csproj", "{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTestLib", "XTestLib\XTestLib.csproj", "{880A0A2F-6740-4238-9472-7B0AFC43289D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XTestLib", "XTestLib\XTestLib.csproj", "{880A0A2F-6740-4238-9472-7B0AFC43289D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3860C6C6-23F3-4645-ABD4-27734CC79DC1}"
 	ProjectSection(SolutionItems) = preProject
@@ -48,10 +50,10 @@ Global
 		{086A1BC6-0958-47E6-BAED-6AA9D44883E0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{086A1BC6-0958-47E6-BAED-6AA9D44883E0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{086A1BC6-0958-47E6-BAED-6AA9D44883E0}.Release|x86.ActiveCfg = Release|Any CPU
-		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Any CPU.Build.0 = Debug|x86
-		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|x86.ActiveCfg = Debug|x86
 		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Debug|x86.Build.0 = Debug|x86
 		{9203953F-0C00-4DD6-AA01-1D1A0CAD4D86}.Release|Any CPU.ActiveCfg = Release|x86
@@ -72,6 +74,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B187196B-F4CB-407E-9FDA-C812DDF1EAC2}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Compiler\XCompiler.csproj

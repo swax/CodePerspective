@@ -5,10 +5,12 @@ using System.Linq;
 using System.Text;
 
 using ICSharpCode.Decompiler;
-using ICSharpCode.Decompiler.Ast;
-using ICSharpCode.Decompiler.Ast.Transforms;
-using ICSharpCode.NRefactory;
-using ICSharpCode.NRefactory.CSharp;
+//using ICSharpCode.Decompiler.Ast;
+//using ICSharpCode.Decompiler.Ast.Transforms;
+using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.CSharp.Transforms;
+//using ICSharpCode.NRefactory;
+//using ICSharpCode.NRefactory.CSharp;
 using Mono.Cecil;
 
 using XLibrary;
@@ -18,7 +20,7 @@ namespace XBuilder
 {
     public partial class XDecompile
     {
-        public byte[] DecompileMethod(MethodDefinition method)
+        /*public byte[] DecompileMethod(MethodDefinition method)
         {
             var binout = new BinaryOutput(this);
             
@@ -320,10 +322,6 @@ namespace XBuilder
             void ITextOutput.MarkFoldEnd()
             {
             }
-
-            void ITextOutput.AddDebuggerMemberMapping(MemberMapping memberMapping)
-            {
-            }
-        }
+        }*/
     }
 }

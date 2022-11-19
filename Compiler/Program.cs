@@ -28,6 +28,7 @@ namespace XBuilder
             XRay.BuilderVersion = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
             Application.EnableVisualStyles();
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
         }

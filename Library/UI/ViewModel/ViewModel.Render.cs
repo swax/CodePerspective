@@ -292,30 +292,30 @@ namespace XLibrary
             {
                 // check if function is an entry point or holding
                 if (XRay.FlowTracking && xNode.StillInside > 0)
-                    GLUtils.BlendColors((xNode.EntryPoint > 0) ? XColors.EntryColor : XColors.HoldingColor, ref overlay);
+                    BlendColors((xNode.EntryPoint > 0) ? XColors.EntryColor : XColors.HoldingColor, ref overlay);
 
                 // not an else if, draw over holding or entry
                 if (xNode.ExceptionHit > 0)
-                    GLUtils.BlendColors(XColors.ExceptionColors[xNode.ExceptionHit], ref overlay);
+                    BlendColors(XColors.ExceptionColors[xNode.ExceptionHit], ref overlay);
 
                 else if (xNode.FunctionHit > 0)
                 {
                     if (node.ObjType == XObjType.Field)
                     {
                         if (xNode.LastFieldOp == FieldOp.Set)
-                            GLUtils.BlendColors(XColors.FieldSetColors[xNode.FunctionHit], ref overlay);
+                            BlendColors(XColors.FieldSetColors[xNode.FunctionHit], ref overlay);
                         else
-                            GLUtils.BlendColors(XColors.FieldGetColors[xNode.FunctionHit], ref overlay);
+                            BlendColors(XColors.FieldGetColors[xNode.FunctionHit], ref overlay);
                     }
                     else
-                        GLUtils.BlendColors(XColors.HitColors[xNode.FunctionHit], ref overlay);
+                        BlendColors(XColors.HitColors[xNode.FunctionHit], ref overlay);
                 }
 
                 else if (xNode.ConstructedHit > 0)
-                    GLUtils.BlendColors(XColors.ConstructedColors[xNode.ConstructedHit], ref overlay);
+                    BlendColors(XColors.ConstructedColors[xNode.ConstructedHit], ref overlay);
 
                 else if (xNode.DisposeHit > 0)
-                    GLUtils.BlendColors(XColors.DisposedColors[xNode.DisposeHit], ref overlay);
+                    BlendColors(XColors.DisposedColors[xNode.DisposeHit], ref overlay);
             }
 
             if (FocusedNodes.Count > 0 && node.ObjType == XObjType.Class)
@@ -324,26 +324,26 @@ namespace XLibrary
                 bool independent = IndependentClasses.Contains(node.ID);
 
                 if (dependent && independent)
-                    GLUtils.BlendColors(XColors.InterdependentColor, ref overlay);
+                    BlendColors(XColors.InterdependentColor, ref overlay);
 
                 else if (dependent)
-                    GLUtils.BlendColors(XColors.DependentColor, ref overlay);
+                    BlendColors(XColors.DependentColor, ref overlay);
 
                 else if (independent)
-                    GLUtils.BlendColors(XColors.IndependentColor, ref overlay);
+                    BlendColors(XColors.IndependentColor, ref overlay);
             }
 
             if (node.SearchMatch && !SearchStrobe)
-                GLUtils.BlendColors(XColors.SearchMatchColor, ref overlay);
+                BlendColors(XColors.SearchMatchColor, ref overlay);
 
             if (FilteredNodes.Contains(node.ID))
-                GLUtils.BlendColors(XColors.FilteredColor, ref overlay);
+                BlendColors(XColors.FilteredColor, ref overlay);
             else if (IgnoredNodes.Contains(node.ID))
-                GLUtils.BlendColors(XColors.IgnoredColor, ref overlay);
+                BlendColors(XColors.IgnoredColor, ref overlay);
 
             // mix background with overlay
             if (overlay != XColors.EmptyColor)
-                GLUtils.BlendColors(overlay, ref background);
+                BlendColors(overlay, ref background);
 
             // use a circle for external/outside nodes in the call map
             bool outside = (ViewLayout == LayoutType.CallGraph && node.XNode.External);
@@ -419,6 +419,16 @@ namespace XLibrary
                     }
                 }
             }*/
+        }
+
+        public static void BlendColors(Color src, ref Color tgt)
+        {
+            int a = ((src.A * src.A) >> 8) + ((tgt.A * (255 - src.A)) >> 8);
+            int r = ((src.R * src.A) >> 8) + ((tgt.R * (255 - src.A)) >> 8);
+            int g = ((src.G * src.A) >> 8) + ((tgt.G * (255 - src.A)) >> 8);
+            int b = ((src.B * src.A) >> 8) + ((tgt.B * (255 - src.A)) >> 8);
+
+            tgt = Color.FromArgb(a, r, g, b);
         }
 
         public void DoSearch()

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting;
+/*using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Ipc;
+using System.Runtime.Remoting.Channels.Ipc;*/
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -179,8 +179,8 @@ namespace XLibrary
 
                 if (!remoteViewer)
                 {
-                    if(EnableIpcServer)
-                        StartIpcServer();
+                    /*if(EnableIpcServer)
+                        StartIpcServer();*/
 
                     if (EnableTcpServer)
                     {
@@ -406,7 +406,7 @@ namespace XLibrary
             UIs[ui.Thread.ManagedThreadId] = ui;
         }
 
-        static IpcServerChannel XRayChannel;
+        /*static IpcServerChannel XRayChannel;
         static IpcQuery XRayQuery;
 
         private static void StartIpcServer()
@@ -432,7 +432,7 @@ namespace XLibrary
             {
                 LogError("Error starting IPC server: " + ex.Message);
             }
-        }
+        }*/
 
         static bool LoadNodeMap()
         {
@@ -1645,7 +1645,7 @@ namespace XLibrary
     }
 
     
-    public class IpcQuery : MarshalByRefObject
+    /*public class IpcQuery : MarshalByRefObject
     {
         public override object InitializeLifetimeService()
         {
@@ -1688,7 +1688,7 @@ namespace XLibrary
                 XRay.TrackFunctionHits = value;
             }
         }
-    }
+    }*/
 
     public class XUI
     {

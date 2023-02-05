@@ -18,6 +18,8 @@ namespace XLibrary
         public void DrawTreeMap(IRenderer Renderer)
         {
             if (DoRevalue ||
+                ShowLayout == ShowNodes.Recent ||
+                ShowLayout == ShowNodes.Infrequent ||
                 (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
                 (ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {

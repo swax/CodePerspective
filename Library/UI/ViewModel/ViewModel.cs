@@ -7,7 +7,7 @@ using System.Drawing;
 namespace XLibrary
 {
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
-    public enum ShowNodes { All, Hit, Unhit, Instances, NewHit }
+    public enum ShowNodes { All, Hit, Unhit, Instances, Recent, Infrequent }
 
     public enum LayoutType { TreeMap, CallGraph, Timeline }
     public enum TreeMapMode { Normal, Dependencies }
@@ -85,6 +85,7 @@ namespace XLibrary
         public bool ShowingOutside { get { return ShowOutside && CurrentRoot != InternalRoot; } }
         public bool ShowingExternal { get { return ShowExternal && !CurrentRoot.XNode.External; } }
 
+        public long RecentHitCutoff;
 
         public ViewModel(IMainUI mainUI, IColorProfile xColors)
         {
@@ -112,6 +113,8 @@ namespace XLibrary
 
         public void RecalcCover(NodeModel root, bool rootShow=true)
         {
+            RecentHitCutoff = XRay.NowTicks - XRay.NewHitWindow;
+            
             root.Value = 0;
             root.SecondaryValue = 0;
 
@@ -132,7 +135,8 @@ namespace XLibrary
 
                 if ((ShowLayout == ShowNodes.Hit && !XRay.CoveredNodes[root.ID]) ||
                     (ShowLayout == ShowNodes.Unhit && XRay.CoveredNodes[root.ID]) ||
-                    (ShowLayout == ShowNodes.NewHit && root.XNode.FunctionNewHit <= XRay.NewHitTimeout))
+                    (ShowLayout == ShowNodes.Recent && root.XNode.LastHit < RecentHitCutoff) ||
+                    (ShowLayout == ShowNodes.Infrequent && root.XNode.InfrequentUntil < XRay.NowTicks))
                     root.Value = 0;
 
                 // processs subnodes because methods/fields can have anon sub classes
@@ -150,7 +154,8 @@ namespace XLibrary
                         ShowLayout == ShowNodes.All ||
                         ShowLayout == ShowNodes.Hit ||
                         ShowLayout == ShowNodes.Unhit ||
-                        ShowLayout == ShowNodes.NewHit ||
+                        ShowLayout == ShowNodes.Recent ||
+                        ShowLayout == ShowNodes.Infrequent ||
                         (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Created > 0)));
 
                     if ((node.ObjType == XObjType.Field && !ShowFields) ||

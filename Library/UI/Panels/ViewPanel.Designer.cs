@@ -71,10 +71,11 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+            this.ShowRecentButton = new System.Windows.Forms.RadioButton();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.ShowNewHitButton = new System.Windows.Forms.RadioButton();
+            this.ShowInfrequentButton = new System.Windows.Forms.RadioButton();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
@@ -284,7 +285,7 @@
             // ShowInstancesButton
             // 
             this.ShowInstancesButton.AutoSize = true;
-            this.ShowInstancesButton.Location = new System.Drawing.Point(4, 141);
+            this.ShowInstancesButton.Location = new System.Drawing.Point(4, 175);
             this.ShowInstancesButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowInstancesButton.Name = "ShowInstancesButton";
             this.ShowInstancesButton.Size = new System.Drawing.Size(60, 24);
@@ -447,7 +448,7 @@
             // ResetHitLink
             // 
             this.ResetHitLink.AutoSize = true;
-            this.ResetHitLink.Location = new System.Drawing.Point(4, 170);
+            this.ResetHitLink.Location = new System.Drawing.Point(110, 0);
             this.ResetHitLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ResetHitLink.Name = "ResetHitLink";
             this.ResetHitLink.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
@@ -619,7 +620,8 @@
             this.flowLayoutPanel4.Controls.Add(this.ShowAllButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowHitButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowNotHitButton);
-            this.flowLayoutPanel4.Controls.Add(this.ShowNewHitButton);
+            this.flowLayoutPanel4.Controls.Add(this.ShowRecentButton);
+            this.flowLayoutPanel4.Controls.Add(this.ShowInfrequentButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowInstancesButton);
             this.flowLayoutPanel4.Controls.Add(this.ResetHitLink);
             this.flowLayoutPanel4.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
@@ -628,6 +630,19 @@
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
             this.flowLayoutPanel4.Size = new System.Drawing.Size(108, 225);
             this.flowLayoutPanel4.TabIndex = 35;
+            // 
+            // ShowRecentButton
+            // 
+            this.ShowRecentButton.AutoSize = true;
+            this.ShowRecentButton.Location = new System.Drawing.Point(4, 107);
+            this.ShowRecentButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ShowRecentButton.Name = "ShowRecentButton";
+            this.ShowRecentButton.Size = new System.Drawing.Size(75, 24);
+            this.ShowRecentButton.TabIndex = 17;
+            this.ShowRecentButton.TabStop = true;
+            this.ShowRecentButton.Text = "Recent";
+            this.ShowRecentButton.UseVisualStyleBackColor = true;
+            this.ShowRecentButton.CheckedChanged += new System.EventHandler(this.ShowRecentButton_CheckedChanged);
             // 
             // flowLayoutPanel5
             // 
@@ -671,18 +686,18 @@
             this.flowLayoutPanel7.Size = new System.Drawing.Size(148, 225);
             this.flowLayoutPanel7.TabIndex = 38;
             // 
-            // ShowNewHitButton
+            // ShowInfrequentButton
             // 
-            this.ShowNewHitButton.AutoSize = true;
-            this.ShowNewHitButton.Location = new System.Drawing.Point(4, 107);
-            this.ShowNewHitButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.ShowNewHitButton.Name = "ShowNewHitButton";
-            this.ShowNewHitButton.Size = new System.Drawing.Size(60, 24);
-            this.ShowNewHitButton.TabIndex = 17;
-            this.ShowNewHitButton.TabStop = true;
-            this.ShowNewHitButton.Text = "New";
-            this.ShowNewHitButton.UseVisualStyleBackColor = true;
-            this.ShowNewHitButton.CheckedChanged += new System.EventHandler(this.ShowNewHitButton_CheckedChanged);
+            this.ShowInfrequentButton.AutoSize = true;
+            this.ShowInfrequentButton.Location = new System.Drawing.Point(4, 141);
+            this.ShowInfrequentButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ShowInfrequentButton.Name = "ShowInfrequentButton";
+            this.ShowInfrequentButton.Size = new System.Drawing.Size(98, 24);
+            this.ShowInfrequentButton.TabIndex = 18;
+            this.ShowInfrequentButton.TabStop = true;
+            this.ShowInfrequentButton.Text = "Infrequent";
+            this.ShowInfrequentButton.UseVisualStyleBackColor = true;
+            this.ShowInfrequentButton.CheckedChanged += new System.EventHandler(this.ShowInfrequentButton_CheckedChanged);
             // 
             // ViewPanel
             // 
@@ -770,6 +785,7 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
-        public System.Windows.Forms.RadioButton ShowNewHitButton;
+        public System.Windows.Forms.RadioButton ShowRecentButton;
+        public System.Windows.Forms.RadioButton ShowInfrequentButton;
     }
 }

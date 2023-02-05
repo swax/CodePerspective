@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using System.Reflection;
 using XLibrary.Remote;
 using System.Security.Cryptography;
+using System.Xml.Linq;
 
 
 namespace XLibrary
@@ -49,7 +50,8 @@ namespace XLibrary
         public const int HitFrames = 30;
         public const int ShowTicks = HitFrames - 1; // first index
         public static int TargetFps = HitFrames;
-        public const int NewHitTimeout = 1;
+        public static long NowTicks;
+        public const long NewHitWindow = 5 * TimeSpan.TicksPerSecond; // could be made configurable through UI
 
         public static Thread CoreThread;
         public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
@@ -252,6 +254,8 @@ namespace XLibrary
             {
                 RunCoreEvent.WaitOne(frameMS);
 
+                NowTicks = DateTime.Now.Ticks;
+                
                 // second timer
                 if (secondWatch.ElapsedMilliseconds >= 1000)
                 {
@@ -373,9 +377,6 @@ namespace XLibrary
 
                 if (call.Hit > 0)
                     call.Hit--;
-
-                if (call.NewHit > 0)
-                    call.NewHit--;
 
                 //call.DashOffset -= FunctionCall.DashSize;
                 //if (call.DashOffset < 0)
@@ -671,10 +672,12 @@ namespace XLibrary
             // mark covered
             if (!CoveredNodes[nodeID])
                 SetCovered(node);
-
-            if (node.FunctionHit <= XRay.NewHitTimeout)
-                node.FunctionNewHit = ShowTicks;
             
+            // mark as infrequent
+            if (node.LastHit < NowTicks - NewHitWindow)
+                node.InfrequentUntil = NowTicks + NewHitWindow;
+
+            node.LastHit = NowTicks;
             node.FunctionHit = ShowTicks;
 
             if (Remote != null)
@@ -761,11 +764,11 @@ namespace XLibrary
 
             if (source != call.Source || dest != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, dest, call.Source, call.Destination);
-            
-            
-            if (call.Hit < XRay.NewHitTimeout)
-                call.NewHit = ShowTicks;
-            
+
+            if (call.LastHit < NowTicks - NewHitWindow)
+                call.InfrequentUntil = NowTicks + NewHitWindow;
+
+            call.LastHit = NowTicks;
             call.Hit = ShowTicks;
             call.TotalHits++;
             call.LastParameters = parameters;
@@ -900,10 +903,11 @@ namespace XLibrary
 
             if(!ClassCallMap.TryGetValue(functionCall.ClassCallHash, out call))
                 return;
-
-            if (call.Hit < XRay.NewHitTimeout)
-                call.NewHit = ShowTicks;
             
+            if (call.LastHit < NowTicks - NewHitWindow)
+                call.InfrequentUntil = NowTicks + NewHitWindow;
+
+            call.LastHit = NowTicks;
             call.Hit = ShowTicks;
 
             if (RemoteViewer)
@@ -1211,10 +1215,8 @@ namespace XLibrary
                 foreach (var id in packet.FunctionHits)
                 {
                     var node = Nodes[id];
-
-                    if (node.FunctionHit < XRay.NewHitTimeout)
-                        node.FunctionNewHit = ShowTicks;
                     
+                    node.LastHit = NowTicks;
                     node.FunctionHit = ShowTicks;
 
                     // mark covered
@@ -1260,9 +1262,7 @@ namespace XLibrary
                         continue;
                     }
 
-                    if (call.Hit < XRay.NewHitTimeout)
-                        call.NewHit = ShowTicks;
-                    
+                    call.LastHit = NowTicks;
                     call.Hit = ShowTicks;
 
                     if (ClassTracking)
@@ -1638,7 +1638,9 @@ namespace XLibrary
 
         public int Hit;
         public int StillInside;
-        public int NewHit;
+        
+        public long InfrequentUntil;
+        public long LastHit;
 
         public int TotalHits;
         public int TotalCallTime;

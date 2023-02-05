@@ -197,7 +197,7 @@ namespace XLibrary
 
                         if (call.Hit > 0 && ShowCalls)
                         {
-                            var color = (call.NewHit > XRay.NewHitTimeout) ? XColors.NewCallPenColors[call.Hit] : XColors.CallPenColors[call.Hit];
+                            var color = (call.InfrequentUntil > XRay.NowTicks) ? XColors.NewCallPenColors[call.Hit] : XColors.CallPenColors[call.Hit];
 
                             if (ViewLayout == LayoutType.TreeMap)
                                 Renderer.DrawCallLine(color, lineWidth, source.CenterF, destination.CenterF, true, source, destination);
@@ -309,7 +309,7 @@ namespace XLibrary
                     }
                     else
                     {
-                        if (xNode.FunctionNewHit > XRay.NewHitTimeout)
+                        if (xNode.InfrequentUntil > XRay.NowTicks)
                             BlendColors(XColors.NewHitColors[xNode.FunctionHit], ref overlay);
                         else
                             BlendColors(XColors.HitColors[xNode.FunctionHit], ref overlay);

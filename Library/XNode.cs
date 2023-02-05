@@ -122,10 +122,12 @@ namespace XLibrary
         internal int ParentID;
 
         internal int FunctionHit;
-        internal int FunctionNewHit;
         internal int ExceptionHit;
         internal int ConstructedHit;
         internal int DisposeHit;
+
+        internal long LastHit;
+        internal long InfrequentUntil;
 
         internal uint HitSequence;
 
@@ -324,9 +326,6 @@ namespace XLibrary
         {
             if (FunctionHit > 0)
                 FunctionHit--;
-
-            if (FunctionNewHit > 0)
-                FunctionNewHit--;
 
             if (ExceptionHit > 0)
                 ExceptionHit--;

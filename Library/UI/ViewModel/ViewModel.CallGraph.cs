@@ -18,6 +18,8 @@ namespace XLibrary
         {
             if (DoRevalue ||
                 XRay.CallChange ||
+                ShowLayout == ShowNodes.Recent ||
+                ShowLayout == ShowNodes.Infrequent ||
                 (ShowLayout != ShowNodes.All && XRay.CoverChange) ||
                 (ShowLayout == ShowNodes.Instances && XRay.InstanceChange))
             {

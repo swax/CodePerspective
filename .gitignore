@@ -10,3 +10,5 @@ XTestLib/obj/
 /Compiler/*.user
 .vs/
 *.user
+*.sarif
+*.clef

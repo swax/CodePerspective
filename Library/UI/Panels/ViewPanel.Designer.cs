@@ -74,6 +74,7 @@
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
+            this.ShowNewHitButton = new System.Windows.Forms.RadioButton();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
@@ -85,19 +86,21 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(3, 0);
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label1.Location = new System.Drawing.Point(4, 0);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(45, 13);
+            this.label1.Size = new System.Drawing.Size(57, 17);
             this.label1.TabIndex = 0;
             this.label1.Text = "Layout";
             // 
             // LayoutTreeMapButton
             // 
             this.LayoutTreeMapButton.AutoSize = true;
-            this.LayoutTreeMapButton.Location = new System.Drawing.Point(3, 3);
+            this.LayoutTreeMapButton.Location = new System.Drawing.Point(4, 5);
+            this.LayoutTreeMapButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutTreeMapButton.Name = "LayoutTreeMapButton";
-            this.LayoutTreeMapButton.Size = new System.Drawing.Size(71, 17);
+            this.LayoutTreeMapButton.Size = new System.Drawing.Size(92, 24);
             this.LayoutTreeMapButton.TabIndex = 1;
             this.LayoutTreeMapButton.TabStop = true;
             this.LayoutTreeMapButton.Text = "Tree Map";
@@ -107,9 +110,10 @@
             // LayoutCallGraphButton
             // 
             this.LayoutCallGraphButton.AutoSize = true;
-            this.LayoutCallGraphButton.Location = new System.Drawing.Point(3, 118);
+            this.LayoutCallGraphButton.Location = new System.Drawing.Point(4, 175);
+            this.LayoutCallGraphButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutCallGraphButton.Name = "LayoutCallGraphButton";
-            this.LayoutCallGraphButton.Size = new System.Drawing.Size(93, 17);
+            this.LayoutCallGraphButton.Size = new System.Drawing.Size(126, 24);
             this.LayoutCallGraphButton.TabIndex = 2;
             this.LayoutCallGraphButton.TabStop = true;
             this.LayoutCallGraphButton.Text = "Method Graph";
@@ -119,9 +123,10 @@
             // SizeLinesButton
             // 
             this.SizeLinesButton.AutoSize = true;
-            this.SizeLinesButton.Location = new System.Drawing.Point(3, 26);
+            this.SizeLinesButton.Location = new System.Drawing.Point(4, 39);
+            this.SizeLinesButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.SizeLinesButton.Name = "SizeLinesButton";
-            this.SizeLinesButton.Size = new System.Drawing.Size(50, 17);
+            this.SizeLinesButton.Size = new System.Drawing.Size(63, 24);
             this.SizeLinesButton.TabIndex = 5;
             this.SizeLinesButton.TabStop = true;
             this.SizeLinesButton.Text = "Lines";
@@ -131,9 +136,10 @@
             // SizeConstantButton
             // 
             this.SizeConstantButton.AutoSize = true;
-            this.SizeConstantButton.Location = new System.Drawing.Point(3, 3);
+            this.SizeConstantButton.Location = new System.Drawing.Point(4, 5);
+            this.SizeConstantButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.SizeConstantButton.Name = "SizeConstantButton";
-            this.SizeConstantButton.Size = new System.Drawing.Size(67, 17);
+            this.SizeConstantButton.Size = new System.Drawing.Size(88, 24);
             this.SizeConstantButton.TabIndex = 4;
             this.SizeConstantButton.TabStop = true;
             this.SizeConstantButton.Text = "Constant";
@@ -143,19 +149,21 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(557, 0);
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label2.Location = new System.Drawing.Point(743, 0);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(48, 13);
+            this.label2.Size = new System.Drawing.Size(61, 17);
             this.label2.TabIndex = 3;
             this.label2.Text = "Size by";
             // 
             // SizeCallsButton
             // 
             this.SizeCallsButton.AutoSize = true;
-            this.SizeCallsButton.Location = new System.Drawing.Point(3, 49);
+            this.SizeCallsButton.Location = new System.Drawing.Point(4, 73);
+            this.SizeCallsButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.SizeCallsButton.Name = "SizeCallsButton";
-            this.SizeCallsButton.Size = new System.Drawing.Size(47, 17);
+            this.SizeCallsButton.Size = new System.Drawing.Size(61, 24);
             this.SizeCallsButton.TabIndex = 7;
             this.SizeCallsButton.TabStop = true;
             this.SizeCallsButton.Text = "Calls";
@@ -165,9 +173,10 @@
             // SizeTimeInMethodButton
             // 
             this.SizeTimeInMethodButton.AutoSize = true;
-            this.SizeTimeInMethodButton.Location = new System.Drawing.Point(3, 95);
+            this.SizeTimeInMethodButton.Location = new System.Drawing.Point(4, 141);
+            this.SizeTimeInMethodButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.SizeTimeInMethodButton.Name = "SizeTimeInMethodButton";
-            this.SizeTimeInMethodButton.Size = new System.Drawing.Size(98, 17);
+            this.SizeTimeInMethodButton.Size = new System.Drawing.Size(135, 24);
             this.SizeTimeInMethodButton.TabIndex = 6;
             this.SizeTimeInMethodButton.TabStop = true;
             this.SizeTimeInMethodButton.Text = "Time in Method";
@@ -177,9 +186,10 @@
             // SizeTimePerCallButton
             // 
             this.SizeTimePerCallButton.AutoSize = true;
-            this.SizeTimePerCallButton.Location = new System.Drawing.Point(3, 72);
+            this.SizeTimePerCallButton.Location = new System.Drawing.Point(4, 107);
+            this.SizeTimePerCallButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.SizeTimePerCallButton.Name = "SizeTimePerCallButton";
-            this.SizeTimePerCallButton.Size = new System.Drawing.Size(86, 17);
+            this.SizeTimePerCallButton.Size = new System.Drawing.Size(118, 24);
             this.SizeTimePerCallButton.TabIndex = 8;
             this.SizeTimePerCallButton.TabStop = true;
             this.SizeTimePerCallButton.Text = "Time per Call";
@@ -189,19 +199,21 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(456, 0);
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label3.Location = new System.Drawing.Point(608, 0);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(49, 13);
+            this.label3.Size = new System.Drawing.Size(60, 17);
             this.label3.TabIndex = 9;
             this.label3.Text = "Include";
             // 
             // IncludeOutsideZoomButton
             // 
             this.IncludeOutsideZoomButton.AutoSize = true;
-            this.IncludeOutsideZoomButton.Location = new System.Drawing.Point(3, 3);
+            this.IncludeOutsideZoomButton.Location = new System.Drawing.Point(4, 5);
+            this.IncludeOutsideZoomButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.IncludeOutsideZoomButton.Name = "IncludeOutsideZoomButton";
-            this.IncludeOutsideZoomButton.Size = new System.Drawing.Size(92, 17);
+            this.IncludeOutsideZoomButton.Size = new System.Drawing.Size(126, 24);
             this.IncludeOutsideZoomButton.TabIndex = 10;
             this.IncludeOutsideZoomButton.Text = "Outside Zoom";
             this.IncludeOutsideZoomButton.UseVisualStyleBackColor = true;
@@ -210,9 +222,10 @@
             // IncludeNotXRayedButton
             // 
             this.IncludeNotXRayedButton.AutoSize = true;
-            this.IncludeNotXRayedButton.Location = new System.Drawing.Point(3, 26);
+            this.IncludeNotXRayedButton.Location = new System.Drawing.Point(4, 39);
+            this.IncludeNotXRayedButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.IncludeNotXRayedButton.Name = "IncludeNotXRayedButton";
-            this.IncludeNotXRayedButton.Size = new System.Drawing.Size(84, 17);
+            this.IncludeNotXRayedButton.Size = new System.Drawing.Size(110, 24);
             this.IncludeNotXRayedButton.TabIndex = 11;
             this.IncludeNotXRayedButton.Text = "Not XRayed";
             this.IncludeNotXRayedButton.UseVisualStyleBackColor = true;
@@ -221,9 +234,10 @@
             // ShowNotHitButton
             // 
             this.ShowNotHitButton.AutoSize = true;
-            this.ShowNotHitButton.Location = new System.Drawing.Point(3, 49);
+            this.ShowNotHitButton.Location = new System.Drawing.Point(4, 73);
+            this.ShowNotHitButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowNotHitButton.Name = "ShowNotHitButton";
-            this.ShowNotHitButton.Size = new System.Drawing.Size(75, 17);
+            this.ShowNotHitButton.Size = new System.Drawing.Size(98, 24);
             this.ShowNotHitButton.TabIndex = 15;
             this.ShowNotHitButton.TabStop = true;
             this.ShowNotHitButton.Text = "Not Execd";
@@ -233,9 +247,10 @@
             // ShowHitButton
             // 
             this.ShowHitButton.AutoSize = true;
-            this.ShowHitButton.Location = new System.Drawing.Point(3, 26);
+            this.ShowHitButton.Location = new System.Drawing.Point(4, 39);
+            this.ShowHitButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowHitButton.Name = "ShowHitButton";
-            this.ShowHitButton.Size = new System.Drawing.Size(70, 17);
+            this.ShowHitButton.Size = new System.Drawing.Size(90, 24);
             this.ShowHitButton.TabIndex = 14;
             this.ShowHitButton.TabStop = true;
             this.ShowHitButton.Text = "Executed";
@@ -245,9 +260,10 @@
             // ShowAllButton
             // 
             this.ShowAllButton.AutoSize = true;
-            this.ShowAllButton.Location = new System.Drawing.Point(3, 3);
+            this.ShowAllButton.Location = new System.Drawing.Point(4, 5);
+            this.ShowAllButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowAllButton.Name = "ShowAllButton";
-            this.ShowAllButton.Size = new System.Drawing.Size(36, 17);
+            this.ShowAllButton.Size = new System.Drawing.Size(48, 24);
             this.ShowAllButton.TabIndex = 13;
             this.ShowAllButton.TabStop = true;
             this.ShowAllButton.Text = "All";
@@ -257,19 +273,21 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(290, 0);
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label4.Location = new System.Drawing.Point(387, 0);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(58, 13);
+            this.label4.Size = new System.Drawing.Size(74, 17);
             this.label4.TabIndex = 12;
             this.label4.Text = "Elements";
             // 
             // ShowInstancesButton
             // 
             this.ShowInstancesButton.AutoSize = true;
-            this.ShowInstancesButton.Location = new System.Drawing.Point(3, 72);
+            this.ShowInstancesButton.Location = new System.Drawing.Point(4, 141);
+            this.ShowInstancesButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowInstancesButton.Name = "ShowInstancesButton";
-            this.ShowInstancesButton.Size = new System.Drawing.Size(45, 17);
+            this.ShowInstancesButton.Size = new System.Drawing.Size(60, 24);
             this.ShowInstancesButton.TabIndex = 16;
             this.ShowInstancesButton.TabStop = true;
             this.ShowInstancesButton.Text = "Initd";
@@ -279,9 +297,10 @@
             // CallsRealTimeButton
             // 
             this.CallsRealTimeButton.AutoSize = true;
-            this.CallsRealTimeButton.Location = new System.Drawing.Point(3, 26);
+            this.CallsRealTimeButton.Location = new System.Drawing.Point(4, 39);
+            this.CallsRealTimeButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.CallsRealTimeButton.Name = "CallsRealTimeButton";
-            this.CallsRealTimeButton.Size = new System.Drawing.Size(70, 17);
+            this.CallsRealTimeButton.Size = new System.Drawing.Size(96, 24);
             this.CallsRealTimeButton.TabIndex = 20;
             this.CallsRealTimeButton.Text = "Real-time";
             this.CallsRealTimeButton.UseVisualStyleBackColor = true;
@@ -290,9 +309,10 @@
             // CallsAllButton
             // 
             this.CallsAllButton.AutoSize = true;
-            this.CallsAllButton.Location = new System.Drawing.Point(3, 3);
+            this.CallsAllButton.Location = new System.Drawing.Point(4, 5);
+            this.CallsAllButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.CallsAllButton.Name = "CallsAllButton";
-            this.CallsAllButton.Size = new System.Drawing.Size(48, 17);
+            this.CallsAllButton.Size = new System.Drawing.Size(62, 24);
             this.CallsAllButton.TabIndex = 19;
             this.CallsAllButton.Text = "Calls";
             this.CallsAllButton.UseVisualStyleBackColor = true;
@@ -301,19 +321,21 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(377, 0);
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label5.Location = new System.Drawing.Point(503, 0);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(38, 13);
+            this.label5.Size = new System.Drawing.Size(46, 17);
             this.label5.TabIndex = 18;
             this.label5.Text = "Show";
             // 
             // LayoutLayerGraphButton
             // 
             this.LayoutLayerGraphButton.AutoSize = true;
-            this.LayoutLayerGraphButton.Location = new System.Drawing.Point(3, 26);
+            this.LayoutLayerGraphButton.Location = new System.Drawing.Point(4, 39);
+            this.LayoutLayerGraphButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutLayerGraphButton.Name = "LayoutLayerGraphButton";
-            this.LayoutLayerGraphButton.Size = new System.Drawing.Size(83, 17);
+            this.LayoutLayerGraphButton.Size = new System.Drawing.Size(109, 24);
             this.LayoutLayerGraphButton.TabIndex = 35;
             this.LayoutLayerGraphButton.TabStop = true;
             this.LayoutLayerGraphButton.Text = "Layer Graph";
@@ -323,9 +345,10 @@
             // LayoutTimelineButton
             // 
             this.LayoutTimelineButton.AutoSize = true;
-            this.LayoutTimelineButton.Location = new System.Drawing.Point(3, 49);
+            this.LayoutTimelineButton.Location = new System.Drawing.Point(4, 73);
+            this.LayoutTimelineButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutTimelineButton.Name = "LayoutTimelineButton";
-            this.LayoutTimelineButton.Size = new System.Drawing.Size(80, 17);
+            this.LayoutTimelineButton.Size = new System.Drawing.Size(106, 24);
             this.LayoutTimelineButton.TabIndex = 34;
             this.LayoutTimelineButton.TabStop = true;
             this.LayoutTimelineButton.Text = "Threadlines";
@@ -335,9 +358,10 @@
             // LayoutInitGraphButton
             // 
             this.LayoutInitGraphButton.AutoSize = true;
-            this.LayoutInitGraphButton.Location = new System.Drawing.Point(3, 72);
+            this.LayoutInitGraphButton.Location = new System.Drawing.Point(4, 107);
+            this.LayoutInitGraphButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutInitGraphButton.Name = "LayoutInitGraphButton";
-            this.LayoutInitGraphButton.Size = new System.Drawing.Size(79, 17);
+            this.LayoutInitGraphButton.Size = new System.Drawing.Size(112, 24);
             this.LayoutInitGraphButton.TabIndex = 33;
             this.LayoutInitGraphButton.TabStop = true;
             this.LayoutInitGraphButton.Text = "Initialization";
@@ -347,9 +371,10 @@
             // ShowAllDependenciesCheckBox
             // 
             this.ShowAllDependenciesCheckBox.AutoSize = true;
-            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(102, 49);
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(138, 73);
+            this.ShowAllDependenciesCheckBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
-            this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(89, 17);
+            this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(119, 24);
             this.ShowAllDependenciesCheckBox.TabIndex = 32;
             this.ShowAllDependenciesCheckBox.Text = "Sub-depends";
             this.ShowAllDependenciesCheckBox.UseVisualStyleBackColor = true;
@@ -358,9 +383,10 @@
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(102, 72);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(138, 107);
+            this.GraphIntermediateDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
-            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(90, 17);
+            this.GraphIntermediateDependencies.Size = new System.Drawing.Size(123, 24);
             this.GraphIntermediateDependencies.TabIndex = 30;
             this.GraphIntermediateDependencies.TabStop = true;
             this.GraphIntermediateDependencies.Text = "Inter-depends";
@@ -370,9 +396,10 @@
             // GraphDependencies
             // 
             this.GraphDependencies.AutoSize = true;
-            this.GraphDependencies.Location = new System.Drawing.Point(102, 26);
+            this.GraphDependencies.Location = new System.Drawing.Point(138, 39);
+            this.GraphDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.GraphDependencies.Name = "GraphDependencies";
-            this.GraphDependencies.Size = new System.Drawing.Size(100, 17);
+            this.GraphDependencies.Size = new System.Drawing.Size(133, 24);
             this.GraphDependencies.TabIndex = 25;
             this.GraphDependencies.TabStop = true;
             this.GraphDependencies.Text = "Depends Graph";
@@ -382,9 +409,10 @@
             // MapDependencies
             // 
             this.MapDependencies.AutoSize = true;
-            this.MapDependencies.Location = new System.Drawing.Point(102, 3);
+            this.MapDependencies.Location = new System.Drawing.Point(138, 5);
+            this.MapDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MapDependencies.Name = "MapDependencies";
-            this.MapDependencies.Size = new System.Drawing.Size(92, 17);
+            this.MapDependencies.Size = new System.Drawing.Size(123, 24);
             this.MapDependencies.TabIndex = 24;
             this.MapDependencies.TabStop = true;
             this.MapDependencies.Text = "Depends Map";
@@ -394,9 +422,10 @@
             // LayoutClassCallsButton
             // 
             this.LayoutClassCallsButton.AutoSize = true;
-            this.LayoutClassCallsButton.Location = new System.Drawing.Point(3, 95);
+            this.LayoutClassCallsButton.Location = new System.Drawing.Point(4, 141);
+            this.LayoutClassCallsButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutClassCallsButton.Name = "LayoutClassCallsButton";
-            this.LayoutClassCallsButton.Size = new System.Drawing.Size(82, 17);
+            this.LayoutClassCallsButton.Size = new System.Drawing.Size(107, 24);
             this.LayoutClassCallsButton.TabIndex = 3;
             this.LayoutClassCallsButton.TabStop = true;
             this.LayoutClassCallsButton.Text = "Class Graph";
@@ -406,9 +435,10 @@
             // LayoutInOrder
             // 
             this.LayoutInOrder.AutoSize = true;
-            this.LayoutInOrder.Location = new System.Drawing.Point(3, 49);
+            this.LayoutInOrder.Location = new System.Drawing.Point(4, 73);
+            this.LayoutInOrder.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.LayoutInOrder.Name = "LayoutInOrder";
-            this.LayoutInOrder.Size = new System.Drawing.Size(64, 17);
+            this.LayoutInOrder.Size = new System.Drawing.Size(85, 24);
             this.LayoutInOrder.TabIndex = 21;
             this.LayoutInOrder.Text = "In Order";
             this.LayoutInOrder.UseVisualStyleBackColor = true;
@@ -417,10 +447,11 @@
             // ResetHitLink
             // 
             this.ResetHitLink.AutoSize = true;
-            this.ResetHitLink.Location = new System.Drawing.Point(3, 92);
+            this.ResetHitLink.Location = new System.Drawing.Point(4, 170);
+            this.ResetHitLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ResetHitLink.Name = "ResetHitLink";
-            this.ResetHitLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
-            this.ResetHitLink.Size = new System.Drawing.Size(51, 17);
+            this.ResetHitLink.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+            this.ResetHitLink.Size = new System.Drawing.Size(69, 26);
             this.ResetHitLink.TabIndex = 10;
             this.ResetHitLink.TabStop = true;
             this.ResetHitLink.Text = "Reset Hit";
@@ -429,9 +460,10 @@
             // ShowCodeButton
             // 
             this.ShowCodeButton.AutoSize = true;
-            this.ShowCodeButton.Location = new System.Drawing.Point(3, 72);
+            this.ShowCodeButton.Location = new System.Drawing.Point(4, 107);
+            this.ShowCodeButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowCodeButton.Name = "ShowCodeButton";
-            this.ShowCodeButton.Size = new System.Drawing.Size(51, 17);
+            this.ShowCodeButton.Size = new System.Drawing.Size(66, 24);
             this.ShowCodeButton.TabIndex = 22;
             this.ShowCodeButton.Text = "Code";
             this.ShowCodeButton.UseVisualStyleBackColor = true;
@@ -440,9 +472,10 @@
             // IncludeAnon
             // 
             this.IncludeAnon.AutoSize = true;
-            this.IncludeAnon.Location = new System.Drawing.Point(3, 95);
+            this.IncludeAnon.Location = new System.Drawing.Point(4, 141);
+            this.IncludeAnon.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.IncludeAnon.Name = "IncludeAnon";
-            this.IncludeAnon.Size = new System.Drawing.Size(51, 17);
+            this.IncludeAnon.Size = new System.Drawing.Size(66, 24);
             this.IncludeAnon.TabIndex = 14;
             this.IncludeAnon.Text = "Anon";
             this.IncludeAnon.UseVisualStyleBackColor = true;
@@ -451,9 +484,10 @@
             // IncludeMethods
             // 
             this.IncludeMethods.AutoSize = true;
-            this.IncludeMethods.Location = new System.Drawing.Point(3, 49);
+            this.IncludeMethods.Location = new System.Drawing.Point(4, 73);
+            this.IncludeMethods.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.IncludeMethods.Name = "IncludeMethods";
-            this.IncludeMethods.Size = new System.Drawing.Size(67, 17);
+            this.IncludeMethods.Size = new System.Drawing.Size(89, 24);
             this.IncludeMethods.TabIndex = 13;
             this.IncludeMethods.Text = "Methods";
             this.IncludeMethods.UseVisualStyleBackColor = true;
@@ -462,9 +496,10 @@
             // IncludeFields
             // 
             this.IncludeFields.AutoSize = true;
-            this.IncludeFields.Location = new System.Drawing.Point(3, 72);
+            this.IncludeFields.Location = new System.Drawing.Point(4, 107);
+            this.IncludeFields.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.IncludeFields.Name = "IncludeFields";
-            this.IncludeFields.Size = new System.Drawing.Size(53, 17);
+            this.IncludeFields.Size = new System.Drawing.Size(69, 24);
             this.IncludeFields.TabIndex = 12;
             this.IncludeFields.Text = "Fields";
             this.IncludeFields.UseVisualStyleBackColor = true;
@@ -473,10 +508,11 @@
             // ResetProfilingLink
             // 
             this.ResetProfilingLink.AutoSize = true;
-            this.ResetProfilingLink.Location = new System.Drawing.Point(3, 115);
+            this.ResetProfilingLink.Location = new System.Drawing.Point(4, 170);
+            this.ResetProfilingLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ResetProfilingLink.Name = "ResetProfilingLink";
-            this.ResetProfilingLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
-            this.ResetProfilingLink.Size = new System.Drawing.Size(75, 17);
+            this.ResetProfilingLink.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+            this.ResetProfilingLink.Size = new System.Drawing.Size(105, 26);
             this.ResetProfilingLink.TabIndex = 9;
             this.ResetProfilingLink.TabStop = true;
             this.ResetProfilingLink.Text = "Reset Profiling";
@@ -486,10 +522,11 @@
             // 
             this.PauseLink.AutoSize = true;
             this.PauseLink.LinkColor = System.Drawing.Color.DarkRed;
-            this.PauseLink.Location = new System.Drawing.Point(3, 69);
+            this.PauseLink.Location = new System.Drawing.Point(4, 102);
+            this.PauseLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.PauseLink.Name = "PauseLink";
-            this.PauseLink.Padding = new System.Windows.Forms.Padding(0, 4, 0, 0);
-            this.PauseLink.Size = new System.Drawing.Size(37, 17);
+            this.PauseLink.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
+            this.PauseLink.Size = new System.Drawing.Size(46, 26);
             this.PauseLink.TabIndex = 17;
             this.PauseLink.TabStop = true;
             this.PauseLink.Text = "Pause";
@@ -498,9 +535,10 @@
             // RenderGdiButton
             // 
             this.RenderGdiButton.AutoSize = true;
-            this.RenderGdiButton.Location = new System.Drawing.Point(3, 3);
+            this.RenderGdiButton.Location = new System.Drawing.Point(4, 5);
+            this.RenderGdiButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.RenderGdiButton.Name = "RenderGdiButton";
-            this.RenderGdiButton.Size = new System.Drawing.Size(44, 17);
+            this.RenderGdiButton.Size = new System.Drawing.Size(55, 24);
             this.RenderGdiButton.TabIndex = 17;
             this.RenderGdiButton.TabStop = true;
             this.RenderGdiButton.Text = "GDI";
@@ -510,9 +548,10 @@
             // RenderOpenGLButton
             // 
             this.RenderOpenGLButton.AutoSize = true;
-            this.RenderOpenGLButton.Location = new System.Drawing.Point(3, 26);
+            this.RenderOpenGLButton.Location = new System.Drawing.Point(4, 39);
+            this.RenderOpenGLButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.RenderOpenGLButton.Name = "RenderOpenGLButton";
-            this.RenderOpenGLButton.Size = new System.Drawing.Size(65, 17);
+            this.RenderOpenGLButton.Size = new System.Drawing.Size(83, 24);
             this.RenderOpenGLButton.TabIndex = 18;
             this.RenderOpenGLButton.TabStop = true;
             this.RenderOpenGLButton.Text = "OpenGL";
@@ -522,9 +561,10 @@
             // RenderGibsonButton
             // 
             this.RenderGibsonButton.AutoSize = true;
-            this.RenderGibsonButton.Location = new System.Drawing.Point(3, 49);
+            this.RenderGibsonButton.Location = new System.Drawing.Point(4, 73);
+            this.RenderGibsonButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.RenderGibsonButton.Name = "RenderGibsonButton";
-            this.RenderGibsonButton.Size = new System.Drawing.Size(58, 17);
+            this.RenderGibsonButton.Size = new System.Drawing.Size(76, 24);
             this.RenderGibsonButton.TabIndex = 19;
             this.RenderGibsonButton.TabStop = true;
             this.RenderGibsonButton.Text = "Gibson";
@@ -534,10 +574,11 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(213, 0);
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label7.Location = new System.Drawing.Point(284, 0);
+            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(65, 13);
+            this.label7.Size = new System.Drawing.Size(83, 17);
             this.label7.TabIndex = 30;
             this.label7.Text = "Rendering";
             // 
@@ -554,9 +595,10 @@
             this.flowLayoutPanel1.Controls.Add(this.ShowAllDependenciesCheckBox);
             this.flowLayoutPanel1.Controls.Add(this.GraphIntermediateDependencies);
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(6, 20);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(8, 31);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(204, 146);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(272, 225);
             this.flowLayoutPanel1.TabIndex = 32;
             // 
             // flowLayoutPanel3
@@ -566,9 +608,10 @@
             this.flowLayoutPanel3.Controls.Add(this.RenderGibsonButton);
             this.flowLayoutPanel3.Controls.Add(this.PauseLink);
             this.flowLayoutPanel3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(216, 20);
+            this.flowLayoutPanel3.Location = new System.Drawing.Point(288, 31);
+            this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(71, 146);
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(95, 225);
             this.flowLayoutPanel3.TabIndex = 34;
             // 
             // flowLayoutPanel4
@@ -576,12 +619,14 @@
             this.flowLayoutPanel4.Controls.Add(this.ShowAllButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowHitButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowNotHitButton);
+            this.flowLayoutPanel4.Controls.Add(this.ShowNewHitButton);
             this.flowLayoutPanel4.Controls.Add(this.ShowInstancesButton);
             this.flowLayoutPanel4.Controls.Add(this.ResetHitLink);
             this.flowLayoutPanel4.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(293, 20);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(391, 31);
+            this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(81, 146);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(108, 225);
             this.flowLayoutPanel4.TabIndex = 35;
             // 
             // flowLayoutPanel5
@@ -591,9 +636,10 @@
             this.flowLayoutPanel5.Controls.Add(this.LayoutInOrder);
             this.flowLayoutPanel5.Controls.Add(this.ShowCodeButton);
             this.flowLayoutPanel5.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel5.Location = new System.Drawing.Point(380, 20);
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(507, 31);
+            this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(72, 146);
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(96, 225);
             this.flowLayoutPanel5.TabIndex = 36;
             // 
             // flowLayoutPanel6
@@ -604,9 +650,10 @@
             this.flowLayoutPanel6.Controls.Add(this.IncludeFields);
             this.flowLayoutPanel6.Controls.Add(this.IncludeAnon);
             this.flowLayoutPanel6.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel6.Location = new System.Drawing.Point(459, 20);
+            this.flowLayoutPanel6.Location = new System.Drawing.Point(612, 31);
+            this.flowLayoutPanel6.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-            this.flowLayoutPanel6.Size = new System.Drawing.Size(91, 146);
+            this.flowLayoutPanel6.Size = new System.Drawing.Size(121, 225);
             this.flowLayoutPanel6.TabIndex = 37;
             // 
             // flowLayoutPanel7
@@ -618,14 +665,28 @@
             this.flowLayoutPanel7.Controls.Add(this.SizeTimeInMethodButton);
             this.flowLayoutPanel7.Controls.Add(this.ResetProfilingLink);
             this.flowLayoutPanel7.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel7.Location = new System.Drawing.Point(560, 20);
+            this.flowLayoutPanel7.Location = new System.Drawing.Point(747, 31);
+            this.flowLayoutPanel7.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-            this.flowLayoutPanel7.Size = new System.Drawing.Size(111, 146);
+            this.flowLayoutPanel7.Size = new System.Drawing.Size(148, 225);
             this.flowLayoutPanel7.TabIndex = 38;
+            // 
+            // ShowNewHitButton
+            // 
+            this.ShowNewHitButton.AutoSize = true;
+            this.ShowNewHitButton.Location = new System.Drawing.Point(4, 107);
+            this.ShowNewHitButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ShowNewHitButton.Name = "ShowNewHitButton";
+            this.ShowNewHitButton.Size = new System.Drawing.Size(60, 24);
+            this.ShowNewHitButton.TabIndex = 17;
+            this.ShowNewHitButton.TabStop = true;
+            this.ShowNewHitButton.Text = "New";
+            this.ShowNewHitButton.UseVisualStyleBackColor = true;
+            this.ShowNewHitButton.CheckedChanged += new System.EventHandler(this.ShowNewHitButton_CheckedChanged);
             // 
             // ViewPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.Controls.Add(this.flowLayoutPanel7);
@@ -641,8 +702,9 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.DoubleBuffered = true;
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(778, 170);
+            this.Size = new System.Drawing.Size(1037, 262);
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);
@@ -708,5 +770,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel6;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel7;
+        public System.Windows.Forms.RadioButton ShowNewHitButton;
     }
 }

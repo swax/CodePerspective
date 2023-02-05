@@ -65,6 +65,7 @@ namespace XLibrary.Panels
             ShowHitButton.Checked = Model.ShowLayout == ShowNodes.Hit;
             ShowNotHitButton.Checked = Model.ShowLayout == ShowNodes.Unhit;
             ShowInstancesButton.Checked = Model.ShowLayout == ShowNodes.Instances;
+            ShowNewHitButton.Checked = Model.ShowLayout == ShowNodes.NewHit;
 
             // size
             SizeConstantButton.Checked = Model.SizeLayout == SizeLayouts.Constant;
@@ -202,7 +203,7 @@ namespace XLibrary.Panels
 
         private void ShowHitButton_CheckedChanged(object sender, EventArgs e)
         {
-            Model.ShowLayout = ShowNodes.Hit;
+            Model.ShowLayout = ShowNodes.NewHit;
             Main.RefreshView();
         }
 
@@ -215,6 +216,12 @@ namespace XLibrary.Panels
         private void ShowInstancesButton_CheckedChanged(object sender, EventArgs e)
         {
             Model.ShowLayout = ShowNodes.Instances;
+            Main.RefreshView();
+        }
+
+        private void ShowNewHitButton_CheckedChanged(object sender, EventArgs e)
+        {
+            Model.ShowLayout = ShowNodes.NewHit;
             Main.RefreshView();
         }
 

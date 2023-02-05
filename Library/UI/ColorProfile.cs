@@ -59,6 +59,7 @@ namespace XLibrary
 
         Color[] OverColors { get; }
         Color[] HitColors { get; }
+        Color[] NewHitColors { get; }
 
         Color[] ConstructedColors { get; }
         Color[] DisposedColors { get; }
@@ -69,6 +70,7 @@ namespace XLibrary
         Color[] ExceptionColors { get; }
 
         Color[] CallPenColors { get; }
+        Color[] NewCallPenColors { get; }
 
         Color[] ObjColors { get; }
         Color[] ObjDitheredColors { get; }
@@ -94,6 +96,7 @@ namespace XLibrary
         public Color SearchMatchColor { get { return Color.Red; } }
 
         public Color CallColor { get { return Color.DarkGreen; } }
+        public Color NewCallColor { get { return Color.HotPink; } }
         public Color ShowCallColor { get { return Color.FromArgb(32, Color.Black); } }
         public Color CallOutColor { get { return Color.FromArgb(60, Color.Red); } }
         public Color CallInColor { get { return Color.FromArgb(60, Color.Blue); } }
@@ -101,8 +104,9 @@ namespace XLibrary
 
         public Color BorderColor { get { return Color.Silver; } }
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
-
+        
         public Color HitColor { get { return Color.Orange; } }
+        public Color NewHitColor { get { return Color.HotPink; } }
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
         public Color ExceptionColor { get { return Color.Red; } }
@@ -131,6 +135,9 @@ namespace XLibrary
         Color[] _HitColors;
         public Color[] HitColors { get { return _HitColors; } }
 
+        Color[] _NewHitColors;
+        public Color[] NewHitColors { get { return _NewHitColors; } }
+
         Color[] _ConstructedColors;
         public Color[] ConstructedColors { get { return _ConstructedColors; } }
 
@@ -149,6 +156,9 @@ namespace XLibrary
         Color[] _CallPenColors;
         public Color[] CallPenColors { get { return _CallPenColors; } }
 
+        Color[] _NewCallPenColors;
+        public Color[] NewCallPenColors { get { return _NewCallPenColors; } }
+
         public Color[] _ObjColors;
         public Color[] ObjColors { get { return _ObjColors; } }
 
@@ -160,6 +170,7 @@ namespace XLibrary
         {
             _OverColors = new Color[7];
             _HitColors = new Color[XRay.HitFrames];
+            _NewHitColors = new Color[XRay.HitFrames];
 
             _ExceptionColors = new Color[XRay.HitFrames];
             _FieldSetColors = new Color[XRay.HitFrames];
@@ -168,6 +179,7 @@ namespace XLibrary
             _DisposedColors = new Color[XRay.HitFrames];
 
             _CallPenColors = new Color[XRay.HitFrames];
+            _NewCallPenColors = new Color[XRay.HitFrames];
 
             for (int i = 0; i < _OverColors.Length; i++)
             {
@@ -180,6 +192,7 @@ namespace XLibrary
                 int brightness = 255 - (255 / XRay.HitFrames * i);
 
                 _HitColors[i] = Color.FromArgb(255 - brightness, HitColor);
+                _NewHitColors[i] = Color.FromArgb(255 - brightness, NewHitColor);
                 _ExceptionColors[i] = Color.FromArgb(255 - brightness, ExceptionColor);
 
                 _ConstructedColors[i] = Color.FromArgb(255 - brightness, ConstructedColor);
@@ -189,6 +202,7 @@ namespace XLibrary
                 _FieldGetColors[i] = Color.FromArgb(255 - brightness, FieldGetColor);
 
                 _CallPenColors[i] = Color.FromArgb(255 - brightness, CallColor);
+                _NewCallPenColors[i] = Color.FromArgb(255 - brightness, NewCallColor);
             }
 
             var objTypes = Enum.GetValues(typeof(XObjType));
@@ -231,6 +245,7 @@ namespace XLibrary
         public Color SearchMatchColor { get { return Color.Red; } }
 
         public Color CallColor { get { return Color.DarkGreen; } }
+        public Color NewCallColor { get { return Color.HotPink; } }
         public Color ShowCallColor { get { return Color.FromArgb(32, Color.Black); } }
         public Color CallOutColor { get { return Color.FromArgb(60, Color.Red); } }
         public Color CallInColor { get { return Color.FromArgb(60, Color.Blue); } }
@@ -240,6 +255,7 @@ namespace XLibrary
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
 
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
+        public Color NewHitColor { get { return Color.HotPink; } }
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
         public Color ExceptionColor { get { return Color.Red; } }
@@ -268,6 +284,9 @@ namespace XLibrary
         Color[] _HitColors;
         public Color[] HitColors { get { return _HitColors; } }
 
+        Color[] _NewHitColors;
+        public Color[] NewHitColors { get { return _NewHitColors; } }
+        
         Color[] _ConstructedColors;
         public Color[] ConstructedColors { get { return _ConstructedColors; } }
 
@@ -286,6 +305,9 @@ namespace XLibrary
         Color[] _CallPenColors;
         public Color[] CallPenColors { get { return _CallPenColors; } }
 
+        Color[] _NewCallPenColors;
+        public Color[] NewCallPenColors { get { return _NewCallPenColors; } }
+        
         public Color[] _ObjColors;
         public Color[] ObjColors { get { return _ObjColors; } }
 
@@ -305,6 +327,7 @@ namespace XLibrary
             _DisposedColors = new Color[XRay.HitFrames];
 
             _CallPenColors = new Color[XRay.HitFrames];
+            _NewCallPenColors = new Color[XRay.HitFrames];
 
             for (int i = 0; i < _OverColors.Length; i++)
             {
@@ -326,6 +349,7 @@ namespace XLibrary
                 _FieldGetColors[i] = Color.FromArgb(255 - brightness, FieldGetColor);
 
                 _CallPenColors[i] = Color.FromArgb(255 - brightness, CallColor);
+                _NewCallPenColors[i] = Color.FromArgb(255 - brightness, NewCallColor);
             }
 
             var objTypes = Enum.GetValues(typeof(XObjType));
@@ -367,6 +391,7 @@ namespace XLibrary
         public Color SearchMatchColor { get { return Color.Red; } }
 
         public Color CallColor { get { return Color.DarkGreen; } }
+        public Color NewCallColor { get { return Color.HotPink; } }
         public Color ShowCallColor { get { return Color.FromArgb(32, Color.Black); } }
         public Color CallOutColor { get { return Color.FromArgb(60, Color.Red); } }
         public Color CallInColor { get { return Color.FromArgb(60, Color.Blue); } }
@@ -376,6 +401,7 @@ namespace XLibrary
         public Color CallDividerColor { get { return Color.FromArgb(0xcc, 0xcc, 0xcc); } }
 
         public Color HitColor { get { return Color.FromArgb(255, 192, 128); } }
+        public Color NewHitColor { get { return Color.HotPink; } }
         public Color ConstructedColor { get { return Color.Green; } }
         public Color DisposedColor { get { return Color.Red; } }
         public Color ExceptionColor { get { return Color.Red; } }
@@ -404,6 +430,9 @@ namespace XLibrary
         Color[] _HitColors;
         public Color[] HitColors { get { return _HitColors; } }
 
+        Color[] _NewHitColors;
+        public Color[] NewHitColors { get { return _NewHitColors; } }
+        
         Color[] _MultiHitColors;
         public Color[] MultiHitColors { get { return _MultiHitColors; } }
 
@@ -425,6 +454,9 @@ namespace XLibrary
         Color[] _CallPenColors;
         public Color[] CallPenColors { get { return _CallPenColors; } }
 
+        Color[] _NewCallPenColors;
+        public Color[] NewCallPenColors { get { return _NewCallPenColors; } }
+        
         public Color[] _ObjColors;
         public Color[] ObjColors { get { return _ObjColors; } }
 
@@ -445,6 +477,7 @@ namespace XLibrary
             _DisposedColors = new Color[XRay.HitFrames];
 
             _CallPenColors = new Color[XRay.HitFrames];
+            _NewCallPenColors = new Color[XRay.HitFrames];
 
             for (int i = 0; i < _OverColors.Length; i++)
             {
@@ -466,6 +499,7 @@ namespace XLibrary
                 _FieldGetColors[i] = Color.FromArgb(255 - brightness, FieldGetColor);
 
                 _CallPenColors[i] = Color.FromArgb(255 - brightness, CallColor);
+                _NewCallPenColors[i] = Color.FromArgb(255 - brightness, NewCallColor);
             }
 
             var objTypes = Enum.GetValues(typeof(XObjType));

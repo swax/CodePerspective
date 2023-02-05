@@ -7,7 +7,7 @@ using System.Drawing;
 namespace XLibrary
 {
     public enum SizeLayouts { Constant, MethodSize, TimeInMethod, Hits, TimePerHit }
-    public enum ShowNodes { All, Hit, Unhit, Instances }
+    public enum ShowNodes { All, Hit, Unhit, Instances, NewHit }
 
     public enum LayoutType { TreeMap, CallGraph, Timeline }
     public enum TreeMapMode { Normal, Dependencies }
@@ -131,7 +131,8 @@ namespace XLibrary
 
 
                 if ((ShowLayout == ShowNodes.Hit && !XRay.CoveredNodes[root.ID]) ||
-                    (ShowLayout == ShowNodes.Unhit && XRay.CoveredNodes[root.ID]))
+                    (ShowLayout == ShowNodes.Unhit && XRay.CoveredNodes[root.ID]) ||
+                    (ShowLayout == ShowNodes.NewHit && root.XNode.FunctionNewHit <= XRay.NewHitTimeout))
                     root.Value = 0;
 
                 // processs subnodes because methods/fields can have anon sub classes
@@ -149,6 +150,7 @@ namespace XLibrary
                         ShowLayout == ShowNodes.All ||
                         ShowLayout == ShowNodes.Hit ||
                         ShowLayout == ShowNodes.Unhit ||
+                        ShowLayout == ShowNodes.NewHit ||
                         (ShowLayout == ShowNodes.Instances && (node.ObjType != XObjType.Class || (node.XNode.Record != null && node.XNode.Record.Created > 0)));
 
                     if ((node.ObjType == XObjType.Field && !ShowFields) ||
@@ -197,8 +199,11 @@ namespace XLibrary
                 // on return to calling function causes root.show = true
             }
 
-            if (ViewLayout == LayoutType.CallGraph && SizeLayout == SizeLayouts.Constant)
+            /*if ((root.ObjType != XObjType.Method && root.ObjType != XObjType.Field) &&
+                (ViewLayout == LayoutType.CallGraph && SizeLayout == SizeLayouts.Constant))
+            {
                 root.Value = 1;
+            }*/
 
             //XRay.LogError("Calc'd Node: {0}, Value: {1}", root.Name, root.Value);
 

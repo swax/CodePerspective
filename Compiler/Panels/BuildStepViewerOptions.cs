@@ -40,7 +40,7 @@ namespace XBuilder.Panels
 
         private void SaveToModel()
         {
-            Model.EnableLocalViewer = EnableIpcServer.Checked;
+            Model.EnableLocalViewer = EnableLocalViewer.Checked;
             Model.ShowViewerOnStart = ShowOnStartCheckBox.Checked;
             Model.EnableIpcServer = EnableIpcServer.Checked;
 

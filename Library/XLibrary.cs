@@ -49,6 +49,7 @@ namespace XLibrary
         public const int HitFrames = 30;
         public const int ShowTicks = HitFrames - 1; // first index
         public static int TargetFps = HitFrames;
+        public const int NewHitTimeout = 1;
 
         public static Thread CoreThread;
         public static AutoResetEvent RunCoreEvent = new AutoResetEvent(false);
@@ -367,10 +368,14 @@ namespace XLibrary
         {
             foreach (var call in callMap)
             {
-                if (call == null || call.Hit <= 0)
+                if (call == null)
                     continue;
 
-                call.Hit--;
+                if (call.Hit > 0)
+                    call.Hit--;
+
+                if (call.NewHit > 0)
+                    call.NewHit--;
 
                 //call.DashOffset -= FunctionCall.DashSize;
                 //if (call.DashOffset < 0)
@@ -667,6 +672,9 @@ namespace XLibrary
             if (!CoveredNodes[nodeID])
                 SetCovered(node);
 
+            if (node.FunctionHit <= XRay.NewHitTimeout)
+                node.FunctionNewHit = ShowTicks;
+            
             node.FunctionHit = ShowTicks;
 
             if (Remote != null)
@@ -753,8 +761,11 @@ namespace XLibrary
 
             if (source != call.Source || dest != call.Destination)
                 LogError("Call mismatch  {0}->{1} != {2}->{3}\r\n", source, dest, call.Source, call.Destination);
-
-      
+            
+            
+            if (call.Hit < XRay.NewHitTimeout)
+                call.NewHit = ShowTicks;
+            
             call.Hit = ShowTicks;
             call.TotalHits++;
             call.LastParameters = parameters;
@@ -890,6 +901,9 @@ namespace XLibrary
             if(!ClassCallMap.TryGetValue(functionCall.ClassCallHash, out call))
                 return;
 
+            if (call.Hit < XRay.NewHitTimeout)
+                call.NewHit = ShowTicks;
+            
             call.Hit = ShowTicks;
 
             if (RemoteViewer)
@@ -1198,6 +1212,9 @@ namespace XLibrary
                 {
                     var node = Nodes[id];
 
+                    if (node.FunctionHit < XRay.NewHitTimeout)
+                        node.FunctionNewHit = ShowTicks;
+                    
                     node.FunctionHit = ShowTicks;
 
                     // mark covered
@@ -1243,6 +1260,9 @@ namespace XLibrary
                         continue;
                     }
 
+                    if (call.Hit < XRay.NewHitTimeout)
+                        call.NewHit = ShowTicks;
+                    
                     call.Hit = ShowTicks;
 
                     if (ClassTracking)
@@ -1618,6 +1638,7 @@ namespace XLibrary
 
         public int Hit;
         public int StillInside;
+        public int NewHit;
 
         public int TotalHits;
         public int TotalCallTime;

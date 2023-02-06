@@ -818,7 +818,7 @@ namespace XBuilder
             XNodeOut methodNode = classNode.AddMethod(method);
 
             if (Build.DecompileCSharp)
-                methodNode.CSharp = UTF8Encoding.UTF8.GetBytes("Not supported :("); //DecompileMethod(method);
+                methodNode.CSharp = DecompileMethod2(method);
 
             if (method.Body == null)
                 return;

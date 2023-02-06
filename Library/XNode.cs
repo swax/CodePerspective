@@ -408,9 +408,16 @@ namespace XLibrary
                 DatStream.Position = CSharpPos;
 
                 CSharp = DatStream.Read(CSharpLength);
+                
+                PlainCSharp = UTF8Encoding.UTF8.GetString(CSharp);
+
+                PlainCSharp = PlainCSharp.Replace("\t", "    ");
             }
 
-            // read byte stream and build html
+            return true;
+
+            // Not sure why this was needed and works without it
+            /* read byte stream and build html
             var code = new StringBuilder();
 
             // format - id, length, string
@@ -427,7 +434,7 @@ namespace XLibrary
 
             PlainCSharp = code.ToString();
 
-            return true;
+            return true;*/
         }
 
         

@@ -72,10 +72,10 @@
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
             this.ShowRecentButton = new System.Windows.Forms.RadioButton();
+            this.ShowInfrequentButton = new System.Windows.Forms.RadioButton();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.ShowInfrequentButton = new System.Windows.Forms.RadioButton();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
@@ -372,7 +372,7 @@
             // ShowAllDependenciesCheckBox
             // 
             this.ShowAllDependenciesCheckBox.AutoSize = true;
-            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(138, 73);
+            this.ShowAllDependenciesCheckBox.Location = new System.Drawing.Point(138, 39);
             this.ShowAllDependenciesCheckBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ShowAllDependenciesCheckBox.Name = "ShowAllDependenciesCheckBox";
             this.ShowAllDependenciesCheckBox.Size = new System.Drawing.Size(119, 24);
@@ -384,7 +384,7 @@
             // GraphIntermediateDependencies
             // 
             this.GraphIntermediateDependencies.AutoSize = true;
-            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(138, 107);
+            this.GraphIntermediateDependencies.Location = new System.Drawing.Point(138, 73);
             this.GraphIntermediateDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.GraphIntermediateDependencies.Name = "GraphIntermediateDependencies";
             this.GraphIntermediateDependencies.Size = new System.Drawing.Size(123, 24);
@@ -397,7 +397,7 @@
             // GraphDependencies
             // 
             this.GraphDependencies.AutoSize = true;
-            this.GraphDependencies.Location = new System.Drawing.Point(138, 39);
+            this.GraphDependencies.Location = new System.Drawing.Point(138, 5);
             this.GraphDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.GraphDependencies.Name = "GraphDependencies";
             this.GraphDependencies.Size = new System.Drawing.Size(133, 24);
@@ -410,7 +410,7 @@
             // MapDependencies
             // 
             this.MapDependencies.AutoSize = true;
-            this.MapDependencies.Location = new System.Drawing.Point(138, 5);
+            this.MapDependencies.Location = new System.Drawing.Point(4, 209);
             this.MapDependencies.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MapDependencies.Name = "MapDependencies";
             this.MapDependencies.Size = new System.Drawing.Size(123, 24);
@@ -448,7 +448,7 @@
             // ResetHitLink
             // 
             this.ResetHitLink.AutoSize = true;
-            this.ResetHitLink.Location = new System.Drawing.Point(110, 0);
+            this.ResetHitLink.Location = new System.Drawing.Point(4, 204);
             this.ResetHitLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ResetHitLink.Name = "ResetHitLink";
             this.ResetHitLink.Padding = new System.Windows.Forms.Padding(0, 6, 0, 0);
@@ -599,7 +599,7 @@
             this.flowLayoutPanel1.Location = new System.Drawing.Point(8, 31);
             this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(272, 225);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(272, 255);
             this.flowLayoutPanel1.TabIndex = 32;
             // 
             // flowLayoutPanel3
@@ -612,7 +612,7 @@
             this.flowLayoutPanel3.Location = new System.Drawing.Point(288, 31);
             this.flowLayoutPanel3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
-            this.flowLayoutPanel3.Size = new System.Drawing.Size(95, 225);
+            this.flowLayoutPanel3.Size = new System.Drawing.Size(95, 255);
             this.flowLayoutPanel3.TabIndex = 34;
             // 
             // flowLayoutPanel4
@@ -628,7 +628,7 @@
             this.flowLayoutPanel4.Location = new System.Drawing.Point(391, 31);
             this.flowLayoutPanel4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(108, 225);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(108, 255);
             this.flowLayoutPanel4.TabIndex = 35;
             // 
             // ShowRecentButton
@@ -644,6 +644,19 @@
             this.ShowRecentButton.UseVisualStyleBackColor = true;
             this.ShowRecentButton.CheckedChanged += new System.EventHandler(this.ShowRecentButton_CheckedChanged);
             // 
+            // ShowInfrequentButton
+            // 
+            this.ShowInfrequentButton.AutoSize = true;
+            this.ShowInfrequentButton.Location = new System.Drawing.Point(4, 141);
+            this.ShowInfrequentButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ShowInfrequentButton.Name = "ShowInfrequentButton";
+            this.ShowInfrequentButton.Size = new System.Drawing.Size(98, 24);
+            this.ShowInfrequentButton.TabIndex = 18;
+            this.ShowInfrequentButton.TabStop = true;
+            this.ShowInfrequentButton.Text = "Infrequent";
+            this.ShowInfrequentButton.UseVisualStyleBackColor = true;
+            this.ShowInfrequentButton.CheckedChanged += new System.EventHandler(this.ShowInfrequentButton_CheckedChanged);
+            // 
             // flowLayoutPanel5
             // 
             this.flowLayoutPanel5.Controls.Add(this.CallsAllButton);
@@ -654,7 +667,7 @@
             this.flowLayoutPanel5.Location = new System.Drawing.Point(507, 31);
             this.flowLayoutPanel5.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(96, 225);
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(96, 255);
             this.flowLayoutPanel5.TabIndex = 36;
             // 
             // flowLayoutPanel6
@@ -668,7 +681,7 @@
             this.flowLayoutPanel6.Location = new System.Drawing.Point(612, 31);
             this.flowLayoutPanel6.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-            this.flowLayoutPanel6.Size = new System.Drawing.Size(121, 225);
+            this.flowLayoutPanel6.Size = new System.Drawing.Size(121, 255);
             this.flowLayoutPanel6.TabIndex = 37;
             // 
             // flowLayoutPanel7
@@ -683,21 +696,8 @@
             this.flowLayoutPanel7.Location = new System.Drawing.Point(747, 31);
             this.flowLayoutPanel7.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-            this.flowLayoutPanel7.Size = new System.Drawing.Size(148, 225);
+            this.flowLayoutPanel7.Size = new System.Drawing.Size(148, 255);
             this.flowLayoutPanel7.TabIndex = 38;
-            // 
-            // ShowInfrequentButton
-            // 
-            this.ShowInfrequentButton.AutoSize = true;
-            this.ShowInfrequentButton.Location = new System.Drawing.Point(4, 141);
-            this.ShowInfrequentButton.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.ShowInfrequentButton.Name = "ShowInfrequentButton";
-            this.ShowInfrequentButton.Size = new System.Drawing.Size(98, 24);
-            this.ShowInfrequentButton.TabIndex = 18;
-            this.ShowInfrequentButton.TabStop = true;
-            this.ShowInfrequentButton.Text = "Infrequent";
-            this.ShowInfrequentButton.UseVisualStyleBackColor = true;
-            this.ShowInfrequentButton.CheckedChanged += new System.EventHandler(this.ShowInfrequentButton_CheckedChanged);
             // 
             // ViewPanel
             // 
@@ -719,7 +719,7 @@
             this.DoubleBuffered = true;
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "ViewPanel";
-            this.Size = new System.Drawing.Size(1037, 262);
+            this.Size = new System.Drawing.Size(1037, 294);
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);

@@ -393,6 +393,7 @@ namespace XLibrary
                 try
                 {
                     Application.EnableVisualStyles();
+                    Application.SetHighDpiMode(HighDpiMode.SystemAware);
                     Application.SetCompatibleTextRenderingDefault(false);
                     
                     ui.Window = new MainForm();

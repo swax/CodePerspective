@@ -50,27 +50,30 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(3, 0);
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label1.Location = new System.Drawing.Point(4, 0);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(72, 13);
+            this.label1.Size = new System.Drawing.Size(92, 17);
             this.label1.TabIndex = 0;
             this.label1.Text = "Frame Rate";
             // 
             // FpsLabel
             // 
-            this.FpsLabel.Location = new System.Drawing.Point(3, 23);
+            this.FpsLabel.Location = new System.Drawing.Point(4, 35);
+            this.FpsLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.FpsLabel.Name = "FpsLabel";
-            this.FpsLabel.Size = new System.Drawing.Size(103, 69);
+            this.FpsLabel.Size = new System.Drawing.Size(137, 106);
             this.FpsLabel.TabIndex = 1;
             this.FpsLabel.Text = "Current: 15 fps...";
             // 
             // TargetFpsLink
             // 
             this.TargetFpsLink.AutoSize = true;
-            this.TargetFpsLink.Location = new System.Drawing.Point(3, 92);
+            this.TargetFpsLink.Location = new System.Drawing.Point(4, 142);
+            this.TargetFpsLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.TargetFpsLink.Name = "TargetFpsLink";
-            this.TargetFpsLink.Size = new System.Drawing.Size(93, 13);
+            this.TargetFpsLink.Size = new System.Drawing.Size(124, 20);
             this.TargetFpsLink.TabIndex = 3;
             this.TargetFpsLink.TabStop = true;
             this.TargetFpsLink.Text = "Target Rate 15fps";
@@ -79,10 +82,11 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label5.Location = new System.Drawing.Point(224, 0);
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label5.Location = new System.Drawing.Point(299, 0);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(101, 13);
+            this.label5.Size = new System.Drawing.Size(129, 17);
             this.label5.TabIndex = 6;
             this.label5.Text = "Compile Settings";
             // 
@@ -92,9 +96,11 @@
             | System.Windows.Forms.AnchorStyles.Left)));
             this.CompileSettingsList.FormattingEnabled = true;
             this.CompileSettingsList.IntegralHeight = false;
-            this.CompileSettingsList.Location = new System.Drawing.Point(227, 16);
+            this.CompileSettingsList.ItemHeight = 20;
+            this.CompileSettingsList.Location = new System.Drawing.Point(303, 25);
+            this.CompileSettingsList.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.CompileSettingsList.Name = "CompileSettingsList";
-            this.CompileSettingsList.Size = new System.Drawing.Size(184, 141);
+            this.CompileSettingsList.Size = new System.Drawing.Size(244, 215);
             this.CompileSettingsList.TabIndex = 7;
             // 
             // ConnectionList
@@ -104,18 +110,21 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ConnectionList.FormattingEnabled = true;
             this.ConnectionList.IntegralHeight = false;
-            this.ConnectionList.Location = new System.Drawing.Point(420, 16);
+            this.ConnectionList.ItemHeight = 20;
+            this.ConnectionList.Location = new System.Drawing.Point(560, 25);
+            this.ConnectionList.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ConnectionList.Name = "ConnectionList";
-            this.ConnectionList.Size = new System.Drawing.Size(250, 141);
+            this.ConnectionList.Size = new System.Drawing.Size(332, 215);
             this.ConnectionList.TabIndex = 9;
             // 
             // ModeLabel
             // 
             this.ModeLabel.AutoSize = true;
-            this.ModeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ModeLabel.Location = new System.Drawing.Point(417, 0);
+            this.ModeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.ModeLabel.Location = new System.Drawing.Point(556, 0);
+            this.ModeLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.ModeLabel.Name = "ModeLabel";
-            this.ModeLabel.Size = new System.Drawing.Size(117, 13);
+            this.ModeLabel.Size = new System.Drawing.Size(146, 17);
             this.ModeLabel.TabIndex = 8;
             this.ModeLabel.Text = "Server/Client Mode";
             // 
@@ -127,17 +136,19 @@
             this.flowLayoutPanel8.Controls.Add(this.TrackProfiling);
             this.flowLayoutPanel8.Controls.Add(this.TrackThreadlines);
             this.flowLayoutPanel8.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.flowLayoutPanel8.Location = new System.Drawing.Point(112, 20);
+            this.flowLayoutPanel8.Location = new System.Drawing.Point(149, 31);
+            this.flowLayoutPanel8.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.flowLayoutPanel8.Name = "flowLayoutPanel8";
-            this.flowLayoutPanel8.Size = new System.Drawing.Size(107, 123);
+            this.flowLayoutPanel8.Size = new System.Drawing.Size(143, 189);
             this.flowLayoutPanel8.TabIndex = 41;
             // 
             // TrackFunctionsCheckBox
             // 
             this.TrackFunctionsCheckBox.AutoSize = true;
-            this.TrackFunctionsCheckBox.Location = new System.Drawing.Point(3, 3);
+            this.TrackFunctionsCheckBox.Location = new System.Drawing.Point(4, 5);
+            this.TrackFunctionsCheckBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.TrackFunctionsCheckBox.Name = "TrackFunctionsCheckBox";
-            this.TrackFunctionsCheckBox.Size = new System.Drawing.Size(88, 17);
+            this.TrackFunctionsCheckBox.Size = new System.Drawing.Size(117, 24);
             this.TrackFunctionsCheckBox.TabIndex = 12;
             this.TrackFunctionsCheckBox.Text = "Function Hits";
             this.TrackFunctionsCheckBox.UseVisualStyleBackColor = true;
@@ -146,9 +157,10 @@
             // TrackCalls
             // 
             this.TrackCalls.AutoSize = true;
-            this.TrackCalls.Location = new System.Drawing.Point(3, 26);
+            this.TrackCalls.Location = new System.Drawing.Point(4, 39);
+            this.TrackCalls.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.TrackCalls.Name = "TrackCalls";
-            this.TrackCalls.Size = new System.Drawing.Size(74, 17);
+            this.TrackCalls.Size = new System.Drawing.Size(95, 24);
             this.TrackCalls.TabIndex = 13;
             this.TrackCalls.Text = "Call Stack";
             this.TrackCalls.UseVisualStyleBackColor = true;
@@ -157,9 +169,10 @@
             // TrackInstances
             // 
             this.TrackInstances.AutoSize = true;
-            this.TrackInstances.Location = new System.Drawing.Point(3, 49);
+            this.TrackInstances.Location = new System.Drawing.Point(4, 73);
+            this.TrackInstances.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.TrackInstances.Name = "TrackInstances";
-            this.TrackInstances.Size = new System.Drawing.Size(72, 17);
+            this.TrackInstances.Size = new System.Drawing.Size(91, 24);
             this.TrackInstances.TabIndex = 16;
             this.TrackInstances.Text = "Instances";
             this.TrackInstances.UseVisualStyleBackColor = true;
@@ -168,9 +181,10 @@
             // TrackProfiling
             // 
             this.TrackProfiling.AutoSize = true;
-            this.TrackProfiling.Location = new System.Drawing.Point(3, 72);
+            this.TrackProfiling.Location = new System.Drawing.Point(4, 107);
+            this.TrackProfiling.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.TrackProfiling.Name = "TrackProfiling";
-            this.TrackProfiling.Size = new System.Drawing.Size(63, 17);
+            this.TrackProfiling.Size = new System.Drawing.Size(87, 24);
             this.TrackProfiling.TabIndex = 14;
             this.TrackProfiling.Text = "Profiling";
             this.TrackProfiling.UseVisualStyleBackColor = true;
@@ -179,9 +193,10 @@
             // TrackThreadlines
             // 
             this.TrackThreadlines.AutoSize = true;
-            this.TrackThreadlines.Location = new System.Drawing.Point(3, 95);
+            this.TrackThreadlines.Location = new System.Drawing.Point(4, 141);
+            this.TrackThreadlines.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.TrackThreadlines.Name = "TrackThreadlines";
-            this.TrackThreadlines.Size = new System.Drawing.Size(81, 17);
+            this.TrackThreadlines.Size = new System.Drawing.Size(107, 24);
             this.TrackThreadlines.TabIndex = 15;
             this.TrackThreadlines.Text = "Threadlines";
             this.TrackThreadlines.UseVisualStyleBackColor = true;
@@ -190,10 +205,11 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label4.Location = new System.Drawing.Point(109, 0);
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.label4.Location = new System.Drawing.Point(145, 0);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(57, 13);
+            this.label4.Size = new System.Drawing.Size(71, 17);
             this.label4.TabIndex = 40;
             this.label4.Text = "Tracking";
             // 
@@ -205,8 +221,7 @@
             // 
             // SettingsPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.Controls.Add(this.flowLayoutPanel8);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.ConnectionList);
@@ -216,8 +231,9 @@
             this.Controls.Add(this.TargetFpsLink);
             this.Controls.Add(this.FpsLabel);
             this.Controls.Add(this.label1);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "SettingsPanel";
-            this.Size = new System.Drawing.Size(673, 160);
+            this.Size = new System.Drawing.Size(897, 246);
             this.Load += new System.EventHandler(this.SettingsPanel_Load);
             this.flowLayoutPanel8.ResumeLayout(false);
             this.flowLayoutPanel8.PerformLayout();

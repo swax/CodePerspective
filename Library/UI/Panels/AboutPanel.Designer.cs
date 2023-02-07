@@ -43,6 +43,7 @@
             this.CopyrightLink = new System.Windows.Forms.LinkLabel();
             this.NewsBrowser = new DeOps.Interface.Views.WebBrowserEx();
             this.ProBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -52,58 +53,64 @@
             // LicenseLabel
             // 
             this.LicenseLabel.AutoSize = true;
-            this.LicenseLabel.Location = new System.Drawing.Point(18, 52);
+            this.LicenseLabel.Location = new System.Drawing.Point(24, 80);
+            this.LicenseLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.LicenseLabel.Name = "LicenseLabel";
-            this.LicenseLabel.Size = new System.Drawing.Size(78, 13);
+            this.LicenseLabel.Size = new System.Drawing.Size(99, 20);
             this.LicenseLabel.TabIndex = 3;
             this.LicenseLabel.Text = "License: AGPL";
             // 
             // VersionLabel
             // 
             this.VersionLabel.AutoSize = true;
-            this.VersionLabel.Location = new System.Drawing.Point(18, 32);
+            this.VersionLabel.Location = new System.Drawing.Point(24, 49);
+            this.VersionLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.VersionLabel.Name = "VersionLabel";
-            this.VersionLabel.Size = new System.Drawing.Size(60, 13);
+            this.VersionLabel.Size = new System.Drawing.Size(80, 20);
             this.VersionLabel.TabIndex = 4;
             this.VersionLabel.Text = "Version 1.0";
             // 
             // NameLabel
             // 
             this.NameLabel.AutoSize = true;
-            this.NameLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.NameLabel.Location = new System.Drawing.Point(17, 22);
+            this.NameLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.NameLabel.Location = new System.Drawing.Point(23, 34);
+            this.NameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.NameLabel.Name = "NameLabel";
-            this.NameLabel.Size = new System.Drawing.Size(64, 13);
+            this.NameLabel.Size = new System.Drawing.Size(84, 17);
             this.NameLabel.TabIndex = 8;
             this.NameLabel.Text = "Name: John";
             // 
             // CompanyLabel
             // 
             this.CompanyLabel.AutoSize = true;
-            this.CompanyLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CompanyLabel.Location = new System.Drawing.Point(17, 42);
+            this.CompanyLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.CompanyLabel.Location = new System.Drawing.Point(23, 65);
+            this.CompanyLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.CompanyLabel.Name = "CompanyLabel";
-            this.CompanyLabel.Size = new System.Drawing.Size(91, 13);
+            this.CompanyLabel.Size = new System.Drawing.Size(122, 17);
             this.CompanyLabel.TabIndex = 9;
             this.CompanyLabel.Text = "Company: Firesoft";
             // 
             // DateLabel
             // 
             this.DateLabel.AutoSize = true;
-            this.DateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.DateLabel.Location = new System.Drawing.Point(17, 62);
+            this.DateLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.DateLabel.Location = new System.Drawing.Point(23, 95);
+            this.DateLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.DateLabel.Name = "DateLabel";
-            this.DateLabel.Size = new System.Drawing.Size(99, 13);
+            this.DateLabel.Size = new System.Drawing.Size(131, 17);
             this.DateLabel.TabIndex = 10;
             this.DateLabel.Text = "Date: July 11, 2012";
             // 
             // CodePerspectiveLink
             // 
             this.CodePerspectiveLink.AutoSize = true;
-            this.CodePerspectiveLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.CodePerspectiveLink.Location = new System.Drawing.Point(3, 9);
+            this.CodePerspectiveLink.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.CodePerspectiveLink.Location = new System.Drawing.Point(4, 14);
+            this.CodePerspectiveLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.CodePerspectiveLink.Name = "CodePerspectiveLink";
-            this.CodePerspectiveLink.Size = new System.Drawing.Size(107, 13);
+            this.CodePerspectiveLink.Size = new System.Drawing.Size(135, 17);
             this.CodePerspectiveLink.TabIndex = 11;
             this.CodePerspectiveLink.TabStop = true;
             this.CodePerspectiveLink.Text = "Code Perspective";
@@ -115,10 +122,12 @@
             this.ProBox.Controls.Add(this.NameLabel);
             this.ProBox.Controls.Add(this.CompanyLabel);
             this.ProBox.Controls.Add(this.DateLabel);
-            this.ProBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ProBox.Location = new System.Drawing.Point(6, 75);
+            this.ProBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.ProBox.Location = new System.Drawing.Point(8, 115);
+            this.ProBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ProBox.Name = "ProBox";
-            this.ProBox.Size = new System.Drawing.Size(210, 105);
+            this.ProBox.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.ProBox.Size = new System.Drawing.Size(280, 162);
             this.ProBox.TabIndex = 12;
             this.ProBox.TabStop = false;
             this.ProBox.Text = "Pro Details";
@@ -126,10 +135,11 @@
             // IdLabel
             // 
             this.IdLabel.AutoSize = true;
-            this.IdLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.IdLabel.Location = new System.Drawing.Point(17, 82);
+            this.IdLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.IdLabel.Location = new System.Drawing.Point(23, 126);
+            this.IdLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.IdLabel.Name = "IdLabel";
-            this.IdLabel.Size = new System.Drawing.Size(60, 13);
+            this.IdLabel.Size = new System.Drawing.Size(77, 17);
             this.IdLabel.TabIndex = 11;
             this.IdLabel.Text = "ID: 234234";
             // 
@@ -139,6 +149,7 @@
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.IsSplitterFixed = true;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -150,8 +161,9 @@
             this.splitContainer1.Panel2.Controls.Add(this.NewsLink);
             this.splitContainer1.Panel2.Controls.Add(this.CopyrightLink);
             this.splitContainer1.Panel2.Controls.Add(this.NewsBrowser);
-            this.splitContainer1.Size = new System.Drawing.Size(515, 191);
+            this.splitContainer1.Size = new System.Drawing.Size(687, 294);
             this.splitContainer1.SplitterDistance = 225;
+            this.splitContainer1.SplitterWidth = 5;
             this.splitContainer1.TabIndex = 13;
             // 
             // panel1
@@ -161,17 +173,19 @@
             this.panel1.Controls.Add(this.ProBox);
             this.panel1.Controls.Add(this.VersionLabel);
             this.panel1.Controls.Add(this.LicenseLabel);
-            this.panel1.Location = new System.Drawing.Point(3, 3);
+            this.panel1.Location = new System.Drawing.Point(4, 5);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(225, 185);
+            this.panel1.Size = new System.Drawing.Size(300, 285);
             this.panel1.TabIndex = 2;
             // 
             // GoProLink
             // 
             this.GoProLink.AutoSize = true;
-            this.GoProLink.Location = new System.Drawing.Point(102, 52);
+            this.GoProLink.Location = new System.Drawing.Point(136, 80);
+            this.GoProLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.GoProLink.Name = "GoProLink";
-            this.GoProLink.Size = new System.Drawing.Size(40, 13);
+            this.GoProLink.Size = new System.Drawing.Size(54, 20);
             this.GoProLink.TabIndex = 2;
             this.GoProLink.TabStop = true;
             this.GoProLink.Text = "Go Pro";
@@ -180,9 +194,10 @@
             // NewsLink
             // 
             this.NewsLink.AutoSize = true;
-            this.NewsLink.Location = new System.Drawing.Point(5, 12);
+            this.NewsLink.Location = new System.Drawing.Point(7, 18);
+            this.NewsLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.NewsLink.Name = "NewsLink";
-            this.NewsLink.Size = new System.Drawing.Size(98, 13);
+            this.NewsLink.Size = new System.Drawing.Size(133, 20);
             this.NewsLink.TabIndex = 3;
             this.NewsLink.TabStop = true;
             this.NewsLink.Text = "News and Updates";
@@ -192,9 +207,10 @@
             // 
             this.CopyrightLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.CopyrightLink.AutoSize = true;
-            this.CopyrightLink.Location = new System.Drawing.Point(193, 12);
+            this.CopyrightLink.Location = new System.Drawing.Point(333, 18);
+            this.CopyrightLink.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.CopyrightLink.Name = "CopyrightLink";
-            this.CopyrightLink.Size = new System.Drawing.Size(90, 13);
+            this.CopyrightLink.Size = new System.Drawing.Size(128, 20);
             this.CopyrightLink.TabIndex = 2;
             this.CopyrightLink.TabStop = true;
             this.CopyrightLink.Text = "Copyright Notices";
@@ -207,27 +223,29 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.NewsBrowser.IsWebBrowserContextMenuEnabled = false;
-            this.NewsBrowser.Location = new System.Drawing.Point(8, 28);
-            this.NewsBrowser.MinimumSize = new System.Drawing.Size(20, 20);
+            this.NewsBrowser.Location = new System.Drawing.Point(11, 43);
+            this.NewsBrowser.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.NewsBrowser.MinimumSize = new System.Drawing.Size(27, 31);
             this.NewsBrowser.Name = "NewsBrowser";
-            this.NewsBrowser.Size = new System.Drawing.Size(275, 160);
+            this.NewsBrowser.Size = new System.Drawing.Size(443, 246);
             this.NewsBrowser.TabIndex = 0;
-            this.NewsBrowser.Url = new System.Uri("", System.UriKind.Relative);
+            this.NewsBrowser.Url = new System.Uri("about:blank", System.UriKind.Absolute);
             this.NewsBrowser.WebBrowserShortcutsEnabled = false;
             // 
             // AboutPanel
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.Controls.Add(this.splitContainer1);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "AboutPanel";
-            this.Size = new System.Drawing.Size(515, 191);
+            this.Size = new System.Drawing.Size(687, 294);
             this.Resize += new System.EventHandler(this.AboutPanel_Resize);
             this.ProBox.ResumeLayout(false);
             this.ProBox.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();

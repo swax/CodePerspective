@@ -51,7 +51,7 @@ namespace XBuilder.Panels
 
         private void LaunchButton_Click(object sender, EventArgs e)
         {
-            if (Model.Files.Count == 0)
+                if (Model.Files.Count == 0)
             {
                 MessageBox.Show("Nothing to launch");
                 return;
@@ -62,7 +62,11 @@ namespace XBuilder.Panels
 
             if (item == null)
             {
-                MessageBox.Show("Can only launch exes, for dlls launch the exe that uses the dll.");
+                var filepath = Model.Files.First().FilePath;
+                var filedir = Path.GetDirectoryName(filepath);
+                Process.Start(new ProcessStartInfo(filedir) { UseShellExecute = true });
+
+                //MessageBox.Show("Can only launch exes, for dlls launch the exe that uses the dll.");
                 return;
             }
 

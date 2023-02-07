@@ -8,6 +8,9 @@ using XLibrary;
 using System.Threading;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Xml.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace XBuilder
 {
@@ -236,6 +239,15 @@ namespace XBuilder
                     var writePath = Path.Combine(OutputDir, "XRay.dat");
                     trackedObjects = SaveDat(writePath, settings, root, callMap, initMap);
 
+                    try
+                    {
+                        UpdateDepsFile();
+                    }
+                    catch (Exception ex)
+                    {
+                        BuildError = "Error updating deps.json file: " + ex.Message;
+                    }
+
                     if (errorLog.Length > 0)
                     {
                         string logPath = Path.Combine(Application.StartupPath, "errorlog.txt");
@@ -374,6 +386,83 @@ namespace XBuilder
 
             BuildStatus = "Restored backups";
             return true;
+        }
+
+        /// <summary>
+        /// Adds reference to XLibrary to the app.deps.json file so it can be loaded at runtime
+        /// </summary>
+        private void UpdateDepsFile()
+        {
+            var xlibPath = Path.Combine(Application.StartupPath, "XLibrary.dll");
+
+            // get assembly version from file path
+            var libVersion = FileVersionInfo.GetVersionInfo(xlibPath).FileVersion;
+
+            // find deps.json file in path
+            var filepaths = Directory.GetFiles(OutputDir, "*.deps.json");
+
+            foreach (var filepath in filepaths)
+            {
+                AddXLibToDepsFile(filepath, libVersion);
+            }
+        }
+
+        private void AddXLibToDepsFile(string filepath, string libVersion)
+        {
+            // read json file
+            string jsonString = File.ReadAllText(filepath);
+
+            // Convert the JSON string to a JObject:
+            var rootObject = JsonConvert.DeserializeObject(jsonString) as JObject;
+            if (rootObject == null)
+                return;
+
+            // Add xlib to libraries
+            var librariesObject = rootObject.SelectToken("libraries") as JObject;
+            if (librariesObject != null)
+            {
+                var key = "XLibrary/" + libVersion;
+                if (!librariesObject.ContainsKey(key))
+                {
+                    librariesObject.Add(key, JObject.Parse(@"{
+			          ""type"": ""project"",
+			          ""serviceable"": false,
+			          ""sha512"": """"
+                    }"));
+                }
+            }
+
+            // Add xlib to targets
+            var targetsObject = rootObject.SelectToken("targets") as JObject;
+            if (targetsObject != null)
+            {
+                // targest are like ".NETCoreApp,Version=v6.0"
+                foreach (var target in targetsObject)
+                {
+                    var targetObject = target.Value as JObject;
+                    if (targetObject != null)
+                    {
+                        var key = "XLibrary/" + libVersion;
+                        if (!targetObject.ContainsKey(key))
+                        {
+                            targetObject.Add(key, JObject.Parse(@"{
+			                    ""dependencies"": {
+			                        ""Microsoft.CSharp"": ""4.7.0"",
+			                        ""System.Data.DataSetExtensions"": ""4.5.0""
+			                    },
+			                    ""runtime"": {
+			                        ""XLibrary.dll"": {}
+			                    }
+			                }"));
+                        }
+                    }
+                }
+            }
+
+            // Convert the JObject back to a string:
+            var updatedJsonString = rootObject.ToString();
+
+            File.WriteAllText(filepath, updatedJsonString);
         }
     }
 

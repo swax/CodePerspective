@@ -56,7 +56,7 @@
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.SettingsTab = new XLibrary.UI.Panels.SettingsPanel();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.aboutPanel1 = new XLibrary.UI.Panels.AboutPanel();
+            this.AboutTab = new XLibrary.UI.Panels.AboutPanel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -329,7 +329,7 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.aboutPanel1);
+            this.tabPage3.Controls.Add(this.AboutTab);
             this.tabPage3.Location = new System.Drawing.Point(4, 29);
             this.tabPage3.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabPage3.Name = "tabPage3";
@@ -341,13 +341,13 @@
             // 
             // aboutPanel1
             // 
-            this.aboutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.aboutPanel1.Location = new System.Drawing.Point(4, 5);
-            this.aboutPanel1.Margin = new System.Windows.Forms.Padding(5, 8, 5, 8);
-            this.aboutPanel1.Name = "aboutPanel1";
-            this.aboutPanel1.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.aboutPanel1.Size = new System.Drawing.Size(184, 57);
-            this.aboutPanel1.TabIndex = 0;
+            this.AboutTab.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.AboutTab.Location = new System.Drawing.Point(4, 5);
+            this.AboutTab.Margin = new System.Windows.Forms.Padding(5, 8, 5, 8);
+            this.AboutTab.Name = "aboutPanel1";
+            this.AboutTab.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.AboutTab.Size = new System.Drawing.Size(184, 57);
+            this.AboutTab.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -402,7 +402,7 @@
         private System.Windows.Forms.Panel ViewHostPanel;
         private System.Windows.Forms.ToolStripDropDownButton ThreadButton;
         private System.Windows.Forms.TabPage tabPage3;
-        private UI.Panels.AboutPanel aboutPanel1;
+        private UI.Panels.AboutPanel AboutTab;
         private System.Windows.Forms.TabPage tabPage4;
         private UI.Panels.SettingsPanel SettingsTab;
     }

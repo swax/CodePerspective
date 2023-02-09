@@ -565,10 +565,6 @@ namespace XLibrary
                         BuilderVersion = value;
                         break;
 
-                    case "Pro":
-                        Pro.LoadFromString(value);
-                        break;
-
                     case "EnableLocalViewer":
                         EnableLocalViewer = bool.Parse(value);
                         break;

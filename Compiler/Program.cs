@@ -23,8 +23,6 @@ namespace XBuilder
             PacketExts.Test();
             GenericPacket.Test();
 
-            Pro.LoadFromDirectory(Application.StartupPath);
-
             XRay.BuilderVersion = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
             Application.EnableVisualStyles();

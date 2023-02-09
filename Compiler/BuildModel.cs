@@ -217,9 +217,6 @@ namespace XBuilder
 
                     settings["Version"] = XRay.BuilderVersion;
 
-                    if (Pro.Verified)
-                        settings["Pro"] = Pro.SignedFile;
-
                     if (EnableLocalViewer)
                     {
                         settings["EnableLocalViewer"] = EnableLocalViewer.ToString();

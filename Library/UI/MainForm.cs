@@ -51,6 +51,7 @@ namespace XLibrary
             CodeTab.Init(this);
             NamespaceTab.Init(this);
             SettingsTab.Init(this);
+            AboutTab.Init();
 
             CodeTab.Visible = false;
             InstanceTab.Visible = false;
@@ -64,9 +65,6 @@ namespace XLibrary
 
             if (XRay.Remote != null && XRay.Remote.RemoteDatHash != null)
                 Text = "Remote " + Text;
-
-            if (Pro.Verified)
-                Text += " Pro";
 
             Show();
             WindowState = FormWindowState.Normal;

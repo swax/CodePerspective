@@ -21,9 +21,6 @@ namespace XBuilder
         {
             InitializeComponent();
 
-            if (Pro.Verified)
-                Text = "Code Perspective Pro";
-
             ScannerPanel.Init(this);
         }
     }

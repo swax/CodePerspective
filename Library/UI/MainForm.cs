@@ -93,8 +93,8 @@ namespace XLibrary
         public void InitRenderers()
         {
             Renderers[typeof(GdiRenderer)] = new GdiRenderer(Model);
-            //Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
-            //Renderers[typeof(GibsonRenderer)] = new GibsonRenderer(Model);
+            Renderers[typeof(GLRenderer)] = new GLRenderer(Model);
+            Renderers[typeof(GibsonRenderer)] = new GibsonRenderer(Model);
 
             foreach (var renderer in Renderers.Values)
             {

@@ -8,7 +8,9 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using QuickFont;
 using OpenTK.Graphics;
-
+using OpenTK.Mathematics;
+using OpenTK.WinForms;
+using OpenTK.Windowing.Desktop;
 
 namespace XLibrary
 {
@@ -56,6 +58,9 @@ namespace XLibrary
         public GibsonRenderer(ViewModel model)
         {
             Model = model;
+
+            GLFWProvider.CheckForMainThread = false;
+            Profile = OpenTK.Windowing.Common.ContextProfile.Compatability;
 
             Load += GLRenderer_Load;
             Paint += GLRenderer_Paint;
@@ -201,11 +206,11 @@ namespace XLibrary
             }
 
             // draw vertex buffers
-            Nodes.Draw(BeginMode.Triangles);
+            Nodes.Draw(PrimitiveType.Triangles);
 
             GLUtils.SafeEnable(LineCaps, () =>
             {
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
                 DrawLineVbo(Outlines);
                 DrawLineVbo(CallLines);
@@ -249,7 +254,7 @@ namespace XLibrary
                 Nodes.Load();
 
                 // draw node vbo
-                Nodes.Draw(BeginMode.Triangles);
+                Nodes.Draw(PrimitiveType.Triangles);
 
                 // read pixel at cursor
                 byte[] rgb = new byte[3];
@@ -284,7 +289,7 @@ namespace XLibrary
                     continue;
 
                 GL.LineWidth(width);
-                vbo.Draw(BeginMode.Lines);
+                vbo.Draw(PrimitiveType.Lines);
             }
         }
 

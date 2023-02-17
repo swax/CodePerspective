@@ -57,8 +57,8 @@ namespace XLibrary.Panels
 
             // rendering
             RenderGdiButton.Checked = Main.SelectedView is GdiRenderer;
-            //RenderOpenGLButton.Checked = Main.SelectedView is GLRenderer;
-            //RenderGibsonButton.Checked = Main.SelectedView is GibsonRenderer;
+            RenderOpenGLButton.Checked = Main.SelectedView is GLRenderer;
+            RenderGibsonButton.Checked = Main.SelectedView is GibsonRenderer;
 
             // elements
             ShowAllButton.Checked = Model.ShowLayout == ShowNodes.All;
@@ -354,20 +354,20 @@ namespace XLibrary.Panels
 
         private void RenderOpenGLButton_CheckedChanged(object sender, EventArgs e)
         {
-            /*if (!RenderOpenGLButton.Checked)
+            if (!RenderOpenGLButton.Checked)
                 return;
 
             Main.SetRenderer(typeof(GLRenderer));
-            Main.RefreshView();*/
+            Main.RefreshView();
         }
 
         private void RenderFpsButton_CheckedChanged(object sender, EventArgs e)
         {
-            /*if (!RenderGibsonButton.Checked)
+            if (!RenderGibsonButton.Checked)
                 return;
 
             Main.SetRenderer(typeof(GibsonRenderer));
-            Main.RefreshView();*/
+            Main.RefreshView();
         }
 
         private void PauseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

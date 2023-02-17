@@ -210,7 +210,7 @@ namespace XLibrary
 
             GL.LineWidth(1);
             
-            GLUtils.SafeBegin(BeginMode.Lines, () =>
+            GLUtils.SafeBegin(PrimitiveType.Lines, () =>
             {
                 GL.Color3(crosshair);
                

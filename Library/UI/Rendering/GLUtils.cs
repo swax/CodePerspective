@@ -6,12 +6,13 @@ using OpenTK.Graphics.OpenGL;
 using System.Runtime.InteropServices;
 using OpenTK;
 using System.Drawing;
+using OpenTK.Mathematics;
 
 namespace XLibrary
 {
     public static class GLUtils
     {
-        public static void SafeBegin(BeginMode mode, Action code)
+        public static void SafeBegin(PrimitiveType mode, Action code)
         {
             GL.Begin(mode);
 
@@ -71,7 +72,7 @@ namespace XLibrary
 
         public static void SafeBlend(Action code)
         {
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             GL.Enable(EnableCap.Blend);
 
             code();
@@ -163,7 +164,7 @@ namespace XLibrary
 
         static ArrayCap[] DrawStates = new ArrayCap[] { ArrayCap.ColorArray, ArrayCap.VertexArray, ArrayCap.NormalArray };
 
-        public void Draw(BeginMode mode)                
+        public void Draw(PrimitiveType mode)                
         {
             // To draw a VBO:
             // 1) Ensure that the VertexArray client state is enabled.

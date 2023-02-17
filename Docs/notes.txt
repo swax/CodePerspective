@@ -1,4 +1,11 @@
 ﻿
+.Net 6 update
+	The new .Net generally builds a wrapper exe around the main app dll
+	This means to use XRay now you generally need to overwrite the dll with the xrayed version, you can't run xray side by side like before
+
+XRay window not showing up on app start
+	The deps.json file of the app needs to be updated with references to XLibrary, OpenTK and QuickFont 
+	in order for the viewer to show. Should happen automatically as part of the build process.
 
 Debugging why an assembly is not working:
 	Load assembly.exe as a project in visual studio and start debugging

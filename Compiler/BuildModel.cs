@@ -11,6 +11,8 @@ using System.Security.Cryptography;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Windows.Input;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace XBuilder
 {
@@ -33,7 +35,7 @@ namespace XBuilder
         public bool TrackParameters = false;
         public bool StaticAnalysis = true;
 
-        public bool ReplaceOriginal;
+        public bool ReplaceOriginal = true;
         public bool CompileWithMS;
         public bool DecompileAgain;
         public bool SaveMsil = true;
@@ -123,9 +125,21 @@ namespace XBuilder
 
                     if (EnableLocalViewer)
                     {
-                        /*CopyLocalToOutputDir("OpenTK.dll", OutputDir);
-                        CopyLocalToOutputDir("OpenTK.GLControl.dll", OutputDir);
-                        CopyLocalToOutputDir("QuickFont.dll", OutputDir);*/
+                        // copy glfw3 to output
+                        var runtimeDir = Path.Combine(Application.StartupPath, "runtimes");
+                        foreach (var platformDir in Directory.GetDirectories(runtimeDir, "win-*"))
+                            foreach (var nativeDir in Directory.GetDirectories(platformDir, "native"))
+                                foreach (var dllFilename in Directory.GetFiles(nativeDir, "glfw3.dll"))
+                                {
+                                    var platformDirName = Path.GetFileName(platformDir);
+                                    CopyLocalToOutputDir($"runtimes/{platformDirName}/native/{Path.GetFileName(dllFilename)}", OutputDir);
+                                }
+
+                        // copy opentk dlls
+                        foreach (var item in Directory.GetFiles(Application.StartupPath, "OpenTK*"))
+                            CopyLocalToOutputDir(Path.GetFileName(item), OutputDir);
+
+                        CopyLocalToOutputDir("QuickFont.dll", OutputDir);
                     }
 
                     string errorLog = "";
@@ -238,7 +252,16 @@ namespace XBuilder
 
                     try
                     {
-                        UpdateDepsFile();
+                        var copyDepLibraries = new List<string> { "XLibrary" };
+
+                        if (EnableLocalViewer)
+                        {
+                            copyDepLibraries.Add("OpenTK");
+                            copyDepLibraries.Add("QuickFont");
+                        }
+
+                        var transferObj = CopyBuilderDeps(copyDepLibraries);
+                        AddDepsToOutput(transferObj);
                     }
                     catch (Exception ex)
                     {
@@ -385,81 +408,88 @@ namespace XBuilder
             return true;
         }
 
-        /// <summary>
-        /// Adds reference to XLibrary to the app.deps.json file so it can be loaded at runtime
-        /// </summary>
-        private void UpdateDepsFile()
+        class TransferDeps
         {
-            var xlibPath = Path.Combine(Application.StartupPath, "XLibrary.dll");
+            public Dictionary<string, JToken> Targets { get; set; } = new();
 
-            // get assembly version from file path
-            var libVersion = FileVersionInfo.GetVersionInfo(xlibPath).FileVersion;
-
-            // find deps.json file in path
-            var filepaths = Directory.GetFiles(OutputDir, "*.deps.json");
-
-            foreach (var filepath in filepaths)
-            {
-                AddXLibToDepsFile(filepath, libVersion);
-            }
+            public Dictionary<string, JToken> Libraries { get; set; } = new();
         }
 
-        private void AddXLibToDepsFile(string filepath, string libVersion)
+        private TransferDeps CopyBuilderDeps(List<string> copyLibraryNames)
         {
-            // read json file
-            string jsonString = File.ReadAllText(filepath);
+            var transferObj = new TransferDeps();
 
-            // Convert the JSON string to a JObject:
-            var rootObject = JsonConvert.DeserializeObject(jsonString) as JObject;
-            if (rootObject == null)
-                return;
+            var path = Path.Combine(Application.StartupPath, "XBuilder.deps.json");
 
-            // Add xlib to libraries
-            var librariesObject = rootObject.SelectToken("libraries") as JObject;
-            if (librariesObject != null)
-            {
-                var key = "XLibrary/" + libVersion;
-                if (!librariesObject.ContainsKey(key))
-                {
-                    librariesObject.Add(key, JObject.Parse(@"{
-			          ""type"": ""project"",
-			          ""serviceable"": false,
-			          ""sha512"": """"
-                    }"));
-                }
-            }
+            // Open source deps file
+            var root = JsonConvert.DeserializeObject(File.ReadAllText(path)) as JObject;
+            if (root == null)
+                return null;
 
-            // Add xlib to targets
-            var targetsObject = rootObject.SelectToken("targets") as JObject;
-            if (targetsObject != null)
+            var targets = root.SelectToken("targets") as JObject;
+            if (targets != null)
             {
                 // targest are like ".NETCoreApp,Version=v6.0"
-                foreach (var target in targetsObject)
+                foreach (var target in targets)
                 {
                     var targetObject = target.Value as JObject;
                     if (targetObject != null)
-                    {
-                        var key = "XLibrary/" + libVersion;
-                        if (!targetObject.ContainsKey(key))
-                        {
-                            targetObject.Add(key, JObject.Parse(@"{
-			                    ""dependencies"": {
-			                        ""Microsoft.CSharp"": ""4.7.0"",
-			                        ""System.Data.DataSetExtensions"": ""4.5.0""
-			                    },
-			                    ""runtime"": {
-			                        ""XLibrary.dll"": {}
-			                    }
-			                }"));
-                        }
-                    }
+                        foreach (var libraryObject in targetObject)
+                            foreach (var libraryName in copyLibraryNames)
+                                if (libraryObject.Key.StartsWith(libraryName))
+                                    transferObj.Targets[libraryObject.Key] = libraryObject.Value.DeepClone();
                 }
             }
 
-            // Convert the JObject back to a string:
-            var updatedJsonString = rootObject.ToString();
+            // Add xlib to libraries
+            var librariesObject = root.SelectToken("libraries") as JObject;
+            if (librariesObject != null)
+            {
+                foreach (var libraryObject in librariesObject)
+                    foreach (var libraryName in copyLibraryNames)
+                        if (libraryObject.Key.StartsWith(libraryName))
+                            transferObj.Libraries[libraryObject.Key] = libraryObject.Value.DeepClone();
+            }
 
-            File.WriteAllText(filepath, updatedJsonString);
+            return transferObj;
+        }
+
+        void AddDepsToOutput(TransferDeps transferObj)
+        {
+            foreach (var outputDepsPath in Directory.GetFiles(OutputDir, "*.deps.json"))
+            {
+                // Open dest deps file
+                var rootObj = JsonConvert.DeserializeObject(File.ReadAllText(outputDepsPath)) as JObject;
+                if (rootObj == null)
+                    return;
+
+                var targets = rootObj.SelectToken("targets") as JObject;
+                if (targets != null)
+                {
+                    // targest are like ".NETCoreApp,Version=v6.0"
+                    foreach (var target in targets)
+                    {
+                        var targetObject = target.Value as JObject;
+                        if (targetObject != null)
+                            foreach (var transfer in transferObj.Targets)
+                                if (!targetObject.ContainsKey(transfer.Key))
+                                    targetObject.Add(transfer.Key, transfer.Value);
+                    }
+                }
+
+                var librariesObject = rootObj.SelectToken("libraries") as JObject;
+                if (librariesObject != null)
+                {
+                    foreach (var transfer in transferObj.Libraries)
+                        if (!librariesObject.ContainsKey(transfer.Key))
+                            librariesObject.Add(transfer.Key, transfer.Value);
+                }
+
+                // Convert the JObject back to a string:
+                var updatedJsonString = rootObj.ToString();
+
+                File.WriteAllText(outputDepsPath, updatedJsonString);
+            }
         }
     }
 

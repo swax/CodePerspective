@@ -8,7 +8,9 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using QuickFont;
 using OpenTK.Graphics;
-
+using OpenTK.Mathematics;
+using OpenTK.WinForms;
+using OpenTK.Windowing.Desktop;
 
 namespace XLibrary
 {
@@ -38,6 +40,9 @@ namespace XLibrary
         public GLRenderer(ViewModel model)
         {
             Model = model;
+
+            GLFWProvider.CheckForMainThread = false;
+            Profile = OpenTK.Windowing.Common.ContextProfile.Compatability;
 
             Load += GLRenderer_Load;
             Paint += GLRenderer_Paint;
@@ -146,12 +151,12 @@ namespace XLibrary
             }
 
             // draw vertex buffers
-            Nodes.Draw(BeginMode.Triangles);
+            Nodes.Draw(PrimitiveType.Triangles);
             DrawLineVbo(Outlines);
 
             GLUtils.SafeEnable(LineCaps, () =>
             {
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
              
                 DrawLineVbo(CallLines);
 
@@ -167,8 +172,8 @@ namespace XLibrary
 
             GLUtils.SafeEnable(EnableCap.Blend, () =>
             {
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                Overlays.Draw(BeginMode.Triangles);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                Overlays.Draw(PrimitiveType.Triangles);
                 FontMap.Values.ForEach(f => f.DrawVBOs());
             });
 
@@ -186,7 +191,7 @@ namespace XLibrary
                     continue;
 
                 GL.LineWidth(width);
-                vbo.Draw(BeginMode.Lines);
+                vbo.Draw(PrimitiveType.Lines);
             }
         }
 

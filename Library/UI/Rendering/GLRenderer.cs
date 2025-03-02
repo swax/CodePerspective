@@ -130,56 +130,97 @@ namespace XLibrary
 
             if (!Model.Paused)
             {
-                // reset vertex buffers
-                Nodes.Reset();
-                FontMap.Values.ForEach(f => f.ResetVBOs());
-                Outlines.Values.ForEach(v => v.Reset());
-                CallLines.Values.ForEach(v => v.Reset());
-                DashedCallLines.Values.ForEach(v => v.Reset());
-                Overlays.Reset();
+                try
+                {
+                    // reset vertex buffers
+                    Nodes.Reset();
+                    FontMap.Values.ForEach(f => f.ResetVBOs());
+                    Outlines.Values.ForEach(v => v.Reset());
+                    CallLines.Values.ForEach(v => v.Reset());
+                    DashedCallLines.Values.ForEach(v => v.Reset());
+                    Overlays.Reset();
 
-                // render
-                Model.Render();
+                    // render
+                    Model.Render();
 
-                // send vertex buffers to gpu
-                Nodes.Load();
-                FontMap.Values.ForEach(f => f.LoadVBOs());
-                Outlines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
-                CallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
-                DashedCallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => v.Load());
-                Overlays.Load();
+                    // send vertex buffers to gpu
+                    SafeLoadVertexBuffer(Nodes);
+                    FontMap.Values.ForEach(f => SafeLoadFontVBO(f));
+                    Outlines.Values.Where(v => v.VertexCount > 0).ForEach(v => SafeLoadVertexBuffer(v));
+                    CallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => SafeLoadVertexBuffer(v));
+                    DashedCallLines.Values.Where(v => v.VertexCount > 0).ForEach(v => SafeLoadVertexBuffer(v));
+                    SafeLoadVertexBuffer(Overlays);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error preparing render data: " + ex.Message);
+                }
             }
 
-            // draw vertex buffers
-            Nodes.Draw(PrimitiveType.Triangles);
-            DrawLineVbo(Outlines);
-
-            GLUtils.SafeEnable(LineCaps, () =>
+            try
             {
-                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-             
-                DrawLineVbo(CallLines);
+                // draw vertex buffers
+                Nodes.Draw(PrimitiveType.Triangles);
+                DrawLineVbo(Outlines);
 
-                GLUtils.SafeEnable(EnableCap.LineStipple, () =>
+                GLUtils.SafeEnable(LineCaps, () =>
                 {
-                    //1111 1000 0000 0000
-                    ushort pattern = (ushort)(0xF800 >> (XRay.DashOffset * 5));
-                    GL.LineStipple(1, pattern);
+                    GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                 
+                    DrawLineVbo(CallLines);
 
-                    DrawLineVbo(DashedCallLines);
+                    GLUtils.SafeEnable(EnableCap.LineStipple, () =>
+                    {
+                        //1111 1000 0000 0000
+                        ushort pattern = (ushort)(0xF800 >> (XRay.DashOffset * 5));
+                        GL.LineStipple(1, pattern);
+
+                        DrawLineVbo(DashedCallLines);
+                    });
                 });
-            });
 
-            GLUtils.SafeEnable(EnableCap.Blend, () =>
+                GLUtils.SafeEnable(EnableCap.Blend, () =>
+                {
+                    GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                    Overlays.Draw(PrimitiveType.Triangles);
+                    FontMap.Values.ForEach(f => f.DrawVBOs());
+                });
+
+                SwapBuffers();
+
+                Model.FpsCount++;
+            }
+            catch (Exception ex)
             {
-                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-                Overlays.Draw(PrimitiveType.Triangles);
-                FontMap.Values.ForEach(f => f.DrawVBOs());
-            });
+                Console.WriteLine("Error in rendering: " + ex.Message);
+            }
+        }
 
-            SwapBuffers();
+        private void SafeLoadVertexBuffer(VertexBuffer buffer)
+        {
+            try
+            {
+                if (buffer != null && buffer.VertexCount > 0)
+                {
+                    buffer.Load();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading vertex buffer: {ex.Message}");
+            }
+        }
 
-            Model.FpsCount++;
+        private void SafeLoadFontVBO(QFont font)
+        {
+            try
+            {
+                font.LoadVBOs();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading font VBO: {ex.Message}");
+            }
         }
 
         private void DrawLineVbo(Dictionary<int, VertexBuffer> widthMap)
@@ -347,7 +388,6 @@ namespace XLibrary
 
             vbo.AddVerticies(color, Normal, a, b);
         }
-
         public void ViewInvalidate()
         {
             Invalidate();

@@ -23,22 +23,45 @@ namespace XLibrary
 
         public static void SafeEnable(EnableCap cap, Action code)
         {
-            GL.Enable(cap);
-
-            code();
-
-            GL.Disable(cap);
+            bool wasEnabled = GL.IsEnabled(cap);
+            
+            try
+            {
+                if (!wasEnabled)
+                    GL.Enable(cap);
+                
+                code();
+            }
+            finally
+            {
+                if (!wasEnabled)
+                    GL.Disable(cap);
+            }
         }
 
         public static void SafeEnable(EnableCap[] caps, Action code)
         {
-            foreach (var cap in caps)
-                GL.Enable(cap);
+            bool[] wasEnabled = new bool[caps.Length];
+            
+            for (int i = 0; i < caps.Length; i++)
+            {
+                wasEnabled[i] = GL.IsEnabled(caps[i]);
+                if (!wasEnabled[i])
+                    GL.Enable(caps[i]);
+            }
 
-            code();
-
-            foreach (var cap in caps)
-                GL.Disable(cap);
+            try
+            {
+                code();
+            }
+            finally
+            {
+                for (int i = 0; i < caps.Length; i++)
+                {
+                    if (!wasEnabled[i])
+                        GL.Disable(caps[i]);
+                }
+            }
         }
 
         public static void SafeDisable(EnableCap cap, Action code)
@@ -126,84 +149,16 @@ namespace XLibrary
             normal = new Vector3(-1, 0, 0);
             vbo.AddVerticies(color, normal, v1, v4, v8, v1, v8, v5);
         }
-    }
 
-    public class VertexBuffer
-    {
-        public int VboID;
-
-        public int VertexCount = 0;
-        VertexPositionColor[] Vertices = new VertexPositionColor[1000];
-
-
-        public void Init()
+        public static void CheckGLError(string operation)
         {
-            GL.GenBuffers(1, out VboID);
-        }
-
-        public void Reset()
-        {
-            VertexCount = 0;
-        }
-
-        public void Load()
-        {
-            int size;
-
-            // To create a VBO:
-            // 1) Generate the buffer handles for the vertex and element buffers.
-            // 2) Bind the vertex buffer handle and upload your vertex data. Check that the buffer was uploaded correctly.
-            // 3) Bind the element buffer handle and upload your element data. Check that the buffer was uploaded correctly.
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VboID);
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexCount * BlittableValueType.StrideOf(Vertices)), Vertices, BufferUsageHint.StaticDraw);
-            GL.GetBufferParameter(BufferTarget.ArrayBuffer, BufferParameterName.BufferSize, out size);
-            if (VertexCount * BlittableValueType.StrideOf(Vertices) != size)
-                throw new ApplicationException("Vertex data not uploaded correctly");
-        }
-
-        static ArrayCap[] DrawStates = new ArrayCap[] { ArrayCap.ColorArray, ArrayCap.VertexArray, ArrayCap.NormalArray };
-
-        public void Draw(PrimitiveType mode)                
-        {
-            // To draw a VBO:
-            // 1) Ensure that the VertexArray client state is enabled.
-            // 2) Bind the vertex and element buffer handles.
-            // 3) Set up the data pointers (vertex, normal, color) according to your vertex format.
-            // 4) Call DrawElements. (Note: the last parameter is an offset into the element buffer
-            //    and will usually be IntPtr.Zero).
-
-            GLUtils.SafeGLEnableClientStates(DrawStates, () =>
+            ErrorCode error = GL.GetError();
+            if (error != ErrorCode.NoError)
             {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, VboID);
-
-                GL.VertexPointer(3, VertexPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(0));
-                GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(12));
-                GL.NormalPointer(NormalPointerType.Float, BlittableValueType.StrideOf(Vertices), new IntPtr(16));
-
-                GL.DrawArrays(mode, 0, VertexCount);
-            });
-        }
-
-        internal void AddVerticies(Color color, Vector3 normal, params Vector3[] points)
-        {
-            foreach (var point in points)
-                AddVertex(point, color, normal);
-        }
-
-        internal void AddVertex(Vector3 point, Color color, Vector3 normal)
-        {
-            if (VertexCount + 1 >= Vertices.Length)
-            {
-                var newArray = new VertexPositionColor[Vertices.Length * 2];
-                Array.Copy(Vertices, newArray, VertexCount);
-                Vertices = newArray;
+                throw new ApplicationException($"OpenGL error during {operation}: {error}");
             }
-
-            Vertices[VertexCount++].Set(point, color, normal);
         }
     }
-
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct VertexPositionColor

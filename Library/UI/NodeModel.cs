@@ -52,6 +52,11 @@ namespace XLibrary
         internal float ScaledSize; // width and height
         internal float VelocityY;
 
+        // Add this property to support the layout algorithm
+        public Dictionary<int, NodeModel> PositionMap { get; set; }
+
+        // Reference to the containing rank (new property)
+        public Rank ParentRank { get; set; }
 
         public NodeModel(ViewModel model, XNodeIn xNode)
         {

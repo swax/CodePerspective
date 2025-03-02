@@ -170,6 +170,9 @@ namespace XLibrary
             for(int i = 0; i < Graphs.Count; i++)
             {
                 var graph = Graphs[i];
+                
+                // Add reference to position map for the layout algorithm
+                graph.NodeMap = PositionMap;
 
                 // size graph height in proportion to weight
                 graph.ScaledHeight = graph.Weight / totalWeight;
@@ -185,6 +188,9 @@ namespace XLibrary
                         min = node.Value;
                     if (node.Value > max)
                         max = node.Value;
+                    
+                    // Add reference to position map for the ideal position calculation
+                    node.PositionMap = PositionMap;
                 }
 
                 // find column with the most nodes
@@ -221,33 +227,21 @@ namespace XLibrary
                 for (int x = 0; x < graph.Ranks.Length; x++)
                 {
                     var rank = graph.Ranks[x];
-
-                    PositionRank(graph, rank, xOffset);// + maxSize / 2);
-
+                    PositionRank(graph, rank, xOffset);
                     xOffset += spacePerColumn;
                 }
 
-                // arrange nodes in each rank
+                // Apply improved layout algorithm
                 if (Model.SequenceOrder)
                 {
-                    for (int x = 0; x < 6; x++)
+                    // For sequence ordering, use mostly vertical spacing
+                    for (int x = 0; x < 3; x++)
                         MinDistance(graph);
-
-                    //Spring(graph);
                 }
                 else
                 {
-                    for (int x = 0; x < 3; x++)
-                        Uncross(graph);
-
-                    for (int x = 0; x < 3; x++)
-                        MinDistance(graph);
-
-                    for (int x = 0; x < 3; x++)
-                        Uncross(graph);
-
-                    for (int x = 0; x < 3; x++)
-                        MinDistance(graph);
+                    // Apply the Sugiyama layout algorithm for better results
+                    GraphLayout.ApplySugiyamaLayout(graph);
                 }
             }
         }
@@ -432,10 +426,13 @@ namespace XLibrary
 
         }
 
+        // Keep the original methods for compatibility
         private void Uncross(Graph graph)
         {
+            // This method is kept for backward compatibility
+            // The new GraphLayout.ApplySugiyamaLayout provides better results
+            
             // moves nodes closer to attached nodes in adjacent ranks
-
             foreach (Rank rank in graph.Ranks)
             {
                 // foreach node average y pos form all connected edges
@@ -451,6 +448,7 @@ namespace XLibrary
 
         private float AvgPos(NodeModel node)
         {
+            // This method is kept for backward compatibility
             float sum = 0;
             float count = 0;
 
@@ -479,7 +477,6 @@ namespace XLibrary
                         count++;
                     }
 
-            // should only be attached to intermediate nodes
             if (node.Adjacents != null)
             {
                 Debug.Assert(node.ID == 0); // adjacents should only be on temp nodes
@@ -856,7 +853,9 @@ namespace XLibrary
 
         public float ScaledHeight;
         public float ScaledOffset;
-
+        
+        // Added to support the new layout algorithm
+        public Dictionary<int, NodeModel> NodeMap;
 
         public IEnumerable<NodeModel> Nodes()
         {

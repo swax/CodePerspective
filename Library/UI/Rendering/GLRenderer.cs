@@ -171,8 +171,12 @@ namespace XLibrary
 
                     GLUtils.SafeEnable(EnableCap.LineStipple, () =>
                     {
-                        //1111 1000 0000 0000
-                        ushort pattern = (ushort)(0xF800 >> (XRay.DashOffset * 5));
+                        // 0: 1111000011110000
+                        // 1: 0001111000011110
+                        // 2: 1100001111000011
+                        ushort pattern = XRay.DashOffset == 0 ? (ushort)0xF0F0 : 
+                            XRay.DashOffset == 1 ? (ushort)0x1E1E : (ushort)0xC3C3;
+
                         GL.LineStipple(1, pattern);
 
                         DrawLineVbo(DashedCallLines);

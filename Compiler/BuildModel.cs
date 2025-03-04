@@ -119,7 +119,7 @@ namespace XBuilder
                     }
 
                     BuildStatus = "Preparing";
-                   
+
                     // copy XLibrary to final destination
                     CopyLocalToOutputDir("XLibrary.dll", OutputDir);
 
@@ -145,6 +145,12 @@ namespace XBuilder
                     string errorLog = "";
 
                     XNodeOut.NextID = 0;
+                    XNodeOut.TokenNodeMap.Clear();
+                    XNodeOut.MethodNodeMap.Clear();
+                    XNodeOut.TypeNodeMap.Clear();
+                    BinaryOutput2.NextTypeID = BinaryOutput2.MagicTypeIDPrefix;
+                    BinaryOutput2.TypeIDMap.Clear();
+
                     XNodeOut root = new XNodeOut(null, "root", XObjType.Root);
                     XNodeOut extRoot = root.AddNode("Not XRayed", XObjType.External);
                     XNodeOut intRoot = root.AddNode("XRayed", XObjType.Internal);
@@ -223,6 +229,9 @@ namespace XBuilder
                         linesAdded += decompile.LinesAdded;
                     }
 
+                    // Fix the IDs in the CSharp code
+                    RemapDecompiledCSharpIDs(intRoot);
+
                     // save node map before verifying because we dont want bogus verify 
                     // errors from preventing the dat file form being made
                     BuildStatus = "Saving Map";
@@ -285,6 +294,68 @@ namespace XBuilder
             });
             
             BuildThread.Start();
+        }
+
+        /** 
+         * The ICSharp decompiler uses a different way to represent types than the Cecel decompiler
+         * So during ICSharp decompiling, the text is tagged with IDs that will later (here) be translated to 
+         *  Cecil IDs once, cecil is done processing (also here)
+         * So here we go back through the CSharp byte stream and replace the ICSharp IDs with the Cecil IDs
+         */
+        private static void RemapDecompiledCSharpIDs(XNodeOut intRoot)
+        {
+            /*Debug.WriteLine("ICSharp Types:");
+            BinaryOutput2.TypeIDMap.Keys.OrderBy(n => n).ForEach(n => Debug.WriteLine(n));
+
+            Debug.WriteLine("");
+            Debug.WriteLine("Cecil Types:");
+            XNodeOut.TypeNodeMap.Keys.OrderBy(n => n).ForEach(n => Debug.WriteLine(n));*/
+
+
+            Utilities.RecurseTree(
+                root: intRoot,
+                evaluate: n =>
+                {
+                    if (n.CSharp == null)
+                        return;
+                    
+                    using (var stream = new MemoryStream(n.CSharp))
+                    {
+                        while (stream.Position < stream.Length)
+                        {
+                            var decompileId = BitConverter.ToInt32(stream.Read(4), 0);
+                            var strlen = BitConverter.ToInt32(stream.Read(4), 0);
+                            string text = UTF8Encoding.UTF8.GetString(stream.Read(strlen));
+
+                            stream.Position -= 4 + 4 + strlen;
+                            int xrayId = 0;
+
+
+                            if (XNodeOut.TokenNodeMap.TryGetValue(decompileId, out List<XNodeOut> referencingMethods))
+                            {
+                                var referencingMethod = referencingMethods.FirstOrDefault(rm => rm.MethodFullName.Contains(text));
+                                if (referencingMethod != null)
+                                    xrayId = referencingMethod.ID;
+                            }
+
+                            var typeFullName = BinaryOutput2.TypeIDMap.FirstOrDefault(kv => kv.Value == decompileId);
+                            if (!typeFullName.Equals(default(KeyValuePair<string, int>)))
+                            {
+                                if (xrayId != 0)
+                                    throw new Exception("RemapDecompiledCSharpIDs: ID collision");
+
+                                if (XNodeOut.TypeNodeMap.TryGetValue(typeFullName.Key, out XNodeOut node))
+                                    xrayId = node.ID;
+                            }
+
+                            stream.Write(BitConverter.GetBytes(xrayId));
+
+                            stream.Position += 4 + strlen;
+                        }
+                    }
+                },
+                recurse: n => n.Nodes.OfType<XNodeOut>()
+            );
         }
 
         public long SaveDat(string path, Dictionary<string, string> settings, XNodeOut root, 
@@ -372,9 +443,11 @@ namespace XBuilder
             stream.Position = stream.Length;
         }
 
-        private static void CopyLocalToOutputDir(string filename, string destPath)
+        private static void CopyLocalToOutputDir(string relativeFilePath, string destPath)
         {
-            File.Copy(Path.Combine(Application.StartupPath, filename), Path.Combine(destPath, filename), true);
+            var filename = Path.GetFileName(relativeFilePath);
+
+            File.Copy(Path.Combine(Application.StartupPath, relativeFilePath), Path.Combine(destPath, filename), true);
         }
 
         private bool TryRestoreBackups()

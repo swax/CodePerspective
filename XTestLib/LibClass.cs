@@ -83,6 +83,19 @@ namespace XTestLib
             TestFunc21();
             TestFunc22(DateTime.Now, 1.0);
             TestFunc23();
+
+            TestFuncDupe(4);
+            TestFuncDupe("four");
+        }
+
+        void TestFuncDupe(int x)
+        {
+            x += 8;
+        }
+
+        void TestFuncDupe(string y)
+        {
+            y += "hello";
         }
 
         void TestFunc23()

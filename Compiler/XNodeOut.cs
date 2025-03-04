@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using Mono.Cecil.Cil;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 
 namespace XBuilder
@@ -17,6 +18,11 @@ namespace XBuilder
     public class XNodeOut : XNode
     {
         public static int NextID = 1;
+
+        public static Dictionary<string, XNodeOut> MethodNodeMap = new Dictionary<string, XNodeOut>();
+        public static Dictionary<string, XNodeOut> TypeNodeMap = new Dictionary<string, XNodeOut>();
+        public static Dictionary<int, List<XNodeOut>> TokenNodeMap = new Dictionary<int, List<XNodeOut>>();
+
 
         public bool Exclude;
         public int Indent;
@@ -26,8 +32,8 @@ namespace XBuilder
         public int AnonClasses = 1;
 
         public HashSet<int> ClassDependencies;
-        MethodReference MethodRef;
 
+        public string MethodFullName;   
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -60,17 +66,26 @@ namespace XBuilder
 
         public XNodeOut AddMethod(MethodReference method)
         {
-            // used for namespaces
-            XNodeOut existing = Nodes.Cast<XNodeOut>().Where(n => n.MethodRef != null && n.MethodRef.FullName == method.FullName).FirstOrDefault();
-            if (existing != null)
+            if (MethodNodeMap.TryGetValue(method.FullName, out XNodeOut existing))
                 return existing;
 
             XNodeOut node = new XNodeOut(this, method.Name, XObjType.Method);
-            node.MethodRef = method;
             Nodes.Add(node);
+
+            MethodNodeMap[method.FullName] = node;
+            node.MethodFullName = method.FullName;
+
+            if (TokenNodeMap.TryGetValue(method.MetadataToken.ToInt32(), out List<XNodeOut> existingTokens))
+            {
+                if (!existingTokens.Any(n => n.MethodFullName == method.FullName))
+                    existingTokens.Add(node);
+            }
+            else 
+                TokenNodeMap[method.MetadataToken.ToInt32()] = new List<XNodeOut> { node }; 
+
             return node;
         }
-
+        
         public long ComputeSums()
         {
             long sum = Lines;
@@ -193,7 +208,7 @@ namespace XBuilder
             XDef fieldTypeDef = XDef.ParseAndCheck(fieldDef.FieldType.ToString());
 
             string name = fieldTypeDef.GetShortName() + " " + fieldDef.Name;
-
+           
             var node = AddNode(name, XObjType.Field);
 
             node.Lines = 1;

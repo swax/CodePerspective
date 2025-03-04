@@ -241,6 +241,7 @@ namespace XBuilder
                 else if (def.DefType == XDef.XDefType.Class)
                 {
                     currentNode = currentNode.AddNode(def.GetShortName(), XObjType.Class);
+                    XNodeOut.TypeNodeMap[signature] = currentNode;
 
                     /* Cant map generic params because the fileNode is not right
                     if (def.Generics != null)
@@ -818,7 +819,7 @@ namespace XBuilder
             XNodeOut methodNode = classNode.AddMethod(method);
 
             if (Build.DecompileCSharp)
-                methodNode.CSharp = DecompileMethod2(method);
+                methodNode.CSharp = DecompileICSharp.DecompileMethod(method);
 
             if (method.Body == null)
                 return;
@@ -994,23 +995,23 @@ namespace XBuilder
             return target;
         }
 
-        XNodeOut GetClassRef(TypeReference declaringType)
+        public XNodeOut GetClassRef(TypeReference declaringType)
         {
             //if(!declaringType.IsGenericParameter && !declaringType.IsFunctionPointer)
             //    XDef.ParseAndCheck(declaringType.ToString());
 
-            if (declaringType.IsGenericParameter)
+            /*if (declaringType.IsGenericParameter)
                 Debug.WriteLine("GetClassRef for Generic Param - " + declaringType.ToString());
 
             if (declaringType.IsFunctionPointer)
-                Debug.WriteLine("GetClassRef for Function Pointer - " + declaringType.ToString());
+                Debug.WriteLine("GetClassRef for Function Pointer - " + declaringType.ToString());*/
 
             var scope = declaringType.Scope;
 
             if (scope.MetadataScopeType == MetadataScopeType.ModuleReference)
             {
                 // is this scope type internal or external, should it be tracked externally?
-                Debug.WriteLine("Skipped GetClassRef for - " + declaringType.ToString());
+                //Debug.WriteLine("Skipped GetClassRef for - " + declaringType.ToString());
                 Debug.Assert(false);
                 return null;
             }

@@ -42,7 +42,10 @@ namespace XLibrary
         {
             byte[] buffer = new byte[size];
             int check = stream.Read(buffer, 0, size);
-            Debug.Assert(size == check);
+            
+            if (size != check)
+                throw new IOException($"Failed to read {size} bytes from stream. Only read {check} bytes.");
+    
             return buffer;
         }
 

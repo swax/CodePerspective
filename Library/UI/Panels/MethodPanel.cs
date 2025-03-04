@@ -194,35 +194,42 @@ namespace XLibrary.Panels
 
         private void RefreshCSharpView()
         {
-            if(SelectedNode == null || !SelectedNode.LoadCSharp())
+            try
             {
-                UpdateContent("Function not XRayed");
-                return;
+                if (SelectedNode == null || !SelectedNode.LoadCSharp())
+                {
+                    UpdateContent("Function not XRayed");
+                    return;
+                }
+
+                // read byte stream and build html
+                var code = new StringBuilder();
+
+                // format - id, length, string
+                var stream = new MemoryStream(SelectedNode.CSharp);
+
+                while (stream.Position < stream.Length)
+                {
+                    var id = BitConverter.ToInt32(stream.Read(4), 0);
+                    var strlen = BitConverter.ToInt32(stream.Read(4), 0);
+                    string text = UTF8Encoding.UTF8.GetString(stream.Read(strlen));
+
+                    text = text.Replace(" ", "&nbsp;"); // do here so html not messed up
+
+                    if (id == 0)
+                        code.Append(text);
+                    else
+                        code.Append(string.Format("<a href='http://id{0}'>{1}</a>", id, text));
+                }
+
+                code = code.Replace("\r\n", "<br />");
+
+                UpdateContent(code.ToString());
             }
-
-            // read byte stream and build html
-            var code = new StringBuilder();
-
-            // format - id, length, string
-            var stream = new MemoryStream(SelectedNode.CSharp);
-
-            while (stream.Position < stream.Length)
+            catch (Exception ex)
             {
-                var id = BitConverter.ToInt32(stream.Read(4), 0);
-                var strlen = BitConverter.ToInt32(stream.Read(4), 0);
-                string text = UTF8Encoding.UTF8.GetString(stream.Read(strlen));
-
-                text = text.Replace(" ", "&nbsp;"); // do here so html not messed up
-
-                if (id == 0)
-                    code.Append(text);
-                else
-                    code.Append(string.Format("<a href='http://id{0}'>{1}</a>", id, text));
+                UpdateContent("Error loading: " + ex.Message);
             }
-
-            code = code.Replace("\r\n", "<br />");
-
-            UpdateContent(code.ToString());
         }
 
         private void UpdateContent(string content)

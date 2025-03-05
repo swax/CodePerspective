@@ -24,6 +24,7 @@ namespace XBuilder
         int indent;
         bool needsIndent;
 
+        /** hacky but allows us to share the type id with metadata tokens, very low collision probability */
         public static int MagicTypeIDPrefix = 1272301500;
         public static Dictionary<string, int> TypeIDMap = new Dictionary<string, int>();
         public static int NextTypeID = MagicTypeIDPrefix;
@@ -114,9 +115,30 @@ namespace XBuilder
 
         public override void WriteIdentifier(Identifier identifier)
         {
+            // Set metadata token id for now, and later once all methods processed, replace with the xray id
             int id = 0;
 
-            if (identifier.Parent is SimpleType simpleType)
+            // Field reference
+            if (identifier.Parent?.Parent is FieldDeclaration fieldDecl)
+            {
+                id = GetResolveResult(fieldDecl);
+            }
+            // Method reference
+            else if (identifier.Parent is IdentifierExpression identExp)
+            {
+                // Method in expresssion
+                if (identifier.Parent.Parent is InvocationExpression invoExp)
+                {
+                    id = GetResolveResult(invoExp);
+                }
+                // Field in expression
+                else
+                {
+                    id = GetResolveResult(identExp);
+                }
+            }
+            // Type reference
+            else if (identifier.Parent is SimpleType simpleType)
             {
                 var typeResolveResult = simpleType.GetResolveResult() as TypeResolveResult;
 
@@ -127,12 +149,6 @@ namespace XBuilder
 
                     // Convert the ICSharp format name to the Cecil name so we can get the xray ID later on
                     var typeName = ConvertICSharpTypeToCecil(typeResolveResult.Type.ReflectionName);
-
-                    var bracketPos = typeName.IndexOf('[');
-                    if (bracketPos > 0)
-                    {
-                        typeName = typeName.Substring(0, bracketPos);
-                    }
 
                     if (TypeIDMap.TryGetValue(typeName, out int typeId))
                     {
@@ -145,20 +161,18 @@ namespace XBuilder
                     }
                 }
             }
-            else if (identifier.Parent is IdentifierExpression identExp)
-            {
-                if (identifier.Parent.Parent is InvocationExpression invoExp)
-                {
-                    var identResolveResult = invoExp.GetResolveResult() as MemberResolveResult;
-                    if (identResolveResult != null)
-                    {
-                        // Set metadata token id for now, and later once all methods processed, replace with the xray id
-                        id = identResolveResult.Member.MetadataToken.GetHashCode();
-                    }
-                }
-            }
 
             WriteText(identifier.Name, id);
+        }
+
+        private int GetResolveResult(AstNode node)
+        {
+            var result = node.GetResolveResult() as MemberResolveResult;
+
+            if (result != null)
+                return result.Member.MetadataToken.GetHashCode();
+            else
+                return 0;
         }
 
         public static string ConvertICSharpTypeToCecil(string icSharpType)

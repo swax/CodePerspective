@@ -254,7 +254,7 @@ namespace XTestLib
 
         public void TestFunc9(int x, object b)
         {
-
+            TestMe = 5;
         }
         
         public void TestFunc10(int x, object b)

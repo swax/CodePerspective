@@ -145,8 +145,8 @@ namespace XBuilder
                     string errorLog = "";
 
                     XNodeOut.NextID = 0;
-                    XNodeOut.TokenNodeMap.Clear();
                     XNodeOut.MethodNodeMap.Clear();
+                    XNodeOut.FieldNodeMap.Clear();
                     XNodeOut.TypeNodeMap.Clear();
                     BinaryOutput2.NextTypeID = BinaryOutput2.MagicTypeIDPrefix;
                     BinaryOutput2.TypeIDMap.Clear();
@@ -330,22 +330,27 @@ namespace XBuilder
                             stream.Position -= 4 + 4 + strlen;
                             int xrayId = 0;
 
-
-                            if (XNodeOut.TokenNodeMap.TryGetValue(decompileId, out List<XNodeOut> referencingMethods))
-                            {
-                                var referencingMethod = referencingMethods.FirstOrDefault(rm => rm.MethodFullName.Contains(text));
-                                if (referencingMethod != null)
-                                    xrayId = referencingMethod.ID;
-                            }
-
                             var typeFullName = BinaryOutput2.TypeIDMap.FirstOrDefault(kv => kv.Value == decompileId);
+
                             if (!typeFullName.Equals(default(KeyValuePair<string, int>)))
                             {
-                                if (xrayId != 0)
-                                    throw new Exception("RemapDecompiledCSharpIDs: ID collision");
-
                                 if (XNodeOut.TypeNodeMap.TryGetValue(typeFullName.Key, out XNodeOut node))
-                                    xrayId = node.ID;
+                                    if (!node.External)
+                                        xrayId = node.ID;
+                            }
+                            
+                            if (XNodeOut.FieldNodeMap.TryGetValue(decompileId, out List<XNodeOut> fields))
+                            {
+                                var field = fields.FirstOrDefault(f => !f.External && f.FieldFullName.Contains(text));
+                                if (field != null)
+                                    xrayId = field.ID;
+                            }
+                            
+                            if (XNodeOut.MethodNodeMap.TryGetValue(decompileId, out List<XNodeOut> methods))
+                            {
+                                var method = methods.FirstOrDefault(m => !m.External && m.MethodFullName.Contains(text));
+                                if (method != null)
+                                    xrayId = method.ID;
                             }
 
                             stream.Write(BitConverter.GetBytes(xrayId));

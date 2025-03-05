@@ -19,9 +19,9 @@ namespace XBuilder
     {
         public static int NextID = 1;
 
-        public static Dictionary<string, XNodeOut> MethodNodeMap = new Dictionary<string, XNodeOut>();
         public static Dictionary<string, XNodeOut> TypeNodeMap = new Dictionary<string, XNodeOut>();
-        public static Dictionary<int, List<XNodeOut>> TokenNodeMap = new Dictionary<int, List<XNodeOut>>();
+        public static Dictionary<int, List<XNodeOut>> MethodNodeMap = new Dictionary<int, List<XNodeOut>>();
+        public static Dictionary<int, List<XNodeOut>> FieldNodeMap = new Dictionary<int, List<XNodeOut>>();
 
 
         public bool Exclude;
@@ -33,7 +33,8 @@ namespace XBuilder
 
         public HashSet<int> ClassDependencies;
 
-        public string MethodFullName;   
+        public string MethodFullName;
+        public string FieldFullName;
 
         public XNodeOut(XNodeOut parent, string name, XObjType objType)
         {
@@ -66,22 +67,24 @@ namespace XBuilder
 
         public XNodeOut AddMethod(MethodReference method)
         {
-            if (MethodNodeMap.TryGetValue(method.FullName, out XNodeOut existing))
+            XNodeOut existing = Nodes.Cast<XNodeOut>().Where(n => n.MethodFullName == method.FullName).FirstOrDefault();
+            if (existing != null)
                 return existing;
 
             XNodeOut node = new XNodeOut(this, method.Name, XObjType.Method);
             Nodes.Add(node);
 
-            MethodNodeMap[method.FullName] = node;
             node.MethodFullName = method.FullName;
 
-            if (TokenNodeMap.TryGetValue(method.MetadataToken.ToInt32(), out List<XNodeOut> existingTokens))
+            int tokenId = method.MetadataToken.ToInt32();
+
+            if (MethodNodeMap.TryGetValue(tokenId, out List<XNodeOut> existingTokens))
             {
                 if (!existingTokens.Any(n => n.MethodFullName == method.FullName))
                     existingTokens.Add(node);
             }
             else 
-                TokenNodeMap[method.MetadataToken.ToInt32()] = new List<XNodeOut> { node }; 
+                MethodNodeMap[tokenId] = new List<XNodeOut> { node }; 
 
             return node;
         }
@@ -201,17 +204,32 @@ namespace XBuilder
             return trackedObjects;
         }
 
-        internal XNodeOut AddField(FieldReference fieldDef)
+        internal XNodeOut AddField(FieldReference field)
         {
             // include namespace later for dynamic lookups - string name = fieldDef.FieldType.FullName + "::" + fieldDef.Name;
+            XDef fieldTypeDef = XDef.ParseAndCheck(field.FieldType.ToString());
 
-            XDef fieldTypeDef = XDef.ParseAndCheck(fieldDef.FieldType.ToString());
+            string name = fieldTypeDef.GetShortName() + " " + field.Name;
 
-            string name = fieldTypeDef.GetShortName() + " " + fieldDef.Name;
-           
+            XNodeOut existing = Nodes.Cast<XNodeOut>().Where(n => n.FieldFullName == field.FullName).FirstOrDefault();
+            if (existing != null)
+                return existing;
+
             var node = AddNode(name, XObjType.Field);
+            Nodes.Add(node);
 
             node.Lines = 1;
+            node.FieldFullName = field.FullName;
+
+            int tokenId = field.MetadataToken.ToInt32();
+
+            if (FieldNodeMap.TryGetValue(tokenId, out List<XNodeOut> existingTokens))
+            {
+                if (!existingTokens.Any(n => n.FieldFullName == field.FullName))
+                    existingTokens.Add(node);
+            }
+            else
+                FieldNodeMap[tokenId] = new List<XNodeOut> { node };
 
             return node;
         }
